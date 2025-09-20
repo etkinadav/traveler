@@ -691,26 +691,39 @@ mat-form-field {
     color: #333;
     font-weight: normal;
     font-size: 12px !important;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .size-separator {
-    color: #ccc;
-    font-size: 12px !important;
+    flex: 1;
+    height: 1px;
+    background: repeating-linear-gradient(
+        to right,
+        #ccc 0px,
+        #ccc 4px,
+        transparent 4px,
+        transparent 8px
+    );
     margin: 0 8px;
-    flex-grow: 1;
-    text-align: center;
     opacity: 0.2;
+    align-self: center;
 }
 
 .size-count {
     color: #666;
     font-size: 12px !important;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .waste-item {
     border-top: 1px solid #e0e0e0;
     margin-top: 4px;
     padding-top: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .waste-text {
