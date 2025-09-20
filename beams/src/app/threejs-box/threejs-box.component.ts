@@ -2137,6 +2137,24 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('=== CUTTING PLAN ===', this.cuttingPlan);
     }
 
+    // פונקציה לקבוצת חתיכות לפי גודל
+    getCutGroups(cuts: number[]): { length: number, count: number }[] {
+        const groups: { [key: number]: number } = {};
+        
+        // ספירת כל גודל
+        cuts.forEach(cut => {
+            groups[cut] = (groups[cut] || 0) + 1;
+        });
+        
+        // המרה למערך ומיון בסדר יורד
+        return Object.keys(groups)
+            .map(length => ({
+                length: parseInt(length),
+                count: groups[parseInt(length)]
+            }))
+            .sort((a, b) => b.length - a.length);
+    }
+
     animate() {
         requestAnimationFrame(() => this.animate());
         this.camera.lookAt(this.target);

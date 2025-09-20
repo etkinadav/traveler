@@ -242,11 +242,11 @@
         <div class="price-menu-box" *ngIf="isPriceManuOpen">
             <!-- כותרת דינמית -->
             <span class="thinking-text" *ngIf="!BeamsDataForPricing || BeamsDataForPricing.length === 0">{{ 'price-calculation.first-title' | translate }}...</span>
-            <span class="static-text" *ngIf="BeamsDataForPricing && BeamsDataForPricing.length > 0">חומרי גלם:</span>
+            <span class="main-title" *ngIf="BeamsDataForPricing && BeamsDataForPricing.length > 0">חומרי גלם:</span>
             
             <!-- סיכום קורות -->
             <div class="materials-summary" *ngIf="BeamsDataForPricing && BeamsDataForPricing.length > 0">
-                <div class="static-text">קורות:</div>
+                <div class="sub-title">קורות:</div>
                 <div *ngFor="let beamData of BeamsDataForPricing" class="beam-type-section">
                     <!-- כותרת סוג הקורה -->
                     <div class="beam-name">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type.translatedName }})</div>
@@ -262,7 +262,7 @@
             
             <!-- סיכום ברגים -->
             <div class="materials-summary" *ngIf="ForgingDataForPricing && ForgingDataForPricing.length > 0">
-                <div class="static-text">ברגים:</div>
+                <div class="sub-title">ברגים:</div>
                 <div class="beam-type-section">
                     <div *ngFor="let forgingData of ForgingDataForPricing" class="size-item">
                         <span class="size-value">{{ forgingData.length }} ס"מ</span>
@@ -274,17 +274,17 @@
             
             <!-- תוכנית חיתוך קורות -->
             <div class="materials-summary" *ngIf="cuttingPlan && cuttingPlan.length > 0">
-                <div class="static-text">תוכנית חיתוך קורות:</div>
+                <div class="main-title">תוכנית חיתוך קורות:</div>
                 <div class="beam-type-section">
-                    <div *ngFor="let beam of cuttingPlan" class="cutting-plan-item">
-                        <div class="beam-info">
-                            <span class="beam-number">#{{ beam.beamNumber }}</span>
-                            <span class="beam-length">{{ beam.beamLength }} ס"מ</span>
-                            <span class="beam-price">{{ beam.beamPrice }} ₪</span>
-                        </div>
-                        <div class="cuts-info">
-                            <span class="cuts-label">חתיכות:</span>
-                            <span class="cuts-list">{{ beam.cuts.join(', ') }} ס"מ</span>
+                    <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
+                        <!-- כותרת קורה -->
+                        <div class="beam-name">קורה #{{ beam.beamNumber }} - {{ beam.beamLength }} ס"מ ({{ beam.beamPrice }} ₪)</div>
+                        
+                        <!-- רשימת החתיכות מקובצות לפי גודל -->
+                        <div *ngFor="let cutGroup of getCutGroups(beam.cuts)" class="size-item">
+                            <span class="size-value">{{ cutGroup.length }} ס"מ</span>
+                            <span class="size-separator">────</span>
+                            <span class="size-count">{{ cutGroup.count }} {{ 'price-calculation.units' | translate }}</span>
                         </div>
                     </div>
                 </div>

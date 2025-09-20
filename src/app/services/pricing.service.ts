@@ -31,14 +31,17 @@ export class PricingService {
    * @returns אובייקט עם מחיר כולל ותוכנית חיתוך מפורטת
    */
   calculateOptimalCutting(beamsData: any[], forgingData: any[]): { totalPrice: number, cuttingPlan: any[] } {
-    console.log('=== OPTIMAL CUTTING CALCULATION ===');
+    console.log('PRICE! === OPTIMAL CUTTING CALCULATION ===');
     
     let totalPrice = 0;
     let allCuttingPlans: any[] = [];
     
     // עיבוד כל סוג קורה
     beamsData.forEach((beamData, index) => {
-      console.log(`Processing beam type ${index + 1}:`, beamData);
+      console.log(`PRICE! === PROCESSING BEAM TYPE ${index + 1} ===`);
+      console.log('PRICE! beamData:', beamData);
+      console.log('PRICE! beamData.type:', beamData.type);
+      console.log('PRICE! beamData.type.length:', beamData.type.length);
       
       // יצירת רשימת חיתוכים נדרשים
       const requiredCuts: number[] = [];
@@ -48,24 +51,24 @@ export class PricingService {
         }
       });
       
-      console.log(`Required cuts for beam type ${index + 1}:`, requiredCuts);
+      console.log(`PRICE! Required cuts for beam type ${index + 1}:`, requiredCuts);
       
       // קבלת אפשרויות הקורות הזמינות
       const beamOptions = this.getBeamOptions(beamData.type);
-      console.log(`Available beam options:`, beamOptions);
+      console.log(`PRICE! Available beam options:`, beamOptions);
       
       // חישוב אופטימלי עם binpacking
       const optimalSolution = this.calculateOptimalCuttingForBeamType(requiredCuts, beamOptions);
-      console.log(`Optimal solution for beam type ${index + 1}:`, optimalSolution);
+      console.log(`PRICE! Optimal solution for beam type ${index + 1}:`, optimalSolution);
       
       // הדפסת לוגים מפורטים לכל קורה
-      console.log(`=== תוכנית חיתוך עבור סוג קורה ${index + 1} ===`);
+      console.log(`PRICE! === תוכנית חיתוך עבור סוג קורה ${index + 1} ===`);
       optimalSolution.beams.forEach((beam: any, beamIndex: number) => {
         const beamLength = beam.totalLength;
-        const beamPrice = this.getBeamPriceByLength(beamLength);
+        const beamPrice = this.getBeamPriceByLength(beamLength, beamData.type);
         const cuts = beam.cuts;
         
-        console.log(`קורה באורך ${beamLength} (מחיר ${beamPrice}) → חתיכות: [${cuts.join(', ')}]`);
+        console.log(`PRICE! קורה באורך ${beamLength} (מחיר ${beamPrice}) → חתיכות: [${cuts.join(', ')}]`);
         
         // הוספה לתוכנית החיתוך הכוללת
         allCuttingPlans.push({
@@ -76,19 +79,19 @@ export class PricingService {
           beamType: beamData.beamTranslatedName || beamData.beamName
         });
       });
-      console.log(''); // שורה ריקה להפרדה
+      console.log('PRICE! '); // שורה ריקה להפרדה
       
       // חישוב מחיר עבור הפתרון האופטימלי
       const beamTypePrice = this.calculatePriceForOptimalSolution(optimalSolution, beamData.type);
-      console.log(`מחיר כולל לסוג קורה ${index + 1}: ${beamTypePrice}`);
-      console.log(''); // שורה ריקה להפרדה
+      console.log(`PRICE! מחיר כולל לסוג קורה ${index + 1}: ${beamTypePrice}`);
+      console.log('PRICE! '); // שורה ריקה להפרדה
       
       totalPrice += beamTypePrice;
     });
     
     // עיבוד ברגים (ללא חיתוך אופטימלי)
     forgingData.forEach((forgingItem, index) => {
-      console.log(`Processing forging ${index + 1}:`, forgingItem);
+      console.log(`PRICE! Processing forging ${index + 1}:`, forgingItem);
       
       const length = forgingItem.length;
       const count = forgingItem.count;
@@ -99,8 +102,8 @@ export class PricingService {
       totalPrice += forgingPrice;
     });
     
-    console.log(`סה"כ מחיר: ${totalPrice}`);
-    console.log('=== סיום חישוב אופטימלי ===');
+    console.log(`PRICE! סה"כ מחיר: ${totalPrice}`);
+    console.log('PRICE! === סיום חישוב אופטימלי ===');
     
     return {
       totalPrice: totalPrice,
@@ -192,6 +195,32 @@ export class PricingService {
    * @returns רשימת אפשרויות קורות
    */
   private getBeamOptions(beamType: any): any[] {
+    console.log('PRICE! === GET BEAM OPTIONS ===');
+    console.log('PRICE! beamType:', beamType);
+    
+    // בדיקה אם יש נתוני מחירים אמיתיים
+    if (beamType && beamType.length && Array.isArray(beamType.length)) {
+      console.log('PRICE! Found real pricing data:', beamType.length);
+      
+      // הדפסת כל נתון מחיר
+      beamType.length.forEach((priceData: any, index: number) => {
+        console.log(`PRICE! Price data ${index + 1}:`, priceData);
+        console.log(`PRICE!   - length (mm): ${priceData.length}`);
+        console.log(`PRICE!   - length (cm): ${priceData.length / 10}`);
+        console.log(`PRICE!   - price: ${priceData.price}`);
+      });
+      
+      // המרה מהנתונים האמיתיים
+      const convertedOptions = beamType.length.map((priceData: any) => ({
+        length: priceData.length / 10, // המרה ממ"מ לס"מ
+        price: priceData.price
+      }));
+      
+      console.log('PRICE! Converted beam options:', convertedOptions);
+      return convertedOptions;
+    }
+    
+    console.log('PRICE! Using default pricing data');
     // בשלב זה נחזיר אפשרויות ברירת מחדל
     // בהמשך זה יבוא מהנתונים האמיתיים
     return [
@@ -219,7 +248,7 @@ export class PricingService {
    * @returns מחיר ליחידה
    */
   private findPriceForLength(type: any, length: number): number {
-    console.log(`Finding price for type: ${type}, length: ${length}cm`);
+    console.log(`PRICE! Finding price for type: ${type}, length: ${length}cm`);
     
     // בשלב זה נחזיר תמיד מחיר קבוע לצורך בדיקה
     return 5;
@@ -239,11 +268,28 @@ export class PricingService {
   /**
    * קבלת מחיר קורה לפי אורך
    * @param length - אורך הקורה בס"מ
+   * @param beamType - סוג הקורה עם נתוני המחירים
    * @returns מחיר הקורה
    */
-  private getBeamPriceByLength(length: number): number {
-    const beamOptions = this.getBeamOptions(null);
+  private getBeamPriceByLength(length: number, beamType?: any): number {
+    console.log(`PRICE! === GET BEAM PRICE BY LENGTH ===`);
+    console.log(`PRICE! Looking for price for length: ${length}cm`);
+    console.log(`PRICE! beamType provided:`, beamType);
+    
+    const beamOptions = this.getBeamOptions(beamType);
+    console.log('PRICE! Available beam options:', beamOptions);
+    
+    // הדפסת כל אפשרות
+    beamOptions.forEach((option: any, index: number) => {
+      console.log(`PRICE! Option ${index + 1}: length=${option.length}cm, price=${option.price}`);
+    });
+    
     const beamOption = beamOptions.find(option => option.length === length);
-    return beamOption ? beamOption.price : 0;
+    console.log(`PRICE! Found beam option:`, beamOption);
+    
+    const price = beamOption ? beamOption.price : 0;
+    console.log(`PRICE! Returning price: ${price}`);
+    
+    return price;
   }
 }
