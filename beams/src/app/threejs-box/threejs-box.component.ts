@@ -2149,8 +2149,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // המרה למערך ומיון בסדר יורד
         return Object.keys(groups)
             .map(length => ({
-                length: parseInt(length),
-                count: groups[parseInt(length)]
+                length: parseFloat(length), // שימוש ב-parseFloat במקום parseInt כדי לשמור על עשרוניות
+                count: groups[parseFloat(length)]
             }))
             .sort((a, b) => b.length - a.length);
     }

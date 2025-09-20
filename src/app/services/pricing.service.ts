@@ -21,6 +21,7 @@ export class PricingService {
     
     // שימוש באלגוריתם חיתוך אופטימלי
     const result = this.calculateOptimalCutting(beamsData, forgingData);
+    console.log('PRICE! Result:', result);
     return result.totalPrice;
   }
   
@@ -45,10 +46,12 @@ export class PricingService {
       
       // יצירת רשימת חיתוכים נדרשים
       const requiredCuts: number[] = [];
-      beamData.totalSizes.forEach((sizeData: any) => {
-        for (let i = 0; i < sizeData.count; i++) {
-          requiredCuts.push(sizeData.length);
-        }
+      console.log(`PRICE! beamData.sizes:`, beamData.sizes);
+      console.log(`PRICE! beamData.totalSizes:`, beamData.totalSizes);
+      
+      // שימוש ב-sizes במקום totalSizes כדי לקבל את כל החתיכות
+      beamData.sizes.forEach((cutLength: number) => {
+        requiredCuts.push(cutLength);
       });
       
       console.log(`PRICE! Required cuts for beam type ${index + 1}:`, requiredCuts);
@@ -67,15 +70,18 @@ export class PricingService {
         const beamLength = beam.totalLength;
         const beamPrice = this.getBeamPriceByLength(beamLength, beamData.type);
         const cuts = beam.cuts;
+        const remaining = beam.remaining;
         
-        console.log(`PRICE! קורה באורך ${beamLength} (מחיר ${beamPrice}) → חתיכות: [${cuts.join(', ')}]`);
+        console.log(`PRICE! קורה באורך ${beamLength} (מחיר ${beamPrice}) → חתיכות: [${cuts.join(', ')}], נותר: ${remaining} ס"מ`);
         
-        // הוספה לתוכנית החיתוך הכוללת
+        // הוספה לתוכנית החיתוך הכוללת עם כל הפרטים
         allCuttingPlans.push({
           beamNumber: allCuttingPlans.length + 1,
           beamLength: beamLength,
           beamPrice: beamPrice,
           cuts: cuts,
+          remaining: remaining,
+          waste: remaining,
           beamType: beamData.beamTranslatedName || beamData.beamName
         });
       });
@@ -152,26 +158,42 @@ export class PricingService {
     const bins: any[] = [];
     let totalWaste = 0;
     
-    cuts.forEach(cutLength => {
-      let placed = false;
+    console.log(`PRICE! === PACK CUTS INTO BEAMS ===`);
+    console.log(`PRICE! Beam length: ${beamLength}cm, Price: ${beamPrice}₪`);
+    console.log(`PRICE! Cuts to pack: [${cuts.join(', ')}]`);
+    
+    cuts.forEach((cutLength, cutIndex) => {
+      console.log(`PRICE! Processing cut ${cutIndex + 1}: ${cutLength}cm`);
       
-      // חיפוש קורה קיימת עם מקום פנוי
+      let bestBinIndex = -1;
+      let bestFit = Infinity;
+      
+      // חיפוש הקורה הטובה ביותר עבור החיתוך הנוכחי
       for (let i = 0; i < bins.length; i++) {
+        console.log(`PRICE!   Checking bin ${i + 1}: remaining=${bins[i].remaining}cm, cuts=[${bins[i].cuts.join(', ')}]`);
         if (bins[i].remaining >= cutLength) {
-          bins[i].cuts.push(cutLength);
-          bins[i].remaining -= cutLength;
-          placed = true;
-          break;
+          // בחירת הקורה עם הכי פחות מקום פנוי (Best Fit)
+          if (bins[i].remaining < bestFit) {
+            bestFit = bins[i].remaining;
+            bestBinIndex = i;
+            console.log(`PRICE!   Found better fit: bin ${i + 1} with ${bins[i].remaining}cm remaining`);
+          }
         }
       }
       
-      // אם לא נמצאה קורה מתאימה, יצירת קורה חדשה
-      if (!placed) {
+      // אם נמצאה קורה מתאימה, הוספה אליה
+      if (bestBinIndex !== -1) {
+        bins[bestBinIndex].cuts.push(cutLength);
+        bins[bestBinIndex].remaining -= cutLength;
+        console.log(`PRICE!   Added ${cutLength}cm to bin ${bestBinIndex + 1}. New remaining: ${bins[bestBinIndex].remaining}cm`);
+      } else {
+        // אם לא נמצאה קורה מתאימה, יצירת קורה חדשה
         bins.push({
           cuts: [cutLength],
           remaining: beamLength - cutLength,
           totalLength: beamLength
         });
+        console.log(`PRICE!   Created new bin ${bins.length} for ${cutLength}cm. Remaining: ${beamLength - cutLength}cm`);
       }
     });
     
@@ -180,6 +202,21 @@ export class PricingService {
       totalWaste += bin.remaining;
     });
     
+    console.log(`PRICE! === FINAL RESULT ===`);
+    console.log(`PRICE! Total bins: ${bins.length}`);
+    bins.forEach((bin, index) => {
+      console.log(`PRICE! Bin ${index + 1}: cuts=[${bin.cuts.join(', ')}], remaining=${bin.remaining}cm`);
+    });
+    console.log(`PRICE! Total waste: ${totalWaste}cm, Total cost: ${bins.length * beamPrice}₪`);
+    console.log(`PRICE! === END PACK CUTS ===`);
+    
+    console.log(`PRICE! === END PACK CUTS ===`, {
+      beams: bins,
+      totalWaste: totalWaste,
+      totalCost: bins.length * beamPrice,
+      beamCount: bins.length,
+      wastePercentage: (totalWaste / (bins.length * beamLength)) * 100
+    });
     return {
       beams: bins,
       totalWaste: totalWaste,

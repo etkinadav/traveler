@@ -278,13 +278,20 @@
                 <div class="beam-type-section">
                     <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
                         <!-- כותרת קורה -->
-                        <div class="beam-name">קורה #{{ beam.beamNumber }} - {{ beam.beamLength }} ס"מ ({{ beam.beamPrice }} ₪)</div>
+                        <div class="beam-name">קורה #{{ beam.beamNumber }} - {{ beam.beamLength }} ס"מ ({{ beam.beamPrice }} ₪) - {{ beam.beamType }}</div>
                         
                         <!-- רשימת החתיכות מקובצות לפי גודל -->
                         <div *ngFor="let cutGroup of getCutGroups(beam.cuts)" class="size-item">
                             <span class="size-value">{{ cutGroup.length }} ס"מ</span>
                             <span class="size-separator">────</span>
                             <span class="size-count">{{ cutGroup.count }} {{ 'price-calculation.units' | translate }}</span>
+                        </div>
+                        
+                        <!-- פסולת/נותר -->
+                        <div class="size-item waste-item" *ngIf="beam.remaining > 0">
+                            <span class="size-value waste-text">נותר: {{ beam.remaining }} ס"מ</span>
+                            <span class="size-separator">────</span>
+                            <span class="size-count waste-text">פסולת</span>
                         </div>
                     </div>
                 </div>
