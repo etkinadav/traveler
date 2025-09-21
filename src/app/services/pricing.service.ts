@@ -391,12 +391,6 @@ export class PricingService {
 
     
 
-      beams: bins,
-      totalWaste: totalWaste,
-      totalCost: bins.length * beamPrice,
-      beamCount: bins.length,
-      wastePercentage: (totalWaste / (bins.length * beamLength)) * 100
-    });
     return {
       beams: bins,
       totalWaste: totalWaste,
