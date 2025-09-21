@@ -683,8 +683,10 @@ mat-form-field {
     font-size: 12px;
     white-space: nowrap;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    width: 100%;
+    gap: 3px;
 }
 
 .size-value {
@@ -698,16 +700,11 @@ mat-form-field {
 .size-separator {
     flex: 1;
     height: 1px;
-    background: repeating-linear-gradient(
-        to right,
-        #ccc 0px,
-        #ccc 4px,
-        transparent 4px,
-        transparent 8px
-    );
-    margin: 0 8px;
+    background: #ccc;
+    margin: 0 4px;
     opacity: 0.2;
     align-self: center;
+    min-width: 0;
 }
 
 .size-count {
@@ -722,8 +719,10 @@ mat-form-field {
     margin-top: 4px;
     padding-top: 4px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    width: 100%;
+    gap: 3px;
 }
 
 .waste-text {

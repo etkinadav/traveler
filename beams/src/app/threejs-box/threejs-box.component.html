@@ -254,7 +254,7 @@
                     <!-- רשימת המידות -->
                     <div *ngFor="let sizeData of beamData.totalSizes" class="size-item">
                         <span class="size-value">{{ sizeData.length }} ס"מ</span>
-                        <span class="size-separator">────</span>
+                        <span class="size-separator"></span>
                         <span class="size-count">{{ sizeData.count }} {{ 'price-calculation.units' | translate }}</span>
                     </div>
                 </div>
@@ -266,7 +266,7 @@
                 <div class="beam-type-section">
                     <div *ngFor="let forgingData of ForgingDataForPricing" class="size-item">
                         <span class="size-value">{{ forgingData.length }} ס"מ</span>
-                        <span class="size-separator">────</span>
+                        <span class="size-separator"></span>
                         <span class="size-count">{{ forgingData.count }} {{ 'price-calculation.units' | translate }}</span>
                     </div>
                 </div>
@@ -283,15 +283,8 @@
                         <!-- רשימת החתיכות מקובצות לפי גודל -->
                         <div *ngFor="let cutGroup of getCutGroups(beam.cuts)" class="size-item">
                             <span class="size-value">{{ cutGroup.length }} ס"מ</span>
-                            <span class="size-separator">────</span>
+                            <span class="size-separator"></span>
                             <span class="size-count">{{ cutGroup.count }} {{ 'price-calculation.units' | translate }}</span>
-                        </div>
-                        
-                        <!-- פסולת/נותר -->
-                        <div class="size-item waste-item" *ngIf="beam.remaining > 0">
-                            <span class="size-value waste-text">נותר: {{ beam.remaining }} ס"מ</span>
-                            <span class="size-separator">────</span>
-                            <span class="size-count waste-text">פסולת</span>
                         </div>
                     </div>
                 </div>

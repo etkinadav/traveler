@@ -1528,12 +1528,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     
     // פונקציה לחישוב חומרים (קורות) לחישוב מחיר
-    calculatePricing() {
-        this.calculateBeamsData();
+    async calculatePricing() {
+        await this.calculateBeamsData();
     }
     
     // חישוב נתוני הקורות לחישוב מחיר
-    calculateBeamsData() {
+    async calculateBeamsData() {
         this.BeamsDataForPricing = [];
         
         // איסוף כל הקורות מהמודל התלת מימדי
@@ -1956,7 +1956,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('*** === END BEAMS DATA ===', this.BeamsDataForPricing);
         
         // חישוב ברגים
-        this.calculateForgingData();
+        await this.calculateForgingData();
     }
 
     // פונקציה לעגול אורך בורג לחצי הקרוב למעלה
@@ -2100,7 +2100,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
 
     // פונקציה ראשית לחישוב כל הברגים
-    private calculateForgingData(): void {
+    private async calculateForgingData(): Promise<void> {
         console.log('=== CALCULATING FORGING DATA ===');
         
         // איפוס המערך
@@ -2131,7 +2131,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('*** === END FORGING DATA ===', this.ForgingDataForPricing);
         
         // חישוב מחיר כולל ותוכנית חיתוך
-        this.calculatedPrice = this.pricingService.calculatePrice(this.BeamsDataForPricing, this.ForgingDataForPricing);
+        this.calculatedPrice = await this.pricingService.calculatePrice(this.BeamsDataForPricing, this.ForgingDataForPricing);
         this.cuttingPlan = this.pricingService.getCuttingPlan(this.BeamsDataForPricing, this.ForgingDataForPricing);
         console.log('=== FINAL CALCULATED PRICE ===', this.calculatedPrice);
         console.log('=== CUTTING PLAN ===', this.cuttingPlan);

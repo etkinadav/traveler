@@ -14,14 +14,14 @@ export class PricingService {
    * @param forgingData - נתוני הברגים מ-ForgingDataForPricing
    * @returns מחיר כולל
    */
-  calculatePrice(beamsData: any[], forgingData: any[]): number {
+  async calculatePrice(beamsData: any[], forgingData: any[]): Promise<number> {
     console.log('=== PRICING SERVICE - CALCULATING PRICE ===');
     console.log('Beams data:', beamsData);
     console.log('Forging data:', forgingData);
     
-    // שימוש באלגוריתם חיתוך אופטימלי
-    const result = this.calculateOptimalCutting(beamsData, forgingData);
-    console.log('PRICE! Result:', result);
+    // שימוש באלגוריתם חיתוך איטרטיבי משופר
+    const result = await this.calculateIterativeOptimalCutting(beamsData, forgingData);
+    console.log('PRICE! Final Result:', result);
     return result.totalPrice;
   }
   
@@ -115,6 +115,197 @@ export class PricingService {
       totalPrice: totalPrice,
       cuttingPlan: allCuttingPlans
     };
+  }
+  
+  /**
+   * חישוב איטרטיבי משופר של חיתוך קורות עץ
+   * @param beamsData - נתוני הקורות מ-BeamsDataForPricing
+   * @param forgingData - נתוני הברגים מ-ForgingDataForPricing
+   * @returns אובייקט עם מחיר כולל ותוכנית חיתוך מפורטת
+   */
+  private async calculateIterativeOptimalCutting(beamsData: any[], forgingData: any[]): Promise<{ totalPrice: number, cuttingPlan: any[] }> {
+    console.log('PRICE! === ITERATIVE OPTIMAL CUTTING CALCULATION ===');
+    
+    let bestSolution = null;
+    let bestCost = Infinity;
+    let iteration = 0;
+    let maxIterations = 20;
+    let sameResultCount = 0;
+    let lastResult = null;
+    let maxSameResults = 3;
+    
+    const startTime = Date.now();
+    
+    while (iteration < maxIterations) {
+      iteration++;
+      console.log(`PRICE! === ITERATION ${iteration} ===`);
+      
+      // חישוב פתרון נוכחי עם שינויים אקראיים קלים
+      const currentSolution = this.calculateOptimalCuttingWithVariations(beamsData, forgingData, iteration);
+      
+      console.log(`PRICE! Iteration ${iteration} cost: ${currentSolution.totalPrice}`);
+      
+      // בדיקה אם זה הפתרון הטוב ביותר עד כה
+      if (currentSolution.totalPrice < bestCost) {
+        bestCost = currentSolution.totalPrice;
+        bestSolution = currentSolution;
+        console.log(`PRICE! New best solution found! Cost: ${bestCost}`);
+        sameResultCount = 0; // איפוס מונה התוצאות הזהות
+      } else {
+        sameResultCount++;
+        console.log(`PRICE! Same result count: ${sameResultCount}`);
+      }
+      
+      // בדיקה אם הגענו לאותה תוצאה יותר מדי פעמים
+      if (sameResultCount >= maxSameResults) {
+        console.log(`PRICE! Stopping: Same result ${maxSameResults} times in a row`);
+        break;
+      }
+      
+      // בדיקה אם עברו יותר מ-3 שניות
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime > 3000) {
+        console.log(`PRICE! Stopping: Time limit reached (${elapsedTime}ms)`);
+        break;
+      }
+      
+      lastResult = currentSolution.totalPrice;
+      
+      // השהיה קצרה בין איטרציות
+      if (iteration < maxIterations) {
+        await this.delay(100); // השהיה של 100ms בין איטרציות
+      }
+    }
+    
+    console.log(`PRICE! === ITERATIVE CALCULATION COMPLETED ===`);
+    console.log(`PRICE! Total iterations: ${iteration}`);
+    console.log(`PRICE! Best cost: ${bestCost}`);
+    console.log(`PRICE! Time taken: ${Date.now() - startTime}ms`);
+    
+    return bestSolution || this.calculateOptimalCutting(beamsData, forgingData);
+  }
+  
+  /**
+   * חישוב אופטימלי עם וריאציות אקראיות
+   * @param beamsData - נתוני הקורות מ-BeamsDataForPricing
+   * @param forgingData - נתוני הברגים מ-ForgingDataForPricing
+   * @param iteration - מספר האיטרציה
+   * @returns פתרון עם וריאציות
+   */
+  private calculateOptimalCuttingWithVariations(beamsData: any[], forgingData: any[], iteration: number): { totalPrice: number, cuttingPlan: any[] } {
+    console.log(`PRICE! === CALCULATING WITH VARIATIONS (Iteration ${iteration}) ===`);
+    
+    let totalPrice = 0;
+    let allCuttingPlans: any[] = [];
+    
+    // עיבוד כל סוג קורה עם וריאציות
+    beamsData.forEach((beamData, index) => {
+      console.log(`PRICE! === PROCESSING BEAM TYPE ${index + 1} (Iteration ${iteration}) ===`);
+      
+      // יצירת רשימת חיתוכים נדרשים
+      const requiredCuts: number[] = [];
+      beamData.sizes.forEach((cutLength: number) => {
+        requiredCuts.push(cutLength);
+      });
+      
+      // הוספת וריאציות אקראיות קלות
+      const variedCuts = this.addRandomVariations(requiredCuts, iteration);
+      
+      console.log(`PRICE! Original cuts: [${requiredCuts.join(', ')}]`);
+      console.log(`PRICE! Varied cuts: [${variedCuts.join(', ')}]`);
+      
+      // קבלת אפשרויות הקורות הזמינות
+      const beamOptions = this.getBeamOptions(beamData.type);
+      
+      // חישוב אופטימלי עם binpacking
+      const optimalSolution = this.calculateOptimalCuttingForBeamType(variedCuts, beamOptions);
+      
+      // הדפסת לוגים מפורטים לכל קורה
+      optimalSolution.beams.forEach((beam: any, beamIndex: number) => {
+        const beamLength = beam.totalLength;
+        const beamPrice = this.getBeamPriceByLength(beamLength, beamData.type);
+        const cuts = beam.cuts;
+        const remaining = beam.remaining;
+        
+        console.log(`PRICE! קורה באורך ${beamLength} (מחיר ${beamPrice}) → חתיכות: [${cuts.join(', ')}], נותר: ${remaining} ס"מ`);
+        
+        // הוספה לתוכנית החיתוך הכוללת עם כל הפרטים
+        allCuttingPlans.push({
+          beamNumber: allCuttingPlans.length + 1,
+          beamLength: beamLength,
+          beamPrice: beamPrice,
+          cuts: cuts,
+          remaining: remaining,
+          waste: remaining,
+          beamType: beamData.beamTranslatedName || beamData.beamName
+        });
+      });
+      
+      // חישוב מחיר עבור הפתרון האופטימלי
+      const beamTypePrice = this.calculatePriceForOptimalSolution(optimalSolution, beamData.type);
+      totalPrice += beamTypePrice;
+    });
+    
+    // עיבוד ברגים (ללא חיתוך אופטימלי)
+    forgingData.forEach((forgingItem, index) => {
+      const length = forgingItem.length;
+      const count = forgingItem.count;
+      
+      const pricePerLength = this.findPriceForLength(forgingItem.type, length);
+      const forgingPrice = pricePerLength * count;
+      
+      totalPrice += forgingPrice;
+    });
+    
+    return {
+      totalPrice: totalPrice,
+      cuttingPlan: allCuttingPlans
+    };
+  }
+  
+  /**
+   * הוספת וריאציות אקראיות קלות לרשימת החיתוכים
+   * @param cuts - רשימת חיתוכים מקורית
+   * @param iteration - מספר האיטרציה
+   * @returns רשימת חיתוכים עם וריאציות
+   */
+  private addRandomVariations(cuts: number[], iteration: number): number[] {
+    const variedCuts = [...cuts];
+    
+    // הוספת וריאציות קלות בהתאם לאיטרציה
+    if (iteration % 3 === 1) {
+      // שינוי סדר החיתוכים
+      return this.shuffleArray(variedCuts);
+    } else if (iteration % 3 === 2) {
+      // הוספת חיתוך קצר נוסף (לפעמים עוזר)
+      variedCuts.push(10); // חיתוך של 10 ס"מ
+      return variedCuts;
+    } else {
+      // שינוי קל בגודל החיתוכים
+      return variedCuts.map(cut => cut + (Math.random() - 0.5) * 0.1); // שינוי של עד ±0.05 ס"מ
+    }
+  }
+  
+  /**
+   * ערבוב מערך
+   * @param array - המערך לערבוב
+   * @returns מערך מעורבב
+   */
+  private shuffleArray(array: any[]): any[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+  
+  /**
+   * השהיה
+   * @param ms - מילישניות להשהיה
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
   
   /**
