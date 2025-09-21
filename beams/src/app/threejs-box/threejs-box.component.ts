@@ -1846,7 +1846,32 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const minGap = 1; // רווח מינימלי
                     const surfaceBeams = this.createSurfaceBeams(this.surfaceWidth, this.surfaceLength, beamWidth, beamHeight, minGap);
                     const totalShelves = this.shelves.length;
-                    const totalBeams = surfaceBeams.length * totalShelves; // כמות הקורות בפועל
+                    
+                    // חישוב קורות מוסתרות (כמו בחישוב הקורות)
+                    let totalHiddenBeams = 0;
+                    const legParam = this.params.find(p => p.name === 'leg');
+                    const legBeamSelected = legParam?.beams?.[legParam.selectedBeamIndex || 0];
+                    const legBeamWidth = legBeamSelected?.width / 10 || 0;
+                    
+                    this.shelves.forEach((shelf, index) => {
+                        const isTopShelf = index === totalShelves - 1;
+                        
+                        // חישוב רווח בין קורות (כמו ב-3D model)
+                        const totalBeamWidth = surfaceBeams.length * beamWidth;
+                        const remainingSpace = this.surfaceWidth - totalBeamWidth;
+                        const gapsCount = surfaceBeams.length - 1;
+                        const gapBetweenBeams = gapsCount > 0 ? remainingSpace / gapsCount : 0;
+                        
+                        // בדיקה אם להסתיר קורות (כמו ב-3D model)
+                        const beamAndGapWidth = beamWidth + gapBetweenBeams;
+                        const shouldHideBeams = beamAndGapWidth < legBeamWidth && !isTopShelf;
+                        
+                        if (shouldHideBeams) {
+                            totalHiddenBeams += 2; // 2 קורות מוסתרות לכל מדף שאיננו עליון
+                        }
+                    });
+                    
+                    const totalBeams = (surfaceBeams.length * totalShelves) - totalHiddenBeams; // כמות הקורות בפועל פחות הקורות המוסתרות
                     const totalScrews = totalBeams * 4; // 4 ברגים לכל קורה
                     shelfForgingData.push({
                         type: 'Shelf Screws',
@@ -1857,7 +1882,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
                         description: 'ברגי מדפים'
                     });
-                    console.log(`Cabinet shelf screws: ${totalScrews} screws for ${totalShelves} shelves`);
+                    console.log(`Cabinet shelf screws: ${totalScrews} screws for ${totalShelves} shelves (${totalHiddenBeams} hidden beams)`);
                 }
             }
         }
