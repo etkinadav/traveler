@@ -1551,14 +1551,73 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         
         if (this.surfaceWidth && this.surfaceLength && shelfParam) {
-            const selectedBeam = shelfParam.beams?.[shelfParam.selectedBeamIndex || 0];
-            const selectedType = selectedBeam?.types?.[shelfParam.selectedTypeIndex || 0];
+            // עבור ארון, נבחר קורה עם רוחב קטן יותר כדי לקבל יותר קורות
+            let selectedBeam, selectedType;
+            
+            console.log('CABINET! this.isTable:', this.isTable);
+            
+            if (this.isTable) {
+                // עבור שולחן - השתמש בקורה הנבחרת
+                console.log('CABINET! Using TABLE logic');
+                selectedBeam = shelfParam.beams?.[shelfParam.selectedBeamIndex || 0];
+                selectedType = selectedBeam?.types?.[shelfParam.selectedTypeIndex || 0];
+            } else {
+                console.log('CABINET! Using CABINET logic');
+                // עבור ארון - חפש קורה עם רוחב קטן יותר
+                console.log('CABINET! === CABINET BEAM SELECTION ===');
+                console.log('CABINET! Available beams for shelves:', shelfParam.beams);
+                console.log('CABINET! shelfParam.beams.length:', shelfParam.beams?.length);
+                
+                // חפש קורה עם רוחב קטן יותר (למשל 4 ס"מ במקום 10 ס"מ)
+                selectedBeam = shelfParam.beams?.find(beam => {
+                    const beamType = beam.types?.[0]; // נשתמש בסוג הראשון
+                    const beamWidth = beamType?.width / 10; // המרה ממ"מ לס"מ
+                    console.log('CABINET! Checking beam:', beam.name, 'width (mm):', beamType?.width, 'width (cm):', beamWidth);
+                    return beamWidth && beamWidth <= 5; // רוחב קטן או שווה ל-5 ס"מ
+                });
+                
+                console.log('CABINET! Found suitable beam:', selectedBeam?.name);
+                
+                if (!selectedBeam) {
+                    // אם לא נמצאה קורה קטנה, השתמש בקורה הראשונה
+                    console.log('CABINET! No suitable beam found, using first beam');
+                    selectedBeam = shelfParam.beams?.[0];
+                }
+                
+                selectedType = selectedBeam?.types?.[0]; // השתמש בסוג הראשון
+                
+                console.log('CABINET! Final selected beam:', selectedBeam?.name);
+                console.log('CABINET! Final selected type width (mm):', selectedType?.width);
+                console.log('CABINET! Final selected type width (cm):', selectedType?.width / 10);
+                console.log('CABINET! === END CABINET BEAM SELECTION ===');
+            }
             
             if (selectedBeam && selectedType) {
-                const beamWidth = selectedType.width / 10 || this.beamWidth; // המרה ממ"מ לס"מ
+                let beamWidth = selectedType.width / 10 || this.beamWidth; // המרה ממ"מ לס"מ
                 const beamHeight = selectedType.height / 10 || this.beamHeight;
                 
+                // עבור ארון, אם הקורה רחבה מדי, נשתמש ברוחב קטן יותר
+                if (!this.isTable && beamWidth > 5) {
+                    console.log('CABINET! Beam too wide (' + beamWidth + 'cm), using 4cm instead');
+                    beamWidth = 4; // רוחב קטן יותר עבור ארון
+                }
+                
+                console.log('CABINET! Selected beam for shelves:');
+                console.log('CABINET! selectedBeam.name:', selectedBeam.name);
+                console.log('CABINET! selectedBeam.translatedName:', selectedBeam.translatedName);
+                console.log('CABINET! selectedType.width (mm):', selectedType.width);
+                console.log('CABINET! selectedType.height (mm):', selectedType.height);
+                console.log('CABINET! beamWidth (cm):', beamWidth);
+                console.log('CABINET! beamHeight (cm):', beamHeight);
+                
                 // חישוב קורות המשטח
+                console.log('CABINET! Before createSurfaceBeams:');
+                console.log('CABINET! this.surfaceWidth:', this.surfaceWidth);
+                console.log('CABINET! this.surfaceLength:', this.surfaceLength);
+                console.log('CABINET! beamWidth:', beamWidth);
+                console.log('CABINET! beamHeight:', beamHeight);
+                console.log('CABINET! this.minGap:', this.minGap);
+                
                 const surfaceBeams = this.createSurfaceBeams(
                     this.surfaceWidth,
                     this.surfaceLength,
@@ -1566,6 +1625,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     beamHeight,
                     this.minGap
                 );
+                
+                console.log('CABINET! After createSurfaceBeams, surfaceBeams:', surfaceBeams);
                 
                 if (this.isTable) {
                     // עבור שולחן - מדף אחד בלבד
@@ -1582,30 +1643,47 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     });
                 } else {
                     // עבור ארון - קורות לכל מדף עם קיצור
+                    console.log('=== CABINET SHELF BEAMS CALCULATION ===');
                     
                     // חישוב קיצור קורות המדפים
                     const totalShelves = this.shelves.length;
                     const shelvesWithoutTop = totalShelves - 1; // מדפים ללא המדף העליון
                     const shortenedBeamsCount = shelvesWithoutTop * 2; // 2 קורות מקוצרות לכל מדף שאיננו עליון
                     
+                    console.log('CABINET! totalShelves:', totalShelves);
+                    console.log('CABINET! shelvesWithoutTop:', shelvesWithoutTop);
+                    console.log('CABINET! shortenedBeamsCount:', shortenedBeamsCount);
+                    
                     // מציאת קורת הרגל/החיזוק לחישוב הקיצור
                     const legParam = this.product?.params?.find((p: any) => p.type === 'beamSingle' && p.name === 'leg');
                     const legBeamSelected = legParam?.beams?.[legParam.selectedBeamIndex || 0];
                     const legBeamHeight = legBeamSelected?.height / 10 || 0;
                     
+                    console.log('CABINET! legParam:', legParam);
+                    console.log('CABINET! legBeamSelected:', legBeamSelected);
+                    console.log('CABINET! legBeamHeight:', legBeamHeight);
+                    
                     // קיצור קורות המדפים - פעם אחת גובה קורת הרגל/החיזוק
                     const shorteningPerBeam = legBeamHeight * 2;
                     
+                    console.log('CABINET! shorteningPerBeam:', shorteningPerBeam);
+                    console.log('CABINET! surfaceBeams.length:', surfaceBeams.length);
                     
                     this.shelves.forEach((shelf, index) => {
                         const isTopShelf = index === totalShelves - 1; // המדף העליון
+                        console.log(`CABINET! Processing shelf ${index + 1}, isTopShelf: ${isTopShelf}`);
+                        
                         surfaceBeams.forEach((beam, beamIndex) => {
                             let beamLength = beam.depth;
+                            const originalLength = beamLength;
                             
                             // קיצור רק 2 קורות ספציפיות מכל מדף שאיננו עליון
                             // נניח שהקורות הראשונות הן אלה שצריכות להיות מקוצרות
                             if (!isTopShelf && beamIndex < 2) {
                                 beamLength = beamLength - shorteningPerBeam;
+                                console.log(`CABINET! Shortened beam ${beamIndex + 1} on shelf ${index + 1}: ${originalLength} -> ${beamLength}`);
+                            } else {
+                                console.log(`CABINET! Unchanged beam ${beamIndex + 1} on shelf ${index + 1}: ${beamLength}`);
                             }
                             
                             allBeams.push({
@@ -1619,6 +1697,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             });
                         });
                     });
+                    
+                    console.log('CABINET! Total beams added:', allBeams.length);
+                    console.log('=== END CABINET SHELF BEAMS CALCULATION ===');
                 }
             }
         }
@@ -2169,8 +2250,20 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         beamHeight: number,
         minGap: number
     ): { x: number, width: number, height: number, depth: number }[] {
+        console.log('CABINET! createSurfaceBeams called with:');
+        console.log('CABINET! totalWidth:', totalWidth);
+        console.log('CABINET! totalLength:', totalLength);
+        console.log('CABINET! beamWidth:', beamWidth);
+        console.log('CABINET! beamHeight:', beamHeight);
+        console.log('CABINET! minGap:', minGap);
+        
         const n = Math.floor((totalWidth + minGap) / (beamWidth + minGap));
+        console.log('CABINET! Calculated n (number of beams):', n);
+        console.log('CABINET! Calculation: Math.floor((' + totalWidth + ' + ' + minGap + ') / (' + beamWidth + ' + ' + minGap + ')) = ' + n);
+        
         const actualGap = n > 1 ? (totalWidth - n * beamWidth) / (n - 1) : 0;
+        console.log('CABINET! actualGap:', actualGap);
+        
         const beams = [];
         for (let i = 0; i < n; i++) {
             const x = -totalWidth / 2 + i * (beamWidth + actualGap) + beamWidth / 2;
@@ -2181,6 +2274,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 depth: totalLength
             });
         }
+        
+        console.log('CABINET! Created beams:', beams);
         return beams;
     }
 
