@@ -1106,7 +1106,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // Add wireframe cube showing product dimensions (only if enabled)
         if (this.showWireframe) {
         this.addWireframeCube();
-        }
+    }
     }
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
     private addWireframeCube() {
@@ -2397,11 +2397,49 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             console.log('CHECKSCREWS === SCREW POSITION ANALYSIS ===');
             console.log('CHECKSCREWS isShortenedBeam:', isShortenedBeam);
             console.log('CHECKSCREWS beam.x (center):', beam.x);
-            console.log('CHECKSCREWS beam.width:', beam.width);
-            console.log('CHECKSCREWS beam.depth:', beam.depth);
+            console.log('CHECKSCREWS beam.width (רוחב):', beam.width);
+            console.log('CHECKSCREWS beam.height (גובה):', beam.height);
+            console.log('CHECKSCREWS beam.depth (עומק):', beam.depth);
             console.log('CHECKSCREWS Remaining screws after filtering:');
             console.log('CHECKSCREWS   startPositions:', startPositions);
             console.log('CHECKSCREWS   endPositions:', endPositions);
+            console.log('CHECKSCREWS frameBeamWidth (רוחב קורות הרגל/חיזוק):', frameBeamWidth);
+            console.log('CHECKSCREWS frameBeamHeight (גובה קורות הרגל/חיזוק):', this.frameHeight);
+            
+            // חישוב הפרמטרים לפי הלוגיקה החדשה
+            const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
+            const X = this.frameHeight; // frameBeamHeight
+            const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
+            const Q = beam.width; // beam.width
+            
+            console.log('CHECKSCREWS A (רוחב כולל חלקי 2):', A);
+            console.log('CHECKSCREWS X (frameBeamHeight):', X);
+            console.log('CHECKSCREWS Y (frameBeamWidth):', Y);
+            console.log('CHECKSCREWS Q (beam.width):', Q);
+            
+            // חישוב Z ו-R ו-L
+            const Z = (X - Y) / 2;
+            const R = (Q - Z) / 2;
+            const L = R + Z;
+            
+            console.log('CHECKSCREWS Z ((X-Y)/2):', Z);
+            console.log('CHECKSCREWS R ((Q-Z)/2):', R);
+            console.log('CHECKSCREWS L (R+Z):', L);
+            
+            // המרחק הסופי של הברגים מהמרכז
+            let finalDistance;
+            if (Q > X) {
+                // מקרה קצה: Q > X
+                finalDistance = A - (X / 2);
+                console.log('CHECKSCREWS מקרה קצה: Q > X');
+                console.log('CHECKSCREWS finalDistance (A - X/2):', finalDistance);
+            } else {
+                // מקרה רגיל: Q <= X
+                finalDistance = A - L;
+                console.log('CHECKSCREWS מקרה רגיל: Q <= X');
+                console.log('CHECKSCREWS finalDistance (A-L):', finalDistance);
+            }
+            
             // חישוב הרווח מהקצה השמאלי של הקורה לבורג השמאלי
             const leftEdgeX = beam.x - beam.width / 2;
             const rightEdgeX = beam.x + beam.width / 2;
@@ -2420,17 +2458,31 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             console.log('CHECKSCREWS   Gap percentage of beam width:', ((leftGap + rightGap) / beam.width * 100).toFixed(1) + '%');
             console.log('CHECKSCREWS === END SCREW POSITION ANALYSIS ===');
             // create 2 new positions between start and end - 1/3 from start and 2/3 from end and the opposite
-            const newPosition = [
+            // חישוב המיקומים החדשים של כל הברגים לפי המרחק הסופי מהמרכז
+            const adjustedStartPositions = {
+                x: startPositions.x > 0 ? finalDistance : -finalDistance,
+                z: startPositions.z
+            };
+            const adjustedEndPositions = {
+                x: endPositions.x > 0 ? finalDistance : -finalDistance,
+                z: endPositions.z
+            };
+            
+            console.log('CHECKSCREWS adjustedStartPositions:', adjustedStartPositions);
+            console.log('CHECKSCREWS adjustedEndPositions:', adjustedEndPositions);
+            
+           const newPosition = [
                 {
-                    x: startPositions.x + (endPositions.x - startPositions.x) / 3,
-                    z: startPositions.z + (endPositions.z - startPositions.z) / 3
+                    x: adjustedStartPositions.x + (adjustedEndPositions.x - adjustedStartPositions.x) / 3,
+                    z: adjustedStartPositions.z + (adjustedEndPositions.z - adjustedStartPositions.z) / 3
                 },
                 {
-                    x: startPositions.x + (2 * (endPositions.x - startPositions.x) / 3),
-                    z: startPositions.z + (2 * (endPositions.z - startPositions.z) / 3)
+                    x: adjustedStartPositions.x + (2 * (adjustedEndPositions.x - adjustedStartPositions.x) / 3),
+                    z: adjustedStartPositions.z + (2 * (adjustedEndPositions.z - adjustedStartPositions.z) / 3)
                 }
-            ];
-            screwPositions = [...newPosition, ...screwPositions];
+           ];
+            // עדכון screwPositions עם כל הברגים המוזחים
+            screwPositions = [...newPosition, adjustedStartPositions, adjustedEndPositions];
         }
         // יצירת ברגים
         screwPositions.forEach((pos, index) => {
