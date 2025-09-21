@@ -50,6 +50,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
     isTable: boolean = false; // האם זה שולחן או ארון
     isPriceManuOpen: boolean = true; // האם תפריט המחיר פתוח
+    hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
+    hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
     // נתונים לחישוב מחיר
     BeamsDataForPricing: any[] = []; // מערך של נתוני קורות לחישוב מחיר
     ForgingDataForPricing: any[] = []; // מערך של נתוני ברגים לחישוב מחיר
@@ -714,6 +716,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     updateBeams() {
         // Save current configuration to localStorage
         this.saveConfiguration();
+        
+        // איפוס המשתנה הבוליאני לבדיקת קורות מוסתרות
+        this.hasHiddenBeams = false;
+        this.hiddenBeamsCount = 0;
         // חישוב מחיר אחרי עדכון המודל
         this.calculatePricing();
         this.beamMeshes.forEach(mesh => {
@@ -984,6 +990,18 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         for (let shelfIndex = 0; shelfIndex < this.shelves.length; shelfIndex++) {
             const shelf = this.shelves[shelfIndex];
             currentY += shelf.gap;
+            // Get leg beam dimensions for frame beams positioning
+            const legParam = this.getParam('leg');
+            let legWidth = frameBeamWidth;
+            let legDepth = frameBeamWidth;
+            if (legParam && Array.isArray(legParam.beams) && legParam.beams.length) {
+                const legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+                if (legBeam) {
+                    legWidth = legBeam.width / 10;   // המרה ממ"מ לס"מ
+                    legDepth = legBeam.height / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
             // Surface beams (קורת משטח)
             const surfaceBeams = this.createSurfaceBeams(
                 this.surfaceWidth,
@@ -992,11 +1010,73 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 beamHeight,
                 this.minGap
             );
+            
+            // חישוב רווח בין קורות
+            const totalBeamWidth = surfaceBeams.length * beamWidth;
+            const remainingSpace = this.surfaceWidth - totalBeamWidth;
+            const gapsCount = surfaceBeams.length - 1;
+            const gapBetweenBeams = gapsCount > 0 ? remainingSpace / gapsCount : 0;
+            
+            // בדיקת נתוני הקורות לפני יצירת המדפים
+            console.log('=== בדיקת נתוני קורות לפני יצירת מדף', shelfIndex + 1, '===');
+            
+            // 1. בדיקת רוחב וגובה של קורת מדף בודדת
+            console.log('1. קורת מדף בודדת:');
+            console.log('   - רוחב:', beamWidth, 'ס"מ');
+            console.log('   - גובה:', beamHeight, 'ס"מ');
+            
+            // 2. בדיקת הרווח בין הקורות במדף
+            console.log('2. רווח בין הקורות במדף:');
+            console.log('   - אורך כולל:', this.surfaceWidth, 'ס"מ');
+            console.log('   - אורך כולל קורות:', totalBeamWidth, 'ס"מ');
+            console.log('   - מקום פנוי:', remainingSpace, 'ס"מ');
+            console.log('   - כמות רווחים:', gapsCount);
+            console.log('   - רווח בין קורות:', gapBetweenBeams.toFixed(2), 'ס"מ');
+            
+            // 3. בדיקת רוחב וגובה של קורת הרגל
+            console.log('3. קורת רגל:');
+            console.log('   - רוחב:', legWidth, 'ס"מ');
+            console.log('   - גובה:', legDepth, 'ס"מ');
+            
+            // 4. בדיקת חסימת קורות על ידי רגליים
+            console.log('4. בדיקת חסימת קורות:');
+            const beamAndGapWidth = beamWidth + gapBetweenBeams;
+            const isTopShelf = shelfIndex === totalShelves - 1;
+            const shouldHideBeams = beamAndGapWidth < legWidth && !isTopShelf;
+            
+            // עדכון המשתנה הבוליאני הגלובלי
+            if (shouldHideBeams) {
+                this.hasHiddenBeams = true;
+                // חישוב כמות הקורות המוסתרות (2 קורות לכל מדף שאיננו עליון)
+                this.hiddenBeamsCount += 2;
+            }
+            
+            console.log('   - רוחב קורה + רווח:', beamAndGapWidth.toFixed(2), 'ס"מ');
+            console.log('   - רוחב רגל:', legWidth, 'ס"מ');
+            console.log('   - האם מדף עליון:', isTopShelf);
+            console.log('   - האם להסתיר קורות:', shouldHideBeams);
+            if (shouldHideBeams) {
+                console.log('   - קורות שיוסתרו: הקורה השנייה מההתחלה והקורה השנייה מהסוף');
+            }
+            
+            console.log('==========================================');
+            
             for (let i = 0; i < surfaceBeams.length; i++) {
                 let beam = { ...surfaceBeams[i] };
                 // Only shorten first and last beam in the length (depth) direction for non-top shelves
                 // Top shelf (last shelf) gets full-length beams
                 const isTopShelf = shelfIndex === totalShelves - 1;
+                
+                // בדיקה אם להסתיר קורות בגלל חסימת רגליים
+                const beamAndGapWidth = beamWidth + gapBetweenBeams;
+                const shouldHideBeams = beamAndGapWidth < legWidth && !isTopShelf;
+                const shouldSkipThisBeam = shouldHideBeams && (i === 1 || i === surfaceBeams.length - 2);
+                
+                if (shouldSkipThisBeam) {
+                    console.log(`   - מדלג על קורה ${i + 1} (חסומה על ידי רגל)`);
+                    continue; // מדלג על יצירת הקורה הזאת
+                }
+                
                 if (!isTopShelf && (i === 0 || i === surfaceBeams.length - 1)) {
                     beam.depth = beam.depth - 2 * frameBeamWidth;
                 }
@@ -1018,17 +1098,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     }
                 }
                 this.addScrewsToShelfBeam(beam, currentY + frameBeamHeight, beamHeight, frameBeamWidth, isShortenedBeam);
-            }
-            // Get leg beam dimensions for frame beams positioning
-            const legParam = this.getParam('leg');
-            let legWidth = frameBeamWidth;
-            let legDepth = frameBeamWidth;
-            if (legParam && Array.isArray(legParam.beams) && legParam.beams.length) {
-                const legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
-                if (legBeam) {
-                    legWidth = legBeam.width / 10;   // המרה ממ"מ לס"מ
-                    legDepth = legBeam.height / 10; // המרה ממ"מ לס"מ
-                }
             }
             // Frame beams (קורת חיזוק)
             const frameBeams = this.createFrameBeams(
@@ -1398,8 +1467,27 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const shorteningPerBeam = legBeamHeight * 2;
                     this.shelves.forEach((shelf, index) => {
                         const isTopShelf = index === totalShelves - 1; // המדף העליון
+                        
+                        // חישוב רווח בין קורות (כמו ב-3D model)
+                        const totalBeamWidth = surfaceBeams.length * beamWidth;
+                        const remainingSpace = this.surfaceWidth - totalBeamWidth;
+                        const gapsCount = surfaceBeams.length - 1;
+                        const gapBetweenBeams = gapsCount > 0 ? remainingSpace / gapsCount : 0;
+                        
+                        // בדיקה אם להסתיר קורות (כמו ב-3D model)
+                        const beamAndGapWidth = beamWidth + gapBetweenBeams;
+                        const legBeamWidth = legBeamSelected?.width / 10 || 0;
+                        const shouldHideBeams = beamAndGapWidth < legBeamWidth && !isTopShelf;
+                        
                         surfaceBeams.forEach((beam, beamIndex) => {
                             let beamLength = beam.depth;
+                            
+                            // בדיקה אם הקורה הזאת צריכה להיות מוסתרת
+                            const shouldSkipThisBeam = shouldHideBeams && (beamIndex === 1 || beamIndex === surfaceBeams.length - 2);
+                            if (shouldSkipThisBeam) {
+                                return; // מדלג על הקורה הזאת
+                            }
+                            
                             // קיצור רק 2 קורות ספציפיות מכל מדף שאיננו עליון
                             // נניח שהקורות הראשונות הן אלה שצריכות להיות מקוצרות
                             if (!isTopShelf && beamIndex < 2) {
@@ -1412,7 +1500,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 height: beam.height,
                                 name: `Shelf ${index + 1} Beam`,
                                 beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName
+                                beamTranslatedName: selectedBeam.translatedName
                             });
                         });
                     });

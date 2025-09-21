@@ -388,9 +388,6 @@ export class PricingService {
 
     });
 
-
-    
-
     return {
       beams: bins,
       totalWaste: totalWaste,

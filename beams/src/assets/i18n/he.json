@@ -1001,5 +1001,6 @@
     "product-type.name-short.cup-straight": "ספל רחב",
     "product-type.name-short.cup-cone": "ספל קוני",
     "wireframe_toggle": "המג מידות",
-    "show_dimensions": "הצג מידות"
+    "show_dimensions": "הצג מידות",
+    "hidden_beams_warning": "קורות המדף קטנות ביחס לרגליים – במדפים התחתונים חסרות 2 קורות"
 }

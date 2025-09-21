@@ -42,6 +42,47 @@
     }
 }
 
+/* Hidden beams warning */
+.hidden-beams-warning {
+    position: fixed !important;
+    top: 110px !important;
+    right: 19px !important;
+    min-width: auto;
+    height: 28px;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 152, 0, 0.1);
+    color: #ff9800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 9999 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    animation: pulse 2s infinite;
+    
+    .button-text {
+        margin-left: 0px;
+        font-size: 11px;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
 /* Uniform width for all input fields and mat-form-fields */
 .shelf-gap-field-wrapper,
 .shelf-gap-field,
