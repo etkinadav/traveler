@@ -2475,127 +2475,171 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const inwardOffset = beam.width / 4 > this.frameWidth / 2 ? beam.width / 4 : this.frameWidth / 2;
         // קורות המדפים נטענות ב-z=0 (במרכז)
         const beamZ = 0;
-        let screwPositions = [
-            // פינה שמאלית קדמית
-            {
-                x: beam.x - beam.width / 2 + inwardOffset,
-                z: beamZ - beam.depth / 2 + edgeOffset
-            },
-            // פינה ימנית קדמית
-            {
-                x: beam.x + beam.width / 2 - inwardOffset,
-                z: beamZ - beam.depth / 2 + edgeOffset
-            },
-            // פינה שמאלית אחורית
-            {
-                x: beam.x - beam.width / 2 + inwardOffset,
-                z: beamZ + beam.depth / 2 - edgeOffset
-            },
-            // פינה ימנית אחורית
-            {
-                x: beam.x + beam.width / 2 - inwardOffset,
-                z: beamZ + beam.depth / 2 - edgeOffset
-            }
-        ];
-        // אם הקורה מקוצרת, הסר את הברגים הראשון והשלישי מהרשימה
+        // אם רוחב הקורה קטן או שווה ל-4, יצור בורג אחד במרכז של כל צד
+        let screwPositions;
+        if (beam.width <= 4) {
+            screwPositions = [
+                // בורג במרכז הצד הקדמי
+                {
+                    x: beam.x, // במרכז הרוחב
+                    z: beamZ - beam.depth / 2 + edgeOffset // במרכז הצד הקדמי
+                },
+                // בורג במרכז הצד האחורי
+                {
+                    x: beam.x, // במרכז הרוחב
+                    z: beamZ + beam.depth / 2 - edgeOffset // במרכז הצד האחורי
+                }
+            ];
+        } else {
+            // רוחב הקורה גדול מ-4 - יצור 4 ברגים בפינות (הלוגיקה הקיימת)
+            screwPositions = [
+                // פינה שמאלית קדמית
+                {
+                    x: beam.x - beam.width / 2 + inwardOffset,
+                    z: beamZ - beam.depth / 2 + edgeOffset
+                },
+                // פינה ימנית קדמית
+                {
+                    x: beam.x + beam.width / 2 - inwardOffset,
+                    z: beamZ - beam.depth / 2 + edgeOffset
+                },
+                // פינה שמאלית אחורית
+                {
+                    x: beam.x - beam.width / 2 + inwardOffset,
+                    z: beamZ + beam.depth / 2 - edgeOffset
+                },
+                // פינה ימנית אחורית
+                {
+                    x: beam.x + beam.width / 2 - inwardOffset,
+                    z: beamZ + beam.depth / 2 - edgeOffset
+                }
+            ];
+        }
+        // אם הקורה מקוצרת, השתמש בלוגיקה הישנה (4 ברגים בפינות)
         if (isShortenedBeam !== "top") {
+            // לקורות מקוצרות, תמיד השתמש בלוגיקה הישנה של 4 ברגים בפינות
+            screwPositions = [
+                // פינה שמאלית קדמית
+                {
+                    x: beam.x - beam.width / 2 + inwardOffset,
+                    z: beamZ - beam.depth / 2 + edgeOffset
+                },
+                // פינה ימנית קדמית
+                {
+                    x: beam.x + beam.width / 2 - inwardOffset,
+                    z: beamZ - beam.depth / 2 + edgeOffset
+                },
+                // פינה שמאלית אחורית
+                {
+                    x: beam.x - beam.width / 2 + inwardOffset,
+                    z: beamZ + beam.depth / 2 - edgeOffset
+                },
+                // פינה ימנית אחורית
+                {
+                    x: beam.x + beam.width / 2 - inwardOffset,
+                    z: beamZ + beam.depth / 2 - edgeOffset
+                }
+            ];
             // הסר את הברגים הראשון והשלישי (אינדקסים 0 ו-2)
             if (isShortenedBeam === "start") {
                 screwPositions = screwPositions.filter((pos, index) => index !== 1 && index !== 3); 
             } else {
                 screwPositions = screwPositions.filter((pos, index) => index !== 0 && index !== 2);
             }
-            const startPositions = screwPositions[0];
-            const endPositions = screwPositions[1];
-            console.log('CHECKSCREWS === SCREW POSITION ANALYSIS ===');
-            console.log('CHECKSCREWS isShortenedBeam:', isShortenedBeam);
-            console.log('CHECKSCREWS beam.x (center):', beam.x);
-            console.log('CHECKSCREWS beam.width (רוחב):', beam.width);
-            console.log('CHECKSCREWS beam.height (גובה):', beam.height);
-            console.log('CHECKSCREWS beam.depth (עומק):', beam.depth);
-            console.log('CHECKSCREWS Remaining screws after filtering:');
-            console.log('CHECKSCREWS   startPositions:', startPositions);
-            console.log('CHECKSCREWS   endPositions:', endPositions);
-            console.log('CHECKSCREWS frameBeamWidth (רוחב קורות הרגל/חיזוק):', frameBeamWidth);
-            console.log('CHECKSCREWS frameBeamHeight (גובה קורות הרגל/חיזוק):', this.frameHeight);
-            
-            // חישוב הפרמטרים לפי הלוגיקה החדשה
-            const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
-            const X = this.frameHeight; // frameBeamHeight
-            const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
-            const Q = beam.width; // beam.width
-            
-            console.log('CHECKSCREWS A (רוחב כולל חלקי 2):', A);
-            console.log('CHECKSCREWS X (frameBeamHeight):', X);
-            console.log('CHECKSCREWS Y (frameBeamWidth):', Y);
-            console.log('CHECKSCREWS Q (beam.width):', Q);
-            
-            // חישוב Z ו-R ו-L
-            const Z = (X - Y) / 2;
-            const R = (Q - Z) / 2;
-            const L = R + Z;
-            
-            console.log('CHECKSCREWS Z ((X-Y)/2):', Z);
-            console.log('CHECKSCREWS R ((Q-Z)/2):', R);
-            console.log('CHECKSCREWS L (R+Z):', L);
-            
-            // המרחק הסופי של הברגים מהמרכז
-            let finalDistance;
-            if (Q > X) {
-                // מקרה קצה: Q > X
-                finalDistance = A - (X / 2);
-                console.log('CHECKSCREWS מקרה קצה: Q > X');
-                console.log('CHECKSCREWS finalDistance (A - X/2):', finalDistance);
-            } else {
-                // מקרה רגיל: Q <= X
-                finalDistance = A - L;
-                console.log('CHECKSCREWS מקרה רגיל: Q <= X');
-                console.log('CHECKSCREWS finalDistance (A-L):', finalDistance);
-            }
-            
-            // חישוב הרווח מהקצה השמאלי של הקורה לבורג השמאלי
-            const leftEdgeX = beam.x - beam.width / 2;
-            const rightEdgeX = beam.x + beam.width / 2;
-            const leftScrewX = Math.min(startPositions.x, endPositions.x);
-            const rightScrewX = Math.max(startPositions.x, endPositions.x);
-            const leftGap = leftScrewX - leftEdgeX;
-            const rightGap = rightEdgeX - rightScrewX;
-            console.log('CHECKSCREWS Gap analysis:');
-            console.log('CHECKSCREWS   Left edge X:', leftEdgeX);
-            console.log('CHECKSCREWS   Right edge X:', rightEdgeX);
-            console.log('CHECKSCREWS   Left screw X:', leftScrewX);
-            console.log('CHECKSCREWS   Right screw X:', rightScrewX);
-            console.log('CHECKSCREWS   Gap from left edge to left screw:', leftGap);
-            console.log('CHECKSCREWS   Gap from right screw to right edge:', rightGap);
-            console.log('CHECKSCREWS   Total gap (left + right):', leftGap + rightGap);
-            console.log('CHECKSCREWS   Gap percentage of beam width:', ((leftGap + rightGap) / beam.width * 100).toFixed(1) + '%');
-            console.log('CHECKSCREWS === END SCREW POSITION ANALYSIS ===');
-            // create 2 new positions between start and end - 1/3 from start and 2/3 from end and the opposite
-            // חישוב המיקומים החדשים של כל הברגים לפי המרחק הסופי מהמרכז
-            const adjustedStartPositions = {
-                x: startPositions.x > 0 ? finalDistance : -finalDistance,
-                z: startPositions.z
-            };
-            const adjustedEndPositions = {
-                x: endPositions.x > 0 ? finalDistance : -finalDistance,
-                z: endPositions.z
-            };
-            
-            console.log('CHECKSCREWS adjustedStartPositions:', adjustedStartPositions);
-            console.log('CHECKSCREWS adjustedEndPositions:', adjustedEndPositions);
-            
-           const newPosition = [
-                {
-                    x: adjustedStartPositions.x + (adjustedEndPositions.x - adjustedStartPositions.x) / 3,
-                    z: adjustedStartPositions.z + (adjustedEndPositions.z - adjustedStartPositions.z) / 3
-                },
-                {
-                    x: adjustedStartPositions.x + (2 * (adjustedEndPositions.x - adjustedStartPositions.x) / 3),
-                    z: adjustedStartPositions.z + (2 * (adjustedEndPositions.z - adjustedStartPositions.z) / 3)
+            // רק לקורות רחבות (>4) נבצע את החישוב המתקדם של מיקומי הברגים
+            if (beam.width > 4) {
+                const startPositions = screwPositions[0];
+                const endPositions = screwPositions[1];
+                console.log('CHECKSCREWS === SCREW POSITION ANALYSIS ===');
+                console.log('CHECKSCREWS isShortenedBeam:', isShortenedBeam);
+                console.log('CHECKSCREWS beam.x (center):', beam.x);
+                console.log('CHECKSCREWS beam.width (רוחב):', beam.width);
+                console.log('CHECKSCREWS beam.height (גובה):', beam.height);
+                console.log('CHECKSCREWS beam.depth (עומק):', beam.depth);
+                console.log('CHECKSCREWS Remaining screws after filtering:');
+                console.log('CHECKSCREWS   startPositions:', startPositions);
+                console.log('CHECKSCREWS   endPositions:', endPositions);
+                console.log('CHECKSCREWS frameBeamWidth (רוחב קורות הרגל/חיזוק):', frameBeamWidth);
+                console.log('CHECKSCREWS frameBeamHeight (גובה קורות הרגל/חיזוק):', this.frameHeight);
+                
+                // חישוב הפרמטרים לפי הלוגיקה החדשה
+                const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
+                const X = this.frameHeight; // frameBeamHeight
+                const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
+                const Q = beam.width; // beam.width
+                
+                console.log('CHECKSCREWS A (רוחב כולל חלקי 2):', A);
+                console.log('CHECKSCREWS X (frameBeamHeight):', X);
+                console.log('CHECKSCREWS Y (frameBeamWidth):', Y);
+                console.log('CHECKSCREWS Q (beam.width):', Q);
+                
+                // חישוב Z ו-R ו-L
+                const Z = (X - Y) / 2;
+                const R = (Q - Z) / 2;
+                const L = R + Z;
+                
+                console.log('CHECKSCREWS Z ((X-Y)/2):', Z);
+                console.log('CHECKSCREWS R ((Q-Z)/2):', R);
+                console.log('CHECKSCREWS L (R+Z):', L);
+                
+                // המרחק הסופי של הברגים מהמרכז
+                let finalDistance;
+                if (Q > X) {
+                    // מקרה קצה: Q > X
+                    finalDistance = A - (X / 2);
+                    console.log('CHECKSCREWS מקרה קצה: Q > X');
+                    console.log('CHECKSCREWS finalDistance (A - X/2):', finalDistance);
+                } else {
+                    // מקרה רגיל: Q <= X
+                    finalDistance = A - L;
+                    console.log('CHECKSCREWS מקרה רגיל: Q <= X');
+                    console.log('CHECKSCREWS finalDistance (A-L):', finalDistance);
                 }
-           ];
-            // עדכון screwPositions עם כל הברגים המוזחים
-            screwPositions = [...newPosition, adjustedStartPositions, adjustedEndPositions];
+                
+                // חישוב הרווח מהקצה השמאלי של הקורה לבורג השמאלי
+                const leftEdgeX = beam.x - beam.width / 2;
+                const rightEdgeX = beam.x + beam.width / 2;
+                const leftScrewX = Math.min(startPositions.x, endPositions.x);
+                const rightScrewX = Math.max(startPositions.x, endPositions.x);
+                const leftGap = leftScrewX - leftEdgeX;
+                const rightGap = rightEdgeX - rightScrewX;
+                console.log('CHECKSCREWS Gap analysis:');
+                console.log('CHECKSCREWS   Left edge X:', leftEdgeX);
+                console.log('CHECKSCREWS   Right edge X:', rightEdgeX);
+                console.log('CHECKSCREWS   Left screw X:', leftScrewX);
+                console.log('CHECKSCREWS   Right screw X:', rightScrewX);
+                console.log('CHECKSCREWS   Gap from left edge to left screw:', leftGap);
+                console.log('CHECKSCREWS   Gap from right screw to right edge:', rightGap);
+                console.log('CHECKSCREWS   Total gap (left + right):', leftGap + rightGap);
+                console.log('CHECKSCREWS   Gap percentage of beam width:', ((leftGap + rightGap) / beam.width * 100).toFixed(1) + '%');
+                console.log('CHECKSCREWS === END SCREW POSITION ANALYSIS ===');
+                // create 2 new positions between start and end - 1/3 from start and 2/3 from end and the opposite
+                // חישוב המיקומים החדשים של כל הברגים לפי המרחק הסופי מהמרכז
+                const adjustedStartPositions = {
+                    x: startPositions.x > 0 ? finalDistance : -finalDistance,
+                    z: startPositions.z
+                };
+                const adjustedEndPositions = {
+                    x: endPositions.x > 0 ? finalDistance : -finalDistance,
+                    z: endPositions.z
+                };
+                
+                console.log('CHECKSCREWS adjustedStartPositions:', adjustedStartPositions);
+                console.log('CHECKSCREWS adjustedEndPositions:', adjustedEndPositions);
+                
+               const newPosition = [
+                    {
+                        x: adjustedStartPositions.x + (adjustedEndPositions.x - adjustedStartPositions.x) / 3,
+                        z: adjustedStartPositions.z + (adjustedEndPositions.z - adjustedStartPositions.z) / 3
+                    },
+                    {
+                        x: adjustedStartPositions.x + (2 * (adjustedEndPositions.x - adjustedStartPositions.x) / 3),
+                        z: adjustedStartPositions.z + (2 * (adjustedEndPositions.z - adjustedStartPositions.z) / 3)
+                    }
+               ];
+                // עדכון screwPositions עם כל הברגים המוזחים
+                screwPositions = [...newPosition, adjustedStartPositions, adjustedEndPositions];
+            }
         }
         // יצירת ברגים
         screwPositions.forEach((pos, index) => {
