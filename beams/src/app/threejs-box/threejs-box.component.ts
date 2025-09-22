@@ -51,6 +51,53 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     togglePriceMenu() {
         this.isPriceManuOpen = !this.isPriceManuOpen;
     }
+    
+    // פונקציה לטיפול בשינויי אינפוט מספרי (עדכון מיידי לחצים)
+    onNumberInputChange(event: any, updateFunction: string) {
+        const value = parseFloat(event.target.value);
+        if (!isNaN(value)) {
+            // בדיקה אם זה שינוי על ידי חצים (לא הקלדה ידנית)
+            const isArrowKey = event.inputType === undefined || event.inputType === 'insertReplacementText';
+            if (isArrowKey) {
+                // עדכון מיידי לחצים
+                setTimeout(() => {
+                    if (updateFunction === 'updateModel') {
+                        this.updateModel();
+                    }
+                }, 0);
+            }
+        }
+    }
+    
+    // פונקציה לטיפול בשינויי אינפוט של פרמטרים
+    onParameterInputChange(event: any, param: any) {
+        const value = parseFloat(event.target.value);
+        if (!isNaN(value)) {
+            // בדיקה אם זה שינוי על ידי חצים (לא הקלדה ידנית)
+            const isArrowKey = event.inputType === undefined || event.inputType === 'insertReplacementText';
+            if (isArrowKey) {
+                // עדכון מיידי לחצים
+                setTimeout(() => {
+                    this.updateParameterValue(param, value);
+                }, 0);
+            }
+        }
+    }
+    
+    // פונקציה לטיפול בשינויי אינפוט של מדפים
+    onShelfInputChange(event: any, param: any, idx: number) {
+        const value = parseFloat(event.target.value);
+        if (!isNaN(value)) {
+            // בדיקה אם זה שינוי על ידי חצים (לא הקלדה ידנית)
+            const isArrowKey = event.inputType === undefined || event.inputType === 'insertReplacementText';
+            if (isArrowKey) {
+                // עדכון מיידי לחצים
+                setTimeout(() => {
+                    this.updateShelfParameterValue(param, value, param.default.length - 1 - idx);
+                }, 0);
+            }
+        }
+    }
     drawerOpen: boolean = true;
     showWireframe: boolean = false; // מצב ברירת מחדל: wireframe מוסתר
     product: any = null;
