@@ -457,11 +457,9 @@ export class PricingService {
    * @param length - אורך בס"מ
    * @returns מחיר ליחידה
    */
-  private findPriceForLength(type: any, length: number): number {
-
-    
-    // בשלב זה נחזיר תמיד מחיר קבוע לצורך בדיקה
-    return 5;
+  findPriceForLength(type: any, length: number): number {
+    // כרגע מחירי הברגים הם 0 - יעודכן בהמשך
+    return 0;
   }
   
   /**
@@ -470,8 +468,8 @@ export class PricingService {
    * @param forgingData - נתוני הברגים מ-ForgingDataForPricing
    * @returns תוכנית חיתוך מפורטת
    */
-  getCuttingPlan(beamsData: any[], forgingData: any[]): any[] {
-    const result = this.calculateOptimalCutting(beamsData, forgingData);
+  async getCuttingPlan(beamsData: any[], forgingData: any[]): Promise<any[]> {
+    const result = await this.calculateIterativeOptimalCutting(beamsData, forgingData);
     return result.cuttingPlan;
   }
   

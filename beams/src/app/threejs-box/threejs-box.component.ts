@@ -2646,12 +2646,35 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.BeamsDataForPricing,
             this.ForgingDataForPricing
         );
-        this.cuttingPlan = this.pricingService.getCuttingPlan(
+        this.cuttingPlan = await this.pricingService.getCuttingPlan(
             this.BeamsDataForPricing,
             this.ForgingDataForPricing
         );
         console.log('=== FINAL CALCULATED PRICE ===', this.calculatedPrice);
         console.log('=== CUTTING PLAN ===', this.cuttingPlan);
+        
+        // חישוב סכום הקורות הבודדות
+        let totalBeamPrices = 0;
+        this.cuttingPlan.forEach((beam, index) => {
+            console.log(`Beam ${index + 1}: ${beam.beamPrice}₪ (${beam.beamType} ${beam.beamLength}cm)`);
+            totalBeamPrices += beam.beamPrice;
+        });
+        console.log('=== TOTAL OF INDIVIDUAL BEAM PRICES ===', totalBeamPrices);
+        
+        // חישוב מחיר הברגים
+        let totalForgingPrices = 0;
+        this.ForgingDataForPricing.forEach((forging, index) => {
+            const pricePerUnit = this.pricingService.findPriceForLength(forging.type, forging.length);
+            const forgingPrice = pricePerUnit * forging.count;
+            console.log(`Forging ${index + 1}: ${forgingPrice}₪ (${forging.type} ${forging.length}cm x ${forging.count} @ ${pricePerUnit}₪ each)`);
+            totalForgingPrices += forgingPrice;
+        });
+        console.log('=== TOTAL FORGING PRICES ===', totalForgingPrices);
+        
+        const totalExpectedPrice = totalBeamPrices + totalForgingPrices;
+        console.log('=== EXPECTED TOTAL (BEAMS + FORGING) ===', totalExpectedPrice);
+        console.log('=== ACTUAL CALCULATED PRICE ===', this.calculatedPrice);
+        console.log('=== DIFFERENCE ===', this.calculatedPrice - totalExpectedPrice);
     }
     // פונקציה לקבוצת חתיכות לפי גודל
     getCutGroups(cuts: number[]): { length: number; count: number }[] {
