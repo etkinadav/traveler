@@ -12,7 +12,7 @@
             <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="0.8"/>
             <line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="0.8"/>
         </svg>
-        <span class="button-text">{{ 'show_dimensions' | translate }}</span>
+        <span class="button-text">{{ showWireframe ? ('hide_dimensions' | translate) : ('show_dimensions' | translate) }}</span>
     </button>
     
     <!-- התרעה על קורות מוסתרות -->
@@ -319,7 +319,7 @@
                         <div class="beam-number">{{ beam.beamNumber }}</div>
                         <div class="beam-details-item">
                             <span class="beam-text">{{ beam.beamType }} ({{ beam.beamWoodType }}) {{ beam.beamLength }} ס"מ</span>
-                            <span class="beam-separator"></span>
+                            <span class="beam-separator" style="opacity: 0;"></span>
                             <span class="beam-price">{{ beam.beamPrice }}₪</span>
                         </div>
                     </div>
