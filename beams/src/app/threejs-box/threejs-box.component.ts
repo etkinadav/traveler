@@ -108,6 +108,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
     hasNoMiddleBeams: boolean = false; // האם נשארות רק שתי הקורות המקוצרות (אין קורות באמצע)
+    isLoading: boolean = false; // האם התצוגה נטענת
+    isModelLoading: boolean = false; // האם המודל התלת-מימדי נטען
     // נתונים לחישוב מחיר
     BeamsDataForPricing: any[] = []; // מערך של נתוני קורות לחישוב מחיר
     ForgingDataForPricing: any[] = []; // מערך של נתוני ברגים לחישוב מחיר
@@ -120,6 +122,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         private pricingService: PricingService
     ) {}
     ngOnInit() {
+        // הפעלת loading בטעינה הראשונית
+        this.isLoading = true;
+        
         this.checkUserAuthentication();
         // קבלת פרמטר המוצר מה-URL
         this.route.queryParams.subscribe((params) => {
@@ -173,7 +178,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.isTable = this.selectedProductName === 'table';
                     this.getProductByName(this.selectedProductName);
                 } else {
-                    this.getProductById('68a186bb0717136a1a9245de');
+        this.getProductById('68a186bb0717136a1a9245de');
                 }
             }
         });
@@ -369,12 +374,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             return [{ gap: 0 }];
         } else {
             // עבור ארון, נשתמש בפרמטר shelfs
-            const shelfsParam = this.getParam('shelfs');
-            if (shelfsParam && Array.isArray(shelfsParam.default)) {
-                // Model: bottom shelf is first (no reverse)
-                return shelfsParam.default.map((gap: number) => ({ gap }));
-            }
-            return [];
+        const shelfsParam = this.getParam('shelfs');
+        if (shelfsParam && Array.isArray(shelfsParam.default)) {
+            // Model: bottom shelf is first (no reverse)
+            return shelfsParam.default.map((gap: number) => ({ gap }));
+        }
+        return [];
         }
     }
     addShelf() {
@@ -413,7 +418,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         if (p) {
             p.default = val;
             this.updateBeams();
-        }
+    }
     }
     get surfaceLength(): number {
         const p = this.getParam('depth');
@@ -424,7 +429,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         if (p) {
             p.default = val;
             this.updateBeams();
-        }
+    }
     }
     get minGap(): number {
         const p = this.getParam('gap');
@@ -435,7 +440,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         if (p) {
             p.default = val;
             this.updateBeams();
-        }
+    }
     }
     // Beams for shelf/leg
     get shelfBeams() {
@@ -594,26 +599,26 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             Authorization: `Bearer ${this.authToken}`,
         });
         this.http.get('/api/user/beam-configuration', { headers }).subscribe({
-            next: (response: any) => {
+                next: (response: any) => {
                 if (
                     response.configuration &&
                     Object.keys(response.configuration).length > 0
                 ) {
-                    this.applyConfiguration(response.configuration);
-                    console.log('Configuration loaded from server');
-                } else {
-                    // No server config, try localStorage
-                    this.loadConfigurationFromLocalStorage();
-                }
-            },
-            error: (error) => {
+                        this.applyConfiguration(response.configuration);
+                        console.log('Configuration loaded from server');
+                    } else {
+                        // No server config, try localStorage
+                        this.loadConfigurationFromLocalStorage();
+                    }
+                },
+                error: (error) => {
                 console.error(
                     'Error loading from server, falling back to localStorage:',
                     error
                 );
-                this.loadConfigurationFromLocalStorage();
+                    this.loadConfigurationFromLocalStorage();
             },
-        });
+            });
     }
     // Load configuration from localStorage (fallback)
     private loadConfigurationFromLocalStorage() {
@@ -644,7 +649,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     param.selectedTypeIndex = savedParam.selectedTypeIndex;
                 }
             });
-        }
+    }
+
+        // כיבוי loading אחרי הטעינה הראשונית
+        this.isLoading = false;
     }
     ngAfterViewInit() {
         this.initThree();
@@ -653,17 +661,17 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.rendererContainer.nativeElement.addEventListener(
             'wheel',
             (event: WheelEvent) => {
-                event.preventDefault();
+            event.preventDefault();
                 // סגירת חלונית חישוב המחיר בזום
                 this.isPriceManuOpen = false;
-                const delta = event.deltaY;
+            const delta = event.deltaY;
                 const direction = new THREE.Vector3()
                     .subVectors(this.camera.position, this.target)
                     .normalize();
-                const distance = this.camera.position.distanceTo(this.target);
-                const zoomAmount = delta * 0.05 * (distance / 100);
-                let newDistance = distance + zoomAmount;
-                if (newDistance < 1) newDistance = 1;
+            const distance = this.camera.position.distanceTo(this.target);
+            const zoomAmount = delta * 0.05 * (distance / 100);
+            let newDistance = distance + zoomAmount;
+            if (newDistance < 1) newDistance = 1;
                 this.camera.position.copy(
                     direction.multiplyScalar(newDistance).add(this.target)
                 );
@@ -679,10 +687,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             (event: MouseEvent) => {
                 // סגירת חלונית חישוב המחיר בלחיצת עכבר
                 this.isPriceManuOpen = false;
-                isDragging = true;
+            isDragging = true;
                 isPan = event.button === 1 || event.button === 2;
-                lastX = event.clientX;
-                lastY = event.clientY;
+            lastX = event.clientX;
+            lastY = event.clientY;
             }
         );
         window.addEventListener('mousemove', (event: MouseEvent) => {
@@ -739,42 +747,42 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             (event: TouchEvent) => {
                 // סגירת חלונית חישוב המחיר במגע
                 this.isPriceManuOpen = false;
-                if (event.touches.length === 1) {
-                    isTouchRotating = true;
-                    lastTouchX = event.touches[0].clientX;
-                    lastTouchY = event.touches[0].clientY;
-                } else if (event.touches.length === 2) {
-                    isTouchZooming = true;
+            if (event.touches.length === 1) {
+                isTouchRotating = true;
+                lastTouchX = event.touches[0].clientX;
+                lastTouchY = event.touches[0].clientY;
+            } else if (event.touches.length === 2) {
+                isTouchZooming = true;
                     const dx =
                         event.touches[0].clientX - event.touches[1].clientX;
                     const dy =
                         event.touches[0].clientY - event.touches[1].clientY;
-                    lastTouchDist = Math.sqrt(dx * dx + dy * dy);
-                    lastTouchAngle = Math.atan2(dy, dx);
-                }
+                lastTouchDist = Math.sqrt(dx * dx + dy * dy);
+                lastTouchAngle = Math.atan2(dy, dx);
+            }
             },
             { passive: false }
         );
         this.rendererContainer.nativeElement.addEventListener(
             'touchmove',
             (event: TouchEvent) => {
-                event.preventDefault();
-                if (isTouchRotating && event.touches.length === 1) {
-                    const touch = event.touches[0];
-                    const dx = touch.clientX - lastTouchX;
-                    const dy = touch.clientY - lastTouchY;
-                    lastTouchX = touch.clientX;
-                    lastTouchY = touch.clientY;
-                    const angleY = dx * 0.01;
-                    const angleX = dy * 0.01;
+            event.preventDefault();
+            if (isTouchRotating && event.touches.length === 1) {
+                const touch = event.touches[0];
+                const dx = touch.clientX - lastTouchX;
+                const dy = touch.clientY - lastTouchY;
+                lastTouchX = touch.clientX;
+                lastTouchY = touch.clientY;
+                const angleY = dx * 0.01;
+                const angleX = dy * 0.01;
                     const offset = this.camera.position
                         .clone()
                         .sub(this.target);
                     const spherical = new THREE.Spherical().setFromVector3(
                         offset
                     );
-                    spherical.theta -= angleY;
-                    spherical.phi -= angleX;
+                spherical.theta -= angleY;
+                spherical.phi -= angleX;
                     spherical.phi = Math.max(
                         0.01,
                         Math.min(Math.PI - 0.01, spherical.phi)
@@ -782,53 +790,53 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.camera.position
                         .setFromSpherical(spherical)
                         .add(this.target);
-                } else if (isTouchZooming && event.touches.length === 2) {
+            } else if (isTouchZooming && event.touches.length === 2) {
                     const dx =
                         event.touches[0].clientX - event.touches[1].clientX;
                     const dy =
                         event.touches[0].clientY - event.touches[1].clientY;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const angle = Math.atan2(dy, dx);
-                    // Pinch zoom
-                    const deltaDist = dist - lastTouchDist;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx);
+                // Pinch zoom
+                const deltaDist = dist - lastTouchDist;
                     const direction = new THREE.Vector3()
                         .subVectors(this.camera.position, this.target)
                         .normalize();
                     const distance = this.camera.position.distanceTo(
                         this.target
                     );
-                    const zoomAmount = -deltaDist * 0.02 * (distance / 100);
-                    let newDistance = distance + zoomAmount;
-                    if (newDistance < 1) newDistance = 1;
+                const zoomAmount = -deltaDist * 0.02 * (distance / 100);
+                let newDistance = distance + zoomAmount;
+                if (newDistance < 1) newDistance = 1;
                     this.camera.position.copy(
                         direction.multiplyScalar(newDistance).add(this.target)
                     );
-                    lastTouchDist = dist;
-                    // Two-finger rotate (optional)
-                    const deltaAngle = angle - lastTouchAngle;
-                    if (Math.abs(deltaAngle) > 0.01) {
+                lastTouchDist = dist;
+                // Two-finger rotate (optional)
+                const deltaAngle = angle - lastTouchAngle;
+                if (Math.abs(deltaAngle) > 0.01) {
                         const offset = this.camera.position
                             .clone()
                             .sub(this.target);
                         const spherical = new THREE.Spherical().setFromVector3(
                             offset
                         );
-                        spherical.theta -= deltaAngle;
+                    spherical.theta -= deltaAngle;
                         this.camera.position
                             .setFromSpherical(spherical)
                             .add(this.target);
-                        lastTouchAngle = angle;
-                    }
+                    lastTouchAngle = angle;
                 }
+            }
             },
             { passive: false }
         );
         this.rendererContainer.nativeElement.addEventListener(
             'touchend',
             (event: TouchEvent) => {
-                isTouchRotating = false;
-                isTouchZooming = false;
-                isTouchPanning = false;
+            isTouchRotating = false;
+            isTouchZooming = false;
+            isTouchPanning = false;
             }
         );
         // Start animation loop
@@ -911,8 +919,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const rightAngle = Math.PI / 4; // 45 degrees
         const rightDistance = 200;
         mainLight.position.set(
-            Math.cos(rightAngle) * rightDistance,
-            150,
+            Math.cos(rightAngle) * rightDistance, 
+            150, 
             Math.sin(rightAngle) * rightDistance
         );
         mainLight.castShadow = true;
@@ -930,8 +938,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const leftAngle = Math.PI / 6; // 30 degrees
         const leftDistance = 200;
         fillLight.position.set(
-            -Math.cos(leftAngle) * leftDistance,
-            100,
+            -Math.cos(leftAngle) * leftDistance, 
+            100, 
             Math.sin(leftAngle) * leftDistance
         );
         this.scene.add(fillLight);
@@ -961,9 +969,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.renderer.setSize(width, height);
     }
     updateBeams() {
+        // הפעלת loading
+        this.isLoading = true;
+        this.isModelLoading = true;
+        
         // Save current configuration to localStorage
         this.saveConfiguration();
-
+        
         // איפוס המשתנים הבוליאניים לבדיקת קורות מוסתרות
         this.hasHiddenBeams = false;
         this.hiddenBeamsCount = 0;
@@ -982,8 +994,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 });
             } else {
                 // אם זה Mesh רגיל (קורות)
-                mesh.geometry.dispose();
-                (mesh.material as THREE.Material).dispose();
+            mesh.geometry.dispose();
+            (mesh.material as THREE.Material).dispose();
             }
         });
         this.beamMeshes = [];
@@ -1357,8 +1369,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 shelfIndex < this.shelves.length;
                 shelfIndex++
             ) {
-                const shelf = this.shelves[shelfIndex];
-                currentY += shelf.gap;
+            const shelf = this.shelves[shelfIndex];
+            currentY += shelf.gap;
                 // Get leg beam dimensions for frame beams positioning
                 const legParam = this.getParam('leg');
                 let legWidth = frameBeamWidth;
@@ -1376,14 +1388,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     }
                 }
 
-                // Surface beams (קורת משטח)
-                const surfaceBeams = this.createSurfaceBeams(
-                    this.surfaceWidth,
-                    this.surfaceLength,
-                    beamWidth,
-                    beamHeight,
-                    this.minGap
-                );
+            // Surface beams (קורת משטח)
+            const surfaceBeams = this.createSurfaceBeams(
+                this.surfaceWidth,
+                this.surfaceLength,
+                beamWidth,
+                beamHeight,
+                this.minGap
+            );
 
                 // חישוב רווח בין קורות
                 const totalBeamWidth = surfaceBeams.length * beamWidth;
@@ -1458,11 +1470,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
 
                 console.log('==========================================');
 
-                for (let i = 0; i < surfaceBeams.length; i++) {
-                    let beam = { ...surfaceBeams[i] };
-                    // Only shorten first and last beam in the length (depth) direction for non-top shelves
-                    // Top shelf (last shelf) gets full-length beams
-                    const isTopShelf = shelfIndex === totalShelves - 1;
+            for (let i = 0; i < surfaceBeams.length; i++) {
+                let beam = { ...surfaceBeams[i] };
+                // Only shorten first and last beam in the length (depth) direction for non-top shelves
+                // Top shelf (last shelf) gets full-length beams
+                const isTopShelf = shelfIndex === totalShelves - 1;
 
                     // בדיקה אם להסתיר קורות בגלל חסימת רגליים
                     const beamAndGapWidth = beamWidth + gapBetweenBeams;
@@ -1483,8 +1495,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         !isTopShelf &&
                         (i === 0 || i === surfaceBeams.length - 1)
                     ) {
-                        beam.depth = beam.depth - 2 * frameBeamWidth;
-                    }
+                    beam.depth = beam.depth - 2 * frameBeamWidth;
+                }
                     const geometry = new THREE.BoxGeometry(
                         beam.width,
                         beam.height,
@@ -1493,26 +1505,26 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const material = new THREE.MeshStandardMaterial({
                         map: shelfWoodTexture,
                     });
-                    const mesh = new THREE.Mesh(geometry, material);
-                    mesh.castShadow = true;
-                    mesh.receiveShadow = true;
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
                     mesh.position.set(
                         beam.x,
                         currentY + frameBeamHeight + beam.height / 2,
                         0
                     );
-                    this.scene.add(mesh);
-                    this.beamMeshes.push(mesh);
-                    // הוספת ברגים לקורת המדף
+                this.scene.add(mesh);
+                this.beamMeshes.push(mesh);
+                // הוספת ברגים לקורת המדף
                     let isShortenedBeam =
                         !isTopShelf &&
                         (i === 0 || i === surfaceBeams.length - 1)
                             ? 'not-top'
                             : 'top';
                     if (isShortenedBeam !== 'top') {
-                        if (i === 0) {
+                    if (i === 0) {
                             isShortenedBeam = 'start';
-                        } else {
+                    } else {
                             isShortenedBeam = 'end';
                         }
                     }
@@ -1524,16 +1536,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         isShortenedBeam
                     );
                 }
-                // Frame beams (קורת חיזוק)
-                const frameBeams = this.createFrameBeams(
-                    this.surfaceWidth,
-                    this.surfaceLength,
-                    frameBeamWidth,
-                    frameBeamHeight,
-                    legWidth,
-                    legDepth
-                );
-                for (const beam of frameBeams) {
+            // Frame beams (קורת חיזוק)
+            const frameBeams = this.createFrameBeams(
+                this.surfaceWidth,
+                this.surfaceLength,
+                frameBeamWidth,
+                frameBeamHeight,
+                legWidth,
+                legDepth
+            );
+            for (const beam of frameBeams) {
                     const geometry = new THREE.BoxGeometry(
                         beam.width,
                         beam.height,
@@ -1542,59 +1554,59 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const material = new THREE.MeshStandardMaterial({
                         map: frameWoodTexture,
                     });
-                    const mesh = new THREE.Mesh(geometry, material);
-                    mesh.castShadow = true;
-                    mesh.receiveShadow = true;
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
                     const frameY = currentY + beam.height / 2;
                     mesh.position.set(beam.x, frameY, beam.z);
-                    this.scene.add(mesh);
-                    this.beamMeshes.push(mesh);
-                }
-                // Add the height of the shelf itself for the next shelf
-                currentY += frameBeamHeight + beamHeight;
+                this.scene.add(mesh);
+                this.beamMeshes.push(mesh);
             }
-            // לא מעדכן מיקום מצלמה/zoom אחרי עדכון אלמנטים
-            // רגליים (legs)
-            if (this.isTable || this.shelves.length) {
-                // Get leg beam and type from params
-                const legParam = this.getParam('leg');
-                let legBeam = null;
-                let legType = null;
+            // Add the height of the shelf itself for the next shelf
+            currentY += frameBeamHeight + beamHeight;
+        }
+        // לא מעדכן מיקום מצלמה/zoom אחרי עדכון אלמנטים
+        // רגליים (legs)
+        if (this.isTable || this.shelves.length) {
+            // Get leg beam and type from params
+            const legParam = this.getParam('leg');
+            let legBeam = null;
+            let legType = null;
                 if (
                     legParam &&
                     Array.isArray(legParam.beams) &&
                     legParam.beams.length
                 ) {
-                    legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+                legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
                     legType =
                         legBeam.types && legBeam.types.length
                             ? legBeam.types[legParam.selectedTypeIndex || 0]
                             : null;
-                }
-                // Get wood texture for leg beams
+            }
+            // Get wood texture for leg beams
                 const legWoodTexture = this.getWoodTexture(
                     legType ? legType.name : ''
                 );
-                // Compute total height for legs and camera
-                let totalY = 0;
-                if (this.isTable) {
-                    // עבור שולחן, הגובה הכולל הוא גובה השולחן
-                    const heightParam = this.getParam('height');
-                    totalY = heightParam ? heightParam.default : 80;
-                } else {
-                    // עבור ארון, הגובה הכולל הוא סכום כל המדפים
-                    for (const shelf of this.shelves) {
-                        totalY += shelf.gap + frameBeamHeight + beamHeight;
-                    }
+            // Compute total height for legs and camera
+            let totalY = 0;
+            if (this.isTable) {
+                // עבור שולחן, הגובה הכולל הוא גובה השולחן
+                const heightParam = this.getParam('height');
+                totalY = heightParam ? heightParam.default : 80;
+            } else {
+                // עבור ארון, הגובה הכולל הוא סכום כל המדפים
+            for (const shelf of this.shelves) {
+                    totalY += shelf.gap + frameBeamHeight + beamHeight;
                 }
-                const legs = this.createLegBeams(
-                    this.surfaceWidth,
-                    this.surfaceLength,
-                    frameBeamWidth,
-                    frameBeamHeight,
-                    totalY
-                );
-                for (const leg of legs) {
+            }
+            const legs = this.createLegBeams(
+                this.surfaceWidth,
+                this.surfaceLength,
+                frameBeamWidth,
+                frameBeamHeight,
+                totalY
+            );
+            for (const leg of legs) {
                     const geometry = new THREE.BoxGeometry(
                         leg.width,
                         leg.height,
@@ -1603,30 +1615,30 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const material = new THREE.MeshStandardMaterial({
                         map: legWoodTexture,
                     });
-                    const mesh = new THREE.Mesh(geometry, material);
-                    mesh.castShadow = true;
-                    mesh.receiveShadow = true;
-                    mesh.position.set(leg.x, leg.height / 2, leg.z);
-                    this.scene.add(mesh);
-                    this.beamMeshes.push(mesh);
-                }
-                // הוספת ברגים לרגליים
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.position.set(leg.x, leg.height / 2, leg.z);
+                this.scene.add(mesh);
+                this.beamMeshes.push(mesh);
+            }
+            // הוספת ברגים לרגליים
                 this.addScrewsToLegs(
                     this.isTable ? 1 : totalShelves,
                     legs,
                     frameBeamHeight,
                     0
                 );
-                // Focus camera at the vertical center of the structure
-                this.target.set(0, totalY / 2, 0);
-            }
+            // Focus camera at the vertical center of the structure
+            this.target.set(0, totalY / 2, 0);
+        }
         }
         // Ensure scene rotation is maintained after updates
         this.scene.rotation.y = Math.PI / 6; // 30 degrees rotation
         // Add wireframe cube showing product dimensions (only if enabled)
         if (this.showWireframe) {
-            this.addWireframeCube();
-        }
+        this.addWireframeCube();
+    }
     }
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
     private addWireframeCube() {
@@ -1925,7 +1937,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // איסוף כל הקורות מהמודל התלת מימדי
         const allBeams: any[] = [];
         // קבלת נתוני הקורות מהפרמטרים
-        const shelfParam = this.isTable
+        const shelfParam = this.isTable 
             ? this.product?.params?.find(
                   (p: any) => p.type === 'beamSingle' && p.name === 'plata'
               )
@@ -2392,6 +2404,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('*** === END BEAMS DATA ===', this.BeamsDataForPricing);
         // חישוב ברגים
         await this.calculateForgingData();
+        
+        // כיבוי loading
+        this.isLoading = false;
+        this.isModelLoading = false;
     }
     // פונקציה לעגול אורך בורג לחצי הקרוב למעלה
     private roundScrewLength(length: number): number {
@@ -3027,7 +3043,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             return heightParam ? heightParam.default : 80;
         } else {
             // עבור ארון, הגובה הוא סכום כל המדפים עד המדף הנוכחי (כמו בקוד יצירת המודל התלת-ממדי)
-            let currentY = 0;
+        let currentY = 0;
             for (let i = 0; i <= shelfIndex; i++) {
                 currentY += this.shelves[i].gap;
                 if (i < shelfIndex) {
@@ -3184,7 +3200,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 `${this.formatNumber(rawDimensions.shelfHeights[i])} <small>ס"מ</small>`
             );
         }
-        const shelfHeights = shelfHeightsList.join('<br>');
+        const shelfHeights = shelfHeightsList.join(', ');
         return {
             length: `${this.formatNumber(rawDimensions.length)} <small>ס"מ</small>`,
             width: `${this.formatNumber(rawDimensions.width)} <small>ס"מ</small>`,
@@ -3320,24 +3336,24 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         } else {
             // רוחב הקורה גדול מ-4 - יצור 4 ברגים בפינות (הלוגיקה הקיימת)
             screwPositions = [
-                // פינה שמאלית קדמית
-                {
-                    x: beam.x - beam.width / 2 + inwardOffset,
+            // פינה שמאלית קדמית
+            {
+                x: beam.x - beam.width / 2 + inwardOffset,
                     z: beamZ - beam.depth / 2 + edgeOffset,
-                },
-                // פינה ימנית קדמית
-                {
-                    x: beam.x + beam.width / 2 - inwardOffset,
+            },
+            // פינה ימנית קדמית
+            {
+                x: beam.x + beam.width / 2 - inwardOffset,
                     z: beamZ - beam.depth / 2 + edgeOffset,
-                },
-                // פינה שמאלית אחורית
-                {
-                    x: beam.x - beam.width / 2 + inwardOffset,
+            },
+            // פינה שמאלית אחורית
+            {
+                x: beam.x - beam.width / 2 + inwardOffset,
                     z: beamZ + beam.depth / 2 - edgeOffset,
-                },
-                // פינה ימנית אחורית
-                {
-                    x: beam.x + beam.width / 2 - inwardOffset,
+            },
+            // פינה ימנית אחורית
+            {
+                x: beam.x + beam.width / 2 - inwardOffset,
                     z: beamZ + beam.depth / 2 - edgeOffset,
                 },
             ];
@@ -3378,8 +3394,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 );
             }
             // רק לקורות רחבות (>4) נבצע את החישוב המתקדם של מיקומי הברגים
-                const startPositions = screwPositions[0];
-                const endPositions = screwPositions[1];
+            const startPositions = screwPositions[0];
+            const endPositions = screwPositions[1];
                 console.log('CHECKSCREWS === COMPREHENSIVE SCREW POSITION ANALYSIS ===');
                 console.log('CHECKSCREWS === BASIC INFO ===');
                 console.log('CHECKSCREWS isShortenedBeam:', isShortenedBeam);
@@ -3468,7 +3484,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 console.log('CHECKSCREWS === FINAL RESULT ===');
                 console.log('CHECKSCREWS Final screw positions:', screwPositions);
                 console.log('CHECKSCREWS === END COMPREHENSIVE SCREW POSITION ANALYSIS ===');
-                // create 2 new positions between start and end - 1/3 from start and 2/3 from end and the opposite
+            // create 2 new positions between start and end - 1/3 from start and 2/3 from end and the opposite
                 // חישוב המיקומים החדשים של כל הברגים לפי המרחק הסופי מהמרכז
                 const adjustedStartPositions = {
                     x: startPositions.x > 0 ? finalDistance : -finalDistance,
@@ -3488,8 +3504,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     adjustedEndPositions
                 );
 
-                const newPosition = [
-                    {
+           const newPosition = [
+                {
                         x:
                             adjustedStartPositions.x +
                             (adjustedEndPositions.x -

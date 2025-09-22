@@ -57,11 +57,11 @@
                                             </h6>
                                             <span class="d-md-none opacity-75 zx-text-tiny zx-text-sm-small text-start"
                                                 [ngClass]="isRTL ? 'text-md-end' : 'text-md-start'">
-                                                דגם - {{product.name || 'מוצר מותאם אישית'}}
+                                                דגם - {{product.model || product.name || 'מוצר מותאם אישית'}}
                                             </span>
                                             <span class="d-none d-md-inline opacity-75 zx-text-tiny zx-text-sm-small text-center"
                                                 [ngClass]="isRTL ? 'text-md-end' : 'text-md-start'">
-                                                דגם - {{product.name || 'מוצר לא מתאים'}}
+                                                דגם - {{product.model || product.name || 'מוצר לא מתאים'}}
                                             </span>
                                         </div>
                                         
@@ -69,7 +69,7 @@
                                         <button mat-stroked-button 
                                                 class="continue-to-product-btn" 
                                                 (click)="navigateToProduct(product); $event.stopPropagation()">
-                                            <span class="opacity-75 zx-text-tiny zx-text-sm-small" [ngClass]="isRTL ? 'text-md-end' : 'text-md-start'">המשך ל- {{product.name || 'מוצר לא טוב'}}</span>
+                                            <span class="opacity-75 zx-text-tiny zx-text-sm-small" [ngClass]="isRTL ? 'text-md-end' : 'text-md-start'">המשך ל- {{product.model || product.name || 'מוצר לא טוב'}}</span>
                                         </button>
                                     </div>
                                 

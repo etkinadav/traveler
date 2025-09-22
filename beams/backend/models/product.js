@@ -16,6 +16,10 @@ const productsSchema = new Schema({
         type: String,
         required: true
     },
+    model: {
+        type: String,
+        required: false
+    },
     matirials: {
         type: Object,
         required: false

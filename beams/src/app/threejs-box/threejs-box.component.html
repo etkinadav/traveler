@@ -6,6 +6,7 @@
             [class.active]="showWireframe" 
             matTooltip="הצג את מידות המוצר המלאות"
             matTooltipPosition="below">
+        <!-- SVG Icon -->
         <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left:8px;">
             <rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="0.8" fill="none"/>
             <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="0.8"/>
@@ -41,13 +42,20 @@
                 </svg>
             </button>
             <ng-container *ngIf="drawerOpen">
-                <!-- כותרת מוצר -->
-                <div class="product-header" *ngIf="selectedProductName" style="margin-bottom: 20px;">
-                    <h3 style="margin: 0; padding: 10px; text-align: center;">
-                        {{product?.translatedName || selectedProductName}}<br>
-                        <span style="margin-top: 8px; font-weight: normal; font-size: 0.8em; display: block;">דגם: {{product?.name || selectedProductName}}</span>
-                    </h3>
+                <!-- Spinner Loading - מחליף את כל התוכן -->
+                <div class="loading-spinner" *ngIf="isLoading">
+                    <div class="spinner"></div>
                 </div>
+                
+                <!-- כל התוכן הרגיל - מוצג רק כשאין loading -->
+                <div *ngIf="!isLoading">
+                    <!-- כותרת מוצר -->
+                    <div class="product-header" *ngIf="selectedProductName" style="margin-bottom: 20px;">
+                        <h3 style="margin: 0; padding: 10px; text-align: center;">
+                            {{product?.translatedName || selectedProductName}}<br>
+                            <span style="margin-top: 8px; font-weight: normal; font-size: 0.8em; display: block;">דגם: {{product?.model || product?.name || selectedProductName}}</span>
+                        </h3>
+                    </div>
                 
                 <div *ngFor="let param of params" class="param-box">
                     
@@ -233,9 +241,15 @@
                         </tr>
                     </table>
                 </div>
+                </div> <!-- סיום התוכן הרגיל -->
             </ng-container>
         </div>
-        <div #rendererContainer class="renderer-container" [class.expanded]="!drawerOpen"></div>
+        <div #rendererContainer class="renderer-container" [class.expanded]="!drawerOpen">
+            <!-- Spinner במרכז התצוגה התלת-מימדית -->
+            <div class="model-loading-spinner" *ngIf="isModelLoading">
+                <div class="spinner"></div>
+            </div>
+        </div>
     </div>
     
     <!-- אזור חישוב המחיר -->
