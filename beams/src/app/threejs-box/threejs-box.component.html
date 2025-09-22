@@ -311,20 +311,18 @@
             <!-- תוכנית חיתוך קורות -->
             <div class="materials-summary" *ngIf="cuttingPlan && cuttingPlan.length > 0">
                 <div class="main-title">תוכנית חיתוך קורות:</div>
-                <div class="beam-type-section">
-                    <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
-                        <!-- כותרת קורה -->
-                        <div class="pricing-title">
-                            <div class="beam-number">{{ beam.beamNumber }}</div>
-                            <div class="beam-details">{{ beam.beamType }} ({{ beam.beamWoodType }}) {{ beam.beamLength }} ס"מ ------ {{ beam.beamPrice }}₪</div>
-                        </div>
-                        
-                        <!-- רשימת החתיכות מקובצות לפי גודל -->
-                        <div *ngFor="let cutGroup of getCutGroups(beam.cuts)" class="size-item">
-                            <span class="size-value">{{ cutGroup.length }} ס"מ</span>
-                            <span class="size-separator"></span>
-                            <span class="size-count">{{ cutGroup.count }} {{ 'price-calculation.units' | translate }}</span>
-                        </div>
+                <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
+                    <!-- כותרת קורה -->
+                    <div class="pricing-title">
+                        <div class="beam-number">{{ beam.beamNumber }}</div>
+                        <div class="beam-details">{{ beam.beamType }} ({{ beam.beamWoodType }}) {{ beam.beamLength }} ס"מ ------ {{ beam.beamPrice }}₪</div>
+                    </div>
+                    
+                    <!-- רשימת החתיכות מקובצות לפי גודל -->
+                    <div *ngFor="let cutGroup of getCutGroups(beam.cuts)" class="size-item">
+                        <span class="size-value">{{ cutGroup.length }} ס"מ</span>
+                        <span class="size-separator"></span>
+                        <span class="size-count">{{ cutGroup.count }} {{ 'price-calculation.units' | translate }}</span>
                     </div>
                 </div>
             </div>
