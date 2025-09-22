@@ -116,6 +116,16 @@
     white-space: nowrap;
     animation: pulse 2s infinite;
     
+    // תיקון למובייל בלבד (SM ומטה)
+    @media (max-width: 640px) {
+        white-space: normal;
+        word-wrap: break-word;
+        max-width: 100px;
+        height: auto;
+        min-height: 28px;
+        padding: 6px 8px;
+    }
+    
     .button-text {
         margin-left: 0px;
         font-size: 11px;
@@ -140,6 +150,16 @@
     color: #f44336;
     border: 1px solid rgba(244, 67, 54, 0.3);
     animation: criticalPulse 1.5s infinite;
+    
+    // תיקון למובייל בלבד (SM ומטה)
+    @media (max-width: 640px) {
+        white-space: normal;
+        word-wrap: break-word;
+        max-width: 100px;
+        height: auto;
+        min-height: 28px;
+        padding: 6px 8px;
+    }
 }
 
 @keyframes criticalPulse {
