@@ -83,6 +83,29 @@
     }
 }
 
+/* Critical warning - no middle beams */
+.hidden-beams-warning.critical {
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    animation: criticalPulse 1.5s infinite;
+}
+
+@keyframes criticalPulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.02);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 /* Uniform width for all input fields and mat-form-fields */
 .shelf-gap-field-wrapper,
 .shelf-gap-field,
