@@ -283,9 +283,9 @@
             <!-- סיכום קורות -->
             <div class="materials-summary" *ngIf="BeamsDataForPricing && BeamsDataForPricing.length > 0">
                 <div class="sub-title">קורות:</div>
-                <div *ngFor="let beamData of BeamsDataForPricing" class="beam-type-section">
+                <div *ngFor="let beamData of BeamsDataForPricing" class="beam-name">
                     <!-- כותרת סוג הקורה -->
-                    <div class="beam-name">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type.translatedName }})</div>
+                    <div class="pricing-title">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type.translatedName }})</div>
                     
                     <!-- רשימת המידות -->
                     <div *ngFor="let sizeData of beamData.totalSizes" class="size-item">
@@ -314,7 +314,10 @@
                 <div class="beam-type-section">
                     <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
                         <!-- כותרת קורה -->
-                        <div class="beam-name">קורה #{{ beam.beamNumber }} - {{ beam.beamLength }} ס"מ ({{ beam.beamPrice }} ₪) - {{ beam.beamType }}</div>
+                        <div class="pricing-title">
+                            <div class="beam-number">{{ beam.beamNumber }}</div>
+                            <div class="beam-details">{{ beam.beamType }} ({{ beam.beamWoodType }}) {{ beam.beamLength }} ס"מ ------ {{ beam.beamPrice }}₪</div>
+                        </div>
                         
                         <!-- רשימת החתיכות מקובצות לפי גודל -->
                         <div *ngFor="let cutGroup of getCutGroups(beam.cuts)" class="size-item">

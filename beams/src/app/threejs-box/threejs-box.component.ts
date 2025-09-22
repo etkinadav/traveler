@@ -1984,6 +1984,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             name: 'Table Surface Beam',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                     });
                 } else {
@@ -2043,6 +2044,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 name: `Shelf ${index + 1} Beam`,
                                 beamName: selectedBeam.name,
                                 beamTranslatedName: selectedBeam.translatedName,
+                                beamWoodType: selectedType.translatedName, // סוג העץ
                             });
                         });
                     });
@@ -2103,6 +2105,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             name: 'Table Frame Beam Width 1',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                         allBeams.push({
                             type: selectedType,
@@ -2112,6 +2115,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             name: 'Table Frame Beam Width 2',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                         // קורות אורך מקוצרות (מקבילות לקורות המדפים)
                         // אורך כולל פחות פעמיים גובה קורות הרגליים
@@ -2125,6 +2129,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             name: 'Table Frame Beam Length 1',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                         allBeams.push({
                             type: selectedType,
@@ -2134,6 +2139,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             name: 'Table Frame Beam Length 2',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                         // שכפול קורות החיזוק לשולחן - עוד 4 קורות זהות
                         allBeams.push({
@@ -2144,6 +2150,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             name: 'Table Frame Beam Width 3',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                         allBeams.push({
                             type: selectedType,
@@ -2153,6 +2160,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             name: 'Table Frame Beam Width 4',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                         allBeams.push({
                             type: selectedType,
@@ -2162,6 +2170,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             name: 'Table Frame Beam Length 3',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                         allBeams.push({
                             type: selectedType,
@@ -2171,6 +2180,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             name: 'Table Frame Beam Length 4',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                     } else {
                         console.log(
@@ -2189,6 +2199,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 name: `Frame Beam Width 1 - Shelf ${shelfIndex + 1}`,
                                 beamName: selectedBeam.name,
                                 beamTranslatedName: selectedBeam.translatedName,
+                                beamWoodType: selectedType.translatedName, // סוג העץ
                             });
                             allBeams.push({
                                 type: selectedType,
@@ -2198,6 +2209,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 name: `Frame Beam Width 2 - Shelf ${shelfIndex + 1}`,
                                 beamName: selectedBeam.name,
                                 beamTranslatedName: selectedBeam.translatedName,
+                                beamWoodType: selectedType.translatedName, // סוג העץ
                             });
                             // קורות אורך מקוצרות (מקבילות לקורות המדפים)
                             allBeams.push({
@@ -2208,6 +2220,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 name: `Frame Beam Length 1 - Shelf ${shelfIndex + 1}`,
                                 beamName: selectedBeam.name,
                                 beamTranslatedName: selectedBeam.translatedName,
+                                beamWoodType: selectedType.translatedName, // סוג העץ
                             });
                             allBeams.push({
                                 type: selectedType,
@@ -2217,6 +2230,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 name: `Frame Beam Length 2 - Shelf ${shelfIndex + 1}`,
                                 beamName: selectedBeam.name,
                                 beamTranslatedName: selectedBeam.translatedName,
+                                beamWoodType: selectedType.translatedName, // סוג העץ
                             });
                         });
                     }
@@ -2298,6 +2312,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             ? `Table Leg ${i + 1}`
                             : `Cabinet Leg ${i + 1}`,
                         beamName: selectedBeam.name,
+                        beamTranslatedName: selectedBeam.translatedName,
+                        beamWoodType: selectedType.name, // סוג העץ
                     });
                 }
             }
@@ -2332,6 +2348,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     type: beam.type,
                     beamName: beam.beamName, // שמירת beamName
                     beamTranslatedName: beam.beamTranslatedName, // שמירת השם המתורגם של הקורה
+                    beamWoodType: beam.beamWoodType, // סוג העץ
                     sizes: [],
                 });
             }
@@ -2343,6 +2360,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 type: beamData.type,
                 beamName: beamData.beamName, // הוספת beamName
                 beamTranslatedName: beamData.beamTranslatedName, // הוספת השם המתורגם של הקורה
+                beamWoodType: beamData.beamWoodType, // הוספת סוג העץ
                 sizes: beamData.sizes,
             });
         });

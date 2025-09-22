@@ -71,7 +71,8 @@ export class PricingService {
           cuts: cuts,
           remaining: remaining,
           waste: remaining,
-          beamType: beamData.beamTranslatedName || beamData.beamName
+          beamType: beamData.beamTranslatedName || beamData.beamName,
+          beamWoodType: beamData.beamWoodType // סוג העץ
         });
       });
 
@@ -226,7 +227,8 @@ export class PricingService {
           cuts: cuts,
           remaining: remaining,
           waste: remaining,
-          beamType: beamData.beamTranslatedName || beamData.beamName
+          beamType: beamData.beamTranslatedName || beamData.beamName,
+          beamWoodType: beamData.beamWoodType // סוג העץ
         });
       });
       
