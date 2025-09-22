@@ -672,12 +672,24 @@ mat-form-field {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border: 1px solid #e0e0e0;
         padding: 12px 16px;
-        width: 400px;
+        width: 350px;
         max-height: 70vh;
         overflow-y: auto;
         overflow-x: hidden;
-        min-width: 400px;
-        max-width: 500px;
+        min-width: 350px;
+        max-width: 450px;
+        
+        // מובייל - הרבה יותר צר
+        @media (max-width: 640px) {
+            width: 280px;
+            min-width: 280px;
+            max-width: 320px;
+            
+            // אם יש אזהרה מוצגת - הקטן את הגובה
+            &.with-warning {
+                max-height: 50vh;
+            }
+        }
         z-index: 1002;
         text-align: right;
         
@@ -808,8 +820,13 @@ mat-form-field {
 .pricing-title {
     position: relative;
     margin-bottom: 4px;
-    font-size: 14px;
+    font-size: 14px; // דסקטופ
     padding: 8px 0;
+    
+    // מובייל - פונט קטן יותר
+    @media (max-width: 768px) {
+        font-size: 12px !important;
+    }
 }
 
 .beam-name {
@@ -858,12 +875,17 @@ mat-form-field {
     margin-top: 4px;
 }
 
-.beam-text {
+.price-menu-box .beam-text {
     color: #0066cc;
     font-weight: normal;
-    font-size: 12px;
+    font-size: 14px; // דסקטופ
     flex-shrink: 0;
     white-space: nowrap;
+    
+    // מובייל - פונט קטן יותר
+    @media (max-width: 768px) {
+        font-size: 12px !important;
+    }
 }
 
 .beam-separator {
@@ -876,12 +898,17 @@ mat-form-field {
     min-width: 0;
 }
 
-.beam-price {
+.price-menu-box .beam-price {
     color: #333;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 14px; // דסקטופ
     flex-shrink: 0;
     white-space: nowrap;
+    
+    // מובייל - פונט קטן יותר
+    @media (max-width: 768px) {
+        font-size: 12px !important;
+    }
 }
 
 // סטייל מיוחד לחלק תוכנית חיתוך קורות - ללא border כפול

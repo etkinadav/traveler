@@ -275,7 +275,9 @@
         </div>
         
         <!-- קופסא נוספת שמופיעה כשהתפריט פתוח -->
-        <div class="price-menu-box" *ngIf="isPriceManuOpen">
+        <div class="price-menu-box" 
+             [class.with-warning]="hasHiddenBeams || hasNoMiddleBeams"
+             *ngIf="isPriceManuOpen">
             <!-- כותרת דינמית -->
             <span class="thinking-text" *ngIf="!BeamsDataForPricing || BeamsDataForPricing.length === 0">{{ 'price-calculation.first-title' | translate }}...</span>
             <span class="main-title" *ngIf="BeamsDataForPricing && BeamsDataForPricing.length > 0">חומרי גלם:</span>
