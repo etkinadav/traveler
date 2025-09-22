@@ -235,7 +235,7 @@
                             <td>כמות מדפים:</td>
                             <td [innerHTML]="getProductDimensions().shelfCount"></td>
                         </tr>
-                        <tr>
+                        <tr *ngIf="!isTable">
                             <td>גבהי המדפים:</td>
                             <td [innerHTML]="getProductDimensions().shelfHeights"></td>
                         </tr>
