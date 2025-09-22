@@ -62,7 +62,7 @@
     width: 40px;
     height: 40px;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #2196f3;
+    border-top: 4px solid var(--zx-green);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -88,7 +88,7 @@
     width: 50px;
     height: 50px;
     border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid #2196f3;
+    border-top: 4px solid var(--zx-green);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -499,7 +499,7 @@ mat-form-field {
             
             &:last-child {
                 font-weight: 600;
-                color: #2196f3;
+                color: var(--zx-green);
                 text-align: left;
                 width: 50%;
                 
@@ -540,7 +540,7 @@ mat-form-field {
                 
                 &:last-child {
                     font-weight: 600;
-                    color: #2196f3;
+                    color: var(--zx-green);
                     text-align: left;
                 }
             }
@@ -788,8 +788,8 @@ mat-form-field {
 .pricing-title {
     position: relative;
     margin-bottom: 4px;
-    font-size: 12px;
-    padding: 8px;
+    font-size: 14px;
+    padding: 8px 0;
 }
 
 .beam-name {
@@ -804,18 +804,16 @@ mat-form-field {
 
 .beam-number {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #2196f3;
-    color: white;
+    top: -16px;
+    left: -17px;
+    color: var(--zx-green);
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    font-weight: 600;
     box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
 }
 
@@ -825,12 +823,60 @@ mat-form-field {
     margin-top: 4px;
 }
 
+.beam-header {
+    position: relative;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.beam-details-item {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    gap: 3px;
+    margin-top: 4px;
+}
+
+.beam-text {
+    color: #0066cc;
+    font-weight: normal;
+    font-size: 12px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.beam-separator {
+    flex: 1;
+    height: 1px;
+    background: #ccc;
+    margin: 0 4px;
+    opacity: 0.2;
+    align-self: center;
+    min-width: 0;
+}
+
+.beam-price {
+    color: #333;
+    font-weight: 600;
+    font-size: 12px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 // סטייל מיוחד לחלק תוכנית חיתוך קורות - ללא border כפול
 .materials-summary .beam-type-section .beam-type-section {
     border: none;
     background: transparent;
     padding: 0;
     margin-bottom: 8px;
+}
+
+// הפרדה בין מקטע חומרי גלם לתוכנית חיתוך קורות
+.materials-summary:last-of-type {
+    margin-top: 20px;
+    padding-top: 5px;
+    border-top: 1px solid #e0e0e0;
 }
 
 .size-item {

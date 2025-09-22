@@ -49,13 +49,13 @@
                 
                 <!-- כל התוכן הרגיל - מוצג רק כשאין loading -->
                 <div *ngIf="!isLoading">
-                    <!-- כותרת מוצר -->
-                    <div class="product-header" *ngIf="selectedProductName" style="margin-bottom: 20px;">
-                        <h3 style="margin: 0; padding: 10px; text-align: center;">
-                            {{product?.translatedName || selectedProductName}}<br>
+                <!-- כותרת מוצר -->
+                <div class="product-header" *ngIf="selectedProductName" style="margin-bottom: 20px;">
+                    <h3 style="margin: 0; padding: 10px; text-align: center;">
+                        {{product?.translatedName || selectedProductName}}<br>
                             <span style="margin-top: 8px; font-weight: normal; font-size: 0.8em; display: block;">דגם: {{product?.model || product?.name || selectedProductName}}</span>
-                        </h3>
-                    </div>
+                    </h3>
+                </div>
                 
                 <div *ngFor="let param of params" class="param-box">
                     
@@ -64,8 +64,8 @@
                         <label style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <mat-form-field appearance="outline">
                             <mat-label>{{param.translatedName}}</mat-label>
-                    <input matInput type="number" [(ngModel)]="param.default"
-                        [min]="param.min" [max]="param.max"
+                            <input matInput type="number" [(ngModel)]="param.default" 
+                                   [min]="param.min" [max]="param.max" 
                         (blur)="updateModel()"
                         (keyup.enter)="updateModel()"
                         (input)="onNumberInputChange($event, 'updateModel')">
@@ -110,9 +110,9 @@
                                 <div class="shelf-gap-field-wrapper">
                                     <mat-form-field appearance="outline" class="shelf-gap-field">
                                         <mat-label>מידה {{param.default.length - idx}} - {{getUnitForParameter(param)}}</mat-label>
-              <input matInput type="number" [min]="param.min" [max]="param.max" [step]="1"
-                  [(ngModel)]="param.default[param.default.length - 1 - idx]" 
-                  (blur)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)" 
+                                        <input matInput type="number" [min]="param.min" [max]="param.max" [step]="1"
+                                            [(ngModel)]="param.default[param.default.length - 1 - idx]"
+                                            (blur)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
                   (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
                   (input)="onShelfInputChange($event, param, idx)">
                                     </mat-form-field>
@@ -125,11 +125,11 @@
                                             <line x1="9.5" y1="4.5" x2="4.5" y2="9.5" stroke="#d32f2f" stroke-width="1.5" />
                                         </svg>
                                     </button>
-                </div>
-            </div>
+                                </div>
+                            </div>
             
-        </div>
-    </div>
+                        </div>
+                    </div>
                     
                     <!-- טיפול בשולחן - פרמטר plata -->
                     <div *ngIf="isTable && param.name === 'plata'">
@@ -313,9 +313,13 @@
                 <div class="main-title">תוכנית חיתוך קורות:</div>
                 <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
                     <!-- כותרת קורה -->
-                    <div class="pricing-title">
+                    <div class="beam-header">
                         <div class="beam-number">{{ beam.beamNumber }}</div>
-                        <div class="beam-details">{{ beam.beamType }} ({{ beam.beamWoodType }}) {{ beam.beamLength }} ס"מ ------ {{ beam.beamPrice }}₪</div>
+                        <div class="beam-details-item">
+                            <span class="beam-text">{{ beam.beamType }} ({{ beam.beamWoodType }}) {{ beam.beamLength }} ס"מ</span>
+                            <span class="beam-separator"></span>
+                            <span class="beam-price">{{ beam.beamPrice }}₪</span>
+                        </div>
                     </div>
                     
                     <!-- רשימת החתיכות מקובצות לפי גודל -->
@@ -323,6 +327,6 @@
                         <span class="size-value">{{ cutGroup.length }} ס"מ</span>
                         <span class="size-separator"></span>
                         <span class="size-count">{{ cutGroup.count }} {{ 'price-calculation.units' | translate }}</span>
-                    </div>
-                </div>
-            </div>
+        </div>
+    </div>
+</div>

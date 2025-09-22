@@ -662,8 +662,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             'wheel',
             (event: WheelEvent) => {
             event.preventDefault();
-                // סגירת חלונית חישוב המחיר בזום
-                this.isPriceManuOpen = false;
+            // סגירת חלונית חישוב המחיר בזום
+            this.isPriceManuOpen = false;
             const delta = event.deltaY;
                 const direction = new THREE.Vector3()
                     .subVectors(this.camera.position, this.target)
@@ -685,8 +685,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.rendererContainer.nativeElement.addEventListener(
             'mousedown',
             (event: MouseEvent) => {
-                // סגירת חלונית חישוב המחיר בלחיצת עכבר
-                this.isPriceManuOpen = false;
+            // סגירת חלונית חישוב המחיר בלחיצת עכבר
+            this.isPriceManuOpen = false;
             isDragging = true;
                 isPan = event.button === 1 || event.button === 2;
             lastX = event.clientX;
@@ -745,8 +745,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.rendererContainer.nativeElement.addEventListener(
             'touchstart',
             (event: TouchEvent) => {
-                // סגירת חלונית חישוב המחיר במגע
-                this.isPriceManuOpen = false;
+            // סגירת חלונית חישוב המחיר במגע
+            this.isPriceManuOpen = false;
             if (event.touches.length === 1) {
                 isTouchRotating = true;
                 lastTouchX = event.touches[0].clientX;
@@ -1557,8 +1557,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
-                    const frameY = currentY + beam.height / 2;
-                    mesh.position.set(beam.x, frameY, beam.z);
+                const frameY = currentY + beam.height / 2;
+                mesh.position.set(beam.x, frameY, beam.z);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
@@ -1638,7 +1638,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // Add wireframe cube showing product dimensions (only if enabled)
         if (this.showWireframe) {
         this.addWireframeCube();
-    }
+        }
     }
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
     private addWireframeCube() {
@@ -1807,7 +1807,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const texture = new THREE.CanvasTexture(canvas);
             texture.needsUpdate = true;
             // Create sprite material with billboard behavior
-            const spriteMaterial = new THREE.SpriteMaterial({
+            const spriteMaterial = new THREE.SpriteMaterial({ 
                 map: texture,
                 transparent: true,
                 alphaTest: 0.1,
@@ -2030,7 +2030,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             if (shouldSkipThisBeam) {
                                 return; // מדלג על הקורה הזאת
                             }
-
+                            
                             // קיצור רק 2 קורות ספציפיות מכל מדף שאיננו עליון
                             // נניח שהקורות הראשונות הן אלה שצריכות להיות מקוצרות
                             if (!isTopShelf && beamIndex < 2) {
@@ -2374,7 +2374,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             // המרה למערך של אובייקטים עם אורך וכמות
             const totalSizes = Array.from(sizeCounts.entries())
                 .map(([length, count]) => ({
-                    length: length,
+                length: length,
                     count: count,
                 }))
                 .sort((a, b) => a.length - b.length); // מיון לפי אורך
@@ -2422,7 +2422,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('*** === END BEAMS DATA ===', this.BeamsDataForPricing);
         // חישוב ברגים
         await this.calculateForgingData();
-        
+
         // כיבוי loading
         this.isLoading = false;
         this.isModelLoading = false;
@@ -2995,14 +2995,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const beamHeight = this.beamHeight;
                 const frameHeight = this.frameHeight;
                 // חישוב ידני של הגובה כמו ב-3D model
-                let manualCurrentY = 0;
-                for (let i = 0; i <= shelfIndex; i++) {
-                    manualCurrentY += this.shelves[i].gap;
-                    if (i < shelfIndex) {
-                        manualCurrentY += this.frameHeight + this.beamHeight;
-                    }
+            let manualCurrentY = 0;
+            for (let i = 0; i <= shelfIndex; i++) {
+                manualCurrentY += this.shelves[i].gap;
+                if (i < shelfIndex) {
+                    manualCurrentY += this.frameHeight + this.beamHeight;
                 }
-                const shelfHeightFromFunction = this.getShelfHeight(shelfIndex);
+            }
+            const shelfHeightFromFunction = this.getShelfHeight(shelfIndex);
                 const expectedManualY = manualCurrentY + this.frameHeight / 2;
                 // עכשיו נציב את הברגים במרכז קורת החיזוק
                 // getShelfHeight מחזיר כעת את המרכז של קורת החיזוק
@@ -3061,7 +3061,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             return heightParam ? heightParam.default : 80;
         } else {
             // עבור ארון, הגובה הוא סכום כל המדפים עד המדף הנוכחי (כמו בקוד יצירת המודל התלת-ממדי)
-        let currentY = 0;
+            let currentY = 0;
             for (let i = 0; i <= shelfIndex; i++) {
                 currentY += this.shelves[i].gap;
                 if (i < shelfIndex) {
