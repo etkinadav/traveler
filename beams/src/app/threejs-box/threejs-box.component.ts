@@ -1819,7 +1819,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const minGap = 1; // רווח מינימלי
                     const surfaceBeams = this.createSurfaceBeams(this.surfaceWidth, this.surfaceLength, beamWidth, beamHeight, minGap);
                     const totalBeams = surfaceBeams.length; // כמות הקורות בפועל
-                    const totalScrews = totalBeams * 4; // 4 ברגים לכל קורה
+                    
+                    // חישוב כמות ברגים לפי רוחב הקורה
+                    let screwsPerBeam = 4; // ברירת מחדל - 4 ברגים לקורה רחבה
+                    if (beamWidth <= 4) {
+                        screwsPerBeam = 2; // 2 ברגים לקורה צרה (רוחב <= 4)
+                    }
+                    
+                    const totalScrews = totalBeams * screwsPerBeam;
                     shelfForgingData.push({
                         type: 'Shelf Screws',
                         beamName: selectedBeam.name,
@@ -1829,7 +1836,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
                         description: 'ברגי פלטה'
                     });
-                    console.log(`Table shelf screws: ${totalScrews} screws for ${totalBeams} beams`);
+                    console.log(`Table shelf screws: ${totalScrews} screws for ${totalBeams} beams (${screwsPerBeam} screws per beam)`);
                 }
             }
         } else {
@@ -1872,7 +1879,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     });
                     
                     const totalBeams = (surfaceBeams.length * totalShelves) - totalHiddenBeams; // כמות הקורות בפועל פחות הקורות המוסתרות
-                    const totalScrews = totalBeams * 4; // 4 ברגים לכל קורה
+                    
+                    // חישוב כמות ברגים לפי רוחב הקורה
+                    let screwsPerBeam = 4; // ברירת מחדל - 4 ברגים לקורה רחבה
+                    if (beamWidth <= 4) {
+                        screwsPerBeam = 2; // 2 ברגים לקורה צרה (רוחב <= 4)
+                    }
+                    
+                    const totalScrews = totalBeams * screwsPerBeam;
                     shelfForgingData.push({
                         type: 'Shelf Screws',
                         beamName: selectedBeam.name,
@@ -1882,7 +1896,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
                         description: 'ברגי מדפים'
                     });
-                    console.log(`Cabinet shelf screws: ${totalScrews} screws for ${totalShelves} shelves (${totalHiddenBeams} hidden beams)`);
+                    console.log(`Cabinet shelf screws: ${totalScrews} screws for ${totalShelves} shelves (${totalHiddenBeams} hidden beams, ${screwsPerBeam} screws per beam)`);
                 }
             }
         }
