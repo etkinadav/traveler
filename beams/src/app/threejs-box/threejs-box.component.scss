@@ -581,8 +581,8 @@ mat-form-field {
     position: absolute;
     bottom: 71px;
     left: 21px; // רווח קבוע מסוף התפריט
-    width: 36px;
-    height: 36px;
+    width: 45px;
+    height: 45px;
     background: var(--zx-green);
     z-index: 1000;
 }
@@ -590,8 +590,8 @@ mat-form-field {
 // קוביה הבסיס
 .base-cube {
     position: relative;
-    width: 36px;
-    height: 36px;
+    width: 45px;
+    height: 45px;
     background: var(--zx-green);
 }
 
@@ -599,146 +599,65 @@ mat-form-field {
 .nav-button {
     position: absolute;
     background: rgba(255, 255, 255, 0.8);
-    color: #333;
+    color: white;
     font-size: 8px;
-    font-weight: bold;
+    text-align: center;
+    line-height: normal;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border: 1px solid #ccc;
-    
-    &:hover {
-        background: rgba(255, 255, 255, 1);
-    }
 }
 
 // כפתור TOP - טרפז
 .top-button {
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-bottom: 7px solid rgba(255, 255, 255, 0.8);
-    background: transparent;
-    border: none;
-    
-    span {
-        position: absolute;
-        top: 1px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 5px;
-        color: #333;
-    }
-    
-    &:hover {
-        border-bottom-color: rgba(255, 255, 255, 1);
-    }
+    left: 0;
+    width: 45px;
+    height: 10px;
+    clip-path: polygon(0 0, 100% 0, 72.2% 100%, 27.8% 100%);
+    background: rgba(255, 255, 255, 0.75);
 }
 
 // כפתור BOTTOM - טרפז
 .bottom-button {
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 7px solid rgba(255, 255, 255, 0.8);
-    background: transparent;
-    border: none;
-    
-    span {
-        position: absolute;
-        bottom: 1px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 5px;
-        color: #333;
-    }
-    
-    &:hover {
-        border-top-color: rgba(255, 255, 255, 1);
-    }
+    left: 0;
+    width: 45px;
+    height: 10px;
+    clip-path: polygon(27.8% 0, 72.2% 0, 100% 100%, 0 100%);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 // כפתור LEFT - טרפז
 .left-button {
     left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-top: 15px solid transparent;
-    border-bottom: 15px solid transparent;
-    border-right: 7px solid rgba(255, 255, 255, 0.8);
-    background: transparent;
-    border: none;
-    
-    span {
-        position: absolute;
-        left: 1px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 5px;
-        color: #333;
-        white-space: nowrap;
-        writing-mode: vertical-rl;
-        text-orientation: upright;
-    }
-    
-    &:hover {
-        border-right-color: rgba(255, 255, 255, 1);
-    }
+    top: 0;
+    width: 10px;
+    height: 45px;
+    clip-path: polygon(0 0, 100% 22.2%, 100% 77.8%, 0 100%);
+    background: rgba(255, 255, 255, 0.45);
 }
 
 // כפתור RIGHT - טרפז
 .right-button {
     right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-top: 15px solid transparent;
-    border-bottom: 15px solid transparent;
-    border-left: 7px solid rgba(255, 255, 255, 0.8);
-    background: transparent;
-    border: none;
-    
-    span {
-        position: absolute;
-        right: 1px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 5px;
-        color: #333;
-        white-space: nowrap;
-        writing-mode: vertical-rl;
-        text-orientation: upright;
-    }
-    
-    &:hover {
-        border-left-color: rgba(255, 255, 255, 1);
-    }
+    top: 0;
+    width: 10px;
+    height: 45px;
+    clip-path: polygon(100% 0, 0 22.2%, 0 77.8%, 100% 100%);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 // כפתור FRONT - ריבוע
 .front-button {
+    width: 25px;
+    height: 25px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 21px;
-    height: 21px;
-    
-    span {
-        font-size: 6px;
-        line-height: 1;
-    }
+    background: rgba(255, 255, 255, 0.3);
+    clip-path: none;
 }
 
 // אזור חישוב המחיר

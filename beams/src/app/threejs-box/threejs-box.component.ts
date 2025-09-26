@@ -47,6 +47,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.scene.remove(existingWireframe);
         }
     }
+    // פונקציית ניווט
+    onNavigationClick(direction: string) {
+        console.log(direction);
+    }
+    
     // פונקציה לפתיחת/סגירת תפריט המחיר
     togglePriceMenu() {
         this.isPriceManuOpen = !this.isPriceManuOpen;

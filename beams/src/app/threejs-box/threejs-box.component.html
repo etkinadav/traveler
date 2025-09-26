@@ -255,29 +255,19 @@
                 <!-- קוביה הבסיס -->
                 <div class="base-cube">
                     <!-- כפתור TOP -->
-                    <div class="nav-button top-button">
-                        <span>TOP</span>
-                    </div>
+                    <div class="nav-button top-button" (click)="onNavigationClick('top')"></div>
                     
                     <!-- כפתור BOTTOM -->
-                    <div class="nav-button bottom-button">
-                        <span>BOTTOM</span>
-                    </div>
+                    <div class="nav-button bottom-button" (click)="onNavigationClick('bottom')"></div>
                     
                     <!-- כפתור LEFT -->
-                    <div class="nav-button left-button">
-                        <span>LEFT</span>
-                    </div>
+                    <div class="nav-button left-button" (click)="onNavigationClick('left')"></div>
                     
                     <!-- כפתור RIGHT -->
-                    <div class="nav-button right-button">
-                        <span>RIGHT</span>
-                    </div>
+                    <div class="nav-button right-button" (click)="onNavigationClick('right')"></div>
                     
                     <!-- כפתור FRONT -->
-                    <div class="nav-button front-button">
-                        <span>FRONT</span>
-                    </div>
+                    <div class="nav-button front-button" (click)="onNavigationClick('front')"></div>
                 </div>
             </div>
         </div>
