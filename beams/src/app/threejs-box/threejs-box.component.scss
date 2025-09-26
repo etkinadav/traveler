@@ -576,6 +576,17 @@ mat-form-field {
     }
 }
 
+// כפתור ניווט
+.navigation-button {
+    position: absolute;
+    bottom: 71px;
+    left: 21px; // רווח קבוע מסוף התפריט
+    width: 45px;
+    height: 45px;
+    background: var(--zx-green);
+    z-index: 1000;
+}
+
 // אזור חישוב המחיר
 .price-calculation-area {
     position: fixed;
