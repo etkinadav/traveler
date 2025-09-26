@@ -453,7 +453,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     // Frame beams (example: can be set in params if needed)
     frameWidth: number = 5;
-    private target: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
     beamWidth: number = 10;
     frameHeight: number = 5;
     beamHeight: number = 2;
@@ -665,16 +664,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             // סגירת חלונית חישוב המחיר בזום
             this.isPriceManuOpen = false;
             const delta = event.deltaY;
-                const direction = new THREE.Vector3()
-                    .subVectors(this.camera.position, this.target)
-                    .normalize();
-            const distance = this.camera.position.distanceTo(this.target);
-            const zoomAmount = delta * 0.05 * (distance / 100);
-            let newDistance = distance + zoomAmount;
+            const zoomAmount = delta * 0.05;
+            const currentDistance = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
+            let newDistance = currentDistance + zoomAmount;
             if (newDistance < 1) newDistance = 1;
-                this.camera.position.copy(
-                    direction.multiplyScalar(newDistance).add(this.target)
-                );
+            const direction = this.camera.position.clone().normalize();
+            this.camera.position.copy(direction.multiplyScalar(newDistance));
             },
             { passive: false }
         );
@@ -714,11 +709,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     panY
                 );
                 cam.position.add(pan);
-                this.target.add(pan);
             } else {
                 const angleY = dx * 0.01;
                 const angleX = dy * 0.01;
-                const offset = this.camera.position.clone().sub(this.target);
+                const offset = this.camera.position.clone();
                 const spherical = new THREE.Spherical().setFromVector3(offset);
                 spherical.theta -= angleY;
                 spherical.phi -= angleX;
@@ -726,9 +720,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     0.01,
                     Math.min(Math.PI - 0.01, spherical.phi)
                 );
-                this.camera.position
-                    .setFromSpherical(spherical)
-                    .add(this.target);
+                this.camera.position.setFromSpherical(spherical);
             }
         });
         window.addEventListener('mouseup', () => {
@@ -775,21 +767,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 lastTouchY = touch.clientY;
                 const angleY = dx * 0.01;
                 const angleX = dy * 0.01;
-                    const offset = this.camera.position
-                        .clone()
-                        .sub(this.target);
-                    const spherical = new THREE.Spherical().setFromVector3(
-                        offset
-                    );
+                const offset = this.camera.position.clone();
+                const spherical = new THREE.Spherical().setFromVector3(offset);
                 spherical.theta -= angleY;
                 spherical.phi -= angleX;
-                    spherical.phi = Math.max(
-                        0.01,
-                        Math.min(Math.PI - 0.01, spherical.phi)
-                    );
-                    this.camera.position
-                        .setFromSpherical(spherical)
-                        .add(this.target);
+                spherical.phi = Math.max(
+                    0.01,
+                    Math.min(Math.PI - 0.01, spherical.phi)
+                );
+                this.camera.position.setFromSpherical(spherical);
             } else if (isTouchZooming && event.touches.length === 2) {
                     const dx =
                         event.touches[0].clientX - event.touches[1].clientX;
@@ -799,32 +785,20 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const angle = Math.atan2(dy, dx);
                 // Pinch zoom
                 const deltaDist = dist - lastTouchDist;
-                    const direction = new THREE.Vector3()
-                        .subVectors(this.camera.position, this.target)
-                        .normalize();
-                    const distance = this.camera.position.distanceTo(
-                        this.target
-                    );
+                const direction = this.camera.position.clone().normalize();
+                const distance = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
                 const zoomAmount = -deltaDist * 0.02 * (distance / 100);
                 let newDistance = distance + zoomAmount;
                 if (newDistance < 1) newDistance = 1;
-                    this.camera.position.copy(
-                        direction.multiplyScalar(newDistance).add(this.target)
-                    );
+                this.camera.position.copy(direction.multiplyScalar(newDistance));
                 lastTouchDist = dist;
                 // Two-finger rotate (optional)
                 const deltaAngle = angle - lastTouchAngle;
                 if (Math.abs(deltaAngle) > 0.01) {
-                        const offset = this.camera.position
-                            .clone()
-                            .sub(this.target);
-                        const spherical = new THREE.Spherical().setFromVector3(
-                            offset
-                        );
+                    const offset = this.camera.position.clone();
+                    const spherical = new THREE.Spherical().setFromVector3(offset);
                     spherical.theta -= deltaAngle;
-                        this.camera.position
-                            .setFromSpherical(spherical)
-                            .add(this.target);
+                    this.camera.position.setFromSpherical(spherical);
                     lastTouchAngle = angle;
                 }
             }
@@ -886,16 +860,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             0.1,
             30000
         );
-        // Set camera at 45 degrees and lower height for initial view
-        const radius = 400;
-        const angle = Math.PI / 4;
-        const camX = Math.sin(angle) * radius;
-        const camZ = Math.cos(angle) * radius;
-        this.camera.position.set(camX, 200, camZ);
-        this.target.set(0, 0, 0);
-        this.camera.lookAt(this.target);
-        // Rotate the entire scene by 30 degrees for better default view
-        this.scene.rotation.y = Math.PI / 6; // 30 degrees rotation
+        // Set camera at default position
+        this.camera.position.set(0, 200, 400);
+        this.camera.lookAt(0, 0, 0);
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(width, height);
         this.renderer.shadowMap.enabled = true;
@@ -1361,7 +1328,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 });
             }
             // Focus camera at the vertical center of the table
-            this.target.set(0, tableHeight / 2, 0);
+            // Camera will look at center by default
         } else {
             // עבור ארון - הקוד המקורי
             for (
@@ -1630,7 +1597,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     0
                 );
             // Focus camera at the vertical center of the structure
-            this.target.set(0, totalY / 2, 0);
+            // Camera will look at center by default
         }
         }
         // Ensure scene rotation is maintained after updates
@@ -2693,7 +2660,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     animate() {
         requestAnimationFrame(() => this.animate());
-        this.camera.lookAt(this.target);
+        this.camera.lookAt(0, 0, 0);
         this.renderer.render(this.scene, this.camera);
     }
     // קורות משטח
@@ -2810,18 +2777,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const height = totalY;
         const width = this.surfaceWidth;
         const depth = this.surfaceLength;
-        const centerY = height / 2;
-        this.target.set(0, centerY, 0);
-        const fov = (this.camera.fov * Math.PI) / 180;
-        const fitHeight = height * 1.15;
-        const fitWidth = width * 1.15;
-        const fitDepth = depth * 1.15;
-        const distanceY = fitHeight / (2 * Math.tan(fov / 2));
-        const distanceX =
-            fitWidth / (2 * Math.tan(fov / 2) * this.camera.aspect);
-        const distance = Math.max(distanceY, distanceX, fitDepth * 1.2);
-        this.camera.position.set(0.7 * width, distance, 1.2 * depth);
-        this.camera.lookAt(this.target);
+        // Simple camera positioning
+        this.camera.position.set(width * 0.7, height * 0.8, depth * 1.2);
+        this.camera.lookAt(0, 0, 0);
     }
     // יצירת קורות רגליים
     private createLegBeams(
