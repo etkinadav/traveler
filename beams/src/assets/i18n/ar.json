@@ -976,5 +976,10 @@
     "fix-product.perspex-stand-landscape-big": "إطار بليكسي كبير (عرضي)",
     "fix-product.small-album": "ألبوم صور صغير",
     "fix-product.white-frame-small": "إطار أبيض صغير",
-    "fix-product.white-frame-big": "إطار أبيض كبير"
+    "fix-product.white-frame-big": "إطار أبيض كبير",
+    "view_top": "منظر علوي",
+    "view_bottom": "منظر سفلي",
+    "view_left": "منظر يساري",
+    "view_right": "منظر يميني",
+    "view_front": "منظر أمامي"
 }

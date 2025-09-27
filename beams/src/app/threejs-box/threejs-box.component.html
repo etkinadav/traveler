@@ -255,19 +255,34 @@
                 <!-- קוביה הבסיס -->
                 <div class="base-cube">
                     <!-- כפתור TOP -->
-                    <div class="nav-button top-button" (click)="onNavigationClick('top')"></div>
+                    <div class="nav-button top-button" 
+                         (click)="onNavigationClick('top')"
+                         [matTooltip]="'view_top' | translate"
+                         matTooltipPosition="above"></div>
                     
                     <!-- כפתור BOTTOM -->
-                    <div class="nav-button bottom-button" (click)="onNavigationClick('bottom')"></div>
+                    <div class="nav-button bottom-button" 
+                         (click)="onNavigationClick('bottom')"
+                         [matTooltip]="'view_bottom' | translate"
+                         matTooltipPosition="above"></div>
                     
                     <!-- כפתור LEFT -->
-                    <div class="nav-button left-button" (click)="onNavigationClick('left')"></div>
+                    <div class="nav-button left-button" 
+                         (click)="onNavigationClick('left')"
+                         [matTooltip]="'view_left' | translate"
+                         matTooltipPosition="above"></div>
                     
                     <!-- כפתור RIGHT -->
-                    <div class="nav-button right-button" (click)="onNavigationClick('right')"></div>
+                    <div class="nav-button right-button" 
+                         (click)="onNavigationClick('right')"
+                         [matTooltip]="'view_right' | translate"
+                         matTooltipPosition="above"></div>
                     
                     <!-- כפתור FRONT -->
-                    <div class="nav-button front-button" (click)="onNavigationClick('front')"></div>
+                    <div class="nav-button front-button" 
+                         (click)="onNavigationClick('front')"
+                         [matTooltip]="'view_front' | translate"
+                         matTooltipPosition="above"></div>
                 </div>
             </div>
         </div>

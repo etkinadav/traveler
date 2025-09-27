@@ -979,5 +979,10 @@
 	"fix-product.white-frame-small": "Small white frame",
 	"fix-product.white-frame-big": "Large white frame",
 	"wireframe_toggle": "Toggle Wireframe",
-	"show_dimensions": "Show Dimensions"
+	"show_dimensions": "Show Dimensions",
+	"view_top": "Top View",
+	"view_bottom": "Bottom View",
+	"view_left": "Left View",
+	"view_right": "Right View",
+	"view_front": "Front View"
 }

@@ -37,6 +37,41 @@
           <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="view_top" datatype="html">
+        <source>מבט מלמעלה</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/threejs-box/threejs-box.component.html</context>
+          <context context-type="linenumber">258</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="view_bottom" datatype="html">
+        <source>מבט מלמטה</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/threejs-box/threejs-box.component.html</context>
+          <context context-type="linenumber">261</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="view_left" datatype="html">
+        <source>מבט משמאל</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/threejs-box/threejs-box.component.html</context>
+          <context context-type="linenumber">264</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="view_right" datatype="html">
+        <source>מבט מימין</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/threejs-box/threejs-box.component.html</context>
+          <context context-type="linenumber">267</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="view_front" datatype="html">
+        <source>מבט מקדימה</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/threejs-box/threejs-box.component.html</context>
+          <context context-type="linenumber">270</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>
