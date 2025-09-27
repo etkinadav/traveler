@@ -679,7 +679,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             { passive: false }
         );
         let isDragging = false;
-        let isPan = false;
         let lastX = 0;
         let lastY = 0;
         this.rendererContainer.nativeElement.addEventListener(
@@ -688,35 +687,28 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             // סגירת חלונית חישוב המחיר בלחיצת עכבר
             this.isPriceManuOpen = false;
             isDragging = true;
-                isPan = event.button === 1 || event.button === 2;
             lastX = event.clientX;
             lastY = event.clientY;
             }
         );
         window.addEventListener('mousemove', (event: MouseEvent) => {
             if (!isDragging) return;
+            // בדיקה אם זה pan (גלגל עכבר או כפתור ימני)
+            const isCurrentlyPanning = event.buttons === 4 || event.buttons === 2; // גלגל עכבר = 4, כפתור ימני = 2
             const dx = event.clientX - lastX;
             const dy = event.clientY - lastY;
             lastX = event.clientX;
             lastY = event.clientY;
-            if (isPan) {
-                const panSpeed = 0.2;
-                const panX = -dx * panSpeed;
-                const panY = dy * panSpeed;
-                const cam = this.camera;
-                const pan = new THREE.Vector3();
-                pan.addScaledVector(
-                    new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0),
-                    panX
-                );
-                pan.addScaledVector(
-                    new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1),
-                    panY
-                );
-                cam.position.add(pan);
+            if (isCurrentlyPanning) {
+                const panSpeed = 0.5;
+                const panX = dx * panSpeed; // שינוי סימן לכיוון הנכון
+                const panY = -dy * panSpeed; // שינוי סימן לכיוון הנכון
+                // הזזת הסצנה במקום המצלמה - זה יוצר pan "שטוח"
+                this.scene.position.x += panX;
+                this.scene.position.y += panY;
             } else {
-                const angleY = dx * 0.01;
-                const angleX = dy * 0.01;
+                const angleY = -dx * 0.01; // שינוי סימן לכיוון הנכון
+                const angleX = -dy * 0.01; // שינוי סימן לכיוון הנכון
                 const offset = this.camera.position.clone();
                 const spherical = new THREE.Spherical().setFromVector3(offset);
                 spherical.theta -= angleY;
