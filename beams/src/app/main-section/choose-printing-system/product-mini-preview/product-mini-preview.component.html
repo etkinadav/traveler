@@ -1,9 +1,9 @@
 <div class="preview-wrapper" (click)="$event.stopPropagation()">
   <div #miniPreviewContainer class="mini-preview-container"></div>
   
-  <!-- כפתורי החלפה בפינה הימנית העליונה של כל קטגוריה -->
+  <!-- כפתורי החלפה בפינה הימנית העליונה של כל קטגוריה - מוסתרים -->
   
-  <div class="frame-beam-control" (click)="changeFrameBeamType(); $event.stopPropagation()" title="לחץ להחלפת קורת חיזוק">
+  <!-- <div class="frame-beam-control" (click)="changeFrameBeamType(); $event.stopPropagation()" title="לחץ להחלפת קורת חיזוק">
     <button class="refresh-btn frame-refresh-btn" title="החלף קורת חיזוק">
       <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
@@ -41,5 +41,5 @@
     <button (click)="decreaseShelfHeight()" class="control-btn" [disabled]="isShelfHeightAtMinimum()">-</button>
     <span class="shelf-height-value">גובה {{product?.name === 'table' ? shelfGaps[0] : shelfGaps[2]}} ס"מ</span>
     <button (click)="increaseShelfHeight()" class="control-btn" [disabled]="isShelfHeightAtMaximum()">+</button>
-  </div>
+  </div> -->
 </div>
