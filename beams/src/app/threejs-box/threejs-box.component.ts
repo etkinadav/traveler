@@ -669,7 +669,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             // סגירת חלונית חישוב המחיר בזום
             this.isPriceManuOpen = false;
             const delta = event.deltaY;
-            const zoomAmount = delta * 0.05;
+            const zoomAmount = delta * 0.1; // פי 2 יותר מהיר (0.05 -> 0.1)
             const currentDistance = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
             let newDistance = currentDistance + zoomAmount;
             if (newDistance < 1) newDistance = 1;
@@ -707,8 +707,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.scene.position.x += panX;
                 this.scene.position.y += panY;
             } else {
-                const angleY = -dx * 0.01; // שינוי סימן לכיוון הנכון
-                const angleX = -dy * 0.01; // שינוי סימן לכיוון הנכון
+                const angleY = dx * 0.01; // תיקון כיוון הסיבוב
+                const angleX = dy * 0.01; // תיקון כיוון הסיבוב
                 const offset = this.camera.position.clone();
                 const spherical = new THREE.Spherical().setFromVector3(offset);
                 spherical.theta -= angleY;
@@ -860,6 +860,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // Set camera at default position
         this.camera.position.set(0, 200, 400);
         this.camera.lookAt(0, 0, 0);
+        // PAN למטה של 200 פיקסלים - הזזת הסצנה
+        // get total model height
+        const dimensions = this.getProductDimensionsRaw();
+        console.log('Total model height:', dimensions.height);
+        this.scene.position.y = -120; // 200 * 0.5 = 100 (panSpeed)
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(width, height);
         this.renderer.shadowMap.enabled = true;
