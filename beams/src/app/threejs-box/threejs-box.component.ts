@@ -50,6 +50,76 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // פונקציית ניווט
     onNavigationClick(direction: string) {
         console.log(direction);
+        this.setCameraView(direction);
+    }
+    
+    // פונקציה להגדרת תצוגת המצלמה עם אנימציה
+    setCameraView(view: string) {
+        if (!this.camera || !this.scene) return;
+        
+        const duration = 500; // 0.5 שניות
+        const startTime = Date.now();
+        
+        // מיקום התחלתי
+        const startPosition = this.camera.position.clone();
+        const startRotation = this.scene.rotation.clone();
+        
+        // מיקום סופי
+        let targetPosition: THREE.Vector3;
+        let targetRotation: THREE.Euler;
+        
+        switch (view) {
+            case 'top':
+                targetPosition = new THREE.Vector3(0, 400, 0);
+                targetRotation = new THREE.Euler(0, 0, 0);
+                break;
+            case 'bottom':
+                targetPosition = new THREE.Vector3(0, -400, 0);
+                targetRotation = new THREE.Euler(0, 0, 0);
+                break;
+            case 'left':
+                targetPosition = new THREE.Vector3(-400, 0, 0);
+                targetRotation = new THREE.Euler(0, 0, 0);
+                break;
+            case 'right':
+                targetPosition = new THREE.Vector3(400, 0, 0);
+                targetRotation = new THREE.Euler(0, 0, 0);
+                break;
+            case 'front':
+                targetPosition = new THREE.Vector3(0, 0, 400);
+                targetRotation = new THREE.Euler(0, 0, 0);
+                break;
+            default:
+                // מצב ברירת מחדל - תצוגה איזומטרית
+                targetPosition = new THREE.Vector3(280, 320, 480);
+                targetRotation = new THREE.Euler(0, Math.PI / 6, 0);
+        }
+        
+        // פונקציית אנימציה
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function (ease-in-out)
+            const easeProgress = progress < 0.5 
+                ? 2 * progress * progress 
+                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            
+            // אינטרפולציה של מיקום
+            this.camera.position.lerpVectors(startPosition, targetPosition, easeProgress);
+            
+            // אינטרפולציה של סיבוב
+            this.scene.rotation.x = THREE.MathUtils.lerp(startRotation.x, targetRotation.x, easeProgress);
+            this.scene.rotation.y = THREE.MathUtils.lerp(startRotation.y, targetRotation.y, easeProgress);
+            this.scene.rotation.z = THREE.MathUtils.lerp(startRotation.z, targetRotation.z, easeProgress);
+            
+            // המשך האנימציה
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        animate();
     }
     
     // פונקציה לפתיחת/סגירת תפריט המחיר
