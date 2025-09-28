@@ -43,26 +43,27 @@
                                             [class.zx-step-choosen]="selectedProduct?._id === product._id"
                                             class="col-12 col-md-6 step-item-trans-product step-item rounded-3 shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
                                             [class.step-item-dark]="isDarkMode">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded">
-                                                <app-product-mini-preview [product]="product" style="width: 100%; height: 100%;"></app-product-mini-preview>
-                                            </div>
-                                        </div>
-                                        <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
-                                            <h6 class="fw-bold zx-text-big text-center">
-                                                {{product.translatedName}}
-                                            </h6>
-                                            <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">
-                                                דגם - {{product.model || product.name || 'מוצר מותאם אישית'}}
-                                            </span>
-                                        </div>
-                                        
                                         <!-- כפתור המשך למוצר -->
                                         <button mat-stroked-button 
                                                 class="continue-to-product-btn" 
                                                 (click)="navigateToProduct(product); $event.stopPropagation()">
                                             <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">המשך ל- {{product.model || product.name || 'מוצר לא טוב'}}</span>
                                         </button>
+                                        
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded">
+                                                <app-product-mini-preview [product]="product" style="width: 100%; height: 100%;"></app-product-mini-preview>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
+                                            <h6 class="fw-bold zx-text-big text-center">
+                                                {{product.translatedName}}
+                                            </h6>
+                                            <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center text-green">
+                                                דגם - {{product.model || product.name || 'מוצר מותאם אישית'}}
+                                            </span>
+                                        </div>
                                         </div>
                                     </div>
                                 
