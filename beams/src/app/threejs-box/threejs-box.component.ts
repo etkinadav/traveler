@@ -777,12 +777,17 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             lastX = event.clientX;
             lastY = event.clientY;
             if (isCurrentlyPanning) {
-                const panSpeed = 0.5;
-                const panX = dx * panSpeed; // שינוי סימן לכיוון הנכון
-                const panY = -dy * panSpeed; // שינוי סימן לכיוון הנכון
-                // הזזת הסצנה במקום המצלמה - זה יוצר pan "שטוח"
-                this.scene.position.x += panX;
-                this.scene.position.y += panY;
+                // Pan - הזזת המצלמה כמו בקובץ ה-mini
+                const panSpeed = 0.2;
+                const panX = dx * panSpeed;
+                const panY = -dy * panSpeed;
+                const cam = this.camera;
+                const pan = new THREE.Vector3();
+                pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0), panX);
+                pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), panY);
+                cam.position.add(pan);
+                // הזזת הסצנה במקום המצלמה
+                this.scene.position.add(pan);
             } else {
                 const angleY = dx * 0.01; // תיקון כיוון הסיבוב
                 const angleX = dy * 0.01; // תיקון כיוון הסיבוב
