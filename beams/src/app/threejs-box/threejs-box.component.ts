@@ -1989,6 +1989,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             ? this.product?.params?.find(
                   (p: any) => p.type === 'beamSingle' && p.name === 'plata'
               )
+            : this.isPlanter
+            ? this.product?.params?.find(
+                  (p: any) => p.type === 'beamSingle' && p.name === 'beam'
+              )
             : this.product?.params?.find(
                   (p: any) => p.type === 'beamArray' && p.name === 'shelfs'
               );
@@ -2001,7 +2005,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const extraParam = this.product?.params?.find(
             (p: any) => p.type === 'beamSingle' && p.name === 'extraBeam'
         );
-        if (this.surfaceWidth && this.surfaceLength && shelfParam) {
+        if ((this.surfaceWidth && this.surfaceLength && shelfParam) || (this.isPlanter && shelfParam)) {
             const selectedBeam =
                 shelfParam.beams?.[shelfParam.selectedBeamIndex || 0];
             const selectedType =
@@ -2010,18 +2014,43 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 let beamWidth = selectedType.width / 10 || this.beamWidth; // המרה ממ"מ לס"מ
                 const beamHeight = selectedType.height / 10 || this.beamHeight;
                 // עבור ארון, אם הקורה רחבה מדי, נשתמש ברוחב קטן יותר
-                if (!this.isTable && beamWidth > 5) {
+                if (!this.isTable && !this.isPlanter && beamWidth > 5) {
                     beamWidth = 4; // רוחב קטן יותר עבור ארון
                 }
-                // חישוב קורות המשטח
-                const surfaceBeams = this.createSurfaceBeams(
-                    this.surfaceWidth,
-                    this.surfaceLength,
-                    beamWidth,
-                    beamHeight,
-                    this.minGap
-                );
-                if (this.isTable) {
+                
+                if (this.isPlanter) {
+                    // עבור עדנית - קורה אחת באורך height
+                    const heightParam = this.getParam('height');
+                    const planterHeight = heightParam ? heightParam.default : 50;
+                    
+                    allBeams.push({
+                        type: selectedType,
+                        length: planterHeight, // אורך הקורה = גובה העדנית
+                        width: beamWidth,
+                        height: beamHeight,
+                        name: 'Planter Beam',
+                        beamName: selectedBeam.name,
+                        beamTranslatedName: selectedBeam.translatedName,
+                        beamWoodType: selectedType.translatedName, // סוג העץ
+                    });
+                    
+                    console.log('קורה לעדנית נוספה לחישוב מחיר:', {
+                        length: planterHeight,
+                        width: beamWidth,
+                        height: beamHeight,
+                        beamName: selectedBeam.name,
+                        woodType: selectedType.translatedName
+                    });
+                } else {
+                    // חישוב קורות המשטח
+                    const surfaceBeams = this.createSurfaceBeams(
+                        this.surfaceWidth,
+                        this.surfaceLength,
+                        beamWidth,
+                        beamHeight,
+                        this.minGap
+                    );
+                    if (this.isTable) {
                     // עבור שולחן - מדף אחד בלבד
                     surfaceBeams.forEach((beam) => {
                         allBeams.push({
@@ -2035,8 +2064,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                     });
-                } else {
-                    // עבור ארון - קורות לכל מדף עם קיצור
+                    } else {
+                        // עבור ארון - קורות לכל מדף עם קיצור
                     // חישוב קיצור קורות המדפים
                     const totalShelves = this.shelves.length;
                     const shelvesWithoutTop = totalShelves - 1; // מדפים ללא המדף העליון
@@ -2096,6 +2125,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             });
                         });
                     });
+                    }
                 }
             }
         }
