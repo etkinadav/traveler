@@ -1402,7 +1402,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             console.log('מידות קורה - רוחב:', beamWidth, 'עומק:', beamHeight);
             
             // חישוב כמות הקורות בעומק (41/5 = 8 קורות)
-            const beamsInDepth = Math.floor(planterWidth / beamHeight);
+            const beamsInDepth = Math.floor(planterWidth / beamWidth);
             console.log('כמות קורות בעומק:', beamsInDepth);
             
             // חישוב רווחים ויזואליים
@@ -1418,7 +1418,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             for (let i = 0; i < beamsInDepth; i++) {
                 const geometry = new THREE.BoxGeometry(
                     planterDepth, // אורך הקורה = עומק העדנית (70)
-                    beamWidth,    // גובה הקורה = רוחב הקורה (5)
+                    beamHeight,    // גובה הקורה = גובה הקורה (2.5)
                     adjustedBeamWidth    // רוחב קורה מותאם עם רווחים
                 );
                 const material = new THREE.MeshStandardMaterial({
@@ -1431,12 +1431,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 // מיקום הקורה - ממורכז במרכז X, מתחיל מ-0 ב-Z, גובה הקורה/2
                 // כל קורה + רווח אחריה
                 const zPosition = (i * (adjustedBeamWidth + visualGap)) - (planterWidth / 2) + (adjustedBeamWidth / 2);
-                mesh.position.set(0, beamWidth / 2, zPosition);
+                mesh.position.set(0, beamHeight / 2, zPosition);
                 
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
                 
-                console.log(`קורה ${i + 1} - מיקום Z:`, zPosition, 'רוחב:', adjustedBeamWidth, 'אורך:', planterDepth, 'גובה:', beamWidth);
+                console.log(`קורה ${i + 1} - מיקום Z:`, zPosition, 'רוחב:', adjustedBeamWidth, 'אורך:', planterDepth, 'גובה:', beamHeight);
             }
             
             console.log('רצפת עדנית נוצרה בהצלחה');
@@ -2124,7 +2124,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const planterWidth = widthParam ? widthParam.default : 50;
                     
                     // חישוב כמות הקורות בעומק (41/5 = 8 קורות)
-                    const beamsInDepth = Math.floor(planterWidth / beamHeight);
+                    const beamsInDepth = Math.floor(planterWidth / beamWidth);
                     
                     // חישוב רווחים ויזואליים (זהה לחישוב הויזואלי)
                     const visualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
@@ -2138,7 +2138,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         allBeams.push({
                             type: selectedType,
                             length: planterDepth, // אורך הקורה = עומק העדנית
-                            width: beamWidth,
+                            width: beamHeight,
                             height: adjustedBeamWidth, // רוחב קורה מותאם עם רווחים
                             name: `Planter Floor Beam ${i + 1}`,
                             beamName: selectedBeam.name,
