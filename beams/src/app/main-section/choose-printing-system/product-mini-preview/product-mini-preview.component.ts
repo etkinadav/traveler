@@ -1920,7 +1920,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.camera.lookAt(this.target);
     
     // פאן של 2 פיקסלים למעלה (כאילו גררנו עם גלגל העכבר)
-    this.target.y += 3;
+    this.target.y += 2;
     this.camera.lookAt(this.target);
     
     // הגדרת מיקום התחלתי עבור הזום - אחרי מיקום המצלמה

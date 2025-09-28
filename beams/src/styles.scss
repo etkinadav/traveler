@@ -544,8 +544,9 @@ body[dir='rtl'] .custom-tooltip {
 
 @media only screen and (min-width: 768px) {
     .zx-settings-nav {
-        width: 560px;
-        max-width: 70%;
+        width: 100%; // תפיסת כל הרוחב
+        min-width: 600px; // וידוא שלא יהיה צר יותר
+        max-width: 100%; // תפיסת כל הרוחב
         flex-shrink: 0;
         border: 1px solid var(--zx-gray-v-v-light);
         background-color: var(--zx-gray-v-v-v-light);
@@ -566,6 +567,14 @@ body[dir='rtl'] .custom-tooltip {
 .step-item {
     background-color: white;
     border: 1px solid var(--zx-gray-v-light-opacity);
+    
+    // בדסקטופ - התאמה לתצוגה אנכית
+    @media only screen and (min-width: 768px) {
+        padding: 20px !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        margin-bottom: 16px;
+    }
 }
 
 .step-item-no-height {
@@ -603,6 +612,24 @@ body[dir='rtl'] .custom-tooltip {
     width: 70%;
     max-width: 570px;
     background-color: white;
+    display: none; // מוסתר כברירת מחדל
+}
+
+@media only screen and (min-width: 950px) { // 950px ומעלה
+    .zx-canvas {
+        display: flex; // מוצג מ-950px ומעלה
+    }
+    
+    // הצגת הקונטיינר של הקנבס מ-950px ומעלה
+    .d-none {
+        display: flex !important;
+    }
+    
+    // הגבלת רוחב zx-settings-nav כדי לפנות מקום לקנבס
+    .zx-settings-nav {
+        width: 600px;
+        max-width: 60%;
+    }
 }
 
 .zx-canvas-dark {

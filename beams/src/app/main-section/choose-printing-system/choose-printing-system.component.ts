@@ -79,6 +79,9 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     console.log('קורא לפונקציה loadAllProducts');
     this.loadAllProducts();
 
+    // התחלת אנימציית הטקסטים המתחלפים
+    this.startTextRotation();
+
     this.userId = this.authService.getUserId();
     this.userIsAuthenticated = this.authService.getIsAuth();
     this.authStatusSub = this.authService
@@ -145,6 +148,12 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
   onHoverProduct(product: any) {
     this.hoveredProduct = product;
+    // עדכון hoveredPrintingService כדי להציג טקסטים בקנבס
+    if (product) {
+      this.hoveredPrintingService = product.name || 'product';
+    } else {
+      this.hoveredPrintingService = '';
+    }
   }
 
   // פונקציה למשיכת כל המוצרים

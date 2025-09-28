@@ -140,23 +140,26 @@
 
 // Responsive flex direction for product items
 .step-item-trans-product {
-  @media only screen and (max-width: 767px) {
-    flex-direction: column-reverse !important;
-    gap: 15px;
-  }
+  // במובייל ובדסקטופ - תצוגה אנכית ממורכזת
+  flex-direction: column-reverse !important;
+  gap: 15px;
+  align-items: center;
+  text-align: center;
+  min-width: 250px; // רוחב מינימלי קטן יותר
+  max-width: 280px; // הגבלת רוחב מקסימלי קטן יותר
+  margin: 0 auto; // מירכוז הכרטיס
+  height: fit-content; // גובה מותאם לתוכן
 }
 
 // Gradient לכפתורי "המשך ל" - עבר ל-styles.scss גלובלי
 
 .text-con-product {
-    padding: 12px 5px 0 5px;
-    min-width: 310px
-}
-
-@media only screen and (min-width: 768px) {
-    .text-con-product {
-        min-width: unset;
-    }
+    padding: 8px 5px 0 5px;
+    min-width: unset;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 @media only screen and (min-width: 576px) {
@@ -250,12 +253,12 @@
 }
 
 .zx-big-icon-size-trans {
-    width: 310px;
-    height: 310px;
-    min-width: 310px;
-    min-height: 310px;
-    max-width: 310px;
-    max-height: 310px;
+    width: 250px;
+    height: 250px;
+    min-width: 250px;
+    min-height: 250px;
+    max-width: 250px;
+    max-height: 250px;
     transition: 800ms;
 }
 
@@ -389,9 +392,9 @@
 
 // כפתור המשך למוצר
 .continue-to-product-btn {
-    position: absolute;
-    bottom: 8px;
-    left: 8px;
+    position: relative;
+    bottom: unset;
+    left: unset;
     border-radius: 50px !important; // rounded pill
     border: none !important; // הסרת border
     background: #2196f3 !important; // רקע כחול
@@ -400,6 +403,8 @@
     min-height: unset !important;
     z-index: 10;
     transition: all 0.2s ease;
+    margin-top: 10px;
+    align-self: center;
 }
 
 .continue-to-product-btn:hover {
