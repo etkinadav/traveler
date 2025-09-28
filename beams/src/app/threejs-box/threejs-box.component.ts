@@ -1328,30 +1328,122 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.beamMeshes.push(mesh);
                 }
             }
-        } else if (this.isPlanter) {
-            // עבור עדנית, נציג קורה אחת באורך height
-            const heightParam = this.getParam('height');
-            const planterHeight = heightParam ? heightParam.default : 50;
             
-            console.log('יצירת עדנית - גובה:', planterHeight, 'רוחב קורה:', beamWidth, 'עומק קורה:', beamHeight);
-            
-            // יצירת קורה אחת אנכית במרכז
-            const geometry = new THREE.BoxGeometry(
-                beamWidth,
-                planterHeight,
-                beamHeight
+            // רגליים (legs) - עבור שולחן
+            // Get leg beam and type from params
+            const legParam = this.getParam('leg');
+            let legBeam = null;
+            let legType = null;
+            if (
+                legParam &&
+                Array.isArray(legParam.beams) &&
+                legParam.beams.length
+            ) {
+                legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+                legType =
+                    legBeam.types && legBeam.types.length
+                        ? legBeam.types[legParam.selectedTypeIndex || 0]
+                        : null;
+            }
+            // Get wood texture for leg beams
+            const legWoodTexture = this.getWoodTexture(
+                legType ? legType.name : ''
             );
-            const material = new THREE.MeshStandardMaterial({
-                map: shelfWoodTexture,
-            });
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            mesh.position.set(0, planterHeight / 2, 0);
-            this.scene.add(mesh);
-            this.beamMeshes.push(mesh);
+            // עבור שולחן, הגובה הכולל הוא גובה השולחן
+            const tableHeightParam = this.getParam('height');
+            const totalY = tableHeightParam ? tableHeightParam.default : 80;
             
-            console.log('עדנית נוצרה בהצלחה');
+            const legs = this.createLegBeams(
+                this.surfaceWidth,
+                this.surfaceLength,
+                frameBeamWidth,
+                frameBeamHeight,
+                totalY
+            );
+            for (const leg of legs) {
+                const geometry = new THREE.BoxGeometry(
+                    leg.width,
+                    leg.height,
+                    leg.depth
+                );
+                const material = new THREE.MeshStandardMaterial({
+                    map: legWoodTexture,
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.position.set(leg.x, leg.height / 2, leg.z);
+                this.scene.add(mesh);
+                this.beamMeshes.push(mesh);
+            }
+            // הוספת ברגים לרגליים
+            this.addScrewsToLegs(
+                1, // שולחן = 1 מדף
+                legs,
+                frameBeamHeight,
+                0
+            );
+        } else if (this.isPlanter) {
+            // עבור עדנית, נציג רצפה של קורות
+            const heightParam = this.getParam('height');
+            const depthParam = this.getParam('depth');
+            const widthParam = this.getParam('width');
+            
+            const planterHeight = heightParam ? heightParam.default : 50;
+            const planterDepth = depthParam ? depthParam.default : 40;
+            const planterWidth = widthParam ? widthParam.default : 50;
+            
+            console.log('יצירת עדנית - גובה:', planterHeight, 'עומק:', planterDepth, 'רוחב:', planterWidth);
+            console.log('מידות קורה - רוחב:', beamWidth, 'עומק:', beamHeight);
+            
+            // חישוב כמות הקורות בעומק (41/5 = 8 קורות)
+            const beamsInDepth = Math.floor(planterWidth / beamHeight);
+            console.log('כמות קורות בעומק:', beamsInDepth);
+            
+            // חישוב רווחים ויזואליים
+            const visualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
+            const totalGaps = beamsInDepth - 1; // כמות הרווחים
+            const totalGapWidth = totalGaps * visualGap; // רוחב כולל של כל הרווחים
+            const availableWidth = planterWidth - totalGapWidth; // רוחב זמין לקורות
+            const adjustedBeamWidth = availableWidth / beamsInDepth; // רוחב קורה מותאם
+            
+            console.log('רווח ויזואלי:', visualGap, 'רוחב קורה מותאם:', adjustedBeamWidth);
+            
+            // יצירת רצפת הקורות
+            for (let i = 0; i < beamsInDepth; i++) {
+                const geometry = new THREE.BoxGeometry(
+                    planterDepth, // אורך הקורה = עומק העדנית (70)
+                    beamWidth,    // גובה הקורה = רוחב הקורה (5)
+                    adjustedBeamWidth    // רוחב קורה מותאם עם רווחים
+                );
+                const material = new THREE.MeshStandardMaterial({
+                    map: shelfWoodTexture,
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                // מיקום הקורה - ממורכז במרכז X, מתחיל מ-0 ב-Z, גובה הקורה/2
+                // כל קורה + רווח אחריה
+                const zPosition = (i * (adjustedBeamWidth + visualGap)) - (planterWidth / 2) + (adjustedBeamWidth / 2);
+                mesh.position.set(0, beamWidth / 2, zPosition);
+                
+                this.scene.add(mesh);
+                this.beamMeshes.push(mesh);
+                
+                console.log(`קורה ${i + 1} - מיקום Z:`, zPosition, 'רוחב:', adjustedBeamWidth, 'אורך:', planterDepth, 'גובה:', beamWidth);
+            }
+            
+            console.log('רצפת עדנית נוצרה בהצלחה');
+            
+            // התאמת מצלמה לעדנית
+            if (this.camera) {
+                const maxDimension = Math.max(planterWidth, planterDepth, planterHeight);
+                const distance = maxDimension * 2;
+                this.camera.position.set(distance, distance * 0.8, distance);
+                this.camera.lookAt(0, 0, 0);
+                console.log('מצלמה הותאמה לעדנית - מרחק:', distance);
+            }
         } else {
             // רגליים (legs) - עבור ארון
             const legParam = this.getParam('leg');
@@ -2019,25 +2111,43 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 }
                 
                 if (this.isPlanter) {
-                    // עבור עדנית - קורה אחת באורך height
-                    const heightParam = this.getParam('height');
-                    const planterHeight = heightParam ? heightParam.default : 50;
+                    // עבור עדנית - קורות רצפה
+                    const depthParam = this.getParam('depth');
+                    const widthParam = this.getParam('width');
                     
-                    allBeams.push({
-                        type: selectedType,
-                        length: planterHeight, // אורך הקורה = גובה העדנית
-                        width: beamWidth,
-                        height: beamHeight,
-                        name: 'Planter Beam',
-                        beamName: selectedBeam.name,
-                        beamTranslatedName: selectedBeam.translatedName,
-                        beamWoodType: selectedType.translatedName, // סוג העץ
-                    });
+                    const planterDepth = depthParam ? depthParam.default : 40;
+                    const planterWidth = widthParam ? widthParam.default : 50;
                     
-                    console.log('קורה לעדנית נוספה לחישוב מחיר:', {
-                        length: planterHeight,
+                    // חישוב כמות הקורות בעומק (41/5 = 8 קורות)
+                    const beamsInDepth = Math.floor(planterWidth / beamHeight);
+                    
+                    // חישוב רווחים ויזואליים (זהה לחישוב הויזואלי)
+                    const visualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
+                    const totalGaps = beamsInDepth - 1; // כמות הרווחים
+                    const totalGapWidth = totalGaps * visualGap; // רוחב כולל של כל הרווחים
+                    const availableWidth = planterWidth - totalGapWidth; // רוחב זמין לקורות
+                    const adjustedBeamWidth = availableWidth / beamsInDepth; // רוחב קורה מותאם
+                    
+                    // הוספת כל קורת רצפה
+                    for (let i = 0; i < beamsInDepth; i++) {
+                        allBeams.push({
+                            type: selectedType,
+                            length: planterDepth, // אורך הקורה = עומק העדנית
+                            width: beamWidth,
+                            height: adjustedBeamWidth, // רוחב קורה מותאם עם רווחים
+                            name: `Planter Floor Beam ${i + 1}`,
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                    }
+                    
+                    console.log('קורות רצפת עדנית נוספו לחישוב מחיר:', {
+                        beamsCount: beamsInDepth,
+                        length: planterDepth,
                         width: beamWidth,
-                        height: beamHeight,
+                        height: adjustedBeamWidth,
+                        visualGap: visualGap,
                         beamName: selectedBeam.name,
                         woodType: selectedType.translatedName
                     });
