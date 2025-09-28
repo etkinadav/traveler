@@ -1023,10 +1023,10 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         cam.position.add(pan);
         this.target.add(pan);
       } else {
-        // סיבוב - כמו קודם
+        // סיבוב - הפוך את הכיוון
         const rotateSpeed = 0.01;
-        this.spherical.theta -= deltaX * rotateSpeed;
-        this.spherical.phi += deltaY * rotateSpeed;
+        this.spherical.theta += deltaX * rotateSpeed;
+        this.spherical.phi -= deltaY * rotateSpeed;
         
         // הגבלת זווית אנכית
         this.spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, this.spherical.phi));
