@@ -715,6 +715,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     this.dynamicParams.width += 5; // הוספת 5 ס"מ
     this.createSimpleProductWithoutCameraUpdate(); // יצירת המודל מחדש ללא עדכון מצלמה
+    this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
     
     // שחזור המצב של המצלמה
     this.restoreCameraState(currentCameraState);
@@ -737,6 +738,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       
       this.dynamicParams.width -= 5; // הפחתת 5 ס"מ
       this.createSimpleProductWithoutCameraUpdate(); // יצירת המודל מחדש ללא עדכון מצלמה
+      this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
       
       // שחזור המצב של המצלמה
       this.restoreCameraState(currentCameraState);
@@ -756,6 +758,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     this.dynamicParams.length += 5; // הוספת 5 ס"מ
     this.createSimpleProductWithoutCameraUpdate(); // יצירת המודל מחדש ללא עדכון מצלמה
+    this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
     
     // שחזור המצב של המצלמה
     this.restoreCameraState(currentCameraState);
@@ -778,6 +781,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       
       this.dynamicParams.length -= 5; // הפחתת 5 ס"מ
       this.createSimpleProductWithoutCameraUpdate(); // יצירת המודל מחדש ללא עדכון מצלמה
+      this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
       
       // שחזור המצב של המצלמה
       this.restoreCameraState(currentCameraState);
@@ -810,6 +814,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }
     
     this.createSimpleProductWithoutCameraUpdate(); // יצירת המודל מחדש ללא עדכון מצלמה
+    this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
     
     // עדכון הזום בהתאם לגובה הכולל
     this.restoreCameraState(currentCameraState, true);
@@ -836,6 +841,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         this.shelfGaps[0] -= 5; // הפחתת 5 ס"מ למדף היחיד
         this.dynamicParams.height = this.shelfGaps[0]; // עדכון פרמטר הגובה
         this.createSimpleProductWithoutCameraUpdate(); // יצירת המודל מחדש ללא עדכון מצלמה
+        this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
         
         // עדכון הזום בהתאם לגובה הכולל
         this.restoreCameraState(currentCameraState, true);
@@ -854,6 +860,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         
         this.shelfGaps[2] -= 5; // הפחתת 5 ס"מ למדף השלישי
         this.createSimpleProductWithoutCameraUpdate(); // יצירת המודל מחדש ללא עדכון מצלמה
+        this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
         
         // עדכון הזום בהתאם לגובה הכולל
         this.restoreCameraState(currentCameraState, true);
@@ -1873,21 +1880,35 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const height = this.dynamicParams.height;
     const depth = this.dynamicParams.length;
     
-    // מרכז האוביקט
-    const centerY = height / 2;
+    // חישוב הגובה הכולל של המודל (כולל מדפים ורגליים)
+    let totalModelHeight = 0;
+    const isTable = this.product?.name === 'table';
+    
+    if (isTable) {
+      // שולחן - גובה המדף + גובה הרגליים
+      totalModelHeight = this.shelfGaps[0] + this.dynamicParams.frameHeight + this.dynamicParams.beamHeight;
+    } else {
+      // ארון - סכום כל המדפים
+      for (let i = 0; i < this.shelfGaps.length; i++) {
+        totalModelHeight += this.shelfGaps[i] + this.dynamicParams.frameHeight + this.dynamicParams.beamHeight;
+      }
+    }
+    
+    // מרכז האוביקט - ממורכז בגובה הכולל
+    const centerY = totalModelHeight / 2;
     this.target.set(0, centerY, 0);
     
-    // חישוב המרחק האופטימלי של המצלמה
+    // חישוב המרחק האופטימלי של המצלמה - מותאם למידות המודל
     const fov = this.camera.fov * Math.PI / 180;
-    const fitHeight = height * 1.15;
-    const fitWidth = width * 1.15;
-    const fitDepth = depth * 1.15;
+    const fitHeight = totalModelHeight * 1.2; // 20% מרווח נוסף
+    const fitWidth = width * 1.2;
+    const fitDepth = depth * 1.2;
     const distanceY = fitHeight / (2 * Math.tan(fov / 2));
     const distanceX = fitWidth / (2 * Math.tan(fov / 2) * this.camera.aspect);
-    const distance = Math.max(distanceY, distanceX, fitDepth * 1.2) * 2; // זום אאוט פי 2
+    const distance = Math.max(distanceY, distanceX, fitDepth * 1.2) * 1.5; // זום אאוט פי 1.5
     this.defaultDistance = distance;
 
-    // מיקום המצלמה - זהה לקובץ הראשי
+    // מיקום המצלמה - מותאם למידות המודל
     this.camera.position.set(0.7 * width, distance, 1.2 * depth);
     this.camera.lookAt(this.target);
     
@@ -1898,13 +1919,22 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.camera.position.setFromSpherical(spherical).add(this.target);
     this.camera.lookAt(this.target);
     
-    // פאן של 30 פיקסלים למטה (כאילו גררנו עם גלגל העכבר)
-    this.target.y += 30;
+    // פאן של 2 פיקסלים למעלה (כאילו גררנו עם גלגל העכבר)
+    this.target.y += 3;
     this.camera.lookAt(this.target);
     
     // הגדרת מיקום התחלתי עבור הזום - אחרי מיקום המצלמה
     const offset2 = this.camera.position.clone().sub(this.target);
     this.spherical.setFromVector3(offset2);
+    
+    console.log('עדכון מצלמה:', {
+      width,
+      height: totalModelHeight,
+      depth,
+      centerY,
+      distance,
+      target: this.target
+    });
   }
 
 
