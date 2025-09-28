@@ -179,6 +179,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
     isTable: boolean = false; // האם זה שולחן או ארון
+    isPlanter: boolean = false; // האם זה עדנית עץ
     isPriceManuOpen: boolean = true; // האם תפריט המחיר פתוח
     hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
@@ -206,11 +207,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             if (params['product']) {
                 this.selectedProductName = params['product'];
                 this.isTable = this.selectedProductName === 'table';
+                this.isPlanter = this.selectedProductName === 'פlanter';
                 console.log(
                     'מוצר נבחר:',
                     this.selectedProductName,
                     'שולחן:',
-                    this.isTable
+                    this.isTable,
+                    'עדנית:',
+                    this.isPlanter
                 );
                 // בדיקה אם זה מוצר שונה מהמוצר האחרון
                 const lastProduct = localStorage.getItem('lastSelectedProduct');
@@ -251,6 +255,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     console.log('טעינת מוצר אחרון:', lastProduct);
                     this.selectedProductName = lastProduct;
                     this.isTable = this.selectedProductName === 'table';
+                    this.isPlanter = this.selectedProductName === 'פlanter';
                     this.getProductByName(this.selectedProductName);
                 } else {
         this.getProductById('68a186bb0717136a1a9245de');
@@ -332,6 +337,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 console.log('Product loaded:', data);
                 console.log('פרמטרים נטענו:', this.params);
                 console.log('זה שולחן?', this.isTable);
+                console.log('זה עדנית?', this.isPlanter);
                 // בדיקת פרמטרים ספציפיים
                 const heightParam = this.params.find(
                     (p) => p.name === 'height'
@@ -386,6 +392,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 console.log('Product loaded by name:', data);
                 console.log('פרמטרים נטענו:', this.params);
                 console.log('זה שולחן?', this.isTable);
+                console.log('זה עדנית?', this.isPlanter);
                 // בדיקת פרמטרים ספציפיים
                 const heightParam = this.params.find(
                     (p) => p.name === 'height'
@@ -1039,7 +1046,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
         this.beamMeshes = [];
         // Defensive checks
-        if (!this.isTable && (!this.shelves || !this.shelves.length)) {
+        if (!this.isTable && !this.isPlanter && (!this.shelves || !this.shelves.length)) {
             console.warn('No shelves found, cannot render model.');
             return;
         }
@@ -1049,18 +1056,29 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             );
             return;
         }
-        if (!this.surfaceWidth || !this.surfaceLength) {
+        if (this.isPlanter && !this.getParam('height')) {
+            console.warn(
+                'No height parameter found for planter, cannot render model.'
+            );
+            return;
+        }
+        if (!this.isPlanter && (!this.surfaceWidth || !this.surfaceLength)) {
             console.warn(
                 'surfaceWidth or surfaceLength missing, cannot render model.'
             );
             return;
         }
-        // Get shelf beam and type from params (for cabinet) or plata beam (for table)
+        // Get shelf beam and type from params (for cabinet) or plata beam (for table) or beam for planter
         let shelfsParam = null;
         if (this.isTable) {
             // עבור שולחן, נשתמש בפרמטר plata במקום shelfs
             shelfsParam = this.product?.params?.find(
                 (p: any) => p.type === 'beamSingle' && p.name === 'plata'
+            );
+        } else if (this.isPlanter) {
+            // עבור עדנית, נשתמש בפרמטר beam
+            shelfsParam = this.product?.params?.find(
+                (p: any) => p.type === 'beamSingle' && p.name === 'beam'
             );
         } else {
             // עבור ארון, נשתמש בפרמטר shelfs
@@ -1122,13 +1140,18 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.beamHeight = beamHeight;
         // For each shelf, render its beams at its calculated height
         let currentY = 0;
-        const totalShelves = this.isTable ? 1 : this.shelves.length;
+        const totalShelves = this.isTable ? 1 : this.isPlanter ? 1 : this.shelves.length;
         // Get frame beam dimensions for shelf beam shortening
         let frameParamForShortening = null;
         if (this.isTable) {
             // עבור שולחן, קורות החיזוק הן קורות הרגליים
             frameParamForShortening = this.params.find(
                 (p) => p.type === 'beamSingle' && p.name === 'leg'
+            );
+        } else if (this.isPlanter) {
+            // עבור עדנית, אין קורות חיזוק - נשתמש באותו פרמטר beam
+            frameParamForShortening = this.params.find(
+                (p) => p.type === 'beamSingle' && p.name === 'beam'
             );
         } else {
             // עבור ארון, קורות החיזוק הן פרמטר beamSingle שאינו shelfs
@@ -1305,7 +1328,32 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.beamMeshes.push(mesh);
                 }
             }
-            // רגליים (legs) - עבור שולחן
+        } else if (this.isPlanter) {
+            // עבור עדנית, נציג קורה אחת באורך height
+            const heightParam = this.getParam('height');
+            const planterHeight = heightParam ? heightParam.default : 50;
+            
+            console.log('יצירת עדנית - גובה:', planterHeight, 'רוחב קורה:', beamWidth, 'עומק קורה:', beamHeight);
+            
+            // יצירת קורה אחת אנכית במרכז
+            const geometry = new THREE.BoxGeometry(
+                beamWidth,
+                planterHeight,
+                beamHeight
+            );
+            const material = new THREE.MeshStandardMaterial({
+                map: shelfWoodTexture,
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.position.set(0, planterHeight / 2, 0);
+            this.scene.add(mesh);
+            this.beamMeshes.push(mesh);
+            
+            console.log('עדנית נוצרה בהצלחה');
+        } else {
+            // רגליים (legs) - עבור ארון
             const legParam = this.getParam('leg');
             let legBeam = null;
             let legType = null;
@@ -1323,14 +1371,19 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const legWoodTexture = this.getWoodTexture(
                 legType ? legType.name : ''
             );
-            // עבור שולחן, נוסיף את גובה קורות המדפים לגובה הרגליים
+            // עבור ארון, נוסיף את גובה קורות המדפים לגובה הרגליים
             const shelfBeamHeight = beamHeight; // זה כבר מחושב למעלה
+            // חישוב גובה כולל לארון
+            let totalY = 0;
+            for (const shelf of this.shelves) {
+                totalY += shelf.gap + frameBeamHeight + beamHeight;
+            }
             const legs = this.createLegBeams(
                 this.surfaceWidth,
                 this.surfaceLength,
                 frameBeamWidth,
                 frameBeamHeight,
-                tableHeight + shelfBeamHeight // גובה הרגליים = גובה השולחן + גובה קורות המדפים
+                totalY
             );
             for (const leg of legs) {
                 const geometry = new THREE.BoxGeometry(
@@ -1348,60 +1401,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
-            // הוספת ברגים לרגליים עבור שולחן
-            this.addScrewsToLegs(1, legs, frameBeamHeight, 0);
-            // הוספת ברגים נוספים לקורות החיזוק המשוכפלות (extraBeam) - עבור שולחן בלבד
-            if (extraBeamParam && extraBeamParam.default > 0) {
-                const extraBeamDistance = extraBeamParam.default;
-                const totalDistance = extraBeamDistance + frameBeamHeight;
-                // יצירת ברגים נוספים באותם מיקומים X ו-Z אבל בגובה של קורות החיזוק המשוכפלות
-                legs.forEach((leg, legIndex) => {
-                    const isEven = legIndex % 2 === 0;
-                    const extraScrewY =
-                        tableHeight - frameBeamHeight / 2 - totalDistance; // גובה מרכז קורות החיזוק המשוכפלות
-                    // 2 ברגים לכל רגל (אחד לכל קורת חיזוק - קדמית ואחורית)
-                    const extraScrewPositions = [
-                        // בורג לקורת חיזוק קדמית
-                        {
-                            x: leg.x, // מרכז רוחב הרגל
-                            y: extraScrewY, // מרכז קורות החיזוק המשוכפלות
-                            z: isEven
-                                ? leg.z - (leg.depth / 2 + this.headHeight)
-                                : leg.z + (leg.depth / 2 + this.headHeight), // צד חיצוני של הרגל (קדמי)
-                        },
-                        {
-                            x:
-                                leg.x +
-                                (leg.width / 2 + this.headHeight) *
-                                    (legIndex > 1 ? 1 : -1), // מרכז רוחב הרגל
-                            y: extraScrewY, // מרכז קורות החיזוק המשוכפלות
-                            z:
-                                (isEven
-                                    ? leg.z - (leg.depth / 2 + this.headHeight)
-                                    : leg.z +
-                                      (leg.depth / 2 + this.headHeight)) +
-                                (isEven ? 1 : -1) *
-                                    (leg.depth / 2 + this.headHeight), // צד חיצוני של הרגל (קדמי)
-                        },
-                    ];
-                    extraScrewPositions.forEach((pos, screwIndex) => {
-                        const screwGroup = this.createHorizontalScrewGeometry();
-                        // הברגים אופקיים ומיושרים ל-X (מאונכים לדופן Z)
-                        screwGroup.position.set(pos.x, pos.y, pos.z);
-                        if (screwIndex === 0) {
-                            screwGroup.rotation.y =
-                                (Math.PI / 2) * (isEven ? 1 : -1);
-                        } else {
-                            screwGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
-                        }
-                        this.scene.add(screwGroup);
-                        this.beamMeshes.push(screwGroup);
-                    });
-                });
-            }
-            // Focus camera at the vertical center of the table
-            // Camera will look at center by default
-        } else {
+            // הוספת ברגים לרגליים עבור ארון
+            this.addScrewsToLegs(totalShelves, legs, frameBeamHeight, 0);
+        }
+        
+        // עבור ארון - הקוד המקורי
+        if (!this.isTable && !this.isPlanter) {
             // עבור ארון - הקוד המקורי
             for (
                 let shelfIndex = 0;
@@ -1632,6 +1637,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 // עבור שולחן, הגובה הכולל הוא גובה השולחן
                 const heightParam = this.getParam('height');
                 totalY = heightParam ? heightParam.default : 80;
+            } else if (this.isPlanter) {
+                // עבור עדנית, הגובה הכולל הוא גובה העדנית
+                const heightParam = this.getParam('height');
+                totalY = heightParam ? heightParam.default : 50;
             } else {
                 // עבור ארון, הגובה הכולל הוא סכום כל המדפים
             for (const shelf of this.shelves) {
