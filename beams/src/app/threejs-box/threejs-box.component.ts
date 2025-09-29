@@ -1458,16 +1458,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             
             console.log('רצפת עדנית נוצרה בהצלחה');
             
-            // יצירת שני הקירות הארוכים (בצדדים)
-            const maxWallHeight = planterHeight - beamHeight;
-            const beamsInHeight = Math.floor(maxWallHeight / beamWidth);
+            // יצירת הקירות - חישוב גובה נכון
+            const beamsInHeight = Math.floor(planterHeight / beamWidth); // כמות קורות לפי הגובה שהמשתמש הזין
+            const actualWallHeight = beamsInHeight * beamWidth; // גובה אמיתי = כמות קורות * רוחב קורה
             
             if (beamsInHeight > 0) {
                 // חישוב רווחים ויזואליים לקירות
                 const wallVisualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
                 const wallTotalGaps = beamsInHeight - 1; // כמות הרווחים
                 const wallTotalGapHeight = wallTotalGaps * wallVisualGap; // גובה כולל של כל הרווחים
-                const availableHeight = maxWallHeight - wallTotalGapHeight; // גובה זמין לקורות
+                const availableHeight = actualWallHeight - wallTotalGapHeight; // גובה זמין לקורות
                 const adjustedBeamHeight = availableHeight / beamsInHeight; // גובה קורה מותאם
                 
                 for (let wallIndex = 0; wallIndex < 4; wallIndex++) {
@@ -3547,9 +3547,21 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const planterWidth = depthParam ? depthParam.default : 40;  // width input -> planterWidth
             const planterHeight = heightParam ? heightParam.default : 50;
             
+            // חישוב גובה אמיתי לפי כמות הקורות
+            const beamParam = this.getParam('beam');
+            let beamWidth = 10; // ברירת מחדל
+            if (beamParam && beamParam.beams && beamParam.beams.length > 0) {
+                const selectedBeam = beamParam.beams[beamParam.selectedBeamIndex || 0];
+                if (selectedBeam) {
+                    beamWidth = selectedBeam.width / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            const beamsInHeight = Math.floor(planterHeight / beamWidth);
+            const actualHeight = beamsInHeight * beamWidth; // גובה אמיתי = כמות קורות * רוחב קורה
+            
             totalWidth = planterDepth;  // תיקון: planterDepth -> totalWidth
             totalLength = planterWidth; // תיקון: planterWidth -> totalLength
-            totalHeight = planterHeight;
+            totalHeight = actualHeight; // גובה אמיתי לפי כמות הקורות
         } else {
             // עבור ארון - חישוב זהה לחישוב הרגליים בפונקציה updateBeams
             // חישוב frameBeamHeight - זהה לחישוב בפונקציה updateBeams
