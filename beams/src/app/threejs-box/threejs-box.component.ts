@@ -1474,6 +1474,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             
             console.log('רצפת עדנית נוצרה בהצלחה');
             
+            // הוספת ברגים לקירות השמאליים והימניים בתחתית הרצפה
+            this.addScrewsToSideWallsAtFloor(planterDepth, planterWidth, beamHeight, widthParam.default);
+            
             // יצירת הקירות - חישוב גובה נכון
             const beamsInHeight = Math.floor(planterHeight / beamWidth); // כמות קורות לפי הגובה שהמשתמש הזין
             const actualWallHeight = beamsInHeight * beamWidth; // גובה אמיתי = כמות קורות * רוחב קורה
@@ -3054,6 +3057,50 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         return planterFloorForgingData;
     }
     
+    // פונקציה לחישוב ברגי קירות צדדיים עדנית
+    private calculatePlanterSideWallForgingData(): any[] {
+        console.log('=== CALCULATING PLANTER SIDE WALL FORGING DATA ===');
+        const planterSideWallForgingData: any[] = [];
+        
+        if (this.isPlanter) {
+            const beamParam = this.getParam('beam');
+            if (beamParam && beamParam.selectedBeamIndex !== undefined) {
+                const selectedBeam = beamParam.beams[beamParam.selectedBeamIndex];
+                const selectedType = selectedBeam?.types?.[beamParam.selectedTypeIndex || 0];
+                
+                if (selectedBeam && selectedType) {
+                    const beamHeight = selectedBeam.height / 10; // המרה ממ"מ לס"מ
+                    
+                    // חישוב כמות הברגים לפי המרחק
+                    const depthParam = this.getParam('depth');
+                    const planterDepth = depthParam ? depthParam.default : 40;
+                    const divisions = Math.ceil(planterDepth / 30); // חלוקה ב-30 ועגול למעלה
+                    const screwCount = Math.max(divisions, 3); // מינימום 3 ברגים
+                    
+                    // 2 קירות צדדיים (ללא הקיצוניים)
+                    const actualScrewCount = Math.max(screwCount - 2, 1); // הסרת הקיצוניים, מינימום 1
+                    const totalScrews = actualScrewCount * 2;
+                    
+                    planterSideWallForgingData.push({
+                        type: 'Planter Side Wall Screws',
+                        beamName: selectedBeam.name,
+                        beamTranslatedName: selectedBeam.translatedName,
+                        material: selectedType.translatedName,
+                        count: totalScrews,
+                        length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
+                        description: 'ברגי קירות צדדיים עדנית',
+                    });
+                    
+                    console.log(
+                        `Planter side wall screws: ${totalScrews} screws for 2 side walls (${actualScrewCount} screws per wall, excluding edge screws)`
+                    );
+                }
+            }
+        }
+        
+        return planterSideWallForgingData;
+    }
+    
     // פונקציה להוספת ברגים לקורת קיר עדנית
     private addScrewsToPlanterWallBeam(
         wallX: number, 
@@ -3181,6 +3228,55 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
     }
     
+    // פונקציה להוספת ברגים לקירות השמאליים והימניים בתחתית הרצפה
+    private addScrewsToSideWallsAtFloor(
+        planterDepth: number, 
+        planterWidth: number, 
+        beamHeight: number, 
+        widthInput: number
+    ) {
+        // חישוב המרחק בין שתי שורות הברגים הקיימות
+        const distanceBetweenScrewRows = planterDepth; // המרחק בין הקירות הקדמיים והאחוריים
+        const divisions = Math.ceil(distanceBetweenScrewRows / 30); // חלוקה ב-30 ועגול למעלה
+        const screwCount = Math.max(divisions, 3); // מינימום 3 ברגים
+        
+        // הזזה בחצי מעומק הקורה
+        const screwOffset = beamHeight / 2;
+        
+        // ברגים לקיר השמאלי (ללא הקיצוניים)
+        for (let i = 1; i < screwCount - 1; i++) {
+            const xPosition = -planterDepth / 2 + (i * planterDepth / (screwCount - 1));
+            const screwGroup = this.createScrewGeometry();
+            screwGroup.position.set(xPosition, beamHeight / 2 - screwOffset, -planterWidth / 2 + beamHeight / 2);
+            screwGroup.rotation.x = Math.PI; // ברגים כלפי מעלה
+            screwGroup.rotation.y = Math.PI / 2; // ברגים אופקיים
+            screwGroup.rotation.z = 0;
+            
+            this.scene.add(screwGroup);
+            this.beamMeshes.push(screwGroup);
+            
+            console.log(`קיר שמאלי בורג ${i}: x=${xPosition.toFixed(1)}, y=${(beamHeight / 2 - screwOffset).toFixed(1)}, z=${(-planterWidth / 2 + beamHeight / 2).toFixed(1)}`);
+        }
+        
+        // ברגים לקיר הימני (ללא הקיצוניים)
+        for (let i = 1; i < screwCount - 1; i++) {
+            const xPosition = -planterDepth / 2 + (i * planterDepth / (screwCount - 1));
+            const screwGroup = this.createScrewGeometry();
+            screwGroup.position.set(xPosition, beamHeight / 2 - screwOffset, planterWidth / 2 - beamHeight / 2);
+            screwGroup.rotation.x = Math.PI; // ברגים כלפי מעלה
+            screwGroup.rotation.y = Math.PI / 2; // ברגים אופקיים
+            screwGroup.rotation.z = 0;
+            
+            this.scene.add(screwGroup);
+            this.beamMeshes.push(screwGroup);
+            
+            console.log(`קיר ימני בורג ${i}: x=${xPosition.toFixed(1)}, y=${(beamHeight / 2 - screwOffset).toFixed(1)}, z=${(planterWidth / 2 - beamHeight / 2).toFixed(1)}`);
+        }
+        
+        const actualScrewCount = Math.max(screwCount - 2, 1); // הסרת הקיצוניים, מינימום 1
+        console.log(`נוספו ${actualScrewCount} ברגים לכל קיר צדדי (סה"כ ${actualScrewCount * 2} ברגים, ללא הקיצוניים)`);
+    }
+    
     // פונקציה ראשית לחישוב כל הברגים
     private async calculateForgingData(): Promise<void> {
         console.log('=== CALCULATING FORGING DATA ===');
@@ -3198,6 +3294,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // חישוב ברגי רצפת עדנית
         const planterFloorForgingData = this.calculatePlanterFloorForgingData();
         this.ForgingDataForPricing.push(...planterFloorForgingData);
+        // חישוב ברגי קירות צדדיים עדנית
+        const planterSideWallForgingData = this.calculatePlanterSideWallForgingData();
+        this.ForgingDataForPricing.push(...planterSideWallForgingData);
         // הצגת התוצאה הסופית
         console.log('=== FINAL FORGING DATA FOR PRICING ===');
         console.log('Total forging types:', this.ForgingDataForPricing.length);
