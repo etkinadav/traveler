@@ -207,7 +207,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             if (params['product']) {
                 this.selectedProductName = params['product'];
                 this.isTable = this.selectedProductName === 'table';
-                this.isPlanter = this.selectedProductName === 'פlanter';
+                this.isPlanter = this.selectedProductName === 'planter';
                 console.log(
                     'מוצר נבחר:',
                     this.selectedProductName,
@@ -255,7 +255,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     console.log('טעינת מוצר אחרון:', lastProduct);
                     this.selectedProductName = lastProduct;
                     this.isTable = this.selectedProductName === 'table';
-                    this.isPlanter = this.selectedProductName === 'פlanter';
+                    this.isPlanter = this.selectedProductName === 'planter';
                     this.getProductByName(this.selectedProductName);
                 } else {
         this.getProductById('68a186bb0717136a1a9245de');
@@ -1082,9 +1082,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             );
         } else if (this.isPlanter) {
             // עבור עדנית, נשתמש בפרמטר beam
+            console.log('מחפש פרמטר beam לעדנית...');
+            console.log('פרמטרים זמינים:', this.product?.params?.map(p => ({name: p.name, type: p.type})));
             shelfsParam = this.product?.params?.find(
                 (p: any) => p.type === 'beamSingle' && p.name === 'beam'
             );
+            console.log('shelfsParam נמצא:', shelfsParam);
         } else {
             // עבור ארון, נשתמש בפרמטר shelfs
             shelfsParam = this.product?.params?.find(
@@ -1103,6 +1106,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 shelfBeam.types && shelfBeam.types.length
                     ? shelfBeam.types[shelfsParam.selectedTypeIndex || 0]
                     : null;
+            console.log('shelfBeam נמצא:', shelfBeam);
+            console.log('shelfType נמצא:', shelfType);
+        } else {
+            console.log('shelfsParam לא תקין:', shelfsParam);
+            console.log('beams array:', shelfsParam?.beams);
         }
         // Get wood texture for shelf beams
         const shelfWoodTexture = this.getWoodTexture(
@@ -1440,6 +1448,48 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
             
             console.log('רצפת עדנית נוצרה בהצלחה');
+            
+            // יצירת שני הקירות הארוכים (בצדדים)
+            const maxWallHeight = planterHeight - beamHeight;
+            const beamsInHeight = Math.floor(maxWallHeight / beamWidth);
+            
+            if (beamsInHeight > 0) {
+                // חישוב רווחים ויזואליים לקירות
+                const wallVisualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
+                const wallTotalGaps = beamsInHeight - 1; // כמות הרווחים
+                const wallTotalGapHeight = wallTotalGaps * wallVisualGap; // גובה כולל של כל הרווחים
+                const availableHeight = maxWallHeight - wallTotalGapHeight; // גובה זמין לקורות
+                const adjustedBeamHeight = availableHeight / beamsInHeight; // גובה קורה מותאם
+                
+                for (let wallIndex = 0; wallIndex < 2; wallIndex++) {
+                    const wallZ = wallIndex === 0 ? -planterDepth / 2 : planterDepth / 2; // קיר קדמי ואחורי
+                    
+                    for (let i = 0; i < beamsInHeight; i++) {
+                        const geometry = new THREE.BoxGeometry(
+                            depthParam.default, // אורך הקורה = depth input
+                            adjustedBeamHeight, // גובה קורה מותאם עם רווחים
+                            beamHeight // עומק הקורה = גובה הקורה
+                        );
+                        const material = new THREE.MeshStandardMaterial({
+                            map: shelfWoodTexture,
+                        });
+                        const mesh = new THREE.Mesh(geometry, material);
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        
+                        // מיקום הקורה - ממורכז במרכז X, גובה מתחיל מ-beamHeight, מיקום Z לפי הקיר
+                        const yPosition = (i * (adjustedBeamHeight + wallVisualGap)) + beamHeight + (adjustedBeamHeight / 2);
+                        mesh.position.set(0, yPosition, wallZ);
+                        
+                        this.scene.add(mesh);
+                        this.beamMeshes.push(mesh);
+                        
+                        console.log(`קיר ${wallIndex + 1} קורה ${i + 1} - מיקום Y:`, yPosition, 'מיקום Z:', wallZ, 'אורך:', depthParam.default, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight);
+                    }
+                }
+                
+                console.log('קירות עדנית נוצרו בהצלחה');
+            }
             
             // התאמת מצלמה לעדנית
             if (this.camera) {
@@ -2156,6 +2206,49 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beamName: selectedBeam.name,
                         woodType: selectedType.translatedName
                     });
+                    
+                    // הוספת קורות הקירות לחישוב מחיר
+                    const heightParam = this.getParam('height');
+                    const planterHeight = heightParam ? heightParam.default : 50;
+                    const maxWallHeight = planterHeight - beamHeight;
+                    const beamsInHeight = Math.floor(maxWallHeight / beamWidth);
+                    
+                    if (beamsInHeight > 0) {
+                        // חישוב רווחים ויזואליים לקירות
+                        const wallVisualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
+                        const wallTotalGaps = beamsInHeight - 1; // כמות הרווחים
+                        const wallTotalGapHeight = wallTotalGaps * wallVisualGap; // גובה כולל של כל הרווחים
+                        const availableHeight = maxWallHeight - wallTotalGapHeight; // גובה זמין לקורות
+                        const adjustedBeamHeight = availableHeight / beamsInHeight; // גובה קורה מותאם
+                        
+                        // הוספת קורות הקירות (2 קירות)
+                        for (let wallIndex = 0; wallIndex < 2; wallIndex++) {
+                            for (let i = 0; i < beamsInHeight; i++) {
+                                allBeams.push({
+                                    type: selectedType,
+                                    length: depthParam.default, // אורך הקורה = depth input
+                                    width: beamHeight,
+                                    height: adjustedBeamHeight, // גובה קורה מותאם עם רווחים
+                                    name: `Planter Wall ${wallIndex + 1} Beam ${i + 1}`,
+                                    beamName: selectedBeam.name,
+                                    beamTranslatedName: selectedBeam.translatedName,
+                                    beamWoodType: selectedType.translatedName, // סוג העץ
+                                });
+                            }
+                        }
+                        
+                        console.log('קורות קירות עדנית נוספו לחישוב מחיר:', {
+                            wallsCount: 2,
+                            beamsPerWall: beamsInHeight,
+                            totalWallBeams: beamsInHeight * 2,
+                            length: depthParam.default,
+                            width: beamHeight,
+                            height: adjustedBeamHeight,
+                            visualGap: wallVisualGap,
+                            beamName: selectedBeam.name,
+                            woodType: selectedType.translatedName
+                        });
+                    }
                 } else {
                     // חישוב קורות המשטח
                     const surfaceBeams = this.createSurfaceBeams(
