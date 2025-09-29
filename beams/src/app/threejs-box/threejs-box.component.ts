@@ -947,6 +947,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const dimensions = this.getProductDimensionsRaw();
         console.log('Total model height:', dimensions.height);
         this.scene.position.y = -120; // 200 * 0.5 = 100 (panSpeed)
+        
+        // מרכוז המצלמה על קוביית ה-wireframe
+        this.centerCameraOnWireframe();
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(width, height);
         this.renderer.shadowMap.enabled = true;
@@ -1494,14 +1497,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 console.log('קירות עדנית נוצרו בהצלחה');
             }
             
-            // התאמת מצלמה לעדנית
-            if (this.camera) {
-                const maxDimension = Math.max(planterWidth, planterDepth, planterHeight);
-                const distance = maxDimension * 2;
-                this.camera.position.set(distance, distance * 0.8, distance);
-                this.camera.lookAt(0, 0, 0);
-                console.log('מצלמה הותאמה לעדנית - מרחק:', distance);
-            }
+            // העדנית תשתמש בפונקציה centerCameraOnWireframe() כמו שאר המוצרים
         } else {
             // רגליים (legs) - עבור ארון
             const legParam = this.getParam('leg');
@@ -3090,6 +3086,33 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         return beams;
     }
+    // מרכוז המצלמה על קוביית ה-wireframe בפתיחה הראשונית
+    private centerCameraOnWireframe() {
+        // קבועים
+        const ROTATION_ANGLE = 30; // 30 מעלות סיבוב כלפי מטה (קבוע)
+        const FIXED_DISTANCE = 400; // מרחק קבוע מהמרכז
+        
+        // מיקום המצלמה במרחק קבוע מהמרכז
+        this.camera.position.set(0, FIXED_DISTANCE, 0);
+        
+        // מרכוז על מרכז העולם (0,0,0)
+        this.camera.lookAt(0, 0, 0);
+        
+        // סיבוב המצלמה 30 מעלות כלפי מטה (קבוע)
+        const offset = this.camera.position.clone();
+        const spherical = new THREE.Spherical().setFromVector3(offset);
+        spherical.phi += ROTATION_ANGLE * Math.PI / 180; // 30 מעלות כלפי מטה
+        this.camera.position.setFromSpherical(spherical);
+        this.camera.lookAt(0, 0, 0);
+        
+        console.log('מצלמה מורכזת על מרכז העולם:', {
+            fixedDistance: FIXED_DISTANCE,
+            rotationAngle: ROTATION_ANGLE,
+            cameraPosition: this.camera.position,
+            lookAt: new THREE.Vector3(0, 0, 0)
+        });
+    }
+    
     // ממקם את המצלמה כך שכל המדפים והרגליים ייכנסו בפריים
     private frameAllShelves() {
         let totalY = 0;
