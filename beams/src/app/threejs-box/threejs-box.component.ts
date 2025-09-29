@@ -180,7 +180,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
     isTable: boolean = false; // האם זה שולחן או ארון
     isPlanter: boolean = false; // האם זה עדנית עץ
-    isPriceManuOpen: boolean = true; // האם תפריט המחיר פתוח
+    isPriceManuOpen: boolean = false; // האם תפריט המחיר פתוח
     hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
     hasNoMiddleBeams: boolean = false; // האם נשארות רק שתי הקורות המקוצרות (אין קורות באמצע)
@@ -1477,8 +1477,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         planterWidth / 2 - beamHeight / 2;    // קיר ימני - פנימי לקצה הרצפה
                     
                     for (let i = 0; i < beamsInHeight; i++) {
+                        // העלאת הקורות התחתונות ב-0.1 ס"מ ליצירת רווח ויזואלי מהרצפה
+                        const isBottomBeam = i === 0; // הקורה הראשונה (התחתונה) בכל קיר
+                        
                         const geometry = new THREE.BoxGeometry(
-                            widthParam.default, // אורך הקורה = width input (הוחלף עם depth)
+                            widthParam.default, // אורך הקורה הרגיל
                             adjustedBeamHeight, // גובה קורה מותאם עם רווחים
                             beamHeight // עומק הקורה = גובה הקורה
                         );
@@ -1490,13 +1493,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         mesh.receiveShadow = true;
                         
                         // מיקום הקורה - ממורכז במרכז X, גובה מתחיל מ-beamHeight, מיקום Z לפי הקיר
-                        const yPosition = (i * (adjustedBeamHeight + wallVisualGap)) + beamHeight + (adjustedBeamHeight / 2);
+                        // הקורה התחתונה מוגבהת ב-0.1 ס"מ מהרצפה
+                        const baseYPosition = (i * (adjustedBeamHeight + wallVisualGap)) + beamHeight + (adjustedBeamHeight / 2);
+                        const yPosition = isBottomBeam ? baseYPosition + 0.1 : baseYPosition;
                         mesh.position.set(0, yPosition, wallZ);
                         
                         this.scene.add(mesh);
                         this.beamMeshes.push(mesh);
                         
-                        console.log(`קיר ${wallIndex + 1} קורה ${i + 1} - מיקום Y:`, yPosition, 'מיקום Z:', wallZ, 'אורך:', widthParam.default, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight);
+                        console.log(`קיר ${wallIndex + 1} קורה ${i + 1} - מיקום Y:`, yPosition, 'מיקום Z:', wallZ, 'אורך:', widthParam.default, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight, isBottomBeam ? '(קורה תחתונה מוגבהת)' : '');
                     }
                 }
                 
