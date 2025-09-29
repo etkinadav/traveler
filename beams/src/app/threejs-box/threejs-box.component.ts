@@ -1462,7 +1462,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const adjustedBeamHeight = availableHeight / beamsInHeight; // גובה קורה מותאם
                 
                 for (let wallIndex = 0; wallIndex < 2; wallIndex++) {
-                    const wallZ = wallIndex === 0 ? -planterDepth / 2 : planterDepth / 2; // קיר קדמי ואחורי
+                    // מיקום הקירות בקצוות הרצפה (לאורך ציר Z - planterWidth)
+                    const wallZ = wallIndex === 0 ? 
+                        -planterWidth / 2 + beamHeight / 2 :  // קיר שמאלי - פנימי לקצה הרצפה
+                        planterWidth / 2 - beamHeight / 2;    // קיר ימני - פנימי לקצה הרצפה
                     
                     for (let i = 0; i < beamsInHeight; i++) {
                         const geometry = new THREE.BoxGeometry(
