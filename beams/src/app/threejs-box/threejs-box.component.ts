@@ -3022,31 +3022,32 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // 4 ברגים לכל קורה - בקצוות הקורה, ניצבים אליה ב-4 הפינות
         // ראש הבורג על המשטח החיצוני של הקורה
         const screwOffset = beamDepth / 2 + 0.1; // חצי עומק הקורה + קצת חוץ
+        const innerOffset = beamDepth / 2; // הזזה פנימית לכיוון האמצע
         
         const screwPositions = [
             // בורג ראשון - פינה שמאלית עליונה
             {
-                x: wallX + (isFrontBackWall ? -screwOffset : 0),
-                y: wallY + beamHeight / 2,
-                z: wallZ - wallLength / 2 + (isFrontBackWall ? 0 : -screwOffset)
+                x: wallX + (isFrontBackWall ? -screwOffset : innerOffset),
+                y: wallY + beamHeight / 2 - innerOffset, // הזזה פנימית למעלה
+                z: wallZ - wallLength / 2 + (isFrontBackWall ? innerOffset : -screwOffset)
             },
             // בורג שני - פינה ימנית עליונה
             {
-                x: wallX + (isFrontBackWall ? -screwOffset : 0),
-                y: wallY + beamHeight / 2,
-                z: wallZ + wallLength / 2 + (isFrontBackWall ? 0 : screwOffset)
+                x: wallX + (isFrontBackWall ? -screwOffset : -innerOffset),
+                y: wallY + beamHeight / 2 - innerOffset, // הזזה פנימית למעלה
+                z: wallZ + wallLength / 2 + (isFrontBackWall ? -innerOffset : screwOffset)
             },
             // בורג שלישי - פינה שמאלית תחתונה
             {
-                x: wallX + (isFrontBackWall ? -screwOffset : 0),
-                y: wallY - beamHeight / 2,
-                z: wallZ - wallLength / 2 + (isFrontBackWall ? 0 : -screwOffset)
+                x: wallX + (isFrontBackWall ? -screwOffset : innerOffset),
+                y: wallY - beamHeight / 2 + innerOffset, // הזזה פנימית למטה
+                z: wallZ - wallLength / 2 + (isFrontBackWall ? innerOffset : -screwOffset)
             },
             // בורג רביעי - פינה ימנית תחתונה
             {
-                x: wallX + (isFrontBackWall ? -screwOffset : 0),
-                y: wallY - beamHeight / 2,
-                z: wallZ + wallLength / 2 + (isFrontBackWall ? 0 : screwOffset)
+                x: wallX + (isFrontBackWall ? -screwOffset : -innerOffset),
+                y: wallY - beamHeight / 2 + innerOffset, // הזזה פנימית למטה
+                z: wallZ + wallLength / 2 + (isFrontBackWall ? -innerOffset : screwOffset)
             }
         ];
         
