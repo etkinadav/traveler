@@ -3153,6 +3153,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
         ];
         
+        // שורה חיצונית של ברגים
         screwPositions.forEach((pos, screwIndex) => {
             const screwGroup = this.createHorizontalScrewGeometry();
             screwGroup.position.set(pos.x, pos.y, pos.z);
@@ -3167,7 +3168,51 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.beamMeshes.push(screwGroup);
             
             console.log(
-                `קיר ${wallName} קורה ${beamNumber} בורג ${screwIndex + 1}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}, rotation=${isFrontWall ? '180°' : '0°'}`
+                `קיר ${wallName} קורה ${beamNumber} בורג ${screwIndex + 1} (שורה חיצונית): x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}, rotation=${isFrontWall ? '180°' : '0°'}`
+            );
+        });
+        
+        // שורה פנימית של ברגים - מוזזת פנימה בציר Z לפי beamDepth
+        const innerScrewPositions = [
+            // בורג ראשון - פינה שמאלית עליונה
+            {
+                x: wallX + (isFrontBackWall ? outerOffset : innerOffset),
+                y: wallY + beamHeight / 2 - innerOffset, // הזזה פנימית למעלה
+                z: wallZ - wallLength / 2 + (isFrontBackWall ? innerOffset + beamDepth : -screwOffset)
+            },
+            // בורג שני - פינה ימנית עליונה
+            {
+                x: wallX + (isFrontBackWall ? outerOffset : -innerOffset),
+                y: wallY + beamHeight / 2 - innerOffset, // הזזה פנימית למעלה
+                z: wallZ + wallLength / 2 + (isFrontBackWall ? -innerOffset - beamDepth : screwOffset)
+            },
+            // בורג שלישי - פינה שמאלית תחתונה
+            {
+                x: wallX + (isFrontBackWall ? outerOffset : innerOffset),
+                y: wallY - beamHeight / 2 + innerOffset, // הזזה פנימית למטה
+                z: wallZ - wallLength / 2 + (isFrontBackWall ? innerOffset + beamDepth : -screwOffset)
+            },
+            // בורג רביעי - פינה ימנית תחתונה
+            {
+                x: wallX + (isFrontBackWall ? outerOffset : -innerOffset),
+                y: wallY - beamHeight / 2 + innerOffset, // הזזה פנימית למטה
+                z: wallZ + wallLength / 2 + (isFrontBackWall ? -innerOffset - beamDepth : screwOffset)
+            }
+        ];
+        
+        innerScrewPositions.forEach((pos, screwIndex) => {
+            const screwGroup = this.createHorizontalScrewGeometry();
+            screwGroup.position.set(pos.x, pos.y, pos.z);
+            
+            // ברגים ניצבים לקורה - כיוון הפוך לכל קיר
+            const isFrontWall = wallName === 'קדמי';
+            screwGroup.rotation.y = isFrontWall ? Math.PI : 0;
+            
+            this.scene.add(screwGroup);
+            this.beamMeshes.push(screwGroup);
+            
+            console.log(
+                `קיר ${wallName} קורה ${beamNumber} בורג ${screwIndex + 1} (שורה פנימית): x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}, rotation=${isFrontWall ? '180°' : '0°'}`
             );
         });
     }
