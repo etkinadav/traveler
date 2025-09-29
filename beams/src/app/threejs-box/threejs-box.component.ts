@@ -295,10 +295,17 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             localStorage.removeItem(key);
             console.log('Removed configuration:', key);
         });
+        
+        // מחיקת קונפיגורציה כללית
+        localStorage.removeItem('beam-configuration');
+        console.log('Removed beam-configuration');
         console.log(
             'User configuration cleared for new product. Removed keys:',
             keysToRemove
         );
+        
+        // איפוס הפרמטרים לערכי ברירת המחדל
+        this.resetParamsToDefaults();
     }
     getProductById(id: string) {
         this.http.get(`/api/products/${id}`).subscribe({
@@ -345,8 +352,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const plataParam = this.params.find((p) => p.name === 'plata');
                 console.log('פרמטר height:', heightParam);
                 console.log('פרמטר plata:', plataParam);
-                // Load saved configuration after product is loaded
+                // Load saved configuration after product is loaded (only if same product)
+                const lastProduct = localStorage.getItem('lastSelectedProduct');
+                if (lastProduct === this.selectedProductName) {
                 this.loadConfiguration();
+                }
                 this.updateBeams();
             },
             error: (err) => {
@@ -400,8 +410,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const plataParam = this.params.find((p) => p.name === 'plata');
                 console.log('פרמטר height:', heightParam);
                 console.log('פרמטר plata:', plataParam);
-                // Load saved configuration after product is loaded
+                // Load saved configuration after product is loaded (only if same product)
+                const lastProduct = localStorage.getItem('lastSelectedProduct');
+                if (lastProduct === this.selectedProductName) {
                 this.loadConfiguration();
+                }
                 this.updateBeams();
             },
             error: (err) => {
@@ -856,10 +869,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const spherical = new THREE.Spherical().setFromVector3(offset);
                 spherical.theta -= angleY;
                 spherical.phi -= angleX;
-                spherical.phi = Math.max(
-                    0.01,
-                    Math.min(Math.PI - 0.01, spherical.phi)
-                );
+                    spherical.phi = Math.max(
+                        0.01,
+                        Math.min(Math.PI - 0.01, spherical.phi)
+                    );
                 this.camera.position.setFromSpherical(spherical);
             } else if (isTouchZooming && event.touches.length === 2) {
                     const dx =
@@ -2290,15 +2303,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         });
                     }
                 } else {
-                    // חישוב קורות המשטח
-                    const surfaceBeams = this.createSurfaceBeams(
-                        this.surfaceWidth,
-                        this.surfaceLength,
-                        beamWidth,
-                        beamHeight,
-                        this.minGap
-                    );
-                    if (this.isTable) {
+                // חישוב קורות המשטח
+                const surfaceBeams = this.createSurfaceBeams(
+                    this.surfaceWidth,
+                    this.surfaceLength,
+                    beamWidth,
+                    beamHeight,
+                    this.minGap
+                );
+                if (this.isTable) {
                     // עבור שולחן - מדף אחד בלבד
                     surfaceBeams.forEach((beam) => {
                         allBeams.push({
@@ -2312,8 +2325,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                     });
-                    } else {
-                        // עבור ארון - קורות לכל מדף עם קיצור
+                } else {
+                    // עבור ארון - קורות לכל מדף עם קיצור
                     // חישוב קיצור קורות המדפים
                     const totalShelves = this.shelves.length;
                     const shelvesWithoutTop = totalShelves - 1; // מדפים ללא המדף העליון
@@ -3146,7 +3159,21 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.camera.position.setFromSpherical(spherical);
         this.camera.lookAt(0, 0, 0);
         
-        this.panUpHalfScreen();
+        // זום אאוט במצב הפתיחה
+        const currentDistance = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
+        const zoomOutAmount = 200; // זום אאוט ב-200 יחידות (פי 2 יותר מקודם)
+        const newDistance = currentDistance + zoomOutAmount;
+        const direction = this.camera.position.clone().normalize();
+        this.camera.position.copy(direction.multiplyScalar(newDistance));
+        
+        // pan למעלה במצב הפתיחה
+        const screenHeight = window.innerHeight;
+        const panAmount = screenHeight / 2; // חצי מגובה המסך
+        const cam = this.camera;
+        const pan = new THREE.Vector3();
+        pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), panAmount * 0.2); // חיובי = למעלה
+        cam.position.add(pan);
+        this.scene.position.add(pan);
         
         // המתנה של חצי שניה ואז זום אין אוטומטי
         setTimeout(() => {
@@ -3188,9 +3215,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     private performAutoZoomIn() {
         const startTime = Date.now();
         const startPosition = this.camera.position.clone();
+        const startScenePosition = this.scene.position.clone();
         const currentDistance = startPosition.distanceTo(new THREE.Vector3(0, 0, 0));
         const zoomAmount = -50; // זום אין (ערך שלילי כמו בגלגלת)
         const targetDistance = currentDistance + zoomAmount;
+        
+        // הורדה עדינה של המודל (30 פיקסלים)
+        const panDownAmount = 30 * 0.2; // המרה לפיקסלים עם אותו מקדם כמו pan רגיל
 
         const animate = () => {
             const elapsed = Date.now() - startTime;
@@ -3207,6 +3238,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             // שימוש באותה לוגיקה כמו בגלגלת
             const direction = this.camera.position.clone().normalize();
             this.camera.position.copy(direction.multiplyScalar(newDistance));
+            
+            // הורדה עדינה של המודל במהלך האנימציה
+            const panDownProgress = THREE.MathUtils.lerp(0, panDownAmount, easeProgress);
+            const cam = this.camera;
+            const pan = new THREE.Vector3();
+            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), -panDownProgress); // שלילי = למטה
+            this.scene.position.copy(startScenePosition.clone().add(pan));
 
             if (progress < 1) {
                 requestAnimationFrame(animate);
@@ -3215,6 +3253,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     startDistance: currentDistance,
                     targetDistance: targetDistance,
                     finalDistance: this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0)),
+                    panDownAmount: panDownAmount,
                     duration: elapsed
                 });
             }

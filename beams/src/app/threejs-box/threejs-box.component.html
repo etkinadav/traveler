@@ -42,13 +42,13 @@
                 </svg>
             </button>
             <ng-container *ngIf="drawerOpen">
-                <!-- Spinner Loading - מחליף את כל התוכן -->
-                <div class="loading-spinner" *ngIf="isLoading">
+                <!-- Spinner Loading - מוצג רק בטעינה הראשונית -->
+                <div class="loading-spinner" *ngIf="isLoading && isModelLoading">
                     <div class="spinner"></div>
                 </div>
                 
-                <!-- כל התוכן הרגיל - מוצג רק כשאין loading -->
-                <div *ngIf="!isLoading">
+                <!-- כל התוכן הרגיל - מוצג תמיד -->
+                <div>
                 <!-- כותרת מוצר -->
                 <div class="product-header" *ngIf="selectedProductName" style="margin-bottom: 20px;">
                     <h3 style="margin: 0; padding: 10px; text-align: center;">
