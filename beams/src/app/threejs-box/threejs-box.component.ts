@@ -3394,15 +3394,29 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         totalScrews: number;
     } {
         // רוחב כולל
-        const totalWidth = this.surfaceWidth;
+        let totalWidth = this.surfaceWidth;
         // אורך כולל
-        const totalLength = this.surfaceLength;
+        let totalLength = this.surfaceLength;
         // גובה כולל
         let totalHeight = 0;
         if (this.isTable) {
             // עבור שולחן - הגובה הוא פשוט הפרמטר "גובה משטח" (כי כבר הורדנו את גובה קורות הפלטה)
             const heightParam = this.getParam('height');
             totalHeight = heightParam ? heightParam.default : 80; // ברירת מחדל 80 ס"מ
+        } else if (this.isPlanter) {
+            // עבור עדנית - מידות מהפרמטרים
+            const heightParam = this.getParam('height');
+            const depthParam = this.getParam('depth');
+            const widthParam = this.getParam('width');
+            
+            // החלפה בין width ו-depth כמו בתצוגה התלת מימדית
+            const planterDepth = widthParam ? widthParam.default : 50;  // depth input -> planterDepth
+            const planterWidth = depthParam ? depthParam.default : 40;  // width input -> planterWidth
+            const planterHeight = heightParam ? heightParam.default : 50;
+            
+            totalWidth = planterDepth;  // תיקון: planterDepth -> totalWidth
+            totalLength = planterWidth; // תיקון: planterWidth -> totalLength
+            totalHeight = planterHeight;
         } else {
             // עבור ארון - חישוב זהה לחישוב הרגליים בפונקציה updateBeams
             // חישוב frameBeamHeight - זהה לחישוב בפונקציה updateBeams
