@@ -3106,6 +3106,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.camera.lookAt(0, 0, 0);
         
         this.panUpHalfScreen();
+        
+        // המתנה של חצי שניה ואז זום אין אוטומטי
+        setTimeout(() => {
+            this.performAutoZoomIn();
+        }, 500);
+        
         console.log('מצלמה מורכזת על מרכז העולם:', {
             fixedDistance: FIXED_DISTANCE,
             rotationAngle: ROTATION_ANGLE,
@@ -3135,6 +3141,45 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             cameraPosition: this.camera.position.clone(),
             scenePosition: this.scene.position.clone()
         });
+    }
+    
+    // פונקציה לביצוע זום אין אוטומטי עם ease-in-out
+    private performAutoZoomIn() {
+        const startTime = Date.now();
+        const startPosition = this.camera.position.clone();
+        const currentDistance = startPosition.distanceTo(new THREE.Vector3(0, 0, 0));
+        const zoomAmount = -50; // זום אין (ערך שלילי כמו בגלגלת)
+        const targetDistance = currentDistance + zoomAmount;
+
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / 500, 1); // משך של חצי שנייה (פי 2 יותר מהיר)
+
+            // Ease in out function
+            const easeProgress = progress < 0.5
+                ? 2 * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+            let newDistance = THREE.MathUtils.lerp(currentDistance, targetDistance, easeProgress);
+            if (newDistance < 1) newDistance = 1; // הגנה מפני מרחק קטן מדי
+            
+            // שימוש באותה לוגיקה כמו בגלגלת
+            const direction = this.camera.position.clone().normalize();
+            this.camera.position.copy(direction.multiplyScalar(newDistance));
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                console.log('AUTO ZOOM IN COMPLETED:', {
+                    startDistance: currentDistance,
+                    targetDistance: targetDistance,
+                    finalDistance: this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0)),
+                    duration: elapsed
+                });
+            }
+        };
+
+        requestAnimationFrame(animate);
     }
     
     // ממקם את המצלמה כך שכל המדפים והרגליים ייכנסו בפריים
