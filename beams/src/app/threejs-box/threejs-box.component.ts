@@ -1470,21 +1470,43 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const availableHeight = maxWallHeight - wallTotalGapHeight; // גובה זמין לקורות
                 const adjustedBeamHeight = availableHeight / beamsInHeight; // גובה קורה מותאם
                 
-                for (let wallIndex = 0; wallIndex < 2; wallIndex++) {
-                    // מיקום הקירות בקצוות הרצפה (לאורך ציר Z - planterWidth)
-                    const wallZ = wallIndex === 0 ? 
-                        -planterWidth / 2 + beamHeight / 2 :  // קיר שמאלי - פנימי לקצה הרצפה
-                        planterWidth / 2 - beamHeight / 2;    // קיר ימני - פנימי לקצה הרצפה
+                for (let wallIndex = 0; wallIndex < 4; wallIndex++) {
+                    let wallX = 0, wallZ = 0;
+                    let wallLength = 0;
+                    let wallName = '';
+                    
+                    // חישוב מיקום ואורך הקירות
+                    if (wallIndex === 0) {
+                        // קיר שמאלי (ציר Z שלילי)
+                        wallZ = -planterWidth / 2 + beamHeight / 2;
+                        wallLength = widthParam.default - (2 * beamHeight); // קיצור משני הצדדים
+                        wallName = 'שמאלי';
+                    } else if (wallIndex === 1) {
+                        // קיר ימני (ציר Z חיובי)
+                        wallZ = planterWidth / 2 - beamHeight / 2;
+                        wallLength = widthParam.default - (2 * beamHeight); // קיצור משני הצדדים
+                        wallName = 'ימני';
+                    } else if (wallIndex === 2) {
+                        // קיר קדמי (ציר X שלילי)
+                        wallX = -planterDepth / 2 + beamHeight / 2;
+                        wallLength = planterWidth - (2 * beamHeight); // קיצור משני הצדדים
+                        wallName = 'קדמי';
+                    } else if (wallIndex === 3) {
+                        // קיר אחורי (ציר X חיובי)
+                        wallX = planterDepth / 2 - beamHeight / 2;
+                        wallLength = planterWidth - (2 * beamHeight); // קיצור משני הצדדים
+                        wallName = 'אחורי';
+                    }
                     
                     for (let i = 0; i < beamsInHeight; i++) {
                         // העלאת הקורות התחתונות ב-0.1 ס"מ ליצירת רווח ויזואלי מהרצפה
                         const isBottomBeam = i === 0; // הקורה הראשונה (התחתונה) בכל קיר
                         
-                        // קיצור הקורות משני הצדדים במידת גובה הקורה
-                        const shortenedLength = widthParam.default - (2 * beamHeight);
+                        // סיבוב הקירות הקדמיים והאחוריים ב-90 מעלות סביב ציר Y
+                        const isFrontBackWall = wallIndex === 2 || wallIndex === 3;
                         
                         const geometry = new THREE.BoxGeometry(
-                            shortenedLength, // אורך הקורה מקוצר משני הצדדים
+                            wallLength, // אורך הקורה לפי סוג הקיר
                             adjustedBeamHeight, // גובה קורה מותאם עם רווחים
                             beamHeight // עומק הקורה = גובה הקורה
                         );
@@ -1495,16 +1517,21 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         mesh.castShadow = true;
                         mesh.receiveShadow = true;
                         
+                        // סיבוב הקירות הקדמיים והאחוריים ב-90 מעלות סביב ציר Y
+                        if (isFrontBackWall) {
+                            mesh.rotation.y = Math.PI / 2; // 90 מעלות סביב ציר Y
+                        }
+                        
                         // מיקום הקורה - ממורכז במרכז X, גובה מתחיל מ-beamHeight, מיקום Z לפי הקיר
                         // הקורה התחתונה מוגבהת ב-0.1 ס"מ מהרצפה
                         const baseYPosition = (i * (adjustedBeamHeight + wallVisualGap)) + beamHeight + (adjustedBeamHeight / 2);
                         const yPosition = isBottomBeam ? baseYPosition + 0.1 : baseYPosition;
-                        mesh.position.set(0, yPosition, wallZ);
+                        mesh.position.set(wallX, yPosition, wallZ);
                         
                         this.scene.add(mesh);
                         this.beamMeshes.push(mesh);
                         
-                        console.log(`קיר ${wallIndex + 1} קורה ${i + 1} - מיקום Y:`, yPosition, 'מיקום Z:', wallZ, 'אורך:', shortenedLength, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight, isBottomBeam ? '(קורה תחתונה מוגבהת)' : '');
+                        console.log(`קיר ${wallName} קורה ${i + 1} - מיקום X:`, wallX, 'מיקום Y:', yPosition, 'מיקום Z:', wallZ, 'אורך:', wallLength, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight, isBottomBeam ? '(קורה תחתונה מוגבהת)' : '');
                     }
                 }
                 
