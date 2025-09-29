@@ -1403,8 +1403,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const widthParam = this.getParam('width');
             
             const planterHeight = heightParam ? heightParam.default : 50;
-            const planterDepth = depthParam ? depthParam.default : 40;
-            const planterWidth = widthParam ? widthParam.default : 50;
+            const planterDepth = widthParam ? widthParam.default : 50;  // depth input -> planterDepth
+            const planterWidth = depthParam ? depthParam.default : 40;  // width input -> planterWidth
             
             console.log('יצירת עדנית - גובה:', planterHeight, 'עומק:', planterDepth, 'רוחב:', planterWidth);
             console.log('מידות קורה - רוחב:', beamWidth, 'עומק:', beamHeight);
@@ -1469,7 +1469,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     
                     for (let i = 0; i < beamsInHeight; i++) {
                         const geometry = new THREE.BoxGeometry(
-                            depthParam.default, // אורך הקורה = depth input
+                            widthParam.default, // אורך הקורה = width input (הוחלף עם depth)
                             adjustedBeamHeight, // גובה קורה מותאם עם רווחים
                             beamHeight // עומק הקורה = גובה הקורה
                         );
@@ -1487,7 +1487,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         this.scene.add(mesh);
                         this.beamMeshes.push(mesh);
                         
-                        console.log(`קיר ${wallIndex + 1} קורה ${i + 1} - מיקום Y:`, yPosition, 'מיקום Z:', wallZ, 'אורך:', depthParam.default, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight);
+                        console.log(`קיר ${wallIndex + 1} קורה ${i + 1} - מיקום Y:`, yPosition, 'מיקום Z:', wallZ, 'אורך:', widthParam.default, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight);
                     }
                 }
                 
@@ -2173,8 +2173,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const depthParam = this.getParam('depth');
                     const widthParam = this.getParam('width');
                     
-                    const planterDepth = depthParam ? depthParam.default : 40;
-                    const planterWidth = widthParam ? widthParam.default : 50;
+                    const planterDepth = widthParam ? widthParam.default : 50;  // depth input -> planterDepth
+                    const planterWidth = depthParam ? depthParam.default : 40;  // width input -> planterWidth
                     
                     // חישוב כמות הקורות בעומק (41/5 = 8 קורות)
                     const beamsInDepth = Math.floor(planterWidth / beamWidth);
@@ -2229,7 +2229,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             for (let i = 0; i < beamsInHeight; i++) {
                                 allBeams.push({
                                     type: selectedType,
-                                    length: depthParam.default, // אורך הקורה = depth input
+                                    length: widthParam.default, // אורך הקורה = width input (הוחלף עם depth)
                                     width: beamHeight,
                                     height: adjustedBeamHeight, // גובה קורה מותאם עם רווחים
                                     name: `Planter Wall ${wallIndex + 1} Beam ${i + 1}`,
@@ -2244,7 +2244,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             wallsCount: 2,
                             beamsPerWall: beamsInHeight,
                             totalWallBeams: beamsInHeight * 2,
-                            length: depthParam.default,
+                            length: widthParam.default,
                             width: beamHeight,
                             height: adjustedBeamHeight,
                             visualGap: wallVisualGap,
