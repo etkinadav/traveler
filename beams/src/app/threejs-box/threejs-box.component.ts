@@ -1562,6 +1562,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 console.log('קירות עדנית נוצרו בהצלחה');
             }
             
+            // יצירת קורות חיזוק פנימיות
+            this.createPlanterInternalSupportBeams(planterDepth, planterWidth, actualWallHeight, beamHeight, beamWidth);
+            
             // העדנית תשתמש בפונקציה centerCameraOnWireframe() כמו שאר המוצרים
         } else {
             // רגליים (legs) - עבור ארון
@@ -3275,6 +3278,60 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         const actualScrewCount = Math.max(screwCount - 2, 1); // הסרת הקיצוניים, מינימום 1
         console.log(`נוספו ${actualScrewCount} ברגים לכל קיר צדדי (סה"כ ${actualScrewCount * 2} ברגים, ללא הקיצוניים)`);
+    }
+    
+    // פונקציה ליצירת קורות חיזוק פנימיות לעדנית
+    private createPlanterInternalSupportBeams(
+        planterDepth: number, 
+        planterWidth: number, 
+        actualWallHeight: number, 
+        beamHeight: number, 
+        beamWidth: number
+    ) {
+        console.log('=== יצירת קורות חיזוק פנימיות לעדנית ===');
+        
+        // 4 קורות חיזוק בפינות הפנימיות
+        const supportBeamPositions = [
+            // פינה שמאלית קדמית
+            { x: -planterDepth / 2 + beamWidth, z: -planterWidth / 2 + beamHeight + beamHeight / 2 },
+            // פינה ימנית קדמית
+            { x: planterDepth / 2 - beamWidth, z: -planterWidth / 2 + beamHeight + beamHeight / 2 },
+            // פינה שמאלית אחורית
+            { x: -planterDepth / 2 + beamWidth, z: planterWidth / 2 - beamHeight - beamHeight / 2 },
+            // פינה ימנית אחורית
+            { x: planterDepth / 2 - beamWidth, z: planterWidth / 2 - beamHeight - beamHeight / 2 }
+        ];
+        
+        supportBeamPositions.forEach((pos, index) => {
+            // גובה הקורה מתחיל במפלס העליון של הרצפה
+            const startY = beamHeight; // מפלס עליון של הרצפה
+            const endY = startY + actualWallHeight; // שיא גובה העדנית
+            
+            const geometry = new THREE.BoxGeometry(
+                beamWidth, // רוחב הקורה
+                actualWallHeight, // גובה הקורה = גובה הקירות
+                beamHeight // עומק הקורה
+            );
+            
+            const material = new THREE.MeshStandardMaterial({
+                map: this.woodTexture,
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            
+            // מיקום הקורה - ממורכז בגובה
+            const centerY = startY + actualWallHeight / 2;
+            mesh.position.set(pos.x, centerY, pos.z);
+            
+            this.scene.add(mesh);
+            this.beamMeshes.push(mesh);
+            
+            console.log(`קורת חיזוק פנימית ${index + 1}: x=${pos.x.toFixed(1)}, y=${centerY.toFixed(1)}, z=${pos.z.toFixed(1)}, גובה=${actualWallHeight.toFixed(1)}`);
+        });
+        
+        console.log('קורות חיזוק פנימיות נוצרו בהצלחה');
     }
     
     // פונקציה ראשית לחישוב כל הברגים
