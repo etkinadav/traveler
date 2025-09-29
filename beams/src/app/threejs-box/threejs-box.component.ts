@@ -3090,14 +3090,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     private centerCameraOnWireframe() {
         // קבועים
         const ROTATION_ANGLE = 30; // 30 מעלות סיבוב כלפי מטה (קבוע)
-        const FIXED_DISTANCE = 400; // מרחק קבוע מהמרכז
+        const FIXED_DISTANCE = 100; // מרחק קבוע מהמרכז
         
         // מיקום המצלמה במרחק קבוע מהמרכז
-        this.camera.position.set(0, FIXED_DISTANCE, 0);
+        this.camera.position.set(0, FIXED_DISTANCE, 200);
         
         // מרכוז על מרכז העולם (0,0,0)
         this.camera.lookAt(0, 0, 0);
-        
+
         // סיבוב המצלמה 30 מעלות כלפי מטה (קבוע)
         const offset = this.camera.position.clone();
         const spherical = new THREE.Spherical().setFromVector3(offset);
@@ -3105,11 +3105,35 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.camera.position.setFromSpherical(spherical);
         this.camera.lookAt(0, 0, 0);
         
+        this.panUpHalfScreen();
         console.log('מצלמה מורכזת על מרכז העולם:', {
             fixedDistance: FIXED_DISTANCE,
             rotationAngle: ROTATION_ANGLE,
             cameraPosition: this.camera.position,
             lookAt: new THREE.Vector3(0, 0, 0)
+        });
+    }
+
+    // פונקציה שבודקת גובה המסך ועושה pan למעלה בחצי מגובה המסך
+    private panUpHalfScreen() {
+        const screenHeight = window.innerHeight;
+        const panAmount = screenHeight / 2; // חצי מגובה המסך
+        
+        // חישוב כיוון ה-pan למעלה
+        const cam = this.camera;
+        const pan = new THREE.Vector3();
+        pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), panAmount * 0.2);
+        
+        // הזזת המצלמה והסצנה
+        cam.position.add(pan);
+        this.scene.position.add(pan);
+        
+        console.log('PAN UP HALF SCREEN:', {
+            screenHeight,
+            panAmount,
+            panVector: pan,
+            cameraPosition: this.camera.position.clone(),
+            scenePosition: this.scene.position.clone()
         });
     }
     
