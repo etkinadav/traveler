@@ -1480,8 +1480,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         // העלאת הקורות התחתונות ב-0.1 ס"מ ליצירת רווח ויזואלי מהרצפה
                         const isBottomBeam = i === 0; // הקורה הראשונה (התחתונה) בכל קיר
                         
+                        // קיצור הקורות משני הצדדים במידת גובה הקורה
+                        const shortenedLength = widthParam.default - (2 * beamHeight);
+                        
                         const geometry = new THREE.BoxGeometry(
-                            widthParam.default, // אורך הקורה הרגיל
+                            shortenedLength, // אורך הקורה מקוצר משני הצדדים
                             adjustedBeamHeight, // גובה קורה מותאם עם רווחים
                             beamHeight // עומק הקורה = גובה הקורה
                         );
@@ -1501,7 +1504,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         this.scene.add(mesh);
                         this.beamMeshes.push(mesh);
                         
-                        console.log(`קיר ${wallIndex + 1} קורה ${i + 1} - מיקום Y:`, yPosition, 'מיקום Z:', wallZ, 'אורך:', widthParam.default, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight, isBottomBeam ? '(קורה תחתונה מוגבהת)' : '');
+                        console.log(`קיר ${wallIndex + 1} קורה ${i + 1} - מיקום Y:`, yPosition, 'מיקום Z:', wallZ, 'אורך:', shortenedLength, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight, isBottomBeam ? '(קורה תחתונה מוגבהת)' : '');
                     }
                 }
                 
