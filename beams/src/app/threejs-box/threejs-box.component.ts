@@ -1466,6 +1466,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
                 
+                // הוספת ברגים לקורת רצפה
+                this.addScrewsToPlanterFloorBeam(0, beamHeight / 2, zPosition, planterDepth, beamHeight, adjustedBeamWidth, i + 1);
+                
                 console.log(`קורה ${i + 1} - מיקום Z:`, zPosition, 'רוחב:', adjustedBeamWidth, 'אורך:', planterDepth, 'גובה:', beamHeight);
             }
             
@@ -3007,6 +3010,50 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         return planterWallForgingData;
     }
     
+    // פונקציה לחישוב ברגי רצפת העדנית
+    private calculatePlanterFloorForgingData(): any[] {
+        console.log('=== CALCULATING PLANTER FLOOR FORGING DATA ===');
+        const planterFloorForgingData: any[] = [];
+        
+        if (this.isPlanter) {
+            const beamParam = this.getParam('beam');
+            if (beamParam && beamParam.selectedBeamIndex !== undefined) {
+                const selectedBeam = beamParam.beams[beamParam.selectedBeamIndex];
+                const selectedType = selectedBeam?.types?.[beamParam.selectedTypeIndex || 0];
+                
+                if (selectedBeam && selectedType) {
+                    const beamWidth = selectedBeam.width / 10; // המרה ממ"מ לס"מ
+                    const beamHeight = selectedBeam.height / 10; // המרה ממ"מ לס"מ
+                    
+                    // חישוב כמות הקורות ברצפה
+                    const widthParam = this.getParam('width');
+                    const planterWidth = widthParam ? widthParam.default : 50;
+                    const beamsInDepth = Math.floor(planterWidth / beamWidth);
+                    
+                    // 4 ברגים לכל קורת רצפה
+                    const screwsPerBeam = 4;
+                    const totalScrews = beamsInDepth * screwsPerBeam;
+                    
+                    planterFloorForgingData.push({
+                        type: 'Planter Floor Screws',
+                        beamName: selectedBeam.name,
+                        beamTranslatedName: selectedBeam.translatedName,
+                        material: selectedType.translatedName,
+                        count: totalScrews,
+                        length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
+                        description: 'ברגי רצפת עדנית',
+                    });
+                    
+                    console.log(
+                        `Planter floor screws: ${totalScrews} screws for ${beamsInDepth} beams (${screwsPerBeam} screws per beam)`
+                    );
+                }
+            }
+        }
+        
+        return planterFloorForgingData;
+    }
+    
     // פונקציה להוספת ברגים לקורת קיר עדנית
     private addScrewsToPlanterWallBeam(
         wallX: number, 
@@ -3075,6 +3122,65 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
     }
     
+    // פונקציה להוספת ברגים לקורת רצפת עדנית
+    private addScrewsToPlanterFloorBeam(
+        floorX: number, 
+        floorY: number, 
+        floorZ: number, 
+        floorLength: number, 
+        beamHeight: number, 
+        beamWidth: number, 
+        beamNumber: number
+    ) {
+        // 4 ברגים לכל קורת רצפה - בקצוות הקורה, ניצבים כלפי מעלה
+        const screwOffset = beamHeight / 2 + 0.1; // חצי גובה הקורה + קצת חוץ
+        const innerOffset = beamHeight / 2; // הזזה פנימית לכיוון האמצע
+        
+        const screwPositions = [
+            // בורג ראשון - פינה שמאלית קדמית
+            {
+                x: floorX - floorLength / 2 + innerOffset,
+                y: floorY - screwOffset, // מתחת לרצפה
+                z: floorZ - beamWidth / 2 + innerOffset
+            },
+            // בורג שני - פינה ימנית קדמית
+            {
+                x: floorX + floorLength / 2 - innerOffset,
+                y: floorY - screwOffset, // מתחת לרצפה
+                z: floorZ - beamWidth / 2 + innerOffset
+            },
+            // בורג שלישי - פינה שמאלית אחורית
+            {
+                x: floorX - floorLength / 2 + innerOffset,
+                y: floorY - screwOffset, // מתחת לרצפה
+                z: floorZ + beamWidth / 2 - innerOffset
+            },
+            // בורג רביעי - פינה ימנית אחורית
+            {
+                x: floorX + floorLength / 2 - innerOffset,
+                y: floorY - screwOffset, // מתחת לרצפה
+                z: floorZ + beamWidth / 2 - innerOffset
+            }
+        ];
+        
+        screwPositions.forEach((pos, screwIndex) => {
+            const screwGroup = this.createScrewGeometry();
+            screwGroup.position.set(pos.x, pos.y, pos.z);
+            
+            // ברגים ניצבים כלפי מעלה
+            screwGroup.rotation.x = Math.PI; // סיבוב 180 מעלות כדי שהבורג יפנה כלפי מעלה
+            screwGroup.rotation.y = 0;
+            screwGroup.rotation.z = 0;
+            
+            this.scene.add(screwGroup);
+            this.beamMeshes.push(screwGroup);
+            
+            console.log(
+                `רצפה קורה ${beamNumber} בורג ${screwIndex + 1}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}`
+            );
+        });
+    }
+    
     // פונקציה ראשית לחישוב כל הברגים
     private async calculateForgingData(): Promise<void> {
         console.log('=== CALCULATING FORGING DATA ===');
@@ -3089,6 +3195,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // חישוב ברגי קירות עדנית
         const planterWallForgingData = this.calculatePlanterWallForgingData();
         this.ForgingDataForPricing.push(...planterWallForgingData);
+        // חישוב ברגי רצפת עדנית
+        const planterFloorForgingData = this.calculatePlanterFloorForgingData();
+        this.ForgingDataForPricing.push(...planterFloorForgingData);
         // הצגת התוצאה הסופית
         console.log('=== FINAL FORGING DATA FOR PRICING ===');
         console.log('Total forging types:', this.ForgingDataForPricing.length);
