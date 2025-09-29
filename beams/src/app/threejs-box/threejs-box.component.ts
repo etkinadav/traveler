@@ -1489,12 +1489,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     } else if (wallIndex === 2) {
                         // קיר קדמי (ציר X שלילי)
                         wallX = -planterDepth / 2 + beamHeight / 2;
-                        wallLength = planterWidth - (2 * beamHeight); // קיצור משני הצדדים
+                        wallLength = planterWidth; // אורך מלא עד הקצוות
                         wallName = 'קדמי';
                     } else if (wallIndex === 3) {
                         // קיר אחורי (ציר X חיובי)
                         wallX = planterDepth / 2 - beamHeight / 2;
-                        wallLength = planterWidth - (2 * beamHeight); // קיצור משני הצדדים
+                        wallLength = planterWidth; // אורך מלא עד הקצוות
                         wallName = 'אחורי';
                     }
                     
