@@ -791,7 +791,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             } else {
                 const angleY = dx * 0.01; // תיקון כיוון הסיבוב
                 const angleX = dy * 0.01; // תיקון כיוון הסיבוב
-                const offset = this.camera.position.clone();
+                
+                // חישוב מרכז קוביית ה-wireframe
+                const dimensions = this.getProductDimensionsRaw();
+                const wireframeCenter = new THREE.Vector3(0, dimensions.height / 2, 0);
+                
+                // סיבוב סביב מרכז ה-wireframe במקום (0,0,0)
+                const offset = this.camera.position.clone().sub(wireframeCenter);
                 const spherical = new THREE.Spherical().setFromVector3(offset);
                 spherical.theta -= angleY;
                 spherical.phi -= angleX;
@@ -799,7 +805,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     0.01,
                     Math.min(Math.PI - 0.01, spherical.phi)
                 );
-                this.camera.position.setFromSpherical(spherical);
+                this.camera.position.copy(wireframeCenter.clone().add(new THREE.Vector3().setFromSpherical(spherical)));
             }
         });
         window.addEventListener('mouseup', () => {
