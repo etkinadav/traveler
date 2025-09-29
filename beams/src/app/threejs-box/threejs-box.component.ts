@@ -3559,9 +3559,18 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const beamsInHeight = Math.floor(planterHeight / beamWidth);
             const actualHeight = beamsInHeight * beamWidth; // גובה אמיתי = כמות קורות * רוחב קורה
             
+            // חישוב גובה הקורה לרצפה
+            let beamHeight = 2.5; // ברירת מחדל
+            if (beamParam && beamParam.beams && beamParam.beams.length > 0) {
+                const selectedBeam = beamParam.beams[beamParam.selectedBeamIndex || 0];
+                if (selectedBeam) {
+                    beamHeight = selectedBeam.height / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
             totalWidth = planterDepth;  // תיקון: planterDepth -> totalWidth
             totalLength = planterWidth; // תיקון: planterWidth -> totalLength
-            totalHeight = actualHeight; // גובה אמיתי לפי כמות הקורות
+            totalHeight = actualHeight + beamHeight; // גובה אמיתי + גובה הריצפה
         } else {
             // עבור ארון - חישוב זהה לחישוב הרגליים בפונקציה updateBeams
             // חישוב frameBeamHeight - זהה לחישוב בפונקציה updateBeams
