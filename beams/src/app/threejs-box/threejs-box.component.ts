@@ -191,6 +191,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     ForgingDataForPricing: any[] = []; // מערך של נתוני ברגים לחישוב מחיר
     calculatedPrice: number = 0; // מחיר מחושב
     cuttingPlan: any[] = []; // תוכנית חיתוך מפורטת
+    quantity: number = 1; // כמות יחידות להזמנה
     constructor(
         private http: HttpClient,
         private snackBar: MatSnackBar,
@@ -2705,7 +2706,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     sizes: [],
                 });
             }
-            beamTypesMap.get(typeKey).sizes.push(beam.length);
+            // הוספת אורך הקורה כמות פעמים לפי כמות היחידות
+            for (let i = 0; i < this.quantity; i++) {
+                beamTypesMap.get(typeKey).sizes.push(beam.length);
+            }
         });
         // המרה למערך הסופי
         beamTypesMap.forEach((beamData, typeKey) => {
@@ -3468,6 +3472,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // חישוב ברגי קירות צדדיים עדנית
         const planterSideWallForgingData = this.calculatePlanterSideWallForgingData();
         this.ForgingDataForPricing.push(...planterSideWallForgingData);
+        
+        // הכפלת כמות הברגים לפי כמות היחידות
+        this.ForgingDataForPricing.forEach((forgingData) => {
+            forgingData.count = forgingData.count * this.quantity;
+        });
+        
         // הצגת התוצאה הסופית
         console.log('=== FINAL FORGING DATA FOR PRICING ===');
         console.log('Total forging types:', this.ForgingDataForPricing.length);
@@ -4587,5 +4597,28 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.scene.add(screwGroup);
             this.beamMeshes.push(screwGroup);
         });
+    }
+    
+    // פונקציות לניהול כמות יחידות
+    increaseQuantity() {
+        this.quantity++;
+        this.calculatePricing(); // עדכון המחיר
+    }
+    
+    decreaseQuantity() {
+        if (this.quantity > 1) {
+            this.quantity--;
+            this.calculatePricing(); // עדכון המחיר
+        }
+    }
+    
+    onQuantityChange(event: any) {
+        const value = parseInt(event.target.value);
+        if (!isNaN(value) && value >= 1) {
+            this.quantity = value;
+        } else if (value < 1) {
+            this.quantity = 1;
+        }
+        this.calculatePricing(); // עדכון המחיר
     }
 }

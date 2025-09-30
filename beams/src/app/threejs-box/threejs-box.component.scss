@@ -1154,3 +1154,87 @@ mat-form-field {
 ::ng-deep .mat-tooltip {
     margin-bottom: 5px !important;
 }
+
+/* Quantity Selector */
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.quantity-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.quantity-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #0066cc;
+    
+    &:hover:not(:disabled) {
+        background: rgba(0, 102, 204, 0.1);
+    }
+    
+    &:active:not(:disabled) {
+        background: rgba(0, 102, 204, 0.2);
+        transform: scale(0.95);
+    }
+    
+    &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+    
+    svg {
+        display: block;
+    }
+}
+
+.quantity-input {
+    width: 60px;
+    height: 32px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    outline: none;
+    
+    /* הסרת החצים של input number */
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    
+    &[type=number] {
+        -moz-appearance: textfield;
+    }
+}
