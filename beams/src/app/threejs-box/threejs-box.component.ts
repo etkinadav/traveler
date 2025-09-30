@@ -42,6 +42,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         setTimeout(() => this.onResize(), 310); // Wait for transition to finish
     }
     toggleWireframe() {
+        // במובייל (sm ומטה, רוחב <= 576px) לא לאפשר הפעלת הקוביה בכלל
+        const isMobile = window.innerWidth <= 576;
+        
+        if (isMobile) {
+            // במובייל - לא לעשות כלום, הקוביה לא תופיע
+            console.log('Wireframe disabled on mobile');
+            return;
+        }
+        
         this.showWireframe = !this.showWireframe;
         if (this.showWireframe) {
             this.addWireframeCube();
@@ -61,6 +70,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // ניווט לעמוד הבית (בחירת מוצר)
     navigateToHome() {
         this.router.navigate(['/main-section/choose-printing-system']);
+    }
+    
+    // הפעלת קוביית ניווט במובייל
+    toggleNavigationCube() {
+        this.showNavigationCube = !this.showNavigationCube;
+        console.log('Toggle navigation cube:', this.showNavigationCube);
+        // סגירת תפריט האפשרויות
+        this.isOptionsMenuOpen = false;
     }
     
     // בדיקת מגבלות המוצר
@@ -223,6 +240,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     showWireframe: boolean = false; // מצב ברירת מחדל: wireframe מוסתר
     isTransparentMode: boolean = false; // מצב שקוף
     isOptionsMenuOpen: boolean = false; // האם תפריט האפשרויות פתוח
+    showNavigationCube: boolean = false; // קוביית ניווט במובייל
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
@@ -1135,6 +1153,17 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
+        
+        // במובייל, להסיר את הקוביה אם היא מוצגת
+        const isMobile = window.innerWidth <= 576;
+        if (isMobile && this.showWireframe) {
+            this.removeWireframeCube();
+        } else if (!isMobile && this.showWireframe) {
+            this.addWireframeCube();
+        }
+        
+        // איפוס קוביית הניווט במובייל בשינוי גודל
+        this.showNavigationCube = false;
     }
     updateBeams() {
         // הפעלת loading

@@ -110,7 +110,56 @@
             </svg>
             <span class="menu-text">מצב שקוף</span>
         </button>
+        
+        <!-- אפשרות בחר מבט -->
+        <button mat-menu-item (click)="toggleNavigationCube()" [class.active]="showNavigationCube" class="menu-option">
+            <svg width="14" height="14" viewBox="0 0 14 14" class="menu-icon">
+                <!-- קוביה איזומטרית -->
+                <path d="M 7 2 L 12 4.5 L 12 9.5 L 7 12 L 2 9.5 L 2 4.5 Z" stroke="currentColor" stroke-width="1" fill="none"/>
+                <line x1="7" y1="2" x2="7" y2="7" stroke="currentColor" stroke-width="1"/>
+                <line x1="7" y1="7" x2="12" y2="9.5" stroke="currentColor" stroke-width="1"/>
+                <line x1="7" y1="7" x2="2" y2="9.5" stroke="currentColor" stroke-width="1"/>
+                <!-- נקודת מיקוד -->
+                <circle cx="7" cy="7" r="1" fill="currentColor"/>
+            </svg>
+            <span class="menu-text">בחר מבט</span>
+        </button>
     </mat-menu>
+    
+    <!-- קוביית ניווט במובייל -->
+    <div class="mobile-navigation-cube" *ngIf="showNavigationCube" [@fadeInScale]>
+        <div class="nav-cube-title">בחר מבט</div>
+        
+        <!-- קוביה עם כפתורים -->
+        <div class="mobile-base-cube">
+            <!-- כפתור למעלה -->
+            <button class="mobile-nav-button mobile-top-button" (click)="onNavigationClick('top')">
+                <span class="nav-text">למעלה</span>
+            </button>
+            
+            <!-- כפתור שמאל -->
+            <button class="mobile-nav-button mobile-left-button" (click)="onNavigationClick('left')">
+                <span class="nav-text">שמאל</span>
+            </button>
+            
+            <!-- כפתור קדמי (מרכז) -->
+            <button class="mobile-nav-button mobile-front-button" (click)="onNavigationClick('front')">
+                <span class="nav-text">קדמי</span>
+            </button>
+            
+            <!-- כפתור ימין -->
+            <button class="mobile-nav-button mobile-right-button" (click)="onNavigationClick('right')">
+                <span class="nav-text">ימין</span>
+            </button>
+            
+            <!-- כפתור תחתון -->
+            <button class="mobile-nav-button mobile-back-button" (click)="onNavigationClick('bottom')">
+                <span class="nav-text">למטה</span>
+            </button>
+        </div>
+        
+        <button class="nav-cube-close" (click)="toggleNavigationCube()">✕</button>
+    </div>
     
     <!-- התרעה על קורות מוסתרות -->
     <div class="hidden-beams-warning" *ngIf="hasHiddenBeams && !hasNoMiddleBeams">
