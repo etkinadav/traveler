@@ -655,6 +655,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         if (this.isTransparentMode) {
             material.transparent = true;
             material.opacity = 0.1; // 10% שקיפות
+            console.log('Creating transparent material for:', beamType);
         }
         
         return material;
