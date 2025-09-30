@@ -45,7 +45,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     toggleTransparentMode() {
         this.isTransparentMode = !this.isTransparentMode;
         console.log('Toggle transparent mode:', this.isTransparentMode);
-        // הפונקציה תמולא בהמשך
+        // עדכון המודל כדי להחיל את השקיפות
+        this.updateBeams();
     }
     private removeWireframeCube() {
         const existingWireframe =
@@ -641,6 +642,22 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             texturePath = 'assets/textures/pine.jpg';
         }
         return this.textureLoader.load(texturePath);
+    }
+    
+    // Get wood material with optional transparency
+    private getWoodMaterial(beamType: string): THREE.MeshStandardMaterial {
+        const texture = this.getWoodTexture(beamType);
+        const material = new THREE.MeshStandardMaterial({
+            map: texture,
+        });
+        
+        // אם במצב שקוף, הפוך את הקורות לשקופות כמעט לחלוטין
+        if (this.isTransparentMode) {
+            material.transparent = true;
+            material.opacity = 0.1; // 10% שקיפות
+        }
+        
+        return material;
     }
     // Save current configuration (user-specific or localStorage)
     private saveConfiguration() {
@@ -1258,9 +1275,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     beam.height,
                     beam.depth
                 );
-                const material = new THREE.MeshStandardMaterial({
-                    map: shelfWoodTexture,
-                });
+                const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
@@ -1322,9 +1337,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     beam.height,
                     beam.depth
                 );
-                const material = new THREE.MeshStandardMaterial({
-                    map: frameWoodTexture,
-                });
+                const material = this.getWoodMaterial(frameType ? frameType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
@@ -1357,9 +1370,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beam.height,
                         beam.depth
                     );
-                    const material = new THREE.MeshStandardMaterial({
-                        map: frameWoodTexture,
-                    });
+                    const material = this.getWoodMaterial(frameType ? frameType.name : '');
                     const mesh = new THREE.Mesh(geometry, material);
                     mesh.castShadow = true;
                     mesh.receiveShadow = true;
@@ -1411,9 +1422,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     leg.height,
                     leg.depth
                 );
-                const material = new THREE.MeshStandardMaterial({
-                    map: legWoodTexture,
-                });
+                const material = this.getWoodMaterial(legType ? legType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
@@ -1483,9 +1492,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     beamHeight,    // גובה הקורה = גובה הקורה (2.5)
                     adjustedBeamWidth    // רוחב קורה מותאם עם רווחים
                 );
-                const material = new THREE.MeshStandardMaterial({
-                    map: shelfWoodTexture,
-                });
+                const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
@@ -1561,9 +1568,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             adjustedBeamHeight, // גובה קורה מותאם עם רווחים
                             beamHeight // עומק הקורה = גובה הקורה
                         );
-                        const material = new THREE.MeshStandardMaterial({
-                            map: shelfWoodTexture,
-                        });
+                        const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
                         const mesh = new THREE.Mesh(geometry, material);
                         mesh.castShadow = true;
                         mesh.receiveShadow = true;
@@ -1595,7 +1600,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
             
             // יצירת קורות חיזוק פנימיות
-            this.createPlanterInternalSupportBeams(planterDepth, planterWidth, actualWallHeight, beamHeight, beamWidth);
+            this.createPlanterInternalSupportBeams(planterDepth, planterWidth, actualWallHeight, beamHeight, beamWidth, shelfType ? shelfType.name : '');
             
             // העדנית תשתמש בפונקציה centerCameraOnWireframe() כמו שאר המוצרים
         } else {
@@ -1637,9 +1642,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     leg.height,
                     leg.depth
                 );
-                const material = new THREE.MeshStandardMaterial({
-                    map: legWoodTexture,
-                });
+                const material = this.getWoodMaterial(legType ? legType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
@@ -1792,9 +1795,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beam.height,
                         beam.depth
                     );
-                    const material = new THREE.MeshStandardMaterial({
-                        map: shelfWoodTexture,
-                    });
+                    const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
@@ -1841,9 +1842,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beam.height,
                         beam.depth
                     );
-                    const material = new THREE.MeshStandardMaterial({
-                        map: frameWoodTexture,
-                    });
+                    const material = this.getWoodMaterial(frameType ? frameType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
@@ -1906,9 +1905,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         leg.height,
                         leg.depth
                     );
-                    const material = new THREE.MeshStandardMaterial({
-                        map: legWoodTexture,
-                    });
+                    const material = this.getWoodMaterial(legType ? legType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
@@ -3494,7 +3491,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         planterWidth: number, 
         actualWallHeight: number, 
         beamHeight: number, 
-        beamWidth: number
+        beamWidth: number,
+        woodType: string = ''
     ) {
         console.log('=== יצירת קורות חיזוק פנימיות לעדנית ===');
         
@@ -3525,9 +3523,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 beamHeight // עומק הקורה
             );
             
-            const material = new THREE.MeshStandardMaterial({
-                map: this.woodTexture,
-            });
+            // שימוש בטקסטורה של קורות העדנית
+            // העדנית משתמשת באותו סוג עץ לכל הקורות
+            const material = this.getWoodMaterial(woodType);
             
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
