@@ -19,7 +19,11 @@
         
         <!-- כפתור תפריט אפשרויות נוספות -->
         <button class="options-menu-button" 
+                [class.active]="isOptionsMenuOpen"
                 [matMenuTriggerFor]="optionsMenu"
+                #menuTrigger="matMenuTrigger"
+                (menuOpened)="isOptionsMenuOpen = true"
+                (menuClosed)="isOptionsMenuOpen = false"
                 matTooltip="אפשרויות נוספות"
                 matTooltipPosition="below">
             <svg width="12" height="12" viewBox="0 0 12 12">

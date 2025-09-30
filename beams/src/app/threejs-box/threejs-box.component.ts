@@ -183,6 +183,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     drawerOpen: boolean = true;
     showWireframe: boolean = false; // מצב ברירת מחדל: wireframe מוסתר
     isTransparentMode: boolean = false; // מצב שקוף
+    isOptionsMenuOpen: boolean = false; // האם תפריט האפשרויות פתוח
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL

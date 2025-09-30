@@ -30,6 +30,11 @@
         transform: scale(1.05);
     }
     
+    &.active {
+        background: #0066cc;
+        color: white;
+    }
+    
     &:focus {
         outline: none;
     }
