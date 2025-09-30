@@ -430,6 +430,10 @@
                     
                     <!-- קפסולות פירוט מחיר -->
                     <div class="price-capsules">
+                        <div class="price-capsule">
+                            <div class="capsule-label">שרטוט</div>
+                            <div class="capsule-value"><span class="currency-symbol">₪</span>{{ drawingPrice }}</div>
+                        </div>
                         <div class="price-capsule" *ngIf="selectedPricingOption === 'cut' || selectedPricingOption === 'full'">
                             <div class="capsule-label">קורות</div>
                             <div class="capsule-value"><span class="currency-symbol">₪</span>{{ getBeamsOnlyPrice() }}</div>
@@ -437,10 +441,6 @@
                         <div class="price-capsule" *ngIf="selectedPricingOption === 'cut'">
                             <div class="capsule-label">חיתוך</div>
                             <div class="capsule-value"><span class="currency-symbol">₪</span>{{ getCuttingPrice() }}</div>
-                        </div>
-                        <div class="price-capsule">
-                            <div class="capsule-label">שרטוט</div>
-                            <div class="capsule-value"><span class="currency-symbol">₪</span>{{ drawingPrice }}</div>
                         </div>
                     </div>
                     
@@ -466,33 +466,84 @@
             <!-- אופציה 1: קורות חתוכות -->
             <button mat-menu-item (click)="selectPricingOption('cut')" [class.selected]="selectedPricingOption === 'cut'">
                 <div class="pricing-menu-item">
-                    <div class="option-name">קורות חתוכות לפי מידה</div>
-                    <div class="option-calculation">
-                        {{ getBeamsOnlyPrice() }}₪ + {{ getCuttingPrice() }}₪ + {{ drawingPrice }}₪
+                    <div class="option-title-row">
+                        <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" *ngIf="selectedPricingOption === 'cut'">
+                            <!-- מסגרת checkbox -->
+                            <rect x="1" y="1" width="14" height="14" rx="3" stroke="#0066cc" stroke-width="1.2" fill="none"/>
+                            <!-- סימן V בכתב יד -->
+                            <path d="M 4 8 L 7 11 L 12 5" stroke="#0066cc" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <animate attributeName="stroke-dasharray" from="0,20" to="20,0" dur="0.5s" fill="freeze"/>
+                            </path>
+                        </svg>
+                        <div class="option-title">קורות חתוכות לפי מידה</div>
                     </div>
-                    <div class="option-price">{{ getBeamsOnlyPrice() + getCuttingPrice() + drawingPrice }}₪</div>
+                    <div class="menu-capsules">
+                        <div class="menu-capsule">
+                            <div class="menu-capsule-label">שרטוט</div>
+                            <div class="menu-capsule-value">₪{{ drawingPrice }}</div>
+                        </div>
+                        <div class="menu-capsule">
+                            <div class="menu-capsule-label">קורות</div>
+                            <div class="menu-capsule-value">₪{{ getBeamsOnlyPrice() }}</div>
+                        </div>
+                        <div class="menu-capsule">
+                            <div class="menu-capsule-label">חיתוך</div>
+                            <div class="menu-capsule-value">₪{{ getCuttingPrice() }}</div>
+                        </div>
+                    </div>
+                    <div class="option-total">סה"כ: {{ getBeamsOnlyPrice() + getCuttingPrice() + drawingPrice }}₪</div>
                 </div>
             </button>
             
             <!-- אופציה 2: קורות שלמות + הוראות -->
             <button mat-menu-item (click)="selectPricingOption('full')" [class.selected]="selectedPricingOption === 'full'">
                 <div class="pricing-menu-item">
-                    <div class="option-name">קורות שלמות והוראות חיתוך</div>
-                    <div class="option-calculation">
-                        {{ getBeamsOnlyPrice() }}₪ + {{ drawingPrice }}₪
+                    <div class="option-title-row">
+                        <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" *ngIf="selectedPricingOption === 'full'">
+                            <!-- מסגרת checkbox -->
+                            <rect x="1" y="1" width="14" height="14" rx="3" stroke="#0066cc" stroke-width="1.2" fill="none"/>
+                            <!-- סימן V בכתב יד -->
+                            <path d="M 4 8 L 7 11 L 12 5" stroke="#0066cc" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <animate attributeName="stroke-dasharray" from="0,20" to="20,0" dur="0.5s" fill="freeze"/>
+                            </path>
+                        </svg>
+                        <div class="option-title">קורות שלמות והוראות חיתוך</div>
                     </div>
-                    <div class="option-price">{{ getBeamsOnlyPrice() + drawingPrice }}₪</div>
+                    <div class="menu-capsules">
+                        <div class="menu-capsule">
+                            <div class="menu-capsule-label">שרטוט</div>
+                            <div class="menu-capsule-value">₪{{ drawingPrice }}</div>
+                        </div>
+                        <div class="menu-capsule">
+                            <div class="menu-capsule-label">קורות</div>
+                            <div class="menu-capsule-value">₪{{ getBeamsOnlyPrice() }}</div>
+                        </div>
+                    </div>
+                    <div class="option-total">סה"כ: {{ getBeamsOnlyPrice() + drawingPrice }}₪</div>
                 </div>
             </button>
             
             <!-- אופציה 3: הוראות בלבד -->
             <button mat-menu-item (click)="selectPricingOption('plan')" [class.selected]="selectedPricingOption === 'plan'">
                 <div class="pricing-menu-item">
-                    <div class="option-name">הוראות חיתוך בלבד</div>
-                    <div class="option-calculation">
-                        {{ drawingPrice }}₪
+                    <div class="option-title-row">
+                        <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" *ngIf="selectedPricingOption === 'plan'">
+                            <!-- מסגרת checkbox -->
+                            <rect x="1" y="1" width="14" height="14" rx="3" stroke="#0066cc" stroke-width="1.2" fill="none"/>
+                            <!-- סימן V בכתב יד -->
+                            <path d="M 4 8 L 7 11 L 12 5" stroke="#0066cc" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <animate attributeName="stroke-dasharray" from="0,20" to="20,0" dur="0.5s" fill="freeze"/>
+                            </path>
+                        </svg>
+                        <div class="option-title">הוראות חיתוך בלבד</div>
                     </div>
-                    <div class="option-price">{{ drawingPrice }}₪</div>
+                    <div class="menu-capsules">
+                        <div class="menu-capsule">
+                            <div class="menu-capsule-label">שרטוט</div>
+                            <div class="menu-capsule-value">₪{{ drawingPrice }}</div>
+                        </div>
+                    </div>
+                    <div class="option-total">סה"כ: {{ drawingPrice }}₪</div>
                 </div>
             </button>
         </mat-menu>

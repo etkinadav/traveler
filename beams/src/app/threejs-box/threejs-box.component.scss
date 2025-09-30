@@ -1422,7 +1422,7 @@ mat-form-field {
             font-size: 10px;
             color: #666;
             font-weight: 600;
-            margin-bottom: 2px;
+            margin-bottom: 0px;
             
             @media (max-width: 576px) {
                 font-size: 9px;
@@ -1458,13 +1458,13 @@ mat-form-field {
     
     .mat-mdc-menu-item {
         height: auto !important;
-        min-height: 60px !important;
+        min-height: 70px !important;
         padding: 8px 12px !important;
         
         &.selected {
             background: rgba(0, 102, 204, 0.1) !important;
             
-            .option-name {
+            .option-title {
                 color: #0066cc;
                 font-weight: 600;
             }
@@ -1478,23 +1478,56 @@ mat-form-field {
     .pricing-menu-item {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 6px;
         width: 100%;
         
-        .option-name {
-            font-size: 12px;
+        .option-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .check-icon {
+            flex-shrink: 0;
+        }
+        
+        .option-title {
+            font-size: 14px;
             font-weight: 500;
             color: #333;
         }
         
-        .option-calculation {
-            font-size: 10px;
-            color: #666;
-            font-family: monospace;
+        .menu-capsules {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
         }
         
-        .option-price {
-            font-size: 14px;
+        .menu-capsule {
+            background: rgba(0, 102, 204, 0.08);
+            border-radius: 8px;
+            padding: 4px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 50px;
+            
+            .menu-capsule-label {
+                font-size: 10px;
+                color: #666;
+                font-weight: 600;
+                margin-bottom: 0px;
+            }
+            
+            .menu-capsule-value {
+                font-size: 10px;
+                font-weight: 600;
+                color: #0066cc;
+            }
+        }
+        
+        .option-total {
+            font-size: 13px;
             font-weight: 600;
             color: #0066cc;
             margin-top: 2px;
