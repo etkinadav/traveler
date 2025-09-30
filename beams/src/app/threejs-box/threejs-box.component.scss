@@ -1361,3 +1361,137 @@ mat-form-field {
         -moz-appearance: textfield;
     }
 }
+
+// כפתור בחירת אופציית תמחור
+.pricing-option-button {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    text-align: right;
+    transition: all 0.2s ease;
+    
+    &:hover {
+        background: rgba(0, 102, 204, 0.05);
+    }
+    
+    .option-name-small {
+        font-size: 13px;
+        color: #0066cc;
+        font-weight: 600;
+        margin-bottom: 6px;
+        
+        @media (min-width: 577px) {
+            margin-bottom: 10px;
+        }
+    }
+    
+    .price-capsules {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 6px;
+        flex-wrap: wrap;
+        
+        @media (max-width: 576px) {
+            gap: 2px;
+        }
+    }
+    
+    .price-capsule {
+        background: rgba(0, 102, 204, 0.08);
+        border-radius: 8px;
+        padding: 4px 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 50px;
+        
+        @media (max-width: 576px) {
+            padding: 3px 6px;
+            min-width: 45px;
+        }
+        
+        .capsule-label {
+            font-size: 10px;
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 2px;
+            
+            @media (max-width: 576px) {
+                font-size: 8px;
+            }
+        }
+        
+        .capsule-value {
+            font-size: 10px;
+            font-weight: 600;
+            color: #0066cc;
+            
+            .currency-symbol {
+                @media (max-width: 576px) {
+                    display: none;
+                }
+            }
+        }
+    }
+    
+    .price-display {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+}
+
+// תפריט אופציות תמחור
+::ng-deep .pricing-options-menu {
+    .mat-mdc-menu-panel {
+        min-width: 280px !important;
+    }
+    
+    .mat-mdc-menu-item {
+        height: auto !important;
+        min-height: 60px !important;
+        padding: 8px 12px !important;
+        
+        &.selected {
+            background: rgba(0, 102, 204, 0.1) !important;
+            
+            .option-name {
+                color: #0066cc;
+                font-weight: 600;
+            }
+        }
+        
+        &:hover:not([disabled]) {
+            background: rgba(0, 102, 204, 0.05) !important;
+        }
+    }
+    
+    .pricing-menu-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 100%;
+        
+        .option-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .option-calculation {
+            font-size: 10px;
+            color: #666;
+            font-family: monospace;
+        }
+        
+        .option-price {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0066cc;
+            margin-top: 2px;
+        }
+    }
+}

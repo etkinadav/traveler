@@ -232,6 +232,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     calculatedPrice: number = 0; // מחיר מחושב
     cuttingPlan: any[] = []; // תוכנית חיתוך מפורטת
     quantity: number = 1; // כמות יחידות להזמנה
+    selectedPricingOption: 'cut' | 'full' | 'plan' = 'cut'; // אופציית תמחור: cut=חתוכות, full=שלמות+הוראות, plan=הוראות בלבד
+    drawingPrice: number = 20; // עלות שרטוט/הוראות חיתוך
     constructor(
         private http: HttpClient,
         private snackBar: MatSnackBar,
@@ -4908,5 +4910,72 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.quantity = 1;
         }
         this.calculatePricing(); // עדכון המחיר
+    }
+    
+    // פונקציות לניהול אופציות תמחור
+    selectPricingOption(option: 'cut' | 'full' | 'plan') {
+        this.selectedPricingOption = option;
+        console.log('Pricing option changed to:', option);
+    }
+    
+    // קבלת שם האופציה הנבחרת
+    getPricingOptionName(): string {
+        switch (this.selectedPricingOption) {
+            case 'cut':
+                return 'קורות חתוכות לפי מידה';
+            case 'full':
+                return 'קורות שלמות והוראות חיתוך';
+            case 'plan':
+                return 'הוראות חיתוך בלבד';
+            default:
+                return 'לא ידוע';
+        }
+    }
+    
+    // חישוב מחיר קורות (ללא חיתוך)
+    getBeamsOnlyPrice(): number {
+        return this.cuttingPlan.reduce((sum, beam) => sum + beam.beamPrice, 0);
+    }
+    
+    // חישוב מחיר חיתוכים
+    getCuttingPrice(): number {
+        return this.cuttingPlan.reduce((sum, beam) => sum + (beam.totalCuttingPrice || 0), 0);
+    }
+    
+    // חישוב המחיר הסופי לפי האופציה הנבחרת
+    getFinalPrice(): number {
+        const beamsPrice = this.getBeamsOnlyPrice();
+        const cuttingPrice = this.getCuttingPrice();
+        
+        switch (this.selectedPricingOption) {
+            case 'cut':
+                // קורות חתוכות: קורות + חיתוך + שרטוט
+                return beamsPrice + cuttingPrice + this.drawingPrice;
+            case 'full':
+                // קורות שלמות: קורות + שרטוט (ללא חיתוך)
+                return beamsPrice + this.drawingPrice;
+            case 'plan':
+                // הוראות בלבד: רק שרטוט
+                return this.drawingPrice;
+            default:
+                return 0;
+        }
+    }
+    
+    // קבלת פירוט המחיר לפי האופציה הנבחרת
+    getPriceBreakdown(): string {
+        const beamsPrice = this.getBeamsOnlyPrice();
+        const cuttingPrice = this.getCuttingPrice();
+        
+        switch (this.selectedPricingOption) {
+            case 'cut':
+                return `${beamsPrice}₪ קורות + ${cuttingPrice}₪ חיתוך + ${this.drawingPrice}₪ שרטוט`;
+            case 'full':
+                return `${beamsPrice}₪ קורות + ${this.drawingPrice}₪ שרטוט`;
+            case 'plan':
+                return `${this.drawingPrice}₪ שרטוט`;
+            default:
+                return '';
+        }
     }
 }

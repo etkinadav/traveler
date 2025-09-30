@@ -61,6 +61,11 @@ export class PricingService {
         const cuts = beam.cuts;
         const remaining = beam.remaining;
         
+        // חישוב מחיר חיתוכים
+        const pricePerCut = beamData.type?.pricePerCut || 0;
+        // +1 לחיתוך ניקוי ראשוני של הקצה
+        const numberOfCuts = cuts.length + 1;
+        const totalCuttingPrice = pricePerCut * numberOfCuts;
 
         
         // הוספה לתוכנית החיתוך הכוללת עם כל הפרטים
@@ -72,17 +77,24 @@ export class PricingService {
           remaining: remaining,
           waste: remaining,
           beamType: beamData.beamTranslatedName || beamData.beamName,
-          beamWoodType: beamData.beamWoodType // סוג העץ
+          beamWoodType: beamData.beamWoodType, // סוג העץ
+          pricePerCut: pricePerCut, // מחיר לחיתוך
+          numberOfCuts: numberOfCuts, // כמות חיתוכים (כולל ניקוי)
+          totalCuttingPrice: totalCuttingPrice // מחיר חיתוכים כולל
         });
       });
 
       
       // חישוב מחיר עבור הפתרון האופטימלי
       const beamTypePrice = this.calculatePriceForOptimalSolution(optimalSolution, beamData.type);
-
+      
+      // חישוב מחיר חיתוכים כולל לסוג קורה זה (+1 לכל קורה עבור ניקוי)
+      const pricePerCut = beamData.type?.pricePerCut || 0;
+      const totalCutsForBeamType = optimalSolution.beams.reduce((sum: number, beam: any) => sum + beam.cuts.length + 1, 0);
+      const cuttingPriceForBeamType = pricePerCut * totalCutsForBeamType;
 
       
-      totalPrice += beamTypePrice;
+      totalPrice += beamTypePrice + cuttingPriceForBeamType;
     });
     
     // עיבוד ברגים (ללא חיתוך אופטימלי)
@@ -217,6 +229,11 @@ export class PricingService {
         const cuts = beam.cuts;
         const remaining = beam.remaining;
         
+        // חישוב מחיר חיתוכים
+        const pricePerCut = beamData.type?.pricePerCut || 0;
+        // +1 לחיתוך ניקוי ראשוני של הקצה
+        const numberOfCuts = cuts.length + 1;
+        const totalCuttingPrice = pricePerCut * numberOfCuts;
 
         
         // הוספה לתוכנית החיתוך הכוללת עם כל הפרטים
@@ -228,13 +245,22 @@ export class PricingService {
           remaining: remaining,
           waste: remaining,
           beamType: beamData.beamTranslatedName || beamData.beamName,
-          beamWoodType: beamData.beamWoodType // סוג העץ
+          beamWoodType: beamData.beamWoodType, // סוג העץ
+          pricePerCut: pricePerCut, // מחיר לחיתוך
+          numberOfCuts: numberOfCuts, // כמות חיתוכים (כולל ניקוי)
+          totalCuttingPrice: totalCuttingPrice // מחיר חיתוכים כולל
         });
       });
       
       // חישוב מחיר עבור הפתרון האופטימלי
       const beamTypePrice = this.calculatePriceForOptimalSolution(optimalSolution, beamData.type);
-      totalPrice += beamTypePrice;
+      
+      // חישוב מחיר חיתוכים כולל לסוג קורה זה (+1 לכל קורה עבור ניקוי)
+      const pricePerCut = beamData.type?.pricePerCut || 0;
+      const totalCutsForBeamType = optimalSolution.beams.reduce((sum: number, beam: any) => sum + beam.cuts.length + 1, 0);
+      const cuttingPriceForBeamType = pricePerCut * totalCutsForBeamType;
+      
+      totalPrice += beamTypePrice + cuttingPriceForBeamType;
     });
     
     // עיבוד ברגים (ללא חיתוך אופטימלי)
@@ -339,12 +365,15 @@ export class PricingService {
   private packCutsIntoBeams(cuts: number[], beamLength: number, beamPrice: number): any {
     const bins: any[] = [];
     let totalWaste = 0;
+    const sawKerf = 0.5; // ניקיון מסור - 0.5 ס"מ לכל חיתוך
     
 
 
 
     
     cuts.forEach((cutLength, cutIndex) => {
+      // הוספת ניקיון מסור לאורך החיתוך
+      const actualCutLength = cutLength + sawKerf;
 
       
       let bestBinIndex = -1;
@@ -353,7 +382,7 @@ export class PricingService {
       // חיפוש הקורה הטובה ביותר עבור החיתוך הנוכחי
       for (let i = 0; i < bins.length; i++) {
 
-        if (bins[i].remaining >= cutLength) {
+        if (bins[i].remaining >= actualCutLength) {
           // בחירת הקורה עם הכי פחות מקום פנוי (Best Fit)
           if (bins[i].remaining < bestFit) {
             bestFit = bins[i].remaining;
@@ -366,13 +395,13 @@ export class PricingService {
       // אם נמצאה קורה מתאימה, הוספה אליה
       if (bestBinIndex !== -1) {
         bins[bestBinIndex].cuts.push(cutLength);
-        bins[bestBinIndex].remaining -= cutLength;
+        bins[bestBinIndex].remaining -= actualCutLength; // שימוש ב-actualCutLength עם הניקיון
 
       } else {
         // אם לא נמצאה קורה מתאימה, יצירת קורה חדשה
         bins.push({
           cuts: [cutLength],
-          remaining: beamLength - cutLength,
+          remaining: beamLength - actualCutLength, // שימוש ב-actualCutLength עם הניקיון
           totalLength: beamLength
         });
 

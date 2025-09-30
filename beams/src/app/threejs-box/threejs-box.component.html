@@ -421,17 +421,81 @@
             <mat-icon>fullscreen</mat-icon>
         </button>
         <div class="price-info">
-            <div class="price-display">
-                <span class="price-label">מחיר:</span>
+            <div class="price-display-wrapper">
+                <!-- כפתור בחירת אופציה -->
+                <button class="pricing-option-button" 
+                        [matMenuTriggerFor]="pricingOptionsMenu"
+                        *ngIf="calculatedPrice > 0">
+                    <div class="option-name-small">{{ getPricingOptionName() }}</div>
+                    
+                    <!-- קפסולות פירוט מחיר -->
+                    <div class="price-capsules">
+                        <div class="price-capsule" *ngIf="selectedPricingOption === 'cut' || selectedPricingOption === 'full'">
+                            <div class="capsule-label">קורות</div>
+                            <div class="capsule-value"><span class="currency-symbol">₪</span>{{ getBeamsOnlyPrice() }}</div>
+                        </div>
+                        <div class="price-capsule" *ngIf="selectedPricingOption === 'cut'">
+                            <div class="capsule-label">חיתוך</div>
+                            <div class="capsule-value"><span class="currency-symbol">₪</span>{{ getCuttingPrice() }}</div>
+                        </div>
+                        <div class="price-capsule">
+                            <div class="capsule-label">שרטוט</div>
+                            <div class="capsule-value"><span class="currency-symbol">₪</span>{{ drawingPrice }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="price-display">
+                        <span class="price-label">מחיר:</span>
+                        <div class="price-value-inline">
+                            {{ getFinalPrice() }} ₪
+                        </div>
+                    </div>
+                </button>
+                
+                <!-- תצוגת טעינה -->
                 <div class="price-loader" *ngIf="calculatedPrice === 0">
                     <mat-spinner diameter="20"></mat-spinner>
                     <div style="width: 5px;"></div>
-                </div>
-                <div class="price-value-inline" *ngIf="calculatedPrice > 0">
-                    {{ calculatedPrice }} ₪
+                    <span class="price-label">מחשב מחיר...</span>
                 </div>
             </div>
         </div>
+        
+        <!-- תפריט אופציות תמחור -->
+        <mat-menu #pricingOptionsMenu="matMenu" class="pricing-options-menu">
+            <!-- אופציה 1: קורות חתוכות -->
+            <button mat-menu-item (click)="selectPricingOption('cut')" [class.selected]="selectedPricingOption === 'cut'">
+                <div class="pricing-menu-item">
+                    <div class="option-name">קורות חתוכות לפי מידה</div>
+                    <div class="option-calculation">
+                        {{ getBeamsOnlyPrice() }}₪ + {{ getCuttingPrice() }}₪ + {{ drawingPrice }}₪
+                    </div>
+                    <div class="option-price">{{ getBeamsOnlyPrice() + getCuttingPrice() + drawingPrice }}₪</div>
+                </div>
+            </button>
+            
+            <!-- אופציה 2: קורות שלמות + הוראות -->
+            <button mat-menu-item (click)="selectPricingOption('full')" [class.selected]="selectedPricingOption === 'full'">
+                <div class="pricing-menu-item">
+                    <div class="option-name">קורות שלמות והוראות חיתוך</div>
+                    <div class="option-calculation">
+                        {{ getBeamsOnlyPrice() }}₪ + {{ drawingPrice }}₪
+                    </div>
+                    <div class="option-price">{{ getBeamsOnlyPrice() + drawingPrice }}₪</div>
+                </div>
+            </button>
+            
+            <!-- אופציה 3: הוראות בלבד -->
+            <button mat-menu-item (click)="selectPricingOption('plan')" [class.selected]="selectedPricingOption === 'plan'">
+                <div class="pricing-menu-item">
+                    <div class="option-name">הוראות חיתוך בלבד</div>
+                    <div class="option-calculation">
+                        {{ drawingPrice }}₪
+                    </div>
+                    <div class="option-price">{{ drawingPrice }}₪</div>
+                </div>
+            </button>
+        </mat-menu>
         
         <!-- קופסא נוספת שמופיעה כשהתפריט פתוח -->
         <div class="price-menu-box" 
