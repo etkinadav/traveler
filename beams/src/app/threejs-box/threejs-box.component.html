@@ -1,19 +1,56 @@
 <div class="threejs-box-wrapper">
     <!-- הודעת validation הוסרה - משתמשים ב-SnackBar -->
     
-    <!-- כפתור להצגת wireframe - מחוץ לתפריט -->
-    <button class="wireframe-toggle" (click)="toggleWireframe()" 
-            [class.active]="showWireframe" 
-            matTooltip="הצג את מידות המוצר המלאות"
-            matTooltipPosition="below">
-        <!-- SVG Icon -->
-        <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left:8px;">
-            <rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="0.8" fill="none"/>
-            <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="0.8"/>
-            <line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="0.8"/>
-        </svg>
-        <span class="button-text">{{ showWireframe ? ('hide_dimensions' | translate) : ('show_dimensions' | translate) }}</span>
-    </button>
+    <!-- קונטיינר לכפתורי תצוגה -->
+    <div class="view-controls-container">
+        <!-- כפתור להצגת wireframe - מוסתר במובייל -->
+        <button class="wireframe-toggle hide-on-mobile" (click)="toggleWireframe()" 
+                [class.active]="showWireframe" 
+                matTooltip="הצג את מידות המוצר המלאות"
+                matTooltipPosition="below">
+            <!-- SVG Icon -->
+            <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left:8px;">
+                <rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="0.8" fill="none"/>
+                <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="0.8"/>
+            </svg>
+            <span class="button-text">{{ showWireframe ? ('hide_dimensions' | translate) : ('show_dimensions' | translate) }}</span>
+        </button>
+        
+        <!-- כפתור תפריט אפשרויות נוספות -->
+        <button class="options-menu-button" 
+                [matMenuTriggerFor]="optionsMenu"
+                matTooltip="אפשרויות נוספות"
+                matTooltipPosition="below">
+            <svg width="12" height="12" viewBox="0 0 12 12">
+                <circle cx="6" cy="2" r="1.2" fill="currentColor"/>
+                <circle cx="6" cy="6" r="1.2" fill="currentColor"/>
+                <circle cx="6" cy="10" r="1.2" fill="currentColor"/>
+            </svg>
+        </button>
+    </div>
+    
+    <!-- תפריט אפשרויות נוספות -->
+    <mat-menu #optionsMenu="matMenu" xPosition="before" class="custom-options-menu">
+        <!-- אפשרות הצג מידות - מוצג רק במובייל -->
+        <button mat-menu-item (click)="toggleWireframe()" [class.active]="showWireframe" class="menu-option show-on-mobile">
+            <svg width="12" height="12" viewBox="0 0 12 12" class="menu-icon">
+                <rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="0.8" fill="none"/>
+                <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="0.8"/>
+            </svg>
+            <span class="menu-text">{{ showWireframe ? 'הסתר מידות' : 'הצג מידות' }}</span>
+        </button>
+        
+        <!-- אפשרות מצב שקוף -->
+        <button mat-menu-item (click)="toggleTransparentMode()" [class.active]="isTransparentMode" class="menu-option">
+            <svg width="12" height="12" viewBox="0 0 12 12" class="menu-icon">
+                <circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.5"/>
+                <circle cx="6" cy="6" r="2" fill="currentColor" opacity="0.3"/>
+            </svg>
+            <span class="menu-text">מצב שקוף</span>
+        </button>
+    </mat-menu>
     
     <!-- התרעה על קורות מוסתרות -->
     <div class="hidden-beams-warning" *ngIf="hasHiddenBeams && !hasNoMiddleBeams">

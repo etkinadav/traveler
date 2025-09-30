@@ -40,6 +40,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.removeWireframeCube();
         }
     }
+    
+    // פונקציה להפעלת מצב שקוף
+    toggleTransparentMode() {
+        this.isTransparentMode = !this.isTransparentMode;
+        console.log('Toggle transparent mode:', this.isTransparentMode);
+        // הפונקציה תמולא בהמשך
+    }
     private removeWireframeCube() {
         const existingWireframe =
             this.scene.getObjectByName('productWireframe');
@@ -175,6 +182,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     drawerOpen: boolean = true;
     showWireframe: boolean = false; // מצב ברירת מחדל: wireframe מוסתר
+    isTransparentMode: boolean = false; // מצב שקוף
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL

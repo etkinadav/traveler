@@ -1,8 +1,46 @@
-/* Wireframe toggle button */
-.wireframe-toggle {
+/* View controls container */
+.view-controls-container {
     position: fixed !important;
     top: 74px !important;
     right: 19px !important;
+    display: flex;
+    gap: 6px; // רווח מינימלי בין הכפתורים
+    z-index: 9999 !important;
+}
+
+/* Options menu button */
+.options-menu-button {
+    min-width: auto;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: rgba(0, 102, 204, 0.1);
+    color: #0066cc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+        background: rgba(0, 102, 204, 0.2);
+        transform: scale(1.05);
+    }
+    
+    &:focus {
+        outline: none;
+    }
+    
+    svg {
+        display: block;
+    }
+}
+
+/* Wireframe toggle button */
+.wireframe-toggle {
     min-width: auto;
     height: 28px;
     padding: 4px 8px;
@@ -15,7 +53,6 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    z-index: 9999 !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     font-size: 11px;
     font-weight: 500;
@@ -39,6 +76,78 @@
     .button-text {
         margin-left: 0px;
         font-size: 11px;
+    }
+}
+
+/* Custom options menu styling */
+::ng-deep .custom-options-menu {
+    .mat-mdc-menu-content {
+        padding: 4px !important;
+    }
+    
+    .mat-mdc-menu-item {
+        min-height: 28px !important;
+        height: 28px !important;
+        line-height: 28px !important;
+        
+        .mat-mdc-menu-item-text {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+    }
+    
+    .menu-option {
+        min-height: 28px !important;
+        height: 28px !important;
+        padding: 4px 12px !important;
+        border-radius: 6px;
+        margin: 2px 0;
+        font-size: 11px;
+        font-weight: 500;
+        color: #0066cc;
+        background: rgba(0, 102, 204, 0.05);
+        transition: all 0.2s ease;
+        
+        &:hover:not([disabled]) {
+            background: rgba(0, 102, 204, 0.15) !important;
+        }
+        
+        &.active {
+            background: #0066cc !important;
+            color: white !important;
+            
+            svg {
+                color: white;
+            }
+        }
+        
+        .menu-icon {
+            flex-shrink: 0;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .menu-text {
+            white-space: nowrap;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 576px) {
+    .hide-on-mobile {
+        display: none !important;
+    }
+}
+
+/* Responsive - Desktop */
+@media (min-width: 577px) {
+    .show-on-mobile {
+        display: none !important;
     }
 }
 
