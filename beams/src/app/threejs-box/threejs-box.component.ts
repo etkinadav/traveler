@@ -668,7 +668,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const lineMaterial = new THREE.LineBasicMaterial({ 
                 color: 0x4a3520, // חום כהה
                 linewidth: 1,
-                transparent: false
+                transparent: true,
+                opacity: 0.3 // 50% שקיפות
             });
             const wireframe = new THREE.LineSegments(edges, lineMaterial);
             mesh.add(wireframe);
