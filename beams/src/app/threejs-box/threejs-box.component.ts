@@ -1646,8 +1646,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             
             if (shouldCreateCover) {
                 console.log('יצירת מכסה לקופסא...');
-                // גובה המכסה = גובה הקופסא + חצי גובה קורה + רווח ויזואלי
-                const coverY = planterHeight + beamHeight / 2 + 0.1;
+                // קבלת ערך פתיחת המכסה
+                const openCoverParam = this.getParam('openCover');
+                const coverOpenOffset = openCoverParam && openCoverParam.default === true ? 50 : 0;
+                
+                // גובה המכסה = גובה הקופסא - עומק הקורה + חצי גובה קורה + רווח ויזואלי + ערך פתיחה
+                const coverY = planterHeight - beamHeight + beamHeight / 2 + 0.1 + coverOpenOffset;
                 
                 for (let i = 0; i < beamsInDepth; i++) {
                     const geometry = new THREE.BoxGeometry(

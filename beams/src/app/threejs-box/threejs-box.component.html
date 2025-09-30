@@ -339,7 +339,7 @@
                     </div>
                     
                     <!-- פרמטר boolean (toggle) -->
-                    <div *ngIf="param.type === 'boolian'" class="boolean-param">
+                    <div *ngIf="param.type === 'boolian' && (param.name !== 'openCover' || getParam('isCover')?.default === true)" class="boolean-param">
                         <span class="boolean-label">{{param.translatedName}}</span>
                         <mat-slide-toggle 
                             [(ngModel)]="param.default"
@@ -347,6 +347,7 @@
                             color="primary">
                         </mat-slide-toggle>
                     </div>
+                    
                     
                     <div *ngIf="param.type !== 'beamSingle' && param.type !== 'boolian' && param.name !== 'shelfs' && (!isTable || param.name !== 'height') && param.name !== 'extraBeam'">
                         <label
