@@ -1650,8 +1650,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const openCoverParam = this.getParam('openCover');
                 const coverOpenOffset = openCoverParam && openCoverParam.default === true ? 50 : 0;
                 
-                // גובה המכסה = גובה הקופסא - עומק הקורה + חצי גובה קורה + רווח ויזואלי + ערך פתיחה
-                const coverY = planterHeight - beamHeight + beamHeight / 2 + 0.1 + coverOpenOffset;
+                // גובה המכסה = גובה הקופסא - עומק הקורה - חצי גובה קורה + רווח ויזואלי + ערך פתיחה
+                const coverY = planterHeight - beamHeight - beamHeight / 2 + 0.1 + coverOpenOffset;
                 
                 for (let i = 0; i < beamsInDepth; i++) {
                     const geometry = new THREE.BoxGeometry(
@@ -1671,6 +1671,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     
                     this.scene.add(mesh);
                     this.beamMeshes.push(mesh);
+                    
+                    // הוספת ברגים לקורת מכסה (נמוכים יותר ב-beamHeight)
+                    const screwY = coverY - beamHeight; // הברגים מתחת לקורות המכסה
+                    this.addScrewsToPlanterFloorBeam(0, screwY, zPosition, planterDepth, beamHeight, adjustedBeamWidth, i + 1);
                     
                     console.log(`קורת מכסה ${i + 1} - מיקום Y:`, coverY, 'Z:', zPosition);
                 }
@@ -3381,6 +3385,27 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     console.log(
                         `Planter floor screws: ${totalScrews} screws for ${beamsInDepth} beams (${screwsPerBeam} screws per beam)`
                     );
+                    
+                    // הוספת ברגי מכסה (רק אם יש מכסה)
+                    const isCoverParam = this.getParam('isCover');
+                    if (this.isBox && isCoverParam && isCoverParam.default === true) {
+                        // אותו חישוב כמו הרצפה - 4 ברגים לכל קורת מכסה
+                        const coverTotalScrews = beamsInDepth * screwsPerBeam;
+                        
+                        planterFloorForgingData.push({
+                            type: 'Box Cover Screws',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            material: selectedType.translatedName,
+                            count: coverTotalScrews,
+                            length: this.calculateScrewLength('planter_floor', beamHeight),
+                            description: 'ברגי מכסה קופסא',
+                        });
+                        
+                        console.log(
+                            `Box cover screws: ${coverTotalScrews} screws for ${beamsInDepth} beams (${screwsPerBeam} screws per beam)`
+                        );
+                    }
                 }
             }
         }
