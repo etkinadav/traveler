@@ -795,6 +795,12 @@ mat-form-field {
     z-index: 1000;
     border: 1px solid #e0e0e0;
     
+    @media (max-width: 576px) {
+        padding: 6px 8px;
+        bottom: 10px;
+        right: 10px;
+    }
+    
     .fullscreen-btn {
         position: absolute;
         top: -6px;
@@ -1419,7 +1425,7 @@ mat-form-field {
             margin-bottom: 2px;
             
             @media (max-width: 576px) {
-                font-size: 8px;
+                font-size: 9px;
             }
         }
         
@@ -1427,12 +1433,12 @@ mat-form-field {
             font-size: 10px;
             font-weight: 600;
             color: #0066cc;
-            
-            .currency-symbol {
-                @media (max-width: 576px) {
-                    display: none;
-                }
-            }
+        }
+    }
+    
+    .currency-symbol {
+        @media (max-width: 576px) {
+            display: none;
         }
     }
     
