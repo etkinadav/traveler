@@ -1481,10 +1481,23 @@ mat-form-field {
         font-weight: 600;
         margin-bottom: 6px;
         line-height: 1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
         
         @media (min-width: 577px) {
             margin-bottom: 10px;
         }
+        
+        .edit-icon {
+            flex-shrink: 0;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+    }
+    
+    &:hover .edit-icon {
+        opacity: 1;
     }
     
     .price-capsules {

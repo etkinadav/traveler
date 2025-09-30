@@ -486,7 +486,17 @@
                 <button class="pricing-option-button" 
                         [matMenuTriggerFor]="pricingOptionsMenu"
                         *ngIf="calculatedPrice > 0 && !isPriceMinimized">
-                    <div class="option-name-small">{{ getPricingOptionName() }}</div>
+                    <div class="option-name-small">
+                        {{ getPricingOptionName() }}
+                        <svg class="edit-icon" width="12" height="12" viewBox="0 0 12 12">
+                            <path d="M 8.5 1 L 11 3.5 L 4 10.5 L 1 11 L 1.5 8 Z" 
+                                  stroke="#0066cc" 
+                                  stroke-width="1" 
+                                  fill="none" 
+                                  stroke-linejoin="round"/>
+                            <line x1="7.5" y1="2" x2="10" y2="4.5" stroke="#0066cc" stroke-width="0.8"/>
+                        </svg>
+                    </div>
                     
                     <!-- קפסולות פירוט מחיר -->
                     <div class="price-capsules">
