@@ -463,6 +463,25 @@
         
         <!-- תפריט אופציות תמחור -->
         <mat-menu #pricingOptionsMenu="matMenu" class="pricing-options-menu">
+            <!-- כותרת התפריט -->
+            <div class="pricing-menu-header">
+                <svg width="22" height="22" viewBox="0 0 22 22" class="header-icon">
+                    <!-- בועת דיבור -->
+                    <path d="M 3 4 Q 3 3 4 3 L 18 3 Q 19 3 19 4 L 19 13 Q 19 14 18 14 L 8 14 L 5 17 L 5 14 L 4 14 Q 3 14 3 13 Z" 
+                          stroke="#0066cc" 
+                          stroke-width="1.2" 
+                          fill="none"/>
+                    <!-- סימני שאלה/אפשרויות -->
+                    <text x="7" y="10" font-size="8" fill="#0066cc" font-weight="600">?</text>
+                    <circle cx="11" cy="8.5" r="0.8" fill="#0066cc"/>
+                    <circle cx="14" cy="8.5" r="0.8" fill="#0066cc"/>
+                </svg>
+                <div class="header-text">
+                    <div class="header-title">בחרו אופציית הזמנה</div>
+                    <div class="header-subtitle">קורות חתוכות, שלמות, או רק שרטוטים?</div>
+                </div>
+            </div>
+            
             <!-- אופציה 1: קורות חתוכות -->
             <button mat-menu-item (click)="selectPricingOption('cut')" [class.selected]="selectedPricingOption === 'cut'">
                 <div class="pricing-menu-item">
