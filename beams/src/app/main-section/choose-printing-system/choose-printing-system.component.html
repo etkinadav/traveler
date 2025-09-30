@@ -65,6 +65,12 @@
                                             </span>
                                         </div>
                                         </div>
+                                        
+                                        <!-- כרטיסייה דמה למספר אי-זוגי של מוצרים -->
+                                        <div *ngIf="products.length % 2 !== 0" 
+                                            class="col-12 col-md-6 step-item-trans-product d-none d-md-block"
+                                            style="visibility: hidden; pointer-events: none;">
+                                        </div>
                                     </div>
                                 
                                 </article>
