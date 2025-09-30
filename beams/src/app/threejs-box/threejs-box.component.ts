@@ -2738,7 +2738,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
             // הוספת אורך הקורה כמות פעמים לפי כמות היחידות
             for (let i = 0; i < this.quantity; i++) {
-                beamTypesMap.get(typeKey).sizes.push(beam.length);
+            beamTypesMap.get(typeKey).sizes.push(beam.length);
             }
         });
         // המרה למערך הסופי
