@@ -1249,7 +1249,7 @@ mat-form-field {
     position: relative;
     width: 31.5px; // 45 * 0.7
     height: 31.5px; // 45 * 0.7
-    background: var(--zx-green);
+    background: #87CEEB; // כחול בהיר (Sky Blue)
 }
 
 .nav-button {
@@ -1263,7 +1263,7 @@ mat-form-field {
     transform: translateX(-50%);
     width: 31.5px; // 45 * 0.7
     height: 7px; // 10 * 0.7
-    background: rgba(255, 255, 255, 0.525); // 0.75 * 0.7 = 0.525
+    background: rgba(240, 248, 255, 0.95); // כחול בהיר מאוד (Alice Blue)
     clip-path: polygon(0 0, 100% 0, 72.2% 100%, 27.8% 100%);
 }
 
@@ -1273,7 +1273,7 @@ mat-form-field {
     transform: translateX(-50%);
     width: 31.5px; // 45 * 0.7
     height: 7px; // 10 * 0.7
-    background: rgba(255, 255, 255, 0.07); // 0.1 * 0.7 = 0.07
+    background: rgba(100, 149, 237, 0.35); // כחול כהה (Cornflower Blue)
     clip-path: polygon(27.8% 0, 72.2% 0, 100% 100%, 0 100%);
 }
 
@@ -1283,7 +1283,7 @@ mat-form-field {
     transform: translateY(-50%);
     width: 7px; // 10 * 0.7
     height: 31.5px; // 45 * 0.7
-    background: rgba(255, 255, 255, 0.315); // 0.45 * 0.7 = 0.315
+    background: rgba(176, 224, 230, 0.75); // כחול בהיר (Powder Blue)
     clip-path: polygon(0 0, 100% 22.2%, 100% 77.8%, 0 100%);
 }
 
@@ -1293,7 +1293,7 @@ mat-form-field {
     transform: translateY(-50%);
     width: 7px; // 10 * 0.7
     height: 31.5px; // 45 * 0.7
-    background: rgba(255, 255, 255, 0.14); // 0.2 * 0.7 = 0.14
+    background: rgba(70, 130, 180, 0.55); // כחול בינוני (Steel Blue)
     clip-path: polygon(100% 0, 0 22.2%, 0 77.8%, 100% 100%);
 }
 
@@ -1303,7 +1303,7 @@ mat-form-field {
     transform: translate(-50%, -50%);
     width: 17.5px; // 25 * 0.7
     height: 17.5px; // 25 * 0.7
-    background: rgba(255, 255, 255, 0.21); // 0.3 * 0.7 = 0.21
+    background: rgba(173, 216, 230, 0.85); // כחול בהיר מאוד (Light Blue)
 }
 
 // הגדלת המרחק של הטולטיפים
@@ -1483,7 +1483,7 @@ mat-form-field {
 
 // כפתור המשך - קטן, בולט, משחקי
 .continue-button {
-    background: linear-gradient(135deg, #00cc88 0%, #00aa66 100%);
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
     border: none;
     border-radius: 20px;
     padding: 8px 16px;
@@ -1494,7 +1494,7 @@ mat-form-field {
     color: white;
     font-size: 13px;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 204, 136, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -1516,7 +1516,7 @@ mat-form-field {
     
     &:hover {
         transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 4px 12px rgba(0, 204, 136, 0.5);
+        box-shadow: 0 4px 12px rgba(0, 102, 204, 0.5);
         
         &::before {
             width: 300px;
@@ -1541,33 +1541,26 @@ mat-form-field {
         position: relative;
         z-index: 1;
         transition: transform 0.3s ease;
-        transform-origin: center;
     }
     
     // האנימציה תרוץ רק בפעם הראשונה
     &:not(:hover) .continue-arrow {
-        animation: arrowSwing 2.5s ease-in-out;
+        animation: arrowSlide 2s ease-in-out;
     }
     
-    // אנימציה מיוחדת לחץ - סיבוב הלוך וחזור כמו מחוג
-    @keyframes arrowSwing {
+    // אנימציה פשוטה - החץ זז משמאל לימין
+    @keyframes arrowSlide {
         0% {
-            transform: rotate(0deg);
+            opacity: 0;
+            transform: translateX(-10px);
         }
-        20% {
-            transform: rotate(270deg);
-        }
-        40% {
-            transform: rotate(240deg);
-        }
-        60% {
-            transform: rotate(270deg);
-        }
-        80% {
-            transform: rotate(260deg);
+        50% {
+            opacity: 1;
+            transform: translateX(0);
         }
         100% {
-            transform: rotate(270deg);
+            opacity: 1;
+            transform: translateX(0);
         }
     }
     
