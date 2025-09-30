@@ -47,7 +47,7 @@
                                         <button mat-stroked-button 
                                                 class="continue-to-product-btn" 
                                                 (click)="navigateToProduct(product); $event.stopPropagation()">
-                                            <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">המשך ל- {{product.model || product.name || 'מוצר לא טוב'}}</span>
+                                            <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">{{product.model || product.translatedName || 'המוצר'}} במידות שלך</span>
                                         </button>
                                         
                                         <div class="d-flex align-items-center gap-3">
