@@ -1672,6 +1672,38 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 }
                 
                 console.log('מכסה קופסא נוצר בהצלחה');
+                
+                // הוספת קורות תמיכה למכסה (בציר X, מתחת למכסה)
+                console.log('יצירת קורות תמיכה למכסה...');
+                const supportBeamY = coverY - beamHeight - 0.05; // מתחת למכסה בגובה של קורה + רווח קטן
+                const supportBeamLength = planterWidth - (4 * beamHeight) - 0.4; // קיצור נוסף של 0.2 ס"מ מכל צד
+                
+                // שתי קורות תמיכה - אחת מכל צד
+                for (let i = 0; i < 2; i++) {
+                    const geometry = new THREE.BoxGeometry(
+                        adjustedBeamWidth,    // רוחב קורה (בציר X)
+                        beamHeight,           // גובה הקורה
+                        supportBeamLength     // אורך הקורה (בציר Z) - מקוצר עם רווח
+                    );
+                    const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    this.addWireframeToBeam(mesh);
+                    
+                    // מיקום - אחת בקצה שמאלי ואחת בקצה ימני (ציר X), מוזזות פנימה בציר Z ב-0.2 ס"מ נוסף
+                    const xPosition = i === 0 
+                        ? -planterDepth / 2 + adjustedBeamWidth / 2 + beamHeight + 0.2
+                        : planterDepth / 2 - adjustedBeamWidth / 2 - beamHeight - 0.2;
+                    mesh.position.set(xPosition, supportBeamY, 0);
+                    
+                    this.scene.add(mesh);
+                    this.beamMeshes.push(mesh);
+                    
+                    console.log(`קורת תמיכה למכסה ${i + 1} - X:`, xPosition, 'Y:', supportBeamY);
+                }
+                
+                console.log('קורות תמיכה למכסה נוצרו בהצלחה');
             }
             
             // הוספת ברגים לקירות השמאליים והימניים בתחתית הרצפה
@@ -2488,6 +2520,22 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             });
                         }
                         console.log('קורות מכסה נוספו לחישוב מחיר:', { beamsCount: beamsInDepth });
+                        
+                        // הוספת קורות תמיכה למכסה לחישוב מחיר (2 קורות)
+                        const supportBeamLength = planterWidth - (4 * beamHeight) - 0.4; // קיצור נוסף של 0.2 ס"מ מכל צד
+                        for (let i = 0; i < 2; i++) {
+                            allBeams.push({
+                                type: selectedType,
+                                length: supportBeamLength, // אורך מקוצר יותר
+                                width: beamHeight,
+                                height: adjustedBeamWidth,
+                                name: `Box Cover Support Beam ${i + 1}`,
+                                beamName: selectedBeam.name,
+                                beamTranslatedName: selectedBeam.translatedName,
+                                beamWoodType: selectedType.translatedName,
+                            });
+                        }
+                        console.log('קורות תמיכה למכסה נוספו לחישוב מחיר:', { beamsCount: 2 });
                     }
                     
                     // הוספת קורות הקירות לחישוב מחיר
