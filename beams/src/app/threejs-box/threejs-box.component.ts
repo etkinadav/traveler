@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PricingService } from '../../../../src/app/services/pricing.service';
 import * as THREE from 'three';
 interface Shelf {
@@ -47,6 +47,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('Toggle transparent mode:', this.isTransparentMode);
         // עדכון המודל כדי להחיל את השקיפות
         this.updateBeams();
+    }
+    
+    // ניווט לעמוד הבית (בחירת מוצר)
+    navigateToHome() {
+        this.router.navigate(['/main-section/choose-printing-system']);
     }
     private removeWireframeCube() {
         const existingWireframe =
@@ -206,6 +211,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         private http: HttpClient,
         private snackBar: MatSnackBar,
         private route: ActivatedRoute,
+        private router: Router,
         private pricingService: PricingService
     ) {}
     ngOnInit() {
