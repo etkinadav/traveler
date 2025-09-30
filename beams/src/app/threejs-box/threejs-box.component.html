@@ -494,9 +494,12 @@
                     </div>
                     
                     <div class="price-display">
-                        <span class="price-label">מחיר:</span>
-                        <div class="price-value-inline">
-                            {{ getFinalPrice() }} ₪
+                        <!-- קונטיינר פנימי למחיר בלבד -->
+                        <div class="price-only-wrapper">
+                            <span class="price-label">מחיר:</span>
+                            <div class="price-value-inline">
+                                {{ getFinalPrice() }} ₪
+                            </div>
                         </div>
                         
                         <!-- כפתור המשך -->

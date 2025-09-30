@@ -795,6 +795,10 @@ mat-form-field {
     z-index: 1000;
     border: 1px solid #e0e0e0;
     
+    @media (min-width: 577px) {
+        padding-top: 17px; // 5px נוספים מעל
+    }
+    
     @media (max-width: 576px) {
         padding: 6px 8px;
         bottom: 10px;
@@ -1478,6 +1482,18 @@ mat-form-field {
         align-items: center;
         justify-content: flex-start;
         gap: 8px;
+        
+        @media (max-width: 576px) {
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+        
+        .price-only-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     }
 }
 
@@ -1567,7 +1583,9 @@ mat-form-field {
     @media (max-width: 576px) {
         padding: 6px 12px;
         font-size: 12px;
-        margin-right: 8px;
+        margin-right: 0; // ללא margin במובייל
+        width: 100%; // רוחב מלא כדי להיות צמוד ימינה
+        justify-content: center;
         
         svg {
             width: 12px;
