@@ -262,6 +262,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
     isTable: boolean = false; // האם זה שולחן או ארון
     isPlanter: boolean = false; // האם זה עדנית עץ
+    isBox: boolean = false; // האם זה קופסת עץ (זהה לעדנית)
     isPriceManuOpen: boolean = false; // האם תפריט המחיר פתוח
     hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
@@ -295,6 +296,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.selectedProductName = params['product'];
                 this.isTable = this.selectedProductName === 'table';
                 this.isPlanter = this.selectedProductName === 'planter';
+                this.isBox = this.selectedProductName === 'box';
                 console.log(
                     'מוצר נבחר:',
                     this.selectedProductName,
@@ -343,6 +345,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.selectedProductName = lastProduct;
                     this.isTable = this.selectedProductName === 'table';
                     this.isPlanter = this.selectedProductName === 'planter';
+                    this.isBox = this.selectedProductName === 'box';
                     this.getProductByName(this.selectedProductName);
                 } else {
         this.getProductById('68a186bb0717136a1a9245de');
@@ -1219,7 +1222,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
         this.beamMeshes = [];
         // Defensive checks
-        if (!this.isTable && !this.isPlanter && (!this.shelves || !this.shelves.length)) {
+        if (!this.isTable && !this.isPlanter && !this.isBox && (!this.shelves || !this.shelves.length)) {
             console.warn('No shelves found, cannot render model.');
             return;
         }
@@ -1229,13 +1232,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             );
             return;
         }
-        if (this.isPlanter && !this.getParam('height')) {
+        if ((this.isPlanter || this.isBox) && !this.getParam('height')) {
             console.warn(
-                'No height parameter found for planter, cannot render model.'
+                'No height parameter found for planter/box, cannot render model.'
             );
             return;
         }
-        if (!this.isPlanter && (!this.surfaceWidth || !this.surfaceLength)) {
+        if (!this.isPlanter && !this.isBox && (!this.surfaceWidth || !this.surfaceLength)) {
             console.warn(
                 'surfaceWidth or surfaceLength missing, cannot render model.'
             );
@@ -1248,7 +1251,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             shelfsParam = this.product?.params?.find(
                 (p: any) => p.type === 'beamSingle' && p.name === 'plata'
             );
-        } else if (this.isPlanter) {
+        } else if (this.isPlanter || this.isBox) {
             // עבור עדנית, נשתמש בפרמטר beam
             console.log('מחפש פרמטר beam לעדנית...');
             console.log('פרמטרים זמינים:', this.product?.params?.map(p => ({name: p.name, type: p.type})));
@@ -1329,7 +1332,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             frameParamForShortening = this.params.find(
                 (p) => p.type === 'beamSingle' && p.name === 'leg'
             );
-        } else if (this.isPlanter) {
+        } else if (this.isPlanter || this.isBox) {
             // עבור עדנית, אין קורות חיזוק - נשתמש באותו פרמטר beam
             frameParamForShortening = this.params.find(
                 (p) => p.type === 'beamSingle' && p.name === 'beam'
@@ -1582,7 +1585,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             
             console.log('Adding lower frame screws - tableHeight:', tableHeight, 'extraBeamDistance:', extraBeamDistance, 'totalDistance:', totalDistanceForLower, 'lowerFrameY:', lowerFrameY, 'frameBeamHeight:', calculatedFrameBeamHeightForLower);
             this.addScrewsToLowerFrameBeams(legs, lowerFrameY, frameBeamHeight);
-        } else if (this.isPlanter) {
+        } else if (this.isPlanter || this.isBox) {
             // עבור עדנית, נציג רצפה של קורות
             const heightParam = this.getParam('height');
             const depthParam = this.getParam('depth');
@@ -1781,7 +1784,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         
         // עבור ארון - הקוד המקורי
-        if (!this.isTable && !this.isPlanter) {
+        if (!this.isTable && !this.isPlanter && !this.isBox) {
             // עבור ארון - הקוד המקורי
             for (
                 let shelfIndex = 0;
@@ -2010,7 +2013,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 // עבור שולחן, הגובה הכולל הוא גובה השולחן
                 const heightParam = this.getParam('height');
                 totalY = heightParam ? heightParam.default : 80;
-            } else if (this.isPlanter) {
+            } else if (this.isPlanter || this.isBox) {
                 // עבור עדנית, הגובה הכולל הוא גובה העדנית
                 const heightParam = this.getParam('height');
                 totalY = heightParam ? heightParam.default : 50;
@@ -2377,7 +2380,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const extraParam = this.product?.params?.find(
             (p: any) => p.type === 'beamSingle' && p.name === 'extraBeam'
         );
-        if ((this.surfaceWidth && this.surfaceLength && shelfParam) || (this.isPlanter && shelfParam)) {
+        if ((this.surfaceWidth && this.surfaceLength && shelfParam) || ((this.isPlanter || this.isBox) && shelfParam)) {
             const selectedBeam =
                 shelfParam.beams?.[shelfParam.selectedBeamIndex || 0];
             const selectedType =
@@ -2386,11 +2389,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 let beamWidth = selectedType.width / 10 || this.beamWidth; // המרה ממ"מ לס"מ
                 const beamHeight = selectedType.height / 10 || this.beamHeight;
                 // עבור ארון, אם הקורה רחבה מדי, נשתמש ברוחב קטן יותר
-                if (!this.isTable && !this.isPlanter && beamWidth > 5) {
+                if (!this.isTable && !this.isPlanter && !this.isBox && beamWidth > 5) {
                     beamWidth = 4; // רוחב קטן יותר עבור ארון
                 }
                 
-                if (this.isPlanter) {
+                if (this.isPlanter || this.isBox) {
                     // עבור עדנית - קורות רצפה
                     const depthParam = this.getParam('depth');
                     const widthParam = this.getParam('width');
@@ -3192,7 +3195,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('=== CALCULATING PLANTER WALL FORGING DATA ===');
         const planterWallForgingData: any[] = [];
         
-        if (this.isPlanter) {
+        if (this.isPlanter || this.isBox) {
             const beamParam = this.getParam('beam');
             if (beamParam && beamParam.selectedBeamIndex !== undefined) {
                 const selectedBeam = beamParam.beams[beamParam.selectedBeamIndex];
@@ -3239,7 +3242,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('=== CALCULATING PLANTER FLOOR FORGING DATA ===');
         const planterFloorForgingData: any[] = [];
         
-        if (this.isPlanter) {
+        if (this.isPlanter || this.isBox) {
             const beamParam = this.getParam('beam');
             if (beamParam && beamParam.selectedBeamIndex !== undefined) {
                 const selectedBeam = beamParam.beams[beamParam.selectedBeamIndex];
@@ -3283,7 +3286,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('=== CALCULATING PLANTER SIDE WALL FORGING DATA ===');
         const planterSideWallForgingData: any[] = [];
         
-        if (this.isPlanter) {
+        if (this.isPlanter || this.isBox) {
             const beamParam = this.getParam('beam');
             if (beamParam && beamParam.selectedBeamIndex !== undefined) {
                 const selectedBeam = beamParam.beams[beamParam.selectedBeamIndex];
@@ -4430,7 +4433,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             // עבור שולחן - הגובה הוא פשוט הפרמטר "גובה משטח" (כי כבר הורדנו את גובה קורות הפלטה)
             const heightParam = this.getParam('height');
             totalHeight = heightParam ? heightParam.default : 80; // ברירת מחדל 80 ס"מ
-        } else if (this.isPlanter) {
+        } else if (this.isPlanter || this.isBox) {
             // עבור עדנית - מידות מהפרמטרים
             const heightParam = this.getParam('height');
             const depthParam = this.getParam('depth');
