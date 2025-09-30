@@ -1553,7 +1553,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         
                         // הוספת ברגים לקורה - רק לקירות הקדמיים והאחוריים
                         if (isFrontBackWall) {
-                            this.addScrewsToPlanterWallBeam(wallX, yPosition, wallZ, wallLength, adjustedBeamHeight, beamHeight, isFrontBackWall, wallName, i + 1);
+                            this.addScrewsToPlanterWallBeam(wallX, yPosition, wallZ, wallLength, adjustedBeamHeight, beamHeight, isFrontBackWall, wallName, i + 1, beamWidth);
                         }
                         
                         console.log(`קיר ${wallName} קורה ${i + 1} - מיקום X:`, wallX, 'מיקום Y:', yPosition, 'מיקום Z:', wallZ, 'אורך:', wallLength, 'גובה:', adjustedBeamHeight, 'עומק:', beamHeight, isBottomBeam ? '(קורה תחתונה מוגבהת)' : '');
@@ -3118,7 +3118,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         beamDepth: number, 
         isFrontBackWall: boolean, 
         wallName: string, 
-        beamNumber: number
+        beamNumber: number,
+        beamWidth?: number
     ) {
         // 4 ברגים לכל קורה - בקצוות הקורה, ניצבים אליה ב-4 הפינות
         // ראש הבורג במפלס החיצוני של תיבת ה-wireframe
@@ -3221,32 +3222,44 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
         
         // שורה שלישית של ברגים - מסובבת ב-90 מעלות כלפי פנים
-        // הזזה של חצי beamDepth לצד ההפוך והזזה של beamHeight בציר X כלפי המרכז
-        // תיקון: הברגים צריכים להיות קרובים יותר למרכז בציר X - מפחיתים beamDepth + beamHeight
-        // תיקון נוסף: הרחקה מהמרכז בחצי beamDepth + גובה ראש הבורג (0.2) בציר Z (הכיוון שהם פונים אליו)
+        // הברגים צריכים להצביע למרכז הקורות החיזוק האנכיות
+        // הקורות האנכיות: רוחב = beamDepth, עומק = beamHeight
+        // מיקום הקורה האנכית: הקצה הפנימי של הקיר + חצי רוחב הקורה האנכית
         const headHeight = 0.2; // גובה ראש הבורג - 2 מ"מ
+        
+        // חישוב המרחק של מרכז הקורה האנכית מ-wallX
+        // קורות החיזוק האנכיות ממוקמות ב: x = ±(planterDepth/2 - beamDepth - beamWidth/2)
+        // כאן beamDepth בפונקציית הברגים = beamHeight של המערכת
+        // wallX של קיר קדמי = -planterDepth/2 + beamDepth/2
+        // מרכז הקורה האנכית = -planterDepth/2 + beamDepth + beamWidth/2
+        // אז המרחק מ-wallX למרכז הקורה:
+        // (-planterDepth/2 + beamDepth + beamWidth/2) - (-planterDepth/2 + beamDepth/2)
+        // = beamDepth + beamWidth/2 - beamDepth/2 = beamDepth/2 + beamWidth/2
+        const supportBeamWidth = beamWidth || beamDepth; // רוחב הקורה האנכית בציר X
+        const supportBeamOffsetFromWall = beamDepth / 2 + supportBeamWidth / 2;
+        
         const thirdRowScrewPositions = [
             // בורג ראשון - פינה שמאלית עליונה (פונה ל-Z שלילי)
             {
-                x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
+                x: wallX + (isFrontWall ? supportBeamOffsetFromWall : -supportBeamOffsetFromWall),
                 y: wallY + beamHeight / 2 - innerOffset,
                 z: wallZ - wallLength / 2 + innerOffset - (beamDepth / 2) - headHeight
             },
             // בורג שני - פינה ימנית עליונה (פונה ל-Z חיובי)
             {
-                x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
+                x: wallX + (isFrontWall ? supportBeamOffsetFromWall : -supportBeamOffsetFromWall),
                 y: wallY + beamHeight / 2 - innerOffset,
                 z: wallZ + wallLength / 2 - innerOffset + (beamDepth / 2) + headHeight
             },
             // בורג שלישי - פינה שמאלית תחתונה (פונה ל-Z שלילי)
             {
-                x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
+                x: wallX + (isFrontWall ? supportBeamOffsetFromWall : -supportBeamOffsetFromWall),
                 y: wallY - beamHeight / 2 + innerOffset,
                 z: wallZ - wallLength / 2 + innerOffset - (beamDepth / 2) - headHeight
             },
             // בורג רביעי - פינה ימנית תחתונה (פונה ל-Z חיובי)
             {
-                x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
+                x: wallX + (isFrontWall ? supportBeamOffsetFromWall : -supportBeamOffsetFromWall),
                 y: wallY - beamHeight / 2 + innerOffset,
                 z: wallZ + wallLength / 2 - innerOffset + (beamDepth / 2) + headHeight
             }
