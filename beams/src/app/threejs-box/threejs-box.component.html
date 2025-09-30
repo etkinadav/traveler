@@ -338,7 +338,17 @@
                         </div>
                     </div>
                     
-                    <div *ngIf="param.type !== 'beamSingle' && param.name !== 'shelfs' && (!isTable || param.name !== 'height') && param.name !== 'extraBeam'">
+                    <!-- פרמטר boolean (toggle) -->
+                    <div *ngIf="param.type === 'boolian'" class="boolean-param">
+                        <span class="boolean-label">{{param.translatedName}}</span>
+                        <mat-slide-toggle 
+                            [(ngModel)]="param.default"
+                            (change)="updateBeams()"
+                            color="primary">
+                        </mat-slide-toggle>
+                    </div>
+                    
+                    <div *ngIf="param.type !== 'beamSingle' && param.type !== 'boolian' && param.name !== 'shelfs' && (!isTable || param.name !== 'height') && param.name !== 'extraBeam'">
                         <label
                             style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="param-box non-beam">

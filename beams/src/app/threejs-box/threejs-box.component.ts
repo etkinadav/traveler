@@ -1640,6 +1640,40 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             
             console.log('רצפת עדנית נוצרה בהצלחה');
             
+            // יצירת מכסה (רק אם הפרמטר isCover מופעל)
+            const isCoverParam = this.getParam('isCover');
+            const shouldCreateCover = this.isBox && isCoverParam && isCoverParam.default === true;
+            
+            if (shouldCreateCover) {
+                console.log('יצירת מכסה לקופסא...');
+                // גובה המכסה = גובה הקופסא + חצי גובה קורה + רווח ויזואלי
+                const coverY = planterHeight + beamHeight / 2 + 0.1;
+                
+                for (let i = 0; i < beamsInDepth; i++) {
+                    const geometry = new THREE.BoxGeometry(
+                        planterDepth, // אורך הקורה = עומק הקופסא
+                        beamHeight,    // גובה הקורה = גובה הקורה
+                        adjustedBeamWidth    // רוחב קורה מותאם עם רווחים
+                    );
+                    const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    this.addWireframeToBeam(mesh);
+                    
+                    // מיקום הקורה - זהה לרצפה אבל בגובה המכסה
+                    const zPosition = (i * (adjustedBeamWidth + visualGap)) - (planterWidth / 2) + (adjustedBeamWidth / 2);
+                    mesh.position.set(0, coverY, zPosition);
+                    
+                    this.scene.add(mesh);
+                    this.beamMeshes.push(mesh);
+                    
+                    console.log(`קורת מכסה ${i + 1} - מיקום Y:`, coverY, 'Z:', zPosition);
+                }
+                
+                console.log('מכסה קופסא נוצר בהצלחה');
+            }
+            
             // הוספת ברגים לקירות השמאליים והימניים בתחתית הרצפה
             this.addScrewsToSideWallsAtFloor(planterDepth, planterWidth, beamHeight, widthParam.default);
             
@@ -2364,7 +2398,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             ? this.product?.params?.find(
                   (p: any) => p.type === 'beamSingle' && p.name === 'plata'
               )
-            : this.isPlanter
+            : (this.isPlanter || this.isBox)
             ? this.product?.params?.find(
                   (p: any) => p.type === 'beamSingle' && p.name === 'beam'
               )
@@ -2434,6 +2468,27 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beamName: selectedBeam.name,
                         woodType: selectedType.translatedName
                     });
+                    
+                    // הוספת קורות מכסה לחישוב מחיר (רק אם הפרמטר isCover מופעל)
+                    const isCoverParam = this.getParam('isCover');
+                    const shouldCreateCover = this.isBox && isCoverParam && isCoverParam.default === true;
+                    
+                    if (shouldCreateCover) {
+                        console.log('הוספת קורות מכסה לחישוב מחיר...');
+                        for (let i = 0; i < beamsInDepth; i++) {
+                            allBeams.push({
+                                type: selectedType,
+                                length: planterDepth, // אורך הקורה = עומק הקופסא
+                                width: beamHeight,
+                                height: adjustedBeamWidth, // רוחב קורה מותאם עם רווחים
+                                name: `Box Cover Beam ${i + 1}`,
+                                beamName: selectedBeam.name,
+                                beamTranslatedName: selectedBeam.translatedName,
+                                beamWoodType: selectedType.translatedName,
+                            });
+                        }
+                        console.log('קורות מכסה נוספו לחישוב מחיר:', { beamsCount: beamsInDepth });
+                    }
                     
                     // הוספת קורות הקירות לחישוב מחיר
                     const heightParam = this.getParam('height');

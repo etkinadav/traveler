@@ -1374,6 +1374,30 @@ mat-form-field {
     margin-bottom: 5px !important;
 }
 
+/* Boolean Toggle Parameter */
+.boolean-param {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: rgba(0, 102, 204, 0.05);
+    border-radius: 8px;
+    margin: 20px 0;
+    
+    .boolean-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    mat-slide-toggle {
+        ::ng-deep .mdc-switch {
+            --mdc-switch-selected-track-color: #0066cc;
+            --mdc-switch-selected-handle-color: #0066cc;
+        }
+    }
+}
+
 /* Quantity Selector */
 .quantity-selector {
     display: flex;
