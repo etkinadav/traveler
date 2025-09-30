@@ -660,6 +660,20 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         return material;
     }
+    
+    // Add wireframe edges to a mesh (for transparent mode)
+    private addWireframeToBeam(mesh: THREE.Mesh) {
+        if (this.isTransparentMode) {
+            const edges = new THREE.EdgesGeometry(mesh.geometry);
+            const lineMaterial = new THREE.LineBasicMaterial({ 
+                color: 0x4a3520, // חום כהה
+                linewidth: 1,
+                transparent: false
+            });
+            const wireframe = new THREE.LineSegments(edges, lineMaterial);
+            mesh.add(wireframe);
+        }
+    }
     // Save current configuration (user-specific or localStorage)
     private saveConfiguration() {
         const config = {
@@ -1280,6 +1294,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+                this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 mesh.position.set(beam.x, tableHeight + beam.height / 2, 0);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
@@ -1342,6 +1357,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+                this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 mesh.position.set(
                     beam.x,
                     tableHeight - beam.height / 2,
@@ -1375,6 +1391,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const mesh = new THREE.Mesh(geometry, material);
                     mesh.castShadow = true;
                     mesh.receiveShadow = true;
+                    this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                     // מיקום יותר נמוך במידת totalDistance (הנתון החדש + רוחב קורות החיזוק)
                     mesh.position.set(
                         beam.x,
@@ -1427,6 +1444,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+                this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 mesh.position.set(leg.x, leg.height / 2, leg.z);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
@@ -1497,6 +1515,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+                this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 
                 // מיקום הקורה - ממורכז במרכז X, מתחיל מ-0 ב-Z, גובה הקורה/2
                 // כל קורה + רווח אחריה
@@ -1573,6 +1592,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         const mesh = new THREE.Mesh(geometry, material);
                         mesh.castShadow = true;
                         mesh.receiveShadow = true;
+                        this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                         
                         // סיבוב הקירות הקדמיים והאחוריים ב-90 מעלות סביב ציר Y
                         if (isFrontBackWall) {
@@ -1647,6 +1667,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+                this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 mesh.position.set(leg.x, leg.height / 2, leg.z);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
@@ -1800,6 +1821,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+                this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                     mesh.position.set(
                         beam.x,
                         currentY + frameBeamHeight + beam.height / 2,
@@ -1847,6 +1869,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+                this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 const frameY = currentY + beam.height / 2;
                 mesh.position.set(beam.x, frameY, beam.z);
                 this.scene.add(mesh);
@@ -1910,6 +1933,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+                this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 mesh.position.set(leg.x, leg.height / 2, leg.z);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
@@ -3531,6 +3555,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
+            this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
             
             // מיקום הקורה - ממורכז בגובה
             const centerY = startY + actualWallHeight / 2;
