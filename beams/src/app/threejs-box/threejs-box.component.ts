@@ -1412,13 +1412,35 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
-            // הוספת ברגים לרגליים
+            // הוספת ברגים לרגליים (קורות חיזוק עליונות)
             this.addScrewsToLegs(
                 1, // שולחן = 1 מדף
                 legs,
                 frameBeamHeight,
                 0
             );
+            
+            // הוספת ברגים לקורות החיזוק התחתונות
+            // קורות החיזוק התחתונות (extraBeam) ממוקמות ב:
+            // y = tableHeight - beam.height/2 - totalDistance (שורה 1360)
+            // totalDistance = extraBeamDistance + frameBeamHeight (שורה 1344)
+            const frameParamForLowerScrews = this.getParam('leg');
+            let calculatedFrameBeamHeightForLower = frameBeamHeight;
+            if (frameParamForLowerScrews && frameParamForLowerScrews.beams && frameParamForLowerScrews.beams.length > 0) {
+                const frameBeam = frameParamForLowerScrews.beams[frameParamForLowerScrews.selectedBeamIndex || 0];
+                if (frameBeam) {
+                    calculatedFrameBeamHeightForLower = frameBeam.width / 10;
+                }
+            }
+            
+            // חישוב מיקום קורת החיזוק התחתונה בדיוק כמו בשורה 1360
+            // משתמש ב-tableHeight שכבר מוגדר למעלה (שורה 1236)
+            const extraBeamDistance = extraBeamParam && extraBeamParam.default > 0 ? extraBeamParam.default : 0;
+            const totalDistanceForLower = extraBeamDistance + calculatedFrameBeamHeightForLower;
+            const lowerFrameY = tableHeight - calculatedFrameBeamHeightForLower / 2 - totalDistanceForLower;
+            
+            console.log('Adding lower frame screws - tableHeight:', tableHeight, 'extraBeamDistance:', extraBeamDistance, 'totalDistance:', totalDistanceForLower, 'lowerFrameY:', lowerFrameY, 'frameBeamHeight:', calculatedFrameBeamHeightForLower);
+            this.addScrewsToLowerFrameBeams(legs, lowerFrameY, frameBeamHeight);
         } else if (this.isPlanter) {
             // עבור עדנית, נציג רצפה של קורות
             const heightParam = this.getParam('height');
@@ -2788,6 +2810,45 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     private roundScrewLength(length: number): number {
         return Math.ceil(length * 2) / 2; // עיגול לחצי הקרוב למעלה
     }
+    
+    // פונקציה מרכזית לחישוב אורך בורג לפי סוג הבורג והמידות
+    private calculateScrewLength(screwType: string, dimension1: number, dimension2?: number): number {
+        let rawLength = 0;
+        
+        switch (screwType) {
+            case 'shelf': // ברגי מדפים/פלטה - תלוי בגובה הקורה
+                rawLength = dimension1 + 2; // dimension1 = beamHeight
+                break;
+                
+            case 'leg_width': // ברגי רגליים מבוססי רוחב
+                rawLength = dimension1 + 3.5; // dimension1 = beamWidth
+                break;
+                
+            case 'leg_height': // ברגי רגליים מבוססי גובה
+                rawLength = dimension1 + 3.5; // dimension1 = beamHeight
+                break;
+                
+            case 'planter_wall': // ברגי קירות עדנית
+                rawLength = dimension1 + 2; // dimension1 = beamHeight (עומק קורת הקיר)
+                break;
+                
+            case 'planter_floor': // ברגי רצפת עדנית
+                rawLength = dimension1 + 2; // dimension1 = beamHeight
+                break;
+                
+            case 'planter_side_wall': // ברגי קירות צדדיים עדנית
+                rawLength = dimension1 + 2; // dimension1 = beamHeight
+                break;
+                
+            default:
+                // ברירת מחדל - dimension1 + 2
+                rawLength = dimension1 + 2;
+                break;
+        }
+        
+        // עיגול לחצי הקרוב למעלה
+        return this.roundScrewLength(rawLength);
+    }
     // פונקציה לחישוב ברגי המדפים/פלטה
     private calculateShelfForgingData(): any[] {
         console.log('=== CALCULATING SHELF FORGING DATA ===');
@@ -2829,7 +2890,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beamTranslatedName: selectedBeam.translatedName,
                         material: selectedType.translatedName,
                         count: totalScrews,
-                        length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
+                        length: this.calculateScrewLength('shelf', beamHeight),
                         description: 'ברגי פלטה',
                     });
                     console.log(
@@ -2904,7 +2965,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beamTranslatedName: selectedBeam.translatedName,
                         material: selectedType.translatedName,
                         count: totalScrews,
-                        length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
+                        length: this.calculateScrewLength('shelf', beamHeight),
                         description: 'ברגי מדפים',
                     });
                     console.log(
@@ -2942,7 +3003,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const halfScrews = Math.floor(totalScrews / 2);
                 const remainingScrews = totalScrews - halfScrews; // לטפל במקרה של מספר אי-זוגי
                 // קבוצה ראשונה: ברגים לפי רוחב קורת הרגל
-                const widthScrewLength = this.roundScrewLength(beamWidth + 3.5);
+                const widthScrewLength = this.calculateScrewLength('leg_width', beamWidth);
                 legForgingData.push({
                     type: 'Leg Screws (Width)',
                     beamName: selectedBeam.name,
@@ -2953,9 +3014,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     description: 'ברגי רגליים (לפי רוחב)',
                 });
                 // קבוצה שנייה: ברגים לפי גובה קורת הרגל
-                const heightScrewLength = this.roundScrewLength(
-                    beamHeight + 3.5
-                );
+                const heightScrewLength = this.calculateScrewLength('leg_height', beamHeight);
                 legForgingData.push({
                     type: 'Leg Screws (Height)',
                     beamName: selectedBeam.name,
@@ -3006,7 +3065,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beamTranslatedName: selectedBeam.translatedName,
                         material: selectedType.translatedName,
                         count: totalScrews,
-                        length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
+                        length: this.calculateScrewLength('planter_wall', beamHeight),
                         description: 'ברגי קירות עדנית',
                     });
                     
@@ -3050,7 +3109,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beamTranslatedName: selectedBeam.translatedName,
                         material: selectedType.translatedName,
                         count: totalScrews,
-                        length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
+                        length: this.calculateScrewLength('planter_floor', beamHeight),
                         description: 'ברגי רצפת עדנית',
                     });
                     
@@ -3094,7 +3153,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         beamTranslatedName: selectedBeam.translatedName,
                         material: selectedType.translatedName,
                         count: totalScrews,
-                        length: this.roundScrewLength(beamHeight + 2), // גובה הקורה + 2, מעוגל לחצי הקרוב
+                        length: this.calculateScrewLength('planter_side_wall', beamHeight),
                         description: 'ברגי קירות צדדיים עדנית',
                     });
                     
@@ -3121,6 +3180,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         beamNumber: number,
         beamWidth?: number
     ) {
+        // חישוב אורך הבורג לפי סוג הבורג והמידות
+        const calculatedScrewLength = this.calculateScrewLength('planter_wall', beamDepth);
+        
         // 4 ברגים לכל קורה - בקצוות הקורה, ניצבים אליה ב-4 הפינות
         // ראש הבורג במפלס החיצוני של תיבת ה-wireframe
         const screwOffset = beamDepth / 2 + 0.1; // חצי עומק הקורה + קצת חוץ
@@ -3160,7 +3222,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         // שורה חיצונית של ברגים
         screwPositions.forEach((pos, screwIndex) => {
-            const screwGroup = this.createHorizontalScrewGeometry();
+            const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
             screwGroup.position.set(pos.x, pos.y, pos.z);
             
             // ברגים ניצבים לקורה - כיוון הפוך לכל קיר
@@ -3206,7 +3268,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         ];
         
         innerScrewPositions.forEach((pos, screwIndex) => {
-            const screwGroup = this.createHorizontalScrewGeometry();
+            const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
             screwGroup.position.set(pos.x, pos.y, pos.z);
             
             // ברגים ניצבים לקורה - כיוון הפוך לכל קיר
@@ -3266,7 +3328,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         ];
         
         thirdRowScrewPositions.forEach((pos, screwIndex) => {
-            const screwGroup = this.createHorizontalScrewGeometry();
+            const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
             screwGroup.position.set(pos.x, pos.y, pos.z);
             
             // הברגים צריכים להיות כמו ברגי הקיר הרגילים, אבל מסובבים ב-90 מעלות
@@ -3313,6 +3375,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         beamWidth: number, 
         beamNumber: number
     ) {
+        // חישוב אורך הבורג לפי סוג הבורג והמידות
+        const calculatedScrewLength = this.calculateScrewLength('planter_floor', beamHeight);
+        
         // 4 ברגים לכל קורת רצפה - בקצוות הקורה, ניצבים כלפי מעלה
         const screwOffset = beamHeight / 2 + 0.1; // חצי גובה הקורה + קצת חוץ
         const innerOffset = beamHeight / 2; // הזזה פנימית לכיוון האמצע
@@ -3345,7 +3410,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         ];
         
         screwPositions.forEach((pos, screwIndex) => {
-            const screwGroup = this.createScrewGeometry();
+            const screwGroup = this.createScrewGeometry(calculatedScrewLength);
             screwGroup.position.set(pos.x, pos.y, pos.z);
             
             // ברגים ניצבים כלפי מעלה
@@ -3369,6 +3434,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         beamHeight: number, 
         widthInput: number
     ) {
+        // חישוב אורך הבורג לפי סוג הבורג והמידות
+        const calculatedScrewLength = this.calculateScrewLength('planter_side_wall', beamHeight);
+        
         // חישוב המרחק בין שתי שורות הברגים הקיימות
         const distanceBetweenScrewRows = planterDepth; // המרחק בין הקירות הקדמיים והאחוריים
         const divisions = Math.ceil(distanceBetweenScrewRows / 30); // חלוקה ב-30 ועגול למעלה
@@ -3380,7 +3448,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // ברגים לקיר השמאלי (ללא הקיצוניים)
         for (let i = 1; i < screwCount - 1; i++) {
             const xPosition = -planterDepth / 2 + (i * planterDepth / (screwCount - 1));
-            const screwGroup = this.createScrewGeometry();
+            const screwGroup = this.createScrewGeometry(calculatedScrewLength);
             screwGroup.position.set(xPosition, beamHeight / 2 - screwOffset, -planterWidth / 2 + beamHeight / 2);
             screwGroup.rotation.x = Math.PI; // ברגים כלפי מעלה
             screwGroup.rotation.y = Math.PI / 2; // ברגים אופקיים
@@ -3395,7 +3463,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // ברגים לקיר הימני (ללא הקיצוניים)
         for (let i = 1; i < screwCount - 1; i++) {
             const xPosition = -planterDepth / 2 + (i * planterDepth / (screwCount - 1));
-            const screwGroup = this.createScrewGeometry();
+            const screwGroup = this.createScrewGeometry(calculatedScrewLength);
             screwGroup.position.set(xPosition, beamHeight / 2 - screwOffset, planterWidth / 2 - beamHeight / 2);
             screwGroup.rotation.x = Math.PI; // ברגים כלפי מעלה
             screwGroup.rotation.y = Math.PI / 2; // ברגים אופקיים
@@ -3907,6 +3975,78 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         return legs;
     }
+    // הוספת ברגים לקורות החיזוק התחתונות של שולחן (8 ברגים - 2 לכל רגל)
+    private addScrewsToLowerFrameBeams(
+        legPositions: any[],
+        frameY: number,
+        frameBeamHeight: number
+    ) {
+        console.log('=== Adding screws to lower frame beams for table ===');
+        console.log('frameY (screw height):', frameY);
+        console.log('Number of legs:', legPositions.length);
+        
+        // קבלת מידות הרגל לחישוב אורך הבורג
+        const legParam = this.getParam('leg');
+        let legBeamWidth = frameBeamHeight;
+        let legBeamHeight = frameBeamHeight;
+        if (legParam && legParam.beams && legParam.beams.length > 0) {
+            const selectedBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+            const selectedType = selectedBeam?.types?.[legParam.selectedTypeIndex || 0];
+            if (selectedType) {
+                legBeamWidth = selectedType.width / 10;
+                legBeamHeight = selectedType.height / 10;
+            }
+        }
+        
+        legPositions.forEach((leg, legIndex) => {
+            const isEven = legIndex % 2 === 0;
+            
+            // 2 ברגים לכל רגל - אחד מכל צד חיצוני סמוך
+            const screwPositions = [
+                // בורג קדמי/אחורי (בציר Z)
+                {
+                    x: leg.x, // מרכז רוחב הרגל
+                    y: frameY, // מרכז קורת החיזוק התחתונה
+                    z: isEven
+                        ? leg.z - (leg.depth / 2 + this.headHeight)
+                        : leg.z + (leg.depth / 2 + this.headHeight), // צד חיצוני של הרגל
+                },
+                // בורג ימני/שמאלי (בציר X)
+                {
+                    x: leg.x + (leg.width / 2 + this.headHeight) * (legIndex > 1 ? 1 : -1), // צד חיצוני של הרגל
+                    y: frameY, // מרכז קורת החיזוק התחתונה
+                    z: (isEven
+                        ? leg.z - (leg.depth / 2 + this.headHeight)
+                        : leg.z + (leg.depth / 2 + this.headHeight)) +
+                    (isEven ? 1 : -1) * (leg.depth / 2 + this.headHeight),
+                },
+            ];
+            
+            screwPositions.forEach((pos, screwIndex) => {
+                // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
+                const screwType = screwIndex === 0 ? 'leg_height' : 'leg_width';
+                const dimension = screwIndex === 0 ? legBeamHeight : legBeamWidth;
+                const calculatedScrewLength = this.calculateScrewLength(screwType, dimension);
+                const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                
+                // הברגים אופקיים ומיושרים כמו ברגי הרגליים הרגילים
+                screwGroup.position.set(pos.x, pos.y, pos.z);
+                if (screwIndex === 0) {
+                    screwGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
+                } else {
+                    screwGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                }
+                
+                this.scene.add(screwGroup);
+                this.beamMeshes.push(screwGroup);
+                
+                console.log(
+                    `Lower Frame - Leg ${legIndex + 1}, Screw ${screwIndex + 1}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}`
+                );
+            });
+        });
+    }
+    
     // הוספת ברגים לרגליים
     private addScrewsToLegs(
         totalShelves: number,
@@ -4016,6 +4156,20 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
             legPositions.forEach((leg, legIndex) => {
                 const isEven = legIndex % 2 === 0;
+                
+                // חישוב אורכי ברגים - בורג ראשון מבוסס depth (height), בורג שני מבוסס width
+                const legParam = this.getParam('leg');
+                let legBeamWidth = frameBeamHeight;
+                let legBeamHeight = frameBeamHeight;
+                if (legParam && legParam.beams && legParam.beams.length > 0) {
+                    const selectedBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+                    const selectedType = selectedBeam?.types?.[legParam.selectedTypeIndex || 0];
+                    if (selectedType) {
+                        legBeamWidth = selectedType.width / 10;
+                        legBeamHeight = selectedType.height / 10;
+                    }
+                }
+                
                 // 2 ברגים לכל רגל (אחד לכל קורת חיזוק - קדמית ואחורית)
                 const screwPositions = [
                     // בורג לקורת חיזוק קדמית
@@ -4041,7 +4195,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     },
                 ];
                 screwPositions.forEach((pos, screwIndex) => {
-                    const screwGroup = this.createHorizontalScrewGeometry();
+                    // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
+                    const screwType = screwIndex === 0 ? 'leg_height' : 'leg_width';
+                    const dimension = screwIndex === 0 ? legBeamHeight : legBeamWidth;
+                    const calculatedScrewLength = this.calculateScrewLength(screwType, dimension);
+                    const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
                     // הברגים אופקיים ומיושרים ל-X (מאונכים לדופן Z)
                     screwGroup.position.set(pos.x, pos.y, pos.z);
                     if (screwIndex === 0) {
@@ -4293,14 +4451,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
     }
     // יצירת גיאומטריית בורג אופקי (להרגליים)
-    private createHorizontalScrewGeometry(): THREE.Group {
+    private createHorizontalScrewGeometry(screwLength?: number): THREE.Group {
         const screwGroup = new THREE.Group();
         // פרמטרים של הבורג (מידות אמיתיות)
+        // אם לא סופק אורך, נשתמש באורך ברירת המחדל
+        const actualScrewLength = screwLength || this.screwLength;
         // יצירת גוף הבורג (צינור צר) - אופקי
         const screwGeometry = new THREE.CylinderGeometry(
             this.screwRadius,
             this.screwRadius,
-            this.screwLength,
+            actualScrewLength,
             8
         );
         const screwMaterial = new THREE.MeshStandardMaterial({
@@ -4308,7 +4468,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }); // אפור מתכתי
         const screwMesh = new THREE.Mesh(screwGeometry, screwMaterial);
         screwMesh.rotation.z = Math.PI / 2; // סיבוב לרוחב
-        screwMesh.position.x = -this.screwLength / 2; // מרכז את הבורג
+        screwMesh.position.x = -actualScrewLength / 2; // מרכז את הבורג
         screwGroup.add(screwMesh);
         // יצירת ראש הבורג (גליל נפרד) - בחלק הקדמי של הבורג
         const headGeometry = new THREE.CylinderGeometry(
@@ -4327,20 +4487,23 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         return screwGroup;
     }
     // יצירת גיאומטריית בורג
-    private createScrewGeometry(): THREE.Group {
+    private createScrewGeometry(screwLength?: number): THREE.Group {
         const screwGroup = new THREE.Group();
+        // פרמטרים של הבורג (מידות אמיתיות)
+        // אם לא סופק אורך, נשתמש באורך ברירת המחדל
+        const actualScrewLength = screwLength || this.screwLength;
         // יצירת גוף הבורג (צינור צר)
         const screwGeometry = new THREE.CylinderGeometry(
             this.screwRadius,
             this.screwRadius,
-            this.screwLength,
+            actualScrewLength,
             8
         );
         const screwMaterial = new THREE.MeshStandardMaterial({
             color: 0x444444,
         }); // כמעט שחור
         const screwMesh = new THREE.Mesh(screwGeometry, screwMaterial);
-        screwMesh.position.y = -this.screwLength / 2; // מרכז את הבורג
+        screwMesh.position.y = -actualScrewLength / 2; // מרכז את הבורג
         screwGroup.add(screwMesh);
         // יצירת ראש הבורג (גליל נפרד) - בחלק העליון של הבורג
         const headGeometry = new THREE.CylinderGeometry(
@@ -4366,6 +4529,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         frameBeamWidth: number,
         isShortenedBeam: string = 'top'
     ) {
+        // חישוב אורך הבורג לפי סוג הבורג והמידות
+        const calculatedScrewLength = this.calculateScrewLength('shelf', beamHeight);
+        
         // חישוב מיקומי הברגים
         // הזחה מהקצוות: מחצית ממידת ה-height של קורת החיזוק
         const edgeOffset = frameBeamWidth / 2;
@@ -4599,7 +4765,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         // יצירת ברגים
         screwPositions.forEach((pos, index) => {
-            const screwGroup = this.createScrewGeometry();
+            const screwGroup = this.createScrewGeometry(calculatedScrewLength);
             // הבורג צריך להיות כך שהראש שלו נוגע בקורה
             // הבורג לא מסובב, אז הראש נמצא ב-(screwLength/2 + headHeight/2) מהמרכז
             // כדי שהראש יהיה על הקורה, המרכז צריך להיות מתחת לקורה ב-(screwLength/2 + headHeight/2)
