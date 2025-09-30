@@ -247,7 +247,33 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     // זיהוי סוג המוצר
     const isTable = this.product?.name === 'table';
-    console.log('changeRandomShelfHeight נקרא - סוג מוצר:', isTable ? 'שולחן' : 'ארון');
+    const isPlanter = this.product?.name === 'planter';
+    console.log('changeRandomShelfHeight נקרא - סוג מוצר:', isTable ? 'שולחן' : (isPlanter ? 'עדנית' : 'ארון'));
+    
+    if (isPlanter) {
+      // עדנית - שינוי גובה העדנית
+      const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
+      if (!heightParam) {
+        console.log('לא נמצא פרמטר גובה לעדנית');
+        return;
+      }
+      
+      const step = this.getStep(heightParam.type || 0);
+      const min = Math.max(heightParam.min || 20, 20);
+      const max = Math.min(heightParam.max || 100, 100);
+      
+      const range = max - min;
+      const randomSteps = Math.floor(Math.random() * (range / step)) + 1;
+      const newValue = min + (randomSteps * step);
+      
+      this.dynamicParams.height = Math.min(newValue, max);
+      console.log(`גובה עדנית השתנה ל: ${this.dynamicParams.height} (טווח: ${min}-${max}, צעד: ${step})`);
+      
+      this.createSimpleProductWithoutCameraUpdate();
+      this.updateCameraPosition();
+      this.restoreRotation();
+      return;
+    }
     
     if (isTable) {
       // שולחן - שינוי גובה המדף היחיד
@@ -369,6 +395,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     // זיהוי סוג המוצר
     const isTable = this.product.name === 'table';
+    const isPlanter = this.product.name === 'planter';
     
     // חיפוש קורות המדפים
     let currentBeam: any = null;
@@ -378,6 +405,18 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       if (isTable) {
         // שולחן - חיפוש פרמטר plata
         if (param.type === 'beamSingle' && param.name === 'plata' && param.beams && param.beams.length > 0) {
+          const beamIndex = param.selectedBeamIndex || 0;
+          if (param.beams[beamIndex]) {
+            currentBeam = param.beams[beamIndex];
+            const typeIndex = param.selectedBeamTypeIndex || 0;
+            if (currentBeam.types && currentBeam.types[typeIndex]) {
+              currentBeamType = currentBeam.types[typeIndex];
+            }
+          }
+        }
+      } else if (isPlanter) {
+        // עדנית - חיפוש פרמטר beam
+        if (param.name === 'beam' && param.beams && param.beams.length > 0) {
           const beamIndex = param.selectedBeamIndex || 0;
           if (param.beams[beamIndex]) {
             currentBeam = param.beams[beamIndex];
@@ -497,6 +536,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
     // זיהוי סוג המוצר
     const isTable = this.product.name === 'table';
+    const isPlanter = this.product.name === 'planter';
 
     // חיפוש קורות המדפים
     let shelfBeams: any[] = [];
@@ -505,6 +545,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       if (isTable) {
         // שולחן - חיפוש פרמטר plata
         if (param.type === 'beamSingle' && param.name === 'plata' && param.beams && param.beams.length > 0) {
+          shelfBeams = param.beams;
+          shelfParam = param;
+        }
+      } else if (isPlanter) {
+        // עדנית - חיפוש פרמטר beam
+        if (param.name === 'beam' && param.beams && param.beams.length > 0) {
           shelfBeams = param.beams;
           shelfParam = param;
         }
@@ -638,6 +684,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
     // זיהוי סוג המוצר
     const isTable = this.product.name === 'table';
+    const isPlanter = this.product.name === 'planter';
 
     // חיפוש קורות המדפים
     let shelfBeams: any[] = [];
@@ -646,6 +693,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       if (isTable) {
         // שולחן - חיפוש פרמטר plata
         if (param.type === 'beamSingle' && param.name === 'plata' && param.beams && param.beams.length > 0) {
+          shelfBeams = param.beams;
+          shelfParam = param;
+        }
+      } else if (isPlanter) {
+        // עדנית - חיפוש פרמטר beam
+        if (param.name === 'beam' && param.beams && param.beams.length > 0) {
           shelfBeams = param.beams;
           shelfParam = param;
         }
@@ -1135,6 +1188,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
     // זיהוי סוג המוצר
     const isTable = this.product.name === 'table';
+    const isPlanter = this.product.name === 'planter';
 
     // אתחול אינדקס הקורה הנוכחית - תמיד הקורה הראשונה וה-type הראשון שלה
     this.currentBeamIndex = 0;
@@ -1148,6 +1202,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       if (isTable) {
         // שולחן - חיפוש פרמטר plata
         if (param.type === 'beamSingle' && param.name === 'plata' && param.beams && param.beams.length > 0) {
+          shelfBeams = param.beams;
+        }
+      } else if (isPlanter) {
+        // עדנית - חיפוש פרמטר beam
+        if (param.name === 'beam' && param.beams && param.beams.length > 0) {
           shelfBeams = param.beams;
         }
       } else {
@@ -1242,6 +1301,18 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         const tableHeight = heightParam ? this.dynamicParams.height || heightParam.default || 80 : 80;
         this.shelfGaps = [tableHeight]; // מדף אחד בגובה שנקבע
         console.log('גובה מדף שולחן נטען:', this.shelfGaps);
+      } else if (isPlanter && param.name === 'beam') {
+        // עדנית - טיפול בפרמטר beam
+        if (param.beams && param.beams.length > 0) {
+          const beam = param.beams[param.selectedBeamIndex || 0];
+          console.log('planter beam:', beam);
+          // המרה ממ"מ לס"מ כמו בקובץ הראשי
+          const beamWidth = beam.width || 50; // ברירת מחדל 50 מ"מ
+          const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
+          this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
+          this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
+          console.log('אתחול מידות קורת עדנית:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
+        }
       }
     });
 
@@ -1264,6 +1335,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // ניקוי המודל הקודם
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
+
+    // בדיקה אם זו עדנית
+    const isPlanter = this.product?.name === 'planter';
+    if (isPlanter) {
+      this.createPlanterModel();
+      return; // יציאה מהפונקציה - העדנית לא משתמשת במדפים רגילים
+    }
 
     // יצירת מדפים דינמיים - זהה לקובץ הראשי
     const minGap = 2; // רווח מינימלי בין קורות
@@ -1557,6 +1635,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // ניקוי המודל הקודם
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
+
+    // בדיקה אם זו עדנית
+    const isPlanter = this.product?.name === 'planter';
+    if (isPlanter) {
+      this.createPlanterModel();
+      return; // יציאה מהפונקציה - העדנית לא משתמשת במדפים רגילים
+    }
 
     // יצירת מדפים דינמיים - זהה לקובץ הראשי
     const minGap = 2; // רווח מינימלי בין קורות
@@ -1883,8 +1968,16 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // חישוב הגובה הכולל של המודל (כולל מדפים ורגליים)
     let totalModelHeight = 0;
     const isTable = this.product?.name === 'table';
+    const isPlanter = this.product?.name === 'planter';
     
-    if (isTable) {
+    if (isPlanter) {
+      // עדנית - גובה הקירות + גובה הרצפה
+      const beamWidth = this.dynamicParams.beamWidth || 5;
+      const beamHeight = this.dynamicParams.beamHeight || 2.5;
+      const beamsInHeight = Math.floor(height / beamWidth);
+      const actualWallHeight = beamsInHeight * beamWidth;
+      totalModelHeight = actualWallHeight + beamHeight; // גובה הקירות + גובה הרצפה
+    } else if (isTable) {
       // שולחן - גובה המדף + גובה הרגליים
       totalModelHeight = this.shelfGaps[0] + this.dynamicParams.frameHeight + this.dynamicParams.beamHeight;
     } else {
@@ -2268,5 +2361,141 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const maxHeight = shelfsParam.max || 200;
       return this.shelfGaps[2] >= maxHeight;
     }
+  }
+
+  // יצירת מודל עדנית
+  private createPlanterModel() {
+    console.log('=== Creating Planter Model ===');
+    
+    // שימוש בפרמטרים הדינמיים כדי שהעדנית תשתנה באופן דינמי
+    const planterWidth = this.dynamicParams.width || 70; // רוחב העדנית
+    const planterDepth = this.dynamicParams.length || 50; // עומק העדנית
+    const planterHeight = this.dynamicParams.height || 40; // גובה העדנית
+    
+    // קבלת פרמטרי קורה - שימוש ב-dynamicParams
+    const beamWidth = this.dynamicParams.beamWidth || 5;
+    const beamHeight = this.dynamicParams.beamHeight || 2.5;
+    
+    // קבלת טקסטורה
+    const beamParam = this.product?.params?.find((p: any) => p.name === 'beam');
+    let beamType = null;
+    
+    if (beamParam && beamParam.beams && beamParam.beams.length > 0) {
+      const selectedBeam = beamParam.beams[beamParam.selectedBeamIndex || 0];
+      if (selectedBeam && selectedBeam.types && selectedBeam.types.length > 0) {
+        beamType = selectedBeam.types[beamParam.selectedBeamTypeIndex || 0];
+      }
+    }
+    
+    const woodTexture = this.getWoodTexture(beamType ? beamType.name : '');
+    
+    console.log('Planter params:', { planterWidth, planterDepth, planterHeight, beamWidth, beamHeight });
+    
+    // 1. יצירת קורות רצפה
+    const beamsInDepth = Math.floor(planterWidth / beamWidth);
+    const visualGap = 0.1;
+    const totalGaps = beamsInDepth - 1;
+    const totalGapWidth = totalGaps * visualGap;
+    const availableWidth = planterWidth - totalGapWidth;
+    const adjustedBeamWidth = availableWidth / beamsInDepth;
+    
+    for (let i = 0; i < beamsInDepth; i++) {
+      const geometry = new THREE.BoxGeometry(
+        planterDepth,
+        beamHeight,
+        adjustedBeamWidth
+      );
+      this.setCorrectTextureMapping(geometry, planterDepth, beamHeight, adjustedBeamWidth);
+      const material = new THREE.MeshStandardMaterial({ map: woodTexture });
+      const mesh = new THREE.Mesh(geometry, material);
+      
+      const zPosition = (i * (adjustedBeamWidth + visualGap)) - (planterWidth / 2) + (adjustedBeamWidth / 2);
+      mesh.position.set(0, beamHeight / 2, zPosition);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      
+      this.scene.add(mesh);
+      this.meshes.push(mesh);
+    }
+    
+    // 2. יצירת קירות
+    const beamsInHeight = Math.floor(planterHeight / beamWidth);
+    const actualWallHeight = beamsInHeight * beamWidth;
+    const wallVisualGap = 0.1;
+    const wallTotalGaps = beamsInHeight - 1;
+    const wallTotalGapHeight = wallTotalGaps * wallVisualGap;
+    const availableHeight = actualWallHeight - wallTotalGapHeight;
+    const adjustedBeamHeight = availableHeight / beamsInHeight;
+    
+    // 4 קירות: שמאלי, ימני, קדמי, אחורי
+    const walls = [
+      { index: 0, name: 'שמאלי', x: 0, z: -planterWidth / 2 + beamHeight / 2, length: planterDepth - (2 * beamHeight), rotate: false },
+      { index: 1, name: 'ימני', x: 0, z: planterWidth / 2 - beamHeight / 2, length: planterDepth - (2 * beamHeight), rotate: false },
+      { index: 2, name: 'קדמי', x: -planterDepth / 2 + beamHeight / 2, z: 0, length: planterWidth, rotate: true },
+      { index: 3, name: 'אחורי', x: planterDepth / 2 - beamHeight / 2, z: 0, length: planterWidth, rotate: true }
+    ];
+    
+    walls.forEach(wall => {
+      for (let i = 0; i < beamsInHeight; i++) {
+        const geometry = new THREE.BoxGeometry(
+          wall.length,
+          adjustedBeamHeight,
+          beamHeight
+        );
+        this.setCorrectTextureMapping(geometry, wall.length, adjustedBeamHeight, beamHeight);
+        const material = new THREE.MeshStandardMaterial({ map: woodTexture });
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        if (wall.rotate) {
+          mesh.rotation.y = Math.PI / 2;
+        }
+        
+        const isBottomBeam = i === 0;
+        const baseYPosition = (i * (adjustedBeamHeight + wallVisualGap)) + beamHeight + (adjustedBeamHeight / 2);
+        const yPosition = isBottomBeam ? baseYPosition + 0.1 : baseYPosition;
+        
+        mesh.position.set(wall.x, yPosition, wall.z);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        
+        this.scene.add(mesh);
+        this.meshes.push(mesh);
+      }
+    });
+    
+    // 3. יצירת קורות חיזוק פנימיות (4 פינות)
+    const supportBeamPositions = [
+      { x: -planterDepth / 2 + beamHeight + beamWidth / 2, z: -planterWidth / 2 + beamHeight + beamHeight / 2 },
+      { x: planterDepth / 2 - beamHeight - beamWidth / 2, z: -planterWidth / 2 + beamHeight + beamHeight / 2 },
+      { x: -planterDepth / 2 + beamHeight + beamWidth / 2, z: planterWidth / 2 - beamHeight - beamHeight / 2 },
+      { x: planterDepth / 2 - beamHeight - beamWidth / 2, z: planterWidth / 2 - beamHeight - beamHeight / 2 }
+    ];
+    
+    supportBeamPositions.forEach(pos => {
+      const geometry = new THREE.BoxGeometry(
+        beamWidth,
+        actualWallHeight,
+        beamHeight
+      );
+      this.setCorrectTextureMapping(geometry, beamWidth, actualWallHeight, beamHeight);
+      const material = new THREE.MeshStandardMaterial({ map: woodTexture });
+      const mesh = new THREE.Mesh(geometry, material);
+      
+      const centerY = beamHeight + actualWallHeight / 2;
+      mesh.position.set(pos.x, centerY, pos.z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      
+      this.scene.add(mesh);
+      this.meshes.push(mesh);
+    });
+    
+    // סיבוב המודל
+    this.scene.rotation.y = Math.PI / 6;
+    
+    // התאמת מצלמה
+    this.updateCameraPosition();
+    
+    console.log('Planter model created successfully');
   }
 }
