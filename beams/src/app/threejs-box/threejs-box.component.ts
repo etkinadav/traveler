@@ -3265,6 +3265,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 rotation += Math.PI;
             }
             
+            // תיקון נוסף: אם הבורג בצד החיובי של ציר העומק (X > 0), נהפוך אותו ב-180 מעלות
+            // זה יתקן צד אחד שלם של האדנית (2 פינות סמוכות לאורך ציר העומק)
+            if (pos.x > 0) {
+                rotation += Math.PI;
+            }
+            
+            // הפיכת כל הברגים ב-180 מעלות
+            rotation += Math.PI;
+            
             screwGroup.rotation.y = rotation;
             
             this.scene.add(screwGroup);
@@ -3272,7 +3281,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             
             const rotationDeg = (rotation * 180 / Math.PI).toFixed(0);
             console.log(
-                `קיר ${wallName} קורה ${beamNumber} בורג ${screwIndex + 1} (שורה שלישית): x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}, rotationY=${rotationDeg}°, isLeft=${isLeft}, isFrontWall=${isFrontWall}`
+                `קיר ${wallName} קורה ${beamNumber} בורג ${screwIndex + 1} (שורה שלישית): x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}, rotationY=${rotationDeg}°, isLeft=${isLeft}, isFrontWall=${isFrontWall}, posX>0=${pos.x > 0}`
             );
         });
     }
