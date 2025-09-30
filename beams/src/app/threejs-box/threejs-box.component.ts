@@ -1677,7 +1677,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const isFirstBeam = i === 0;
                     const isLastBeam = i === beamsInDepth - 1;
                     
-                    // 2 קורות תמיכה - 2 ברגים בכל צומת (או 1 בקצה)
+                    // חישוב אורך קורת התמיכה (זהה לחישוב למטה)
+                    const supportBeamLengthForScrews = planterWidth - (4 * beamHeight) - 0.4;
+                    
+                    // 2 קורות תמיכה
                     for (let supportIndex = 0; supportIndex < 2; supportIndex++) {
                         const xPositionForScrew = supportIndex === 0 
                             ? -planterDepth / 2 + adjustedBeamWidth / 2 + beamHeight + 0.2
@@ -1685,34 +1688,42 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         
                         const screwGeometry = this.createScrewGeometry(this.calculateScrewLength('planter_floor', beamHeight));
                         
-                        // בקורות קצה (ראשונה/אחרונה) - רק בורג פנימי אחד
-                        if (isFirstBeam) {
-                            // קורה ראשונה - רק בורג ימני (פנימי)
-                            const screw = screwGeometry.clone();
-                            screw.rotation.z = Math.PI;
-                            screw.position.set(xPositionForScrew, screwY, zPosition + adjustedBeamWidth / 4);
-                            this.scene.add(screw);
-                            this.beamMeshes.push(screw);
-                        } else if (isLastBeam) {
-                            // קורה אחרונה - רק בורג שמאלי (פנימי)
-                            const screw = screwGeometry.clone();
-                            screw.rotation.z = Math.PI;
-                            screw.position.set(xPositionForScrew, screwY, zPosition - adjustedBeamWidth / 4);
-                            this.scene.add(screw);
-                            this.beamMeshes.push(screw);
-                        } else {
-                            // קורות אמצעיות - 2 ברגים (שמאל וימין)
-                            const screw1 = screwGeometry.clone();
-                            screw1.rotation.z = Math.PI;
-                            screw1.position.set(xPositionForScrew, screwY, zPosition - adjustedBeamWidth / 4);
-                            this.scene.add(screw1);
-                            this.beamMeshes.push(screw1);
+                        // 2 טורים בציר X (לאורך קורת המכסה) - offset של רבע מרוחב הקורה
+                        const xOffsetFromCenter = adjustedBeamWidth / 4; // רבע מרוחב הקורה
+                        
+                        for (let rowIndex = 0; rowIndex < 2; rowIndex++) {
+                            const xOffset = rowIndex === 0 ? -xOffsetFromCenter : xOffsetFromCenter;
+                            const xPositionWithOffset = xPositionForScrew + xOffset;
                             
-                            const screw2 = screwGeometry.clone();
-                            screw2.rotation.z = Math.PI;
-                            screw2.position.set(xPositionForScrew, screwY, zPosition + adjustedBeamWidth / 4);
-                            this.scene.add(screw2);
-                            this.beamMeshes.push(screw2);
+                            // בקורות קצה (ראשונה/אחרונה) - רק בורג פנימי אחד בכל טור
+                            if (isFirstBeam) {
+                                // קורה ראשונה - רק בורג ימני (פנימי) בכל טור
+                                const screw = screwGeometry.clone();
+                                screw.rotation.z = Math.PI;
+                                screw.position.set(xPositionWithOffset, screwY, zPosition + adjustedBeamWidth / 4);
+                                this.scene.add(screw);
+                                this.beamMeshes.push(screw);
+                            } else if (isLastBeam) {
+                                // קורה אחרונה - רק בורג שמאלי (פנימי) בכל טור
+                                const screw = screwGeometry.clone();
+                                screw.rotation.z = Math.PI;
+                                screw.position.set(xPositionWithOffset, screwY, zPosition - adjustedBeamWidth / 4);
+                                this.scene.add(screw);
+                                this.beamMeshes.push(screw);
+                            } else {
+                                // קורות אמצעיות - 2 ברגים בכל טור (שמאל וימין)
+                                const screw1 = screwGeometry.clone();
+                                screw1.rotation.z = Math.PI;
+                                screw1.position.set(xPositionWithOffset, screwY, zPosition - adjustedBeamWidth / 4);
+                                this.scene.add(screw1);
+                                this.beamMeshes.push(screw1);
+                                
+                                const screw2 = screwGeometry.clone();
+                                screw2.rotation.z = Math.PI;
+                                screw2.position.set(xPositionWithOffset, screwY, zPosition + adjustedBeamWidth / 4);
+                                this.scene.add(screw2);
+                                this.beamMeshes.push(screw2);
+                            }
                         }
                     }
                     
@@ -3429,10 +3440,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     // הוספת ברגי מכסה (רק אם יש מכסה)
                     const isCoverParam = this.getParam('isCover');
                     if (this.isBox && isCoverParam && isCoverParam.default === true) {
-                        // קורות אמצעיות: 4 ברגים (2×2), קורות קצה: 2 ברגים (2×1)
+                        // עכשיו יש 2 טורים בכל קורת תמיכה (בציר Z)
+                        // קורות אמצעיות: 8 ברגים (2 קורות תמיכה × 2 טורים × 2 ברגים)
+                        // קורות קצה: 4 ברגים (2 קורות תמיכה × 2 טורים × 1 בורג)
                         const middleBeams = beamsInDepth - 2; // קורות אמצעיות
                         const edgeBeams = 2; // קורה ראשונה ואחרונה
-                        const coverTotalScrews = (middleBeams * 4) + (edgeBeams * 2);
+                        const coverTotalScrews = (middleBeams * 8) + (edgeBeams * 4);
                         
                         planterFloorForgingData.push({
                             type: 'Box Cover Screws',
