@@ -53,6 +53,30 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     navigateToHome() {
         this.router.navigate(['/main-section/choose-printing-system']);
     }
+    
+    // בדיקת מגבלות המוצר
+    private checkProductRestrictions(product: any) {
+        // איפוס המשתנה
+        this.hasDimensionsAlert = false;
+        
+        // בדיקה אם יש restrictions
+        if (!product.restrictions || !Array.isArray(product.restrictions)) {
+            console.log('אין מגבלות למוצר זה');
+            return;
+        }
+        
+        // חיפוש מגבלת dimensions-alert
+        const dimensionsAlertRestriction = product.restrictions.find(
+            (r: any) => r.name === 'dimensions-alert' || r.name === 'dimensions-allert'
+        );
+        
+        if (dimensionsAlertRestriction && dimensionsAlertRestriction.val === true) {
+            this.hasDimensionsAlert = true;
+            console.log('למוצר זה יש מגבלת התרעת מידות');
+        }
+        
+        console.log('מגבלות המוצר:', product.restrictions);
+    }
     private removeWireframeCube() {
         const existingWireframe =
             this.scene.getObjectByName('productWireframe');
@@ -201,6 +225,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     hasNoMiddleBeams: boolean = false; // האם נשארות רק שתי הקורות המקוצרות (אין קורות באמצע)
     isLoading: boolean = false; // האם התצוגה נטענת
     isModelLoading: boolean = false; // האם המודל התלת-מימדי נטען
+    hasDimensionsAlert: boolean = false; // האם למוצר יש מגבלה של התרעת אי התאמה במידות
     // נתונים לחישוב מחיר
     BeamsDataForPricing: any[] = []; // מערך של נתוני קורות לחישוב מחיר
     ForgingDataForPricing: any[] = []; // מערך של נתוני ברגים לחישוב מחיר
@@ -358,10 +383,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     return param;
                 });
                 this.initParamsFromProduct();
+                
+                // בדיקת מגבלות המוצר
+                this.checkProductRestrictions(prod);
+                
                 console.log('Product loaded:', data);
                 console.log('פרמטרים נטענו:', this.params);
                 console.log('זה שולחן?', this.isTable);
                 console.log('זה עדנית?', this.isPlanter);
+                console.log('האם יש התרעת מידות?', this.hasDimensionsAlert);
                 // בדיקת פרמטרים ספציפיים
                 const heightParam = this.params.find(
                     (p) => p.name === 'height'
@@ -416,10 +446,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     return param;
                 });
                 this.initParamsFromProduct();
+                
+                // בדיקת מגבלות המוצר
+                this.checkProductRestrictions(prod);
+                
                 console.log('Product loaded by name:', data);
                 console.log('פרמטרים נטענו:', this.params);
                 console.log('זה שולחן?', this.isTable);
                 console.log('זה עדנית?', this.isPlanter);
+                console.log('האם יש התרעת מידות?', this.hasDimensionsAlert);
                 // בדיקת פרמטרים ספציפיים
                 const heightParam = this.params.find(
                     (p) => p.name === 'height'
