@@ -461,11 +461,22 @@
     
     
     <!-- אזור חישוב המחיר -->
-    <div class="price-calculation-area">
+    <div class="price-calculation-area" [class.minimized]="isPriceMinimized">
+        <!-- כפתור צמצום -->
+        <button class="minimize-btn" mat-icon-button 
+                matTooltip="צמצם"
+                matTooltipPosition="left"
+                (click)="togglePriceMinimize()"
+                *ngIf="!isPriceMinimized"
+                aria-label="צמצם">
+            <mat-icon>close</mat-icon>
+        </button>
+        
         <button class="fullscreen-btn" mat-icon-button color="primary" 
                 [matTooltip]="!isPriceManuOpen ? ('price-calculation.tooltip' | translate) : ''" 
                 matTooltipPosition="left"
                 (click)="togglePriceMenu()"
+                *ngIf="!isPriceMinimized"
                 aria-label="מסך מלא">
             <mat-icon>fullscreen</mat-icon>
         </button>
@@ -474,7 +485,7 @@
                 <!-- כפתור בחירת אופציה -->
                 <button class="pricing-option-button" 
                         [matMenuTriggerFor]="pricingOptionsMenu"
-                        *ngIf="calculatedPrice > 0">
+                        *ngIf="calculatedPrice > 0 && !isPriceMinimized">
                     <div class="option-name-small">{{ getPricingOptionName() }}</div>
                     
                     <!-- קפסולות פירוט מחיר -->
@@ -520,6 +531,18 @@
                     <mat-spinner diameter="20"></mat-spinner>
                     <span class="calculating-text">מחשב מחיר...</span>
                 </div>
+                
+                <!-- כפתור המשך מצומצם -->
+                <button class="minimized-continue-button" 
+                        (click)="togglePriceMinimize()"
+                        *ngIf="isPriceMinimized && calculatedPrice > 0"
+                        [@fadeInScale]>
+                    <span class="minimized-text">המשך</span>
+                    <span class="minimized-price">({{ getFinalPrice() }}₪)</span>
+                    <svg class="minimized-arrow" width="14" height="14" viewBox="0 0 14 14">
+                        <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
             </div>
         </div>
         

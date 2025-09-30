@@ -80,6 +80,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.isOptionsMenuOpen = false;
     }
     
+    // צמצום/הרחבת תפריט המחיר
+    togglePriceMinimize() {
+        this.isPriceMinimized = !this.isPriceMinimized;
+        console.log('Price minimized:', this.isPriceMinimized);
+    }
+    
     // בדיקת מגבלות המוצר
     private checkProductRestrictions(product: any) {
         // איפוס המשתנה
@@ -241,6 +247,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     isTransparentMode: boolean = false; // מצב שקוף
     isOptionsMenuOpen: boolean = false; // האם תפריט האפשרויות פתוח
     showNavigationCube: boolean = false; // קוביית ניווט במובייל
+    isPriceMinimized: boolean = false; // האם תפריט המחיר מצומצם
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
@@ -1164,6 +1171,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         // איפוס קוביית הניווט במובייל בשינוי גודל
         this.showNavigationCube = false;
+        // איפוס צמצום תפריט המחיר
+        this.isPriceMinimized = false;
     }
     updateBeams() {
         // הפעלת loading

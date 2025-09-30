@@ -794,6 +794,7 @@ mat-form-field {
     padding: 12px 16px;
     z-index: 1000;
     border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
     
     @media (min-width: 577px) {
         padding-top: 17px; // 5px נוספים מעל
@@ -805,10 +806,53 @@ mat-form-field {
         right: 10px;
     }
     
+    // מצב מצומצם - רק כפתור המשך
+    &.minimized {
+        padding: 8px 12px;
+        
+        @media (max-width: 576px) {
+            padding: 6px 10px;
+        }
+    }
+    
+    .minimize-btn {
+        position: absolute;
+        top: -10px; // 4px למעלה (היה -6px)
+        left: -6px; // משמאל (החלפנו מיקום)
+        width: 18px;
+        height: 18px;
+        min-width: 18px;
+        background: white; // רקע לבן
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        border: 1px solid #e0e0e0;
+        z-index: 1001;
+        transition: all 0.3s ease;
+        
+        ::ng-deep .mat-mdc-button-touch-target {
+            width: 18px;
+            height: 18px;
+        }
+        
+        mat-icon {
+            font-size: 16px; // קטן יותר
+            width: 14px; // קטן יותר
+            height: 14px; // קטן יותר
+            color: #0066cc; // X כחול
+            transform: translate(7px, -19px);
+        }
+        
+        &:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            background: #f8f9fa;
+        }
+    }
+    
     .fullscreen-btn {
         position: absolute;
-        top: -6px;
-        left: -6px;
+        top: -10px; // 4px למעלה (היה -6px)
+        left: 21px; // 7px יותר רחוק מכפתור ה-X (14+7=21)
         width: 18px;
         height: 18px;
         min-width: 18px;
@@ -1494,6 +1538,42 @@ mat-form-field {
             align-items: center;
             gap: 8px;
         }
+    }
+}
+
+// כפתור המשך במצב מצומצם
+.minimized-continue-button {
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    
+    &:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 102, 204, 0.5);
+    }
+    
+    .minimized-text {
+        font-weight: 600;
+    }
+    
+    .minimized-price {
+        font-size: 13px;
+        opacity: 0.95;
+    }
+    
+    .minimized-arrow {
+        margin-right: -2px;
     }
 }
 
