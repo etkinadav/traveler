@@ -449,14 +449,24 @@
                         <div class="price-value-inline">
                             {{ getFinalPrice() }} ₪
                         </div>
+                        
+                        <!-- כפתור המשך -->
+                        <button class="continue-button" 
+                                (click)="onContinueOrder(); $event.stopPropagation()"
+                                *ngIf="calculatedPrice > 0"
+                                [@fadeInScale]>
+                            <span class="continue-text">המשך</span>
+                            <svg class="continue-arrow" width="14" height="14" viewBox="0 0 14 14">
+                                <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
                     </div>
                 </button>
                 
                 <!-- תצוגת טעינה -->
                 <div class="price-loader" *ngIf="calculatedPrice === 0">
                     <mat-spinner diameter="20"></mat-spinner>
-                    <div style="width: 5px;"></div>
-                    <span class="price-label">מחשב מחיר...</span>
+                    <span class="calculating-text">מחשב מחיר...</span>
                 </div>
             </div>
         </div>

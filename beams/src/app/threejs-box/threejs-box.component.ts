@@ -11,6 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PricingService } from '../../../../src/app/services/pricing.service';
 import * as THREE from 'three';
+import { trigger, state, style, transition, animate, keyframes } from '@angular/animations';
 interface Shelf {
     gap: number; // רווח מהמדף שמתחתיו (או מהרצפה)
 }
@@ -18,6 +19,14 @@ interface Shelf {
     selector: 'app-threejs-box',
     templateUrl: './threejs-box.component.html',
     styleUrls: ['./threejs-box.component.scss'],
+    animations: [
+        trigger('fadeInScale', [
+            transition(':enter', [
+                style({ opacity: 0, transform: 'scale(0.8)' }),
+                animate('600ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
+            ])
+        ])
+    ]
 })
 export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     private isUserAuthenticated = false;
@@ -4916,6 +4925,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     selectPricingOption(option: 'cut' | 'full' | 'plan') {
         this.selectedPricingOption = option;
         console.log('Pricing option changed to:', option);
+    }
+    
+    // המשך להזמנה
+    onContinueOrder() {
+        console.log('Continue order clicked!');
+        console.log('Selected pricing option:', this.selectedPricingOption);
+        console.log('Final price:', this.getFinalPrice());
+        // כאן תוכל להוסיף ניווט לעמוד הזמנה או פתיחת דיאלוג
     }
     
     // קבלת שם האופציה הנבחרת

@@ -839,6 +839,36 @@ mat-form-field {
         align-items: center;
         justify-content: flex-end;
         
+        .price-display-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0; // המרווח מטופל ב-continue-button עם margin-right
+        }
+        
+        .price-loader {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            min-width: 130px;
+            
+            ::ng-deep .mat-mdc-progress-spinner {
+                width: 20px !important;
+                height: 20px !important;
+                
+                circle {
+                    stroke: #0066cc;
+                }
+            }
+            
+            .calculating-text {
+                font-size: 12px;
+                font-weight: 600;
+                color: #0066cc;
+                white-space: nowrap;
+            }
+        }
+        
         .price-display {
             display: flex;
             align-items: center;
@@ -848,21 +878,6 @@ mat-form-field {
                 font-weight: 600;
                 color: #333;
                 font-size: 14px;
-            }
-            
-            .price-loader {
-                display: flex;
-                align-items: center;
-                padding: 0 4px; /* הוספתי padding ימין ושמאל */
-                
-                ::ng-deep .mat-mdc-progress-spinner {
-                    width: 20px !important;
-                    height: 20px !important;
-                    
-                    circle {
-                        stroke: var(--zx-green);
-                    }
-                }
             }
             
             .price-value-inline {
@@ -1447,6 +1462,108 @@ mat-form-field {
         align-items: center;
         justify-content: flex-start;
         gap: 8px;
+    }
+}
+
+// כפתור המשך - קטן, בולט, משחקי
+.continue-button {
+    background: linear-gradient(135deg, #00cc88 0%, #00aa66 100%);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 204, 136, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-right: 12px;
+    
+    // אפקט "זוהר" מאחורי הכפתור
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    &:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 204, 136, 0.5);
+        
+        &::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .continue-arrow {
+            transform: translateX(-3px);
+        }
+    }
+    
+    &:active {
+        transform: translateY(0) scale(1);
+    }
+    
+    .continue-text {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .continue-arrow {
+        position: relative;
+        z-index: 1;
+        transition: transform 0.3s ease;
+        transform-origin: center;
+    }
+    
+    // האנימציה תרוץ רק בפעם הראשונה
+    &:not(:hover) .continue-arrow {
+        animation: arrowSwing 2.5s ease-in-out;
+    }
+    
+    // אנימציה מיוחדת לחץ - סיבוב הלוך וחזור כמו מחוג
+    @keyframes arrowSwing {
+        0% {
+            transform: rotate(0deg);
+        }
+        20% {
+            transform: rotate(270deg);
+        }
+        40% {
+            transform: rotate(240deg);
+        }
+        60% {
+            transform: rotate(270deg);
+        }
+        80% {
+            transform: rotate(260deg);
+        }
+        100% {
+            transform: rotate(270deg);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        padding: 6px 12px;
+        font-size: 12px;
+        margin-right: 8px;
+        
+        svg {
+            width: 12px;
+            height: 12px;
+        }
     }
 }
 
