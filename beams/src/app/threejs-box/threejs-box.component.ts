@@ -2852,12 +2852,30 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 rawLength = dimension1 + 2; // dimension1 = beamHeight
                 break;
                 
-            case 'leg_width': // ברגי רגליים מבוססי רוחב
-                rawLength = dimension1 + 3.5; // dimension1 = beamWidth
+            case 'leg_width': // ברגי רגליים מבוססי רוחב - צריך 2 מידות!
+                // נבחר את המידה הגדולה יותר מבין dimension1 ו-dimension2
+                if (dimension2 !== undefined) {
+                    const maxDimension = Math.max(dimension1, dimension2);
+                    rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
+                    console.log(`🔧 Leg screw (width): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, length=${rawLength}`);
+                } else {
+                    // fallback למקרה שלא הועבר dimension2
+                    rawLength = dimension1 + 3;
+                    console.log(`🔧 Leg screw (width) FALLBACK: dim1=${dimension1}, length=${rawLength}`);
+                }
                 break;
                 
-            case 'leg_height': // ברגי רגליים מבוססי גובה
-                rawLength = dimension1 + 3.5; // dimension1 = beamHeight
+            case 'leg_height': // ברגי רגליים מבוססי גובה - צריך 2 מידות!
+                // נבחר את המידה הגדולה יותר מבין dimension1 ו-dimension2
+                if (dimension2 !== undefined) {
+                    const maxDimension = Math.max(dimension1, dimension2);
+                    rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
+                    console.log(`🔧 Leg screw (height): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, length=${rawLength}`);
+                } else {
+                    // fallback למקרה שלא הועבר dimension2
+                    rawLength = dimension1 + 3;
+                    console.log(`🔧 Leg screw (height) FALLBACK: dim1=${dimension1}, length=${rawLength}`);
+                }
                 break;
                 
             case 'planter_wall': // ברגי קירות עדנית
@@ -3035,7 +3053,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const halfScrews = Math.floor(totalScrews / 2);
                 const remainingScrews = totalScrews - halfScrews; // לטפל במקרה של מספר אי-זוגי
                 // קבוצה ראשונה: ברגים לפי רוחב קורת הרגל
-                const widthScrewLength = this.calculateScrewLength('leg_width', beamWidth);
+                // מעביר גם beamWidth וגם beamHeight כדי לבחור את המקסימום
+                const widthScrewLength = this.calculateScrewLength('leg_width', beamWidth, beamHeight);
                 legForgingData.push({
                     type: 'Leg Screws (Width)',
                     beamName: selectedBeam.name,
@@ -3046,7 +3065,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     description: 'ברגי רגליים (לפי רוחב)',
                 });
                 // קבוצה שנייה: ברגים לפי גובה קורת הרגל
-                const heightScrewLength = this.calculateScrewLength('leg_height', beamHeight);
+                // מעביר גם beamHeight וגם beamWidth כדי לבחור את המקסימום
+                const heightScrewLength = this.calculateScrewLength('leg_height', beamHeight, beamWidth);
                 legForgingData.push({
                     type: 'Leg Screws (Height)',
                     beamName: selectedBeam.name,
@@ -4025,10 +4045,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         let legBeamHeight = frameBeamHeight;
         if (legParam && legParam.beams && legParam.beams.length > 0) {
             const selectedBeam = legParam.beams[legParam.selectedBeamIndex || 0];
-            const selectedType = selectedBeam?.types?.[legParam.selectedTypeIndex || 0];
-            if (selectedType) {
-                legBeamWidth = selectedType.width / 10;
-                legBeamHeight = selectedType.height / 10;
+            // המידות נמצאות ישירות ב-selectedBeam, לא ב-types
+            if (selectedBeam) {
+                legBeamWidth = selectedBeam.width / 10;
+                legBeamHeight = selectedBeam.height / 10;
+                console.log(`📏 Lower frame - Leg beam dimensions: width=${legBeamWidth}, height=${legBeamHeight}`);
             }
         }
         
@@ -4059,8 +4080,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             screwPositions.forEach((pos, screwIndex) => {
                 // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
                 const screwType = screwIndex === 0 ? 'leg_height' : 'leg_width';
-                const dimension = screwIndex === 0 ? legBeamHeight : legBeamWidth;
-                const calculatedScrewLength = this.calculateScrewLength(screwType, dimension);
+                // מעביר גם את שתי המידות כדי לבחור את המקסימום + 3
+                const calculatedScrewLength = this.calculateScrewLength(
+                    screwType, 
+                    screwIndex === 0 ? legBeamHeight : legBeamWidth,
+                    screwIndex === 0 ? legBeamWidth : legBeamHeight
+                );
                 const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
                 
                 // הברגים אופקיים ומיושרים כמו ברגי הרגליים הרגילים
@@ -4197,10 +4222,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 let legBeamHeight = frameBeamHeight;
                 if (legParam && legParam.beams && legParam.beams.length > 0) {
                     const selectedBeam = legParam.beams[legParam.selectedBeamIndex || 0];
-                    const selectedType = selectedBeam?.types?.[legParam.selectedTypeIndex || 0];
-                    if (selectedType) {
-                        legBeamWidth = selectedType.width / 10;
-                        legBeamHeight = selectedType.height / 10;
+                    // המידות נמצאות ישירות ב-selectedBeam, לא ב-types
+                    if (selectedBeam) {
+                        legBeamWidth = selectedBeam.width / 10;
+                        legBeamHeight = selectedBeam.height / 10;
+                        console.log(`📏 Leg beam dimensions: width=${legBeamWidth}, height=${legBeamHeight}`);
                     }
                 }
                 
@@ -4231,8 +4257,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 screwPositions.forEach((pos, screwIndex) => {
                     // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
                     const screwType = screwIndex === 0 ? 'leg_height' : 'leg_width';
-                    const dimension = screwIndex === 0 ? legBeamHeight : legBeamWidth;
-                    const calculatedScrewLength = this.calculateScrewLength(screwType, dimension);
+                    // מעביר גם את שתי המידות כדי לבחור את המקסימום + 3
+                    const calculatedScrewLength = this.calculateScrewLength(
+                        screwType,
+                        screwIndex === 0 ? legBeamHeight : legBeamWidth,
+                        screwIndex === 0 ? legBeamWidth : legBeamHeight
+                    );
                     const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
                     // הברגים אופקיים ומיושרים ל-X (מאונכים לדופן Z)
                     screwGroup.position.set(pos.x, pos.y, pos.z);
