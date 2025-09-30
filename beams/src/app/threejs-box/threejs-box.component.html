@@ -462,19 +462,19 @@
     
     <!-- אזור חישוב המחיר -->
     <div class="price-calculation-area" [class.minimized]="isPriceMinimized">
-        <!-- כפתור צמצום -->
+        <!-- כפתור צמצום/הרחב -->
         <button class="minimize-btn" mat-icon-button 
-                matTooltip="צמצם"
-                matTooltipPosition="left"
+                [matTooltip]="isPriceMinimized ? 'הרחב' : 'צמצם'"
+                matTooltipPosition="above"
                 (click)="togglePriceMinimize()"
-                *ngIf="!isPriceMinimized"
-                aria-label="צמצם">
-            <mat-icon>close</mat-icon>
+                [class.expanded-mode]="isPriceMinimized"
+                aria-label="צמצם/הרחב">
+            <mat-icon>{{ isPriceMinimized ? 'unfold_more' : 'close' }}</mat-icon>
         </button>
         
         <button class="fullscreen-btn" mat-icon-button color="primary" 
                 [matTooltip]="!isPriceManuOpen ? ('price-calculation.tooltip' | translate) : ''" 
-                matTooltipPosition="left"
+                matTooltipPosition="above"
                 (click)="togglePriceMenu()"
                 *ngIf="!isPriceMinimized"
                 aria-label="מסך מלא">

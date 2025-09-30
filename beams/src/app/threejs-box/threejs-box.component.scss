@@ -839,13 +839,28 @@ mat-form-field {
             width: 14px; // קטן יותר
             height: 14px; // קטן יותר
             color: #0066cc; // X כחול
-            transform: translate(7px, -19px);
+            transform: translate(5px, -21px); // 2px שמאלה ו-2px למעלה
         }
         
         &:hover {
             transform: scale(1.1);
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
             background: #f8f9fa;
+        }
+        
+        // מצב "הרחב" - כשהתפריט מצומצם
+        &.expanded-mode {
+            background: #0066cc;
+            border-color: #0052a3;
+            
+            mat-icon {
+                color: white;
+            }
+            
+            &:hover {
+                background: #0052a3;
+                box-shadow: 0 3px 8px rgba(0, 102, 204, 0.4);
+            }
         }
     }
     

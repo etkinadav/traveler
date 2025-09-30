@@ -39,7 +39,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // ...existing code...
     toggleDrawer() {
         this.drawerOpen = !this.drawerOpen;
-        setTimeout(() => this.onResize(), 310); // Wait for transition to finish
+        
+        // כששוסגרים את התפריט - לצמצם את המחיר
+        if (!this.drawerOpen) {
+            this.isPriceMinimized = true;
+        }
+        
+        // קריאה ל-onResize ללא איפוס isPriceMinimized
+        setTimeout(() => {
+            this.onResizeWithoutReset();
+        }, 310); // Wait for transition to finish
     }
     toggleWireframe() {
         // במובייל (sm ומטה, רוחב <= 576px) לא לאפשר הפעלת הקוביה בכלל
@@ -1153,6 +1162,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.beamMeshes = [];
     }
     private onResize() {
+        this.onResizeWithoutReset();
+        
+        // איפוס קוביית הניווט במובייל בשינוי גודל
+        this.showNavigationCube = false;
+        // איפוס צמצום תפריט המחיר
+        this.isPriceMinimized = false;
+    }
+    
+    private onResizeWithoutReset() {
         const container = this.rendererContainer?.nativeElement as HTMLElement;
         if (!container || !this.camera || !this.renderer) return;
         const width = container.clientWidth;
@@ -1168,11 +1186,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         } else if (!isMobile && this.showWireframe) {
             this.addWireframeCube();
         }
-        
-        // איפוס קוביית הניווט במובייל בשינוי גודל
-        this.showNavigationCube = false;
-        // איפוס צמצום תפריט המחיר
-        this.isPriceMinimized = false;
     }
     updateBeams() {
         // הפעלת loading
