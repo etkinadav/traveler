@@ -3215,6 +3215,65 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 `קיר ${wallName} קורה ${beamNumber} בורג ${screwIndex + 1} (שורה פנימית): x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}, rotation=${isFrontWall ? '180°' : '0°'}`
             );
         });
+        
+        // שורה שלישית של ברגים - מסובבת ב-90 מעלות כלפי פנים
+        // הזזה של חצי beamDepth לצד ההפוך והזזה של beamHeight בציר X כלפי המרכז
+        // תיקון: הברגים צריכים להיות קרובים יותר למרכז בציר X - מפחיתים beamDepth + beamHeight
+        // תיקון נוסף: הרחקה מהמרכז בחצי beamDepth בציר Z (הכיוון שהם פונים אליו)
+        const thirdRowScrewPositions = [
+            // בורג ראשון - פינה שמאלית עליונה (פונה ל-Z שלילי)
+            {
+                x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
+                y: wallY + beamHeight / 2 - innerOffset,
+                z: wallZ - wallLength / 2 + innerOffset - (beamDepth / 2)
+            },
+            // בורג שני - פינה ימנית עליונה (פונה ל-Z חיובי)
+            {
+                x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
+                y: wallY + beamHeight / 2 - innerOffset,
+                z: wallZ + wallLength / 2 - innerOffset + (beamDepth / 2)
+            },
+            // בורג שלישי - פינה שמאלית תחתונה (פונה ל-Z שלילי)
+            {
+                x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
+                y: wallY - beamHeight / 2 + innerOffset,
+                z: wallZ - wallLength / 2 + innerOffset - (beamDepth / 2)
+            },
+            // בורג רביעי - פינה ימנית תחתונה (פונה ל-Z חיובי)
+            {
+                x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
+                y: wallY - beamHeight / 2 + innerOffset,
+                z: wallZ + wallLength / 2 - innerOffset + (beamDepth / 2)
+            }
+        ];
+        
+        thirdRowScrewPositions.forEach((pos, screwIndex) => {
+            const screwGroup = this.createHorizontalScrewGeometry();
+            screwGroup.position.set(pos.x, pos.y, pos.z);
+            
+            // הברגים צריכים להיות כמו ברגי הקיר הרגילים, אבל מסובבים ב-90 מעלות
+            // ברגים שמאליים (אינדקס 0 ו-2) צריכים להיכנס מכיוון +Z
+            // ברגים ימניים (אינדקס 1 ו-3) צריכים להיכנס מכיוון -Z
+            const isLeft = screwIndex === 0 || screwIndex === 2;
+            
+            // לוגיקה פשוטה: ברגים שמאליים = +90°, ברגים ימניים = -90°
+            let rotation = isLeft ? Math.PI / 2 : -Math.PI / 2;
+            
+            // אם זה קיר קדמי, נוסיף 180 מעלות לסיבוב הבסיסי
+            if (isFrontWall) {
+                rotation += Math.PI;
+            }
+            
+            screwGroup.rotation.y = rotation;
+            
+            this.scene.add(screwGroup);
+            this.beamMeshes.push(screwGroup);
+            
+            const rotationDeg = (rotation * 180 / Math.PI).toFixed(0);
+            console.log(
+                `קיר ${wallName} קורה ${beamNumber} בורג ${screwIndex + 1} (שורה שלישית): x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}, rotationY=${rotationDeg}°, isLeft=${isLeft}, isFrontWall=${isFrontWall}`
+            );
+        });
     }
     
     // פונקציה להוספת ברגים לקורת רצפת עדנית
