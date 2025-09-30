@@ -3409,15 +3409,19 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('=== יצירת קורות חיזוק פנימיות לעדנית ===');
         
         // 4 קורות חיזוק בפינות הפנימיות
+        // מיקום הקורה כך שהקצה שלה יושב בדיוק על הקצה הפנימי של קיר הקדמי/אחורי
+        // קיר קדמי נמצא ב: x = -planterDepth/2 + beamHeight/2
+        // הקצה הפנימי שלו: x = -planterDepth/2 + beamHeight
+        // מרכז הקורה האנכית צריך להיות ב: הקצה הפנימי של הקיר + beamWidth/2
         const supportBeamPositions = [
-            // פינה שמאלית קדמית
-            { x: -planterDepth / 2 + beamWidth, z: -planterWidth / 2 + beamHeight + beamHeight / 2 },
-            // פינה ימנית קדמית
-            { x: planterDepth / 2 - beamWidth, z: -planterWidth / 2 + beamHeight + beamHeight / 2 },
-            // פינה שמאלית אחורית
-            { x: -planterDepth / 2 + beamWidth, z: planterWidth / 2 - beamHeight - beamHeight / 2 },
-            // פינה ימנית אחורית
-            { x: planterDepth / 2 - beamWidth, z: planterWidth / 2 - beamHeight - beamHeight / 2 }
+            // פינה שמאלית קדמית - צמודה לקצה הפנימי של הקיר הקדמי
+            { x: -planterDepth / 2 + beamHeight + beamWidth / 2, z: -planterWidth / 2 + beamHeight + beamHeight / 2 },
+            // פינה ימנית קדמית - צמודה לקצה הפנימי של הקיר הקדמי
+            { x: planterDepth / 2 - beamHeight - beamWidth / 2, z: -planterWidth / 2 + beamHeight + beamHeight / 2 },
+            // פינה שמאלית אחורית - צמודה לקצה הפנימי של הקיר האחורי
+            { x: -planterDepth / 2 + beamHeight + beamWidth / 2, z: planterWidth / 2 - beamHeight - beamHeight / 2 },
+            // פינה ימנית אחורית - צמודה לקצה הפנימי של הקיר האחורי
+            { x: planterDepth / 2 - beamHeight - beamWidth / 2, z: planterWidth / 2 - beamHeight - beamHeight / 2 }
         ];
         
         supportBeamPositions.forEach((pos, index) => {
