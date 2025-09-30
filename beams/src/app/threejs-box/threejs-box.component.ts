@@ -3219,31 +3219,32 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // שורה שלישית של ברגים - מסובבת ב-90 מעלות כלפי פנים
         // הזזה של חצי beamDepth לצד ההפוך והזזה של beamHeight בציר X כלפי המרכז
         // תיקון: הברגים צריכים להיות קרובים יותר למרכז בציר X - מפחיתים beamDepth + beamHeight
-        // תיקון נוסף: הרחקה מהמרכז בחצי beamDepth בציר Z (הכיוון שהם פונים אליו)
+        // תיקון נוסף: הרחקה מהמרכז בחצי beamDepth + גובה ראש הבורג (0.2) בציר Z (הכיוון שהם פונים אליו)
+        const headHeight = 0.2; // גובה ראש הבורג - 2 מ"מ
         const thirdRowScrewPositions = [
             // בורג ראשון - פינה שמאלית עליונה (פונה ל-Z שלילי)
             {
                 x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
                 y: wallY + beamHeight / 2 - innerOffset,
-                z: wallZ - wallLength / 2 + innerOffset - (beamDepth / 2)
+                z: wallZ - wallLength / 2 + innerOffset - (beamDepth / 2) - headHeight
             },
             // בורג שני - פינה ימנית עליונה (פונה ל-Z חיובי)
             {
                 x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
                 y: wallY + beamHeight / 2 - innerOffset,
-                z: wallZ + wallLength / 2 - innerOffset + (beamDepth / 2)
+                z: wallZ + wallLength / 2 - innerOffset + (beamDepth / 2) + headHeight
             },
             // בורג שלישי - פינה שמאלית תחתונה (פונה ל-Z שלילי)
             {
                 x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
                 y: wallY - beamHeight / 2 + innerOffset,
-                z: wallZ - wallLength / 2 + innerOffset - (beamDepth / 2)
+                z: wallZ - wallLength / 2 + innerOffset - (beamDepth / 2) - headHeight
             },
             // בורג רביעי - פינה ימנית תחתונה (פונה ל-Z חיובי)
             {
                 x: wallX + (isFrontWall ? (beamDepth / 2 - beamHeight) + (beamDepth + beamHeight) : -(beamDepth / 2 - beamHeight) - (beamDepth + beamHeight)),
                 y: wallY - beamHeight / 2 + innerOffset,
-                z: wallZ + wallLength / 2 - innerOffset + (beamDepth / 2)
+                z: wallZ + wallLength / 2 - innerOffset + (beamDepth / 2) + headHeight
             }
         ];
         
