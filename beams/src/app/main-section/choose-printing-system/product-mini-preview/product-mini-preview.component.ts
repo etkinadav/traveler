@@ -27,7 +27,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     frameHeight: 5, // זהה לקובץ הראשי
     shelfCount: 3,
     woodType: 0, // אינדקס סוג עץ
-    beamType: 0  // אינדקס סוג קורה
+    beamType: 0,  // אינדקס סוג קורה
+    coverOpenOffset: 0 as number | null // מרחק פתיחת המכסה: 0 (סגור), 50 (פתוח), או null (אין מכסה)
   };
 
   // גבהי המדפים הנוכחיים
@@ -145,6 +146,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private changeRandomParameter() {
     this.iterationCounter++; // הגדלת מונה האיטרציות
     
+    // בדיקה אם זו קופסא
+    const isBox = this.product?.name === 'box';
+    
     const actions = [
       'changeWidth',
       'changeLength', 
@@ -152,6 +156,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       'changeFrameBeam',
       'changeShelfBeam'
     ];
+    
+    // הוספת פתיחת מכסה רק לקופסא
+    if (isBox) {
+      actions.push('changeCoverOpening');
+    }
     
     // הוספת שינוי מספר מדפים הוסרה - לא רוצים לשנות את כמות המדפים
     
@@ -182,6 +191,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           break;
         case 'changeShelfBeam':
           this.changeShelfBeamTypeAuto();
+          break;
+        case 'changeCoverOpening':
+          this.changeRandomCoverOpening();
           break;
       }
     });
@@ -240,6 +252,29 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.restoreRotation(); // שחזור הסיבוב
     
     console.log(`אורך השתנה ל: ${this.dynamicParams.length} (טווח: ${min}-${max}, צעד: ${step})`);
+  }
+
+  private changeRandomCoverOpening() {
+    this.saveCurrentRotation(); // שמירת הסיבוב הנוכחי
+    
+    // בחירת ערך רנדומלי עם הסתברויות: 15% אין מכסה, 42.5% סגור, 42.5% פתוח
+    const random = Math.random() * 100; // 0-100
+    let selectedValue: number | null;
+    
+    if (random < 15) {
+      selectedValue = null; // 15% - אין מכסה
+    } else if (random < 57.5) {
+      selectedValue = 0; // 42.5% - מכסה סגור
+    } else {
+      selectedValue = 50; // 42.5% - מכסה פתוח
+    }
+    
+    this.dynamicParams.coverOpenOffset = selectedValue;
+    this.createSimpleProductWithoutCameraUpdate();
+    this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
+    this.restoreRotation(); // שחזור הסיבוב
+    
+    console.log(`פתיחת מכסה השתנתה ל: ${selectedValue === null ? 'אין מכסה' : (selectedValue === 0 ? 'סגור' : 'פתוח 50')}`);
   }
 
   private changeRandomShelfHeight() {
@@ -1985,9 +2020,10 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const beamsInHeight = Math.floor(height / beamWidth);
       const actualWallHeight = beamsInHeight * beamWidth;
       
-      // אם זו קופסא (תמיד עם מכסה במיני-פרוויו), נוסיף את גובה המכסה
-      const hasCover = isBox;
-      totalModelHeight = actualWallHeight + beamHeight + (hasCover ? beamHeight : 0); // גובה הקירות + גובה הרצפה + גובה מכסה
+      // אם זו קופסא ויש מכסה (coverOpenOffset !== null), נוסיף את גובה המכסה + offset פתיחה
+      const hasCover = isBox && this.dynamicParams.coverOpenOffset !== null;
+      const coverOffset = (isBox && this.dynamicParams.coverOpenOffset !== null) ? this.dynamicParams.coverOpenOffset : 0;
+      totalModelHeight = actualWallHeight + beamHeight + (hasCover ? beamHeight : 0) + coverOffset; // גובה הקירות + גובה הרצפה + גובה מכסה + פתיחה
     } else if (isTable) {
       // שולחן - גובה המדף + גובה הרגליים
       totalModelHeight = this.shelfGaps[0] + this.dynamicParams.frameHeight + this.dynamicParams.beamHeight;
@@ -2501,13 +2537,15 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.meshes.push(mesh);
     });
     
-    // 4. יצירת מכסה (תמיד מופיע בקובץ המיני)
+    // 4. יצירת מכסה (רק אם coverOpenOffset אינו null)
     const isBox = this.product?.name === 'box';
-    if (isBox) {
+    const shouldShowCover = isBox && this.dynamicParams.coverOpenOffset !== null;
+    
+    if (shouldShowCover) {
       console.log('יצירת מכסה לקופסא במיני-פרוויו...');
       
-      // גובה המכסה = beamHeight (עובי רצפה) + (beamsInHeight × beamWidth) + חצי beamHeight של המכסה
-      const coverY = beamHeight + (beamsInHeight * beamWidth) + beamHeight / 2;
+      // גובה המכסה = beamHeight (עובי רצפה) + (beamsInHeight × beamWidth) + חצי beamHeight של המכסה + offset פתיחה
+      const coverY = beamHeight + (beamsInHeight * beamWidth) + beamHeight / 2 + (this.dynamicParams.coverOpenOffset || 0);
       
       // קורות רצפת המכסה
       for (let i = 0; i < beamsInDepth; i++) {
