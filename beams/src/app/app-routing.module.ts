@@ -13,8 +13,6 @@ import { PrivacyPolicyComponent } from "./main-section/legal/privacy-policy/priv
 
 import { BranchListComponent } from "./super-management/branch/branch-list/branch-list.component";
 import { BranchCreateComponent } from "./super-management/branch/branch-create/branch-create.component";
-import { PrintingTableComponent } from "./main-section/printing-table/printing-table.component";
-import { PhPrintingTableComponent } from "./main-section/ph-printing-table/ph-printing-table.component";
 import { QrLinkComponent } from "./main-section/qr-link/qr-link.component";
 
 import { ProductListComponent } from "./super-management/product/product-list/product-list.component";
@@ -42,8 +40,6 @@ const routes: Routes = [
 
     { path: "branch", component: ChooseBranchComponent },
     { path: "product", component: ChooseProductComponent },
-    { path: "print", component: PrintingTableComponent },
-    { path: "phprint", component: PhPrintingTableComponent },
     { path: "home", component: HomeComponent },
     { path: "myorders/:userId", component: MyOrdersComponent },
     { path: "myprofile/:userId", component: MyProfileComponent },

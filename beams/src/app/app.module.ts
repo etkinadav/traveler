@@ -45,9 +45,6 @@ import { DeleteOrderComponent } from "./dialog/delete-order/delete-order.compone
 import { DeleteUserComponent } from "./dialog/delete-user/delete-user.component";
 import { AddPointsComponent } from "./dialog/add-points/add-points.component";
 import { CloseBranchComponent } from "./dialog/close-branch/close-branch.component";
-import { PrintingTableComponent } from "./main-section/printing-table/printing-table.component";
-import { PhPrintingTableComponent } from "./main-section/ph-printing-table/ph-printing-table.component";
-import { NavigationFromPrintingTableComponent } from "./main-section/settings-area/navigate-dropdown/navigation-from-printingtable/navigation-from-printingtable.component";
 import { NavigationFromPrinterManigmentComponent } from "./super-management/printer/navigation-from-printer-manigment/navigation-from-printer-manigment.component";
 import { MyOrdersComponent } from "./other-pages/my-orders/my-orders.component";
 import { HomeComponent } from "./other-pages/home/home.component";
@@ -61,7 +58,6 @@ import { PropertyExplainComponent } from "./dialog/property-explain/property-exp
 import { StationScreenComponent } from "./super-management/station-screen/station-screen.component";
 import { PrinterNumberComponent } from "./dialog/printer-number/printer-number.component"
 import { PendingOrderComponent } from "./other-pages/pending-order/pending-order.component";
-import { TooltipContentComponent } from "./main-section/printing-table/tooltips/paper-tooltip.component";
 import { PrinterComponent } from "./super-management/printer/printer.component";
 import { SuCloseBranchComponent } from "./dialog/su-close-branch/su-close-branch.component";
 import { SuEditUserComponent } from "./dialog/su-edit-user/su-edit-user.component";
@@ -81,11 +77,8 @@ import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
     ProductMiniPreviewComponent,
     ChooseBranchComponent,
     ChooseProductComponent,
-    PrintingTableComponent,
-    PhPrintingTableComponent,
     NavigateDropdownComponent,
     NavigationToBranchesComponent,
-    NavigationFromPrintingTableComponent,
     NavigationFromPrinterManigmentComponent,
     QrLinkComponent,
     MyOrdersComponent,
@@ -114,7 +107,6 @@ import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
     CloseBranchComponent,
     PrinterNumberComponent,
     PendingOrderComponent,
-    TooltipContentComponent,
     PrinterComponent,
     SuEditUserComponent
   ],

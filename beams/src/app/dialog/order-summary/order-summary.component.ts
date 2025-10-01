@@ -32,7 +32,7 @@ import lottie from 'lottie-web';
 import { AuthService } from 'src/app/auth/auth.service';
 import { set } from 'lodash';
 
-import { OrdersService } from "../../main-section/printing-table/order.service";
+import { BranchesService } from "../../super-management/order/order.service";
 import * as http from "node:http";
 
 @Directive({
@@ -128,7 +128,7 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
     private router: Router,
     private usersService: UsersService,
     private authService: AuthService,
-    private OrdersService: OrdersService,
+    private OrdersService: BranchesService,
     private fb: FormBuilder,
     private httpClient: HttpClient,
   ) {

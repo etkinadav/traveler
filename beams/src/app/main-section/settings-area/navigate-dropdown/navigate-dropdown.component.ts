@@ -17,7 +17,6 @@ export class NavigateDropdownComponent implements OnInit, OnDestroy {
   public printingService: string = '';
   private printingServiceSubscription: Subscription;
   isNavOpen: boolean = false;
-  isPrintRoute: boolean = false;
 
   constructor(
     private directionService: DirectionService,
@@ -37,10 +36,6 @@ export class NavigateDropdownComponent implements OnInit, OnDestroy {
       }
     });
 
-    console.log(this.router.url);
-    if (this.router.url === '/print') {
-      this.isPrintRoute = true;
-    }
   }
 
   ngOnDestroy() {

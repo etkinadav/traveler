@@ -24,10 +24,8 @@
         <div class="d-flex position-absolute top-0 start-0 zx-z-index-2" [class.end-0]="isRTL">
             <div class="d-flex w-100 p-2 mx-1 rounded-2 bg-white d-flex shadow-85-strong" [class.bg-dark]=" isDarkMode"
                 [class.zx-border-gray-v-light]="!isDarkMode">
-                <app-navigation-to-branches class="w-100" *ngIf="!isPrintRoute">
+                <app-navigation-to-branches class="w-100">
                 </app-navigation-to-branches>
-                <app-navigation-from-printingtable class="w-100" *ngIf="isPrintRoute">
-                </app-navigation-from-printingtable>
             </div>
         </div>
     </div>

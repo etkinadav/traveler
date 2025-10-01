@@ -44,4 +44,13 @@ export class BranchesService {
         })
       );
   }
+
+  createExpressOrder(filesIds: string[], branchID: string, printerID: string): Observable<any> {
+    const orderData = {
+      filesIds: filesIds,
+      branchID: branchID,
+      printerID: printerID
+    };
+    return this.http.post<any>(`${BACKEND_URL}/createExpressOrder`, orderData);
+  }
 }
