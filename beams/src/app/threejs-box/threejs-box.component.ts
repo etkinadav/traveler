@@ -1640,6 +1640,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             
             console.log('רצפת עדנית נוצרה בהצלחה');
             
+            // יצירת קירות לפני המכסה כדי לחשב את הגובה האמיתי
+            const beamsInHeight = Math.floor(planterHeight / beamWidth); // כמות קורות לפי הגובה שהמשתמש הזין
+            const actualWallHeight = beamsInHeight * beamWidth; // גובה אמיתי = כמות קורות * רוחב קורה
+            
             // יצירת מכסה (רק אם הפרמטר isCover מופעל)
             const isCoverParam = this.getParam('isCover');
             const shouldCreateCover = this.isBox && isCoverParam && isCoverParam.default === true;
@@ -1650,8 +1654,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const openCoverParam = this.getParam('openCover');
                 const coverOpenOffset = openCoverParam && openCoverParam.default === true ? 50 : 0;
                 
-                // גובה המכסה = גובה הקופסא - עומק הקורה - חצי גובה קורה + רווח ויזואלי + ערך פתיחה
-                const coverY = planterHeight - beamHeight - beamHeight / 2 + 0.1 + coverOpenOffset;
+                // גובה המכסה = beamHeight (עובי רצפה) + (beamsInHeight × beamWidth) + חצי beamHeight של המכסה
+                const coverY = beamHeight + (beamsInHeight * beamWidth) + beamHeight / 2 + coverOpenOffset;
                 
                 for (let i = 0; i < beamsInDepth; i++) {
                     const geometry = new THREE.BoxGeometry(
@@ -1768,10 +1772,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             // הוספת ברגים לקירות השמאליים והימניים בתחתית הרצפה
             this.addScrewsToSideWallsAtFloor(planterDepth, planterWidth, beamHeight, widthParam.default);
             
-            // יצירת הקירות - חישוב גובה נכון
-            const beamsInHeight = Math.floor(planterHeight / beamWidth); // כמות קורות לפי הגובה שהמשתמש הזין
-            const actualWallHeight = beamsInHeight * beamWidth; // גובה אמיתי = כמות קורות * רוחב קורה
-            
+            // יצירת הקירות - החישוב כבר נעשה למעלה
             if (beamsInHeight > 0) {
                 // חישוב רווחים ויזואליים לקירות
                 const wallVisualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
