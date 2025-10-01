@@ -34,7 +34,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   
   // משתנים למוצרים
   products: any[] = [];
-  isLoading: boolean = false;
+  isLoading: boolean = true; // מתחיל ב-true כדי להציג מצב טעינה
   error: string | null = null;
   selectedProduct: any = null;
   hoveredProduct: any = null;

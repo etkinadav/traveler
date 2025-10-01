@@ -35,14 +35,45 @@
                                 style="max-width: 100%;">
                                 <!-- printingService BTNs -->
                                 <article class="printing-service-btn-con d-flex flex-column gap-3">
-                                    <!-- Products BTNs -->
-                                    <div class="row g-3">
-                                        <div *ngFor="let product of products; let i = index" 
-                                            (mouseenter)="onHoverProduct(product)"
-                                            (mouseleave)="onHoverProduct(null)"
-                                            [class.zx-step-choosen]="selectedProduct?._id === product._id"
-                                            class="col-12 col-md-6 step-item-trans-product step-item rounded-3 shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
-                                            [class.step-item-dark]="isDarkMode">
+                                     <!-- Products BTNs -->
+                                     <div class="row g-3">
+                                         <!-- מצב טעינה - 6 כרטיסי דמה -->
+                                         <ng-container *ngIf="isLoading">
+                                             <div *ngFor="let item of [1,2,3,4,5,6]; let i = index" 
+                                                 class="col-12 col-md-6 step-item-trans-product step-item rounded-3 shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                                 [class.step-item-dark]="isDarkMode">
+                                             <!-- כפתור המשך למוצר -->
+                                             <button mat-stroked-button 
+                                                     class="continue-to-product-btn" 
+                                                     disabled>
+                                                 <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">...</span>
+                                             </button>
+                                             
+                                             <div class="d-flex align-items-center gap-3">
+                                                 <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded bg-light">
+                                                     <span class="text-muted">...</span>
+                                                 </div>
+                                             </div>
+                                             
+                                             <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
+                                                 <h6 class="fw-bold zx-text-big text-center text-muted">
+                                                     ...
+                                                 </h6>
+                                                 <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center text-muted">
+                                                     ...
+                                                 </span>
+                                             </div>
+                                             </div>
+                                         </ng-container>
+                                         
+                                         <!-- מצב רגיל - מוצרים אמיתיים -->
+                                         <ng-container *ngIf="!isLoading">
+                                             <div *ngFor="let product of products; let i = index" 
+                                                 (mouseenter)="onHoverProduct(product)"
+                                                 (mouseleave)="onHoverProduct(null)"
+                                                 [class.zx-step-choosen]="selectedProduct?._id === product._id"
+                                                 class="col-12 col-md-6 step-item-trans-product step-item rounded-3 shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                                 [class.step-item-dark]="isDarkMode">
                                         <!-- כפתור המשך למוצר -->
                                         <button mat-stroked-button 
                                                 class="continue-to-product-btn" 
@@ -65,12 +96,13 @@
                                             </span>
                                         </div>
                                         </div>
+                                        </ng-container>
                                         
-                                        <!-- כרטיסייה דמה למספר אי-זוגי של מוצרים -->
-                                        <div *ngIf="products.length % 2 !== 0" 
-                                            class="col-12 col-md-6 step-item-trans-product d-none d-md-block"
-                                            style="visibility: hidden; pointer-events: none;">
-                                        </div>
+                                         <!-- כרטיסייה דמה למספר אי-זוגי של מוצרים -->
+                                         <div *ngIf="!isLoading && products.length % 2 !== 0" 
+                                             class="col-12 col-md-6 step-item-trans-product d-none d-md-block"
+                                             style="visibility: hidden; pointer-events: none;">
+                                         </div>
                                     </div>
                                 
                                 </article>
