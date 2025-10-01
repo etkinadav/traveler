@@ -4185,7 +4185,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const startPosition = this.camera.position.clone();
         const startScenePosition = this.scene.position.clone();
         const currentDistance = startPosition.distanceTo(new THREE.Vector3(0, 0, 0));
-        const zoomAmount = -50; // זום אין (ערך שלילי כמו בגלגלת)
+        const zoomAmount = -150; // זום אין מוגבר (ערך שלילי כמו בגלגלת)
         const targetDistance = currentDistance + zoomAmount;
         
         // פרמטרים של rotate + pan שביקשת
