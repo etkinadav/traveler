@@ -165,20 +165,25 @@
     }
 }
 
-/* Loading Spinner */
+/* Loading Spinner - שכבת כיסוי קבועה מעל התפריט בזמן טעינה */
 .loading-spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 340px; /* רוחב התפריט המקסימלי */
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 100%;
     background: rgba(248, 249, 250, 0.8);
-    border-radius: 8px;
-    z-index: 1000;
+    z-index: 10000;
+}
+
+/* רוחב תפריט במובייל */
+@media (max-width: 768px) {
+    .loading-spinner {
+        width: 220px; /* רוחב התפריט במובייל */
+    }
 }
 
 .spinner {
