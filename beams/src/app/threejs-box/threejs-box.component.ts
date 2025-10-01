@@ -4655,7 +4655,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             
             totalWidth = planterDepth;  // תיקון: planterDepth -> totalWidth
             totalLength = planterWidth; // תיקון: planterWidth -> totalLength
-            totalHeight = actualHeight + beamHeight; // גובה אמיתי + גובה הריצפה
+            
+            // אם יש מכסה, הגובה הכולל צריך לכלול גם את עובי רצפת המכסה
+            const isCoverParam = this.getParam('isCover');
+            const hasCover = this.isBox && isCoverParam && isCoverParam.default === true;
+            
+            totalHeight = actualHeight + beamHeight + (hasCover ? beamHeight : 0); // גובה אמיתי + גובה הריצפה + גובה מכסה (אם יש)
         } else {
             // עבור ארון - חישוב זהה לחישוב הרגליים בפונקציה updateBeams
             // חישוב frameBeamHeight - זהה לחישוב בפונקציה updateBeams
