@@ -412,24 +412,30 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         Array.isArray(param.beams) &&
                         param.beams.length
                     ) {
-                        param.selectedBeamIndex = 0;
+                        console.log('Setting default beam for shelfs parameter');
+                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                        param.selectedBeamIndex = defaultBeamIndex;
                         param.selectedTypeIndex =
-                            Array.isArray(param.beams[0].types) &&
-                            param.beams[0].types.length
+                            Array.isArray(param.beams[defaultBeamIndex].types) &&
+                            param.beams[defaultBeamIndex].types.length
                                 ? 0
                                 : null;
+                        console.log('Shelfs parameter set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                     }
                     if (
                         param.type === 'beamSingle' &&
                         Array.isArray(param.beams) &&
                         param.beams.length
                     ) {
-                        param.selectedBeamIndex = 0;
+                        console.log('Setting default beam for beamSingle parameter:', param.name);
+                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                        param.selectedBeamIndex = defaultBeamIndex;
                         param.selectedTypeIndex =
-                            Array.isArray(param.beams[0].types) &&
-                            param.beams[0].types.length
+                            Array.isArray(param.beams[defaultBeamIndex].types) &&
+                            param.beams[defaultBeamIndex].types.length
                                 ? 0
                                 : null;
+                        console.log('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                     }
                     return param;
                 });
@@ -476,24 +482,30 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         Array.isArray(param.beams) &&
                         param.beams.length
                     ) {
-                        param.selectedBeamIndex = 0;
+                        console.log('Setting default beam for shelfs parameter');
+                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                        param.selectedBeamIndex = defaultBeamIndex;
                         param.selectedTypeIndex =
-                            Array.isArray(param.beams[0].types) &&
-                            param.beams[0].types.length
+                            Array.isArray(param.beams[defaultBeamIndex].types) &&
+                            param.beams[defaultBeamIndex].types.length
                                 ? 0
                                 : null;
+                        console.log('Shelfs parameter set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                     }
                     if (
                         param.type === 'beamSingle' &&
                         Array.isArray(param.beams) &&
                         param.beams.length
                     ) {
-                        param.selectedBeamIndex = 0;
+                        console.log('Setting default beam for beamSingle parameter:', param.name);
+                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                        param.selectedBeamIndex = defaultBeamIndex;
                         param.selectedTypeIndex =
-                            Array.isArray(param.beams[0].types) &&
-                            param.beams[0].types.length
+                            Array.isArray(param.beams[defaultBeamIndex].types) &&
+                            param.beams[defaultBeamIndex].types.length
                                 ? 0
                                 : null;
+                        console.log('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                     }
                     return param;
                 });
@@ -678,13 +690,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             Array.isArray(legParam.beams) &&
             legParam.beams.length
         ) {
-            legParam.selectedBeamIndex = legParam.selectedBeamIndex || 0;
+            console.log('Setting default beam for leg parameter');
+            const defaultBeamIndex = this.findDefaultBeamIndex(legParam.beams, legParam.defaultType);
+            legParam.selectedBeamIndex = legParam.selectedBeamIndex || defaultBeamIndex;
             legParam.selectedTypeIndex =
                 legParam.selectedTypeIndex ||
-                (Array.isArray(legParam.beams[0].types) &&
-                legParam.beams[0].types.length
+                (Array.isArray(legParam.beams[defaultBeamIndex].types) &&
+                legParam.beams[defaultBeamIndex].types.length
                     ? 0
                     : null);
+            console.log('Leg parameter set to beam index:', legParam.selectedBeamIndex, 'type index:', legParam.selectedTypeIndex);
         }
         // Example: set frameWidth/frameHeight if present in params
         // You can extend this to other params as needed
@@ -711,16 +726,18 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             // איפוס בחירות קורות
             if (param.type === 'beamSingle' || param.name === 'shelfs') {
                 if (Array.isArray(param.beams) && param.beams.length) {
-                    param.selectedBeamIndex = 0;
+                    console.log('Resetting beam selection for parameter:', param.name);
+                    const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                    param.selectedBeamIndex = defaultBeamIndex;
                     param.selectedTypeIndex =
-                        Array.isArray(param.beams[0].types) &&
-                        param.beams[0].types.length
+                        Array.isArray(param.beams[defaultBeamIndex].types) &&
+                        param.beams[defaultBeamIndex].types.length
                             ? 0
                             : null;
                     console.log(
                         'Reset beam selection for:',
                         param.name,
-                        'to beam 0, type 0'
+                        'to beam', defaultBeamIndex, ', type 0'
                     );
                 }
             }
@@ -5266,5 +5283,47 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             default:
                 return '';
         }
+    }
+
+    // Helper function to find default beam index based on defaultType
+    findDefaultBeamIndex(beams: any[], defaultType?: any): number {
+        if (!Array.isArray(beams) || beams.length === 0) {
+            console.log('No beams array or empty array, using index 0');
+            return 0;
+        }
+        
+        console.log('Searching for default beam in beams array:', beams.length, 'beams');
+        console.log('Looking for defaultType:', defaultType);
+        
+        // אם אין defaultType, חזרה לאינדקס 0
+        if (!defaultType) {
+            console.log('No defaultType provided, using index 0');
+            return 0;
+        }
+        
+        // חיפוש קורה שמתאימה ל-defaultType
+        for (let i = 0; i < beams.length; i++) {
+            const beam = beams[i];
+            console.log(`Beam ${i}:`, {
+                _id: beam._id,
+                name: beam.name,
+                translatedName: beam.translatedName
+            });
+            
+            // השוואה בין ה-ID של הקורה ל-defaultType
+            const beamId = beam._id?.toString() || beam._id?.$oid?.toString();
+            const defaultTypeId = defaultType?.toString() || defaultType?.$oid?.toString();
+            
+            console.log(`Comparing beam ${i}: beamId="${beamId}" vs defaultTypeId="${defaultTypeId}"`);
+            
+            if (beamId && defaultTypeId && beamId === defaultTypeId) {
+                console.log(`Found matching beam at index ${i}:`, beamId, 'matches', defaultTypeId);
+                return i;
+            }
+        }
+        
+        // אם לא נמצאה התאמה, חזרה לאינדקס 0
+        console.log('No matching beam found for defaultType, using index 0');
+        return 0;
     }
 }
