@@ -4143,10 +4143,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         cam.position.add(pan);
         this.scene.position.add(pan);
         
-        // המתנה של חצי שניה ואז זום אין אוטומטי
+        // המתנה של שנייה כדי שהמודל יסיים לעלות, ואז זום אין אוטומטי
         setTimeout(() => {
             this.performAutoZoomIn();
-        }, 500);
+        }, 1000);
         
         console.log('מצלמה מורכזת על מרכז העולם:', {
             fixedDistance: FIXED_DISTANCE,
