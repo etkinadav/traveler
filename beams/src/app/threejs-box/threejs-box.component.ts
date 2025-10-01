@@ -4168,7 +4168,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         // פרמטרים של rotate + pan שביקשת
         const rotatePixels = 30; // גרירה של 30 פיקסלים למטה (rotate)
-        const panPixels = 30; // גרירה של 30 פיקסלים למטה (pan)
+        const panPixels = 60; // גרירה של 60 פיקסלים למטה (pan) - פי 2 יותר
         const rotateAngle = rotatePixels * 0.01; // זהה ללוגיקה בשורה 938
         const panAmount = panPixels * 0.2; // זהה ללוגיקה בשורה 926
         
