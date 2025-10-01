@@ -248,10 +248,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // זיהוי סוג המוצר
     const isTable = this.product?.name === 'table';
     const isPlanter = this.product?.name === 'planter';
-    console.log('changeRandomShelfHeight נקרא - סוג מוצר:', isTable ? 'שולחן' : (isPlanter ? 'עדנית' : 'ארון'));
+    const isBox = this.product?.name === 'box';
+    console.log('changeRandomShelfHeight נקרא - סוג מוצר:', isTable ? 'שולחן' : (isPlanter ? 'עדנית' : (isBox ? 'קופסא' : 'ארון')));
     
-    if (isPlanter) {
-      // עדנית - שינוי גובה העדנית
+    if (isPlanter || isBox) {
+      // עדנית או קופסא - שינוי גובה
       const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
       if (!heightParam) {
         console.log('לא נמצא פרמטר גובה לעדנית');
@@ -396,6 +397,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // זיהוי סוג המוצר
     const isTable = this.product.name === 'table';
     const isPlanter = this.product.name === 'planter';
+    const isBox = this.product.name === 'box';
     
     // חיפוש קורות המדפים
     let currentBeam: any = null;
@@ -414,8 +416,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
             }
           }
         }
-      } else if (isPlanter) {
-        // עדנית - חיפוש פרמטר beam
+      } else if (isPlanter || isBox) {
+        // עדנית או קופסא - חיפוש פרמטר beam
         if (param.name === 'beam' && param.beams && param.beams.length > 0) {
           const beamIndex = param.selectedBeamIndex || 0;
           if (param.beams[beamIndex]) {
@@ -537,6 +539,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // זיהוי סוג המוצר
     const isTable = this.product.name === 'table';
     const isPlanter = this.product.name === 'planter';
+    const isBox = this.product.name === 'box';
 
     // חיפוש קורות המדפים
     let shelfBeams: any[] = [];
@@ -548,8 +551,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           shelfBeams = param.beams;
           shelfParam = param;
         }
-      } else if (isPlanter) {
-        // עדנית - חיפוש פרמטר beam
+      } else if (isPlanter || isBox) {
+        // עדנית או קופסא - חיפוש פרמטר beam
         if (param.name === 'beam' && param.beams && param.beams.length > 0) {
           shelfBeams = param.beams;
           shelfParam = param;
@@ -685,6 +688,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // זיהוי סוג המוצר
     const isTable = this.product.name === 'table';
     const isPlanter = this.product.name === 'planter';
+    const isBox = this.product.name === 'box';
 
     // חיפוש קורות המדפים
     let shelfBeams: any[] = [];
@@ -696,8 +700,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           shelfBeams = param.beams;
           shelfParam = param;
         }
-      } else if (isPlanter) {
-        // עדנית - חיפוש פרמטר beam
+      } else if (isPlanter || isBox) {
+        // עדנית או קופסא - חיפוש פרמטר beam
         if (param.name === 'beam' && param.beams && param.beams.length > 0) {
           shelfBeams = param.beams;
           shelfParam = param;
@@ -1189,6 +1193,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // זיהוי סוג המוצר
     const isTable = this.product.name === 'table';
     const isPlanter = this.product.name === 'planter';
+    const isBox = this.product.name === 'box';
 
     // אתחול אינדקס הקורה הנוכחית - תמיד הקורה הראשונה וה-type הראשון שלה
     this.currentBeamIndex = 0;
@@ -1204,8 +1209,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         if (param.type === 'beamSingle' && param.name === 'plata' && param.beams && param.beams.length > 0) {
           shelfBeams = param.beams;
         }
-      } else if (isPlanter) {
-        // עדנית - חיפוש פרמטר beam
+      } else if (isPlanter || isBox) {
+        // עדנית או קופסא - חיפוש פרמטר beam
         if (param.name === 'beam' && param.beams && param.beams.length > 0) {
           shelfBeams = param.beams;
         }
@@ -1301,17 +1306,17 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         const tableHeight = heightParam ? this.dynamicParams.height || heightParam.default || 80 : 80;
         this.shelfGaps = [tableHeight]; // מדף אחד בגובה שנקבע
         console.log('גובה מדף שולחן נטען:', this.shelfGaps);
-      } else if (isPlanter && param.name === 'beam') {
-        // עדנית - טיפול בפרמטר beam
+      } else if ((isPlanter || isBox) && param.name === 'beam') {
+        // עדנית או קופסא - טיפול בפרמטר beam
         if (param.beams && param.beams.length > 0) {
           const beam = param.beams[param.selectedBeamIndex || 0];
-          console.log('planter beam:', beam);
+          console.log(isBox ? 'box beam:' : 'planter beam:', beam);
           // המרה ממ"מ לס"מ כמו בקובץ הראשי
           const beamWidth = beam.width || 50; // ברירת מחדל 50 מ"מ
           const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
           this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
           this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
-          console.log('אתחול מידות קורת עדנית:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
+          console.log(isBox ? 'אתחול מידות קורת קופסא:' : 'אתחול מידות קורת עדנית:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
         }
       }
     });
@@ -1336,11 +1341,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
 
-    // בדיקה אם זו עדנית
+    // בדיקה אם זו עדנית או קופסא
     const isPlanter = this.product?.name === 'planter';
-    if (isPlanter) {
+    const isBox = this.product?.name === 'box';
+    if (isPlanter || isBox) {
       this.createPlanterModel();
-      return; // יציאה מהפונקציה - העדנית לא משתמשת במדפים רגילים
+      return; // יציאה מהפונקציה - העדנית/קופסא לא משתמשת במדפים רגילים
     }
 
     // יצירת מדפים דינמיים - זהה לקובץ הראשי
@@ -1636,11 +1642,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
 
-    // בדיקה אם זו עדנית
+    // בדיקה אם זו עדנית או קופסא
     const isPlanter = this.product?.name === 'planter';
-    if (isPlanter) {
+    const isBox = this.product?.name === 'box';
+    if (isPlanter || isBox) {
       this.createPlanterModel();
-      return; // יציאה מהפונקציה - העדנית לא משתמשת במדפים רגילים
+      return; // יציאה מהפונקציה - העדנית/קופסא לא משתמשת במדפים רגילים
     }
 
     // יצירת מדפים דינמיים - זהה לקובץ הראשי
@@ -1969,9 +1976,10 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     let totalModelHeight = 0;
     const isTable = this.product?.name === 'table';
     const isPlanter = this.product?.name === 'planter';
+    const isBox = this.product?.name === 'box';
     
-    if (isPlanter) {
-      // עדנית - גובה הקירות + גובה הרצפה
+    if (isPlanter || isBox) {
+      // עדנית או קופסא - גובה הקירות + גובה הרצפה
       const beamWidth = this.dynamicParams.beamWidth || 5;
       const beamHeight = this.dynamicParams.beamHeight || 2.5;
       const beamsInHeight = Math.floor(height / beamWidth);

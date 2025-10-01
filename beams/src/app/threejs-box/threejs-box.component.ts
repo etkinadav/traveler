@@ -1714,7 +1714,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 screw.position.set(xPositionWithOffset, screwY, zPosition - adjustedBeamWidth / 4);
                                 this.scene.add(screw);
                                 this.beamMeshes.push(screw);
-                            } else {
+                        } else {
                                 // קורות אמצעיות - 2 ברגים בכל טור (שמאל וימין)
                                 const screw1 = screwGeometry.clone();
                                 screw1.rotation.z = Math.PI;
