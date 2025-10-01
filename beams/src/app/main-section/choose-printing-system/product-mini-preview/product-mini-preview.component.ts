@@ -1984,7 +1984,10 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const beamHeight = this.dynamicParams.beamHeight || 2.5;
       const beamsInHeight = Math.floor(height / beamWidth);
       const actualWallHeight = beamsInHeight * beamWidth;
-      totalModelHeight = actualWallHeight + beamHeight; // גובה הקירות + גובה הרצפה
+      
+      // אם זו קופסא (תמיד עם מכסה במיני-פרוויו), נוסיף את גובה המכסה
+      const hasCover = isBox;
+      totalModelHeight = actualWallHeight + beamHeight + (hasCover ? beamHeight : 0); // גובה הקירות + גובה הרצפה + גובה מכסה
     } else if (isTable) {
       // שולחן - גובה המדף + גובה הרגליים
       totalModelHeight = this.shelfGaps[0] + this.dynamicParams.frameHeight + this.dynamicParams.beamHeight;
@@ -2497,6 +2500,66 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.scene.add(mesh);
       this.meshes.push(mesh);
     });
+    
+    // 4. יצירת מכסה (תמיד מופיע בקובץ המיני)
+    const isBox = this.product?.name === 'box';
+    if (isBox) {
+      console.log('יצירת מכסה לקופסא במיני-פרוויו...');
+      
+      // גובה המכסה = beamHeight (עובי רצפה) + (beamsInHeight × beamWidth) + חצי beamHeight של המכסה
+      const coverY = beamHeight + (beamsInHeight * beamWidth) + beamHeight / 2;
+      
+      // קורות רצפת המכסה
+      for (let i = 0; i < beamsInDepth; i++) {
+        const geometry = new THREE.BoxGeometry(
+          planterDepth, // אורך הקורה = עומק הקופסא
+          beamHeight,    // גובה הקורה = גובה הקורה
+          adjustedBeamWidth    // רוחב קורה מותאם עם רווחים
+        );
+        this.setCorrectTextureMapping(geometry, planterDepth, beamHeight, adjustedBeamWidth);
+        const material = new THREE.MeshStandardMaterial({ map: woodTexture });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        
+        // מיקום הקורה - זהה לרצפה אבל בגובה המכסה
+        const zPosition = (i * (adjustedBeamWidth + visualGap)) - (planterWidth / 2) + (adjustedBeamWidth / 2);
+        mesh.position.set(0, coverY, zPosition);
+        
+        this.scene.add(mesh);
+        this.meshes.push(mesh);
+      }
+      
+      // קורות תמיכה למכסה (בציר Z - לאורך planterWidth, מתחת למכסה)
+      console.log('יצירת קורות תמיכה למכסה במיני-פרוויו...');
+      const supportBeamY = coverY - beamHeight - 0.05; // מתחת למכסה בגובה של קורה + רווח קטן
+      const supportBeamLength = planterWidth - (4 * beamHeight) - 0.4; // קיצור נוסף של 0.2 ס"מ מכל צד
+      
+      // שתי קורות תמיכה - אחת מכל צד (בציר X)
+      for (let i = 0; i < 2; i++) {
+        const geometry = new THREE.BoxGeometry(
+          adjustedBeamWidth,   // רוחב = רוחב הקורה
+          beamHeight,         // גובה = height של הקורה
+          supportBeamLength  // אורך מקוצר - לאורך ציר Z
+        );
+        this.setCorrectTextureMapping(geometry, adjustedBeamWidth, beamHeight, supportBeamLength);
+        const material = new THREE.MeshStandardMaterial({ map: woodTexture });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        
+        // מיקום - אחת בקצה שמאלי ואחת בקצה ימני (ציר X), מוזזות פנימה ב-0.2 ס"מ נוסף
+        const xPosition = i === 0 
+          ? -planterDepth / 2 + adjustedBeamWidth / 2 + beamHeight + 0.2
+          : planterDepth / 2 - adjustedBeamWidth / 2 - beamHeight - 0.2;
+        mesh.position.set(xPosition, supportBeamY, 0);
+        
+        this.scene.add(mesh);
+        this.meshes.push(mesh);
+      }
+      
+      console.log('מכסה קופסא נוצר בהצלחה במיני-פרוויו');
+    }
     
     // סיבוב המודל
     this.scene.rotation.y = Math.PI / 6;
