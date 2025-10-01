@@ -267,8 +267,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
     hasNoMiddleBeams: boolean = false; // האם נשארות רק שתי הקורות המקוצרות (אין קורות באמצע)
-    isLoading: boolean = false; // האם התצוגה נטענת
-    isModelLoading: boolean = false; // האם המודל התלת-מימדי נטען
+    isLoading: boolean = true; // האם התצוגה נטענת - מתחיל ב-true כדי למנוע הבהוב
+    isModelLoading: boolean = true; // האם המודל התלת-מימדי נטען - מתחיל ב-true כדי למנוע הבהוב
     hasDimensionsAlert: boolean = false; // האם למוצר יש מגבלה של התרעת אי התאמה במידות
     // נתונים לחישוב מחיר
     BeamsDataForPricing: any[] = []; // מערך של נתוני קורות לחישוב מחיר
@@ -286,9 +286,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         private pricingService: PricingService
     ) {}
     ngOnInit() {
-        // הפעלת loading בטעינה הראשונית
-        this.isLoading = true;
-        
+        // isLoading כבר מוגדר ל-true בברירת המחדל
         this.checkUserAuthentication();
         // קבלת פרמטר המוצר מה-URL
         this.route.queryParams.subscribe((params) => {

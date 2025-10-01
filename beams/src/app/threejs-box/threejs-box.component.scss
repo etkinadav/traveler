@@ -488,6 +488,16 @@ mat-form-field {
     overflow-y: auto;
     overflow-x: visible;
     position: relative;
+    /* הבטחת גלילה מלאה עד הסוף */
+    scroll-padding-bottom: 80px;
+    scroll-behavior: smooth;
+}
+
+/* אלמנט ריק להבטחת גלילה מלאה */
+.scroll-spacer {
+    height: 100px;
+    width: 100%;
+    flex-shrink: 0;
 }
 
 // רוחב תפריט במובייל

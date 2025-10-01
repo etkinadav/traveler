@@ -390,7 +390,7 @@
                 </div>
                 
                 <!-- טבלת מידות המוצר -->
-                <div class="product-dimensions-container">
+                <div class="product-dimensions-container" *ngIf="!isLoading">
                     <h3>מידות המוצר הסופי</h3>
                     <table class="dimensions-table">
                         <tr>
@@ -423,6 +423,9 @@
                         </tr>
                     </table>
                 </div>
+                
+                <!-- אלמנט ריק להבטחת גלילה מלאה -->
+                <div class="scroll-spacer"></div>
                 </div> <!-- סיום התוכן הרגיל -->
             </ng-container>
         </div>
