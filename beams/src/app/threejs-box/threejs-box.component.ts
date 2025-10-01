@@ -5240,12 +5240,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // חישוב מחיר קורות (ללא חיתוך)
     getBeamsOnlyPrice(): number {
-        return this.cuttingPlan.reduce((sum, beam) => sum + beam.beamPrice, 0);
+        const price = this.cuttingPlan.reduce((sum, beam) => sum + beam.beamPrice, 0);
+        return Math.round(price * 100) / 100;
     }
     
     // חישוב מחיר חיתוכים
     getCuttingPrice(): number {
-        return this.cuttingPlan.reduce((sum, beam) => sum + (beam.totalCuttingPrice || 0), 0);
+        const price = this.cuttingPlan.reduce((sum, beam) => sum + (beam.totalCuttingPrice || 0), 0);
+        return Math.round(price * 100) / 100;
     }
     
     // חישוב המחיר הסופי לפי האופציה הנבחרת
@@ -5253,19 +5255,24 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const beamsPrice = this.getBeamsOnlyPrice();
         const cuttingPrice = this.getCuttingPrice();
         
+        let finalPrice = 0;
         switch (this.selectedPricingOption) {
             case 'cut':
                 // קורות חתוכות: קורות + חיתוך + שרטוט
-                return beamsPrice + cuttingPrice + this.drawingPrice;
+                finalPrice = beamsPrice + cuttingPrice + this.drawingPrice;
+                break;
             case 'full':
                 // קורות שלמות: קורות + שרטוט (ללא חיתוך)
-                return beamsPrice + this.drawingPrice;
+                finalPrice = beamsPrice + this.drawingPrice;
+                break;
             case 'plan':
                 // הוראות בלבד: רק שרטוט
-                return this.drawingPrice;
+                finalPrice = this.drawingPrice;
+                break;
             default:
-                return 0;
+                finalPrice = 0;
         }
+        return Math.round(finalPrice * 100) / 100;
     }
     
     // קבלת פירוט המחיר לפי האופציה הנבחרת
