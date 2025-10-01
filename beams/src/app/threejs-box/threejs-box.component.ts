@@ -304,19 +304,20 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.isPlanter
                 );
                 // בדיקה אם זה מוצר שונה מהמוצר האחרון
-                const lastProduct = localStorage.getItem('lastSelectedProduct');
+                const lastProductId = localStorage.getItem('lastSelectedProductId');
+                const currentProductId = params['productId'] || this.selectedProductName;
                 console.log(
-                    'Last product from localStorage:',
-                    lastProduct,
-                    'Current product:',
-                    this.selectedProductName
+                    'Last product ID from localStorage:',
+                    lastProductId,
+                    'Current product ID:',
+                    currentProductId
                 );
-                if (lastProduct && lastProduct !== this.selectedProductName) {
+                if (lastProductId && lastProductId !== currentProductId) {
                     console.log(
                         'מוצר שונה נבחר, מנקה ערכים:',
-                        lastProduct,
+                        lastProductId,
                         '->',
-                        this.selectedProductName
+                        currentProductId
                     );
                     this.clearUserConfiguration();
                 } else {
@@ -326,15 +327,19 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 }
                 // שמירת המוצר הנוכחי כברמוצר האחרון
                 localStorage.setItem(
-                    'lastSelectedProduct',
-                    this.selectedProductName
+                    'lastSelectedProductId',
+                    currentProductId
                 );
                 console.log(
                     'Saved current product to localStorage:',
                     this.selectedProductName
                 );
-                // טעינת המוצר הנכון לפי השם
-                this.getProductByName(this.selectedProductName);
+                // טעינת המוצר הנכון לפי ID או שם
+                if (params['productId']) {
+                    this.getProductById(params['productId']);
+                } else {
+                    this.getProductByName(this.selectedProductName);
+                }
             } else {
                 // אם אין פרמטר מוצר, נטען את המוצר האחרון או ברירת מחדל
                 const lastProduct = localStorage.getItem('lastSelectedProduct');
@@ -446,8 +451,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 console.log('פרמטר height:', heightParam);
                 console.log('פרמטר plata:', plataParam);
                 // Load saved configuration after product is loaded (only if same product)
-                const lastProduct = localStorage.getItem('lastSelectedProduct');
-                if (lastProduct === this.selectedProductName) {
+                const lastProductId = localStorage.getItem('lastSelectedProductId');
+                const currentProductId = this.product?._id || this.selectedProductName;
+                if (lastProductId === currentProductId) {
                 this.loadConfiguration();
                 }
                 this.updateBeams();
@@ -509,8 +515,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 console.log('פרמטר height:', heightParam);
                 console.log('פרמטר plata:', plataParam);
                 // Load saved configuration after product is loaded (only if same product)
-                const lastProduct = localStorage.getItem('lastSelectedProduct');
-                if (lastProduct === this.selectedProductName) {
+                const lastProductId = localStorage.getItem('lastSelectedProductId');
+                const currentProductId = this.product?._id || this.selectedProductName;
+                if (lastProductId === currentProductId) {
                 this.loadConfiguration();
                 }
                 this.updateBeams();

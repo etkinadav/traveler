@@ -198,9 +198,9 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
   // פונקציה לניווט למוצר
   navigateToProduct(product: any) {
-    if (product && product.name) {
-      // ניווט לעמוד המוצר עם שם המוצר
-      window.location.href = `/beams?product=${encodeURIComponent(product.name)}`;
+    if (product && product.name && product._id) {
+      // ניווט לעמוד המוצר עם שם המוצר ו-ID
+      window.location.href = `/beams?product=${encodeURIComponent(product.name)}&productId=${product._id}`;
     } else {
       // אם אין שם מוצר, ניווט לעמוד הכללי
       window.location.href = '/beams';
