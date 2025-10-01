@@ -4157,7 +4157,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
     }
     
-    // פונקציה לביצוע זום אין אוטומטי עם ease-in-out
+    // פונקציה לביצוע זום אין אוטומטי עם ease-in-out + rotate + pan
     private performAutoZoomIn() {
         const startTime = Date.now();
         const startPosition = this.camera.position.clone();
@@ -4166,30 +4166,49 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const zoomAmount = -50; // זום אין (ערך שלילי כמו בגלגלת)
         const targetDistance = currentDistance + zoomAmount;
         
-        // הורדה עדינה של המודל (30 פיקסלים)
-        const panDownAmount = 30 * 0.2; // המרה לפיקסלים עם אותו מקדם כמו pan רגיל
+        // פרמטרים של rotate + pan שביקשת
+        const rotatePixels = 30; // גרירה של 30 פיקסלים למטה (rotate)
+        const panPixels = 30; // גרירה של 30 פיקסלים למטה (pan)
+        const rotateAngle = rotatePixels * 0.01; // זהה ללוגיקה בשורה 938
+        const panAmount = panPixels * 0.2; // זהה ללוגיקה בשורה 926
+        
+        // חישוב מרכז קוביית ה-wireframe לסיבוב
+        const dimensions = this.getProductDimensionsRaw();
+        const wireframeCenter = new THREE.Vector3(0, dimensions.height / 2, 0);
+        
+        // שמירת מיקום התחלתי של הסיבוב
+        const startOffset = startPosition.clone().sub(wireframeCenter);
+        const startSpherical = new THREE.Spherical().setFromVector3(startOffset);
 
         const animate = () => {
             const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / 500, 1); // משך של חצי שנייה (פי 2 יותר מהיר)
+            const progress = Math.min(elapsed / 500, 1); // משך של חצי שנייה
 
             // Ease in out function
             const easeProgress = progress < 0.5
                 ? 2 * progress * progress
                 : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
+            // 1. Zoom - זום אין מתקדם
             let newDistance = THREE.MathUtils.lerp(currentDistance, targetDistance, easeProgress);
             if (newDistance < 1) newDistance = 1; // הגנה מפני מרחק קטן מדי
             
-            // שימוש באותה לוגיקה כמו בגלגלת
-            const direction = this.camera.position.clone().normalize();
-            this.camera.position.copy(direction.multiplyScalar(newDistance));
+            // 2. Rotate - סיבוב מתקדם (גרירה של 30 פיקסלים למטה עם לחצן שמאלי)
+            const currentRotateAngle = THREE.MathUtils.lerp(0, rotateAngle, easeProgress);
+            const currentSpherical = startSpherical.clone();
+            currentSpherical.phi -= currentRotateAngle; // סיבוב למטה
+            currentSpherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, currentSpherical.phi));
+            currentSpherical.radius = newDistance; // עדכון המרחק
             
-            // הורדה עדינה של המודל במהלך האנימציה
-            const panDownProgress = THREE.MathUtils.lerp(0, panDownAmount, easeProgress);
+            // עדכון מיקום המצלמה
+            const newOffset = new THREE.Vector3().setFromSpherical(currentSpherical);
+            this.camera.position.copy(wireframeCenter.clone().add(newOffset));
+            
+            // 3. Pan - הזזה מתקדמת (גרירה של 30 פיקסלים למטה עם גלגלת)
+            const currentPanAmount = THREE.MathUtils.lerp(0, panAmount, easeProgress);
             const cam = this.camera;
             const pan = new THREE.Vector3();
-            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), -panDownProgress); // שלילי = למטה
+            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), -currentPanAmount); // שלילי = למטה
             this.scene.position.copy(startScenePosition.clone().add(pan));
 
             if (progress < 1) {
@@ -4199,7 +4218,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     startDistance: currentDistance,
                     targetDistance: targetDistance,
                     finalDistance: this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0)),
-                    panDownAmount: panDownAmount,
+                    rotateAngle: rotateAngle,
+                    panAmount: panAmount,
                     duration: elapsed
                 });
             }
