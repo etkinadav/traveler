@@ -43,6 +43,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   currentTextIndex: number = 0;
   textChangeInterval: any;
   isTextChanging: boolean = false;
+  
 
   constructor(
     private directionService: DirectionService,
@@ -90,9 +91,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
         this.userIsAuthenticated = isAuthenticated;
         this.userId = this.authService.getUserId();
       });
-
-    // התחלת רוטציית הטקסטים
-    this.startTextRotation();
   }
 
   ngOnDestroy() {
@@ -260,5 +258,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     ];
     return subtitles[this.currentTextIndex];
   }
+  
   // ==================
 }
