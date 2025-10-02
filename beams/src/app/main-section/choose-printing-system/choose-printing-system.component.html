@@ -24,7 +24,9 @@
                         <div class="w-100 d-flex flex-column justify-content-between px-3 pt-4 pt-md-2 pb-4" style="padding-bottom: 1.8125rem !important;">
 
                             <div class="w-100 d-flex justify-content-center justify-content-md-between align-items-center">
-                                <h6 class="mb-0 fw-bold" style="font-size: 1.5rem; color: #0066cc;">
+                                <h6 class="mb-0 fw-bold" 
+                                    [style.color]="(imageKeys[currentImageIndex] === 'kids' || imageKeys[currentImageIndex] === 'garden') ? '#0066cc' : 'white'"
+                                    style="font-size: 1.5rem;">
                                     {{'choose-system.step-1' | translate}}
                                 </h6>
                             </div>
