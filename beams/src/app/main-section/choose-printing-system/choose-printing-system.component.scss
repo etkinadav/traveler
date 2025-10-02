@@ -472,7 +472,7 @@
 
 // עיצוב טקסט מתחלף מעל התמונה
 .text-shadow {
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 8px rgba(0, 102, 204, 0.4), 0 4px 16px rgba(0, 102, 204, 0.3);
 }
 
 // אפקט גרדיאנט עדין לטקסט
@@ -490,7 +490,7 @@
 
 .text-hover-effect:hover {
   transform: translateY(-2px);
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 4px 12px rgba(0, 102, 204, 0.5), 0 8px 24px rgba(0, 102, 204, 0.4);
 }
 
 // אנימציה לכניסת טקסט
@@ -517,7 +517,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  background: linear-gradient(45deg, transparent 30%, rgba(0, 102, 204, 0.15) 50%, transparent 70%);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -544,9 +544,11 @@
 .hero-text-bg-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25); // כהות עדינה יותר
+  background: rgba(255, 255, 255, 0.85); // רקע לבן עם שקיפות
   border-radius: 12px;
   z-index: 0;
+  backdrop-filter: blur(8px); // אפקט blur עדין
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3); // צללה לבנה עדינה
 }
 
 // הטקסטים מעל שכבת הרקע
@@ -582,7 +584,7 @@
 // מסכים גדולים (1440px+)
 @media only screen and (min-width: 1440px) and (max-width: 1919px) {
   .text-container-responsive {
-    padding-right: 9rem !important; // 6rem * 1.5
+    padding-right: 7.5rem !important; // העברה מ-1200px ל-1440px
   }
   
   .text-responsive h1 {
@@ -605,7 +607,7 @@
 // מסכים בינוניים-גדולים (1200px-1439px)
 @media only screen and (min-width: 1200px) and (max-width: 1439px) {
   .text-container-responsive {
-    padding-right: 7.5rem !important; // 5rem * 1.5
+    padding-right: 3.5rem !important; // הקטנה מ-7.5rem ל-3.5rem
   }
   
   .text-responsive h1 {
@@ -628,7 +630,7 @@
 // מסכים בינוניים (992px-1199px)
 @media only screen and (min-width: 992px) and (max-width: 1199px) {
   .text-container-responsive {
-    padding-right: 4rem !important;
+    padding-right: 2.5rem !important; // הקטנה מ-4rem ל-2.5rem
   }
   
   .text-responsive h1 {
@@ -651,7 +653,7 @@
 // מסכים קטנים-בינוניים (768px-991px)
 @media only screen and (min-width: 768px) and (max-width: 991px) {
   .text-container-responsive {
-    padding-right: 3rem !important;
+    padding-right: 2rem !important; // הקטנה מ-3rem ל-2rem
   }
   
   .text-responsive h1 {
