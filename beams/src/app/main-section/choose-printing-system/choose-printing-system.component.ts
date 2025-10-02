@@ -19,22 +19,7 @@ import { set } from 'lodash';
   host: {
     class: 'fill-screen'
   },
-  animations: [
-    trigger('slideInOut', [
-      transition('* => *', [
-        style({ 
-          opacity: 0, 
-          transform: 'translateX(30px) scale(0.95)' 
-        }),
-        animate('600ms cubic-bezier(0.25, 0.8, 0.25, 1)', 
-          style({ 
-            opacity: 1, 
-            transform: 'translateX(0) scale(1)' 
-          })
-        )
-      ])
-    ])
-  ]
+  animations: []
 })
 
 export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
@@ -60,6 +45,13 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   imageKeys: string[] = ['kids', 'hangar', 'garden', 'flexable', 'beergarden', 'inside'];
   currentImageIndex: number = 0;
   imageRotationInterval: any;
+  
+  // משתנים לאפקט slide
+  displayedTitle: string = '';
+  displayedText: string = '';
+  displayedSubtitle: string = '';
+  isTransitioning: boolean = false;
+  currentTransitionKey: string = 'card-' + Math.random();
 
   
 
@@ -100,6 +92,9 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
     // התחלת החלפת התמונות
     this.startImageRotation();
+    
+    // עדכון טקסט ראשון
+    this.updateTextImmediately();
 
     this.userId = this.authService.getUserId();
     this.userIsAuthenticated = this.authService.getIsAuth();
@@ -227,7 +222,10 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   startImageRotation() {
     this.imageRotationInterval = setInterval(() => {
       this.currentImageIndex = (this.currentImageIndex + 1) % this.imageKeys.length;
-      console.log('תמונה התחלפה ל:', this.imageKeys[this.currentImageIndex]);
+      console.log('תמונה וטקסט מתחלפים ל:', this.imageKeys[this.currentImageIndex]);
+      
+      // עדכון הטקסט מיידית עם התמונה
+      this.updateTextImmediately();
     }, 10000); // החלפה כל 10 שניות - מסונכרן עם התמונות
   }
 
@@ -245,6 +243,48 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   // פונקציה לקבלת כל נתיבי התמונות לסרט
   getAllImagePaths(): string[] {
     return this.imageKeys.map(key => `../../../assets/images/ondi-example/ondi-example-${key}.png`);
+  }
+  
+  updateTextImmediately() {
+    if (this.isTransitioning) return;
+    
+    this.isTransitioning = true;
+    
+    // יצירת key חדש לאפקט האנימציה
+    this.currentTransitionKey = 'card-' + Math.random();
+    
+    const currentKey = this.imageKeys[this.currentImageIndex];
+    
+    // קבלת הטקסטים החדשים מתורגמים
+    const newTitle = this.translateService.instant('choose-system.empty-title-' + currentKey);
+    const newText = this.translateService.instant('choose-system.empty-text-' + currentKey);
+    const newSubtitle = this.translateService.instant('choose-system.empty-subtitle-' + currentKey);
+    
+    // בדיקה שהתרגום מושלם
+    if (newTitle.includes('choose-system.empty-title-') || 
+        newText.includes('choose-system.empty-text-') || 
+        newSubtitle.includes('choose-system.empty-subtitle-')) {
+      console.log('תרגום לא מוכן, מחכה...');
+      
+      // ניסיון נוסף לאחר זמן קצר
+      setTimeout(() => {
+        this.isTransitioning = false;
+        this.updateTextImmediately();
+      }, 500);
+      return;
+    }
+    
+    // עדכון הטקסט
+    this.displayedTitle = newTitle;
+    this.displayedText = newText;
+    this.displayedSubtitle = newSubtitle;
+    
+    // סיום המעבר אחרי אנימציה
+    setTimeout(() => {
+      this.isTransitioning = false;
+    }, 400);
+    
+    console.log('טקסט עודכן עם slide:', { displayedTitle: this.displayedTitle });
   }
   
   // ==================

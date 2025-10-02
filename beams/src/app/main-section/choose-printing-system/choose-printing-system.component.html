@@ -6,6 +6,9 @@
              [alt]="'Background image ' + (i + 1)"
              class="image-film-item"
              [style.animation-delay]="i * 10 + 's'">
+        
+        <!-- שכבה לבנה עם שקיפות מעל התמונות -->
+        <div class="image-overlay-white"></div>
     </div>
     
     <div class="d-flex flex-grow-1 position-relative" style="z-index: 10;">
@@ -154,29 +157,28 @@
              style="z-index: 10; padding-bottom: 80px;">
             <!-- טקסט מתחלף מעל התמונה -->
             <div class="hero-text-block" 
-                 [@slideInOut]="imageKeys[currentImageIndex]"
-                 [style.animation-delay]="currentImageIndex * 10 + 's'">
+                 [style.transform]="isTransitioning ? 'translateY(0px)' : ''"
+                 [attr.data-transition-key]="currentTransitionKey">
                 <!-- שכבת רקע כהה-שקופה -->
                 <div class="hero-text-bg-overlay"></div>
                 
                 <!-- תוכן הטקסטים -->
                 <div class="text-responsive" style="color: var(--zx-green);">
                     <!-- כותרת ראשית -->
-                    <h1 class="display-4 fw-bold mb-3 text-shadow text-hover-effect text-glow"
-                        style="font-size: 1.4rem; line-height: 1.1; letter-spacing: -0.02em;">
-                        {{'choose-system.empty-title-' + imageKeys[currentImageIndex] | translate}}
-                    </h1>
+                    <h6 class="fw-bold zx-text-big mb-3 text-shadow text-hover-effect text-glow">
+                        {{displayedTitle}}
+                    </h6>
                     
                     <!-- טקסט הסבר -->
-                    <p class="fs-5 mb-5 text-shadow opacity-90 text-hover-effect fw-bold"
-                       style="font-size: 1.25rem; line-height: 1.4; max-width: 800px; margin-left: auto; font-weight: 700;">
-                        {{'choose-system.empty-text-' + imageKeys[currentImageIndex] | translate}}
+                    <p class="mb-5 text-shadow opacity-90 text-hover-effect"
+                       style="line-height: 1.4; max-width: 800px; margin-left: auto;">
+                        {{displayedText}}
                     </p>
                     
                     <!-- סלוגן -->
-                    <p class="fs-6 text-shadow opacity-80 text-hover-effect subtitle text-start fw-bold"
-                       style="font-size: 1.1rem; line-height: 1.3; max-width: 600px; margin-right: auto; font-weight: 700; letter-spacing: 0.02em; margin-bottom: 0.25rem;">
-                        {{'choose-system.empty-subtitle-' + imageKeys[currentImageIndex] | translate}}
+                    <p class="text-shadow opacity-80 text-hover-effect subtitle text-start"
+                       style="line-height: 1.3; max-width: 600px; margin-right: auto; letter-spacing: 0.02em; margin-bottom: 0.25rem;">
+                        {{displayedSubtitle}}
                     </p>
                 </div>
             </div>
