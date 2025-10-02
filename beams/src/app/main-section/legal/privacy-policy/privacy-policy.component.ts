@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { ConstantsService } from '../../../services/constants.service';
 
 @Component({
   selector: 'app-privacy-policy',
@@ -11,7 +12,8 @@ import { Router } from '@angular/router';
 })
 export class PrivacyPolicyComponent {
   constructor(
-    private router: Router
+    private router: Router,
+    private constantsService: ConstantsService
   ) { }
 
   navigateHome() {
@@ -19,8 +21,8 @@ export class PrivacyPolicyComponent {
   }
 
   openWhatsApp() {
-    const phoneNumber = '97233746962';
-    const message = encodeURIComponent('Privacy-Policy-At-Eazix');
+    const phoneNumber = this.constantsService.getWhatsAppNumber();
+    const message = encodeURIComponent(this.constantsService.getWhatsAppDefaultMessage());
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(url, '_blank');
   }

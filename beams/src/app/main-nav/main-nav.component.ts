@@ -13,6 +13,7 @@ import { OrdersService } from "../other-pages/my-orders/orders-service";
 
 import { delay, switchMap, filter } from 'rxjs/operators';
 import { BranchesService } from 'src/app/super-management/branch/branches.service';
+import { ConstantsService } from '../services/constants.service';
 
 @Component({
   selector: 'app-main-nav',
@@ -65,6 +66,7 @@ export class MainNavComponent implements OnInit, OnDestroy {
     private ordersService: OrdersService,
     private elementRef: ElementRef,
     private branchesService: BranchesService,
+    private constantsService: ConstantsService,
   ) {
     this.translateService.onLangChange.subscribe(() => {
       this.updateTranslation();
@@ -321,8 +323,8 @@ export class MainNavComponent implements OnInit, OnDestroy {
   }
 
   openWhatsApp() {
-    const phoneNumber = '97233746962';
-    const message = encodeURIComponent('Hi Eazix, I need some help printing :)');
+    const phoneNumber = this.constantsService.getWhatsAppNumber();
+    const message = encodeURIComponent(this.constantsService.getWhatsAppDefaultMessage());
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(url, '_blank');
     this.closeDrawer();

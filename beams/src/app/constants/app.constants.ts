@@ -1,6 +1,7 @@
 export const APP_CONSTANTS = {
   // WhatsApp Configuration
   WHATSAPP_NUMBER: '547840789',
+  WHATSAPP_DEFAULT_MESSAGE: 'היי צוות ondi, אשמח לעזרה',
   
   // Add more constants here as needed
   // Example:
@@ -18,3 +19,4 @@ export const APP_CONSTANTS = {
 
 // Export individual constants for easier access
 export const WHATSAPP_NUMBER = APP_CONSTANTS.WHATSAPP_NUMBER;
+export const WHATSAPP_DEFAULT_MESSAGE = APP_CONSTANTS.WHATSAPP_DEFAULT_MESSAGE;

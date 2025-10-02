@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { ConstantsService } from '../../../services/constants.service';
 
 @Component({
   selector: 'app-t-and-c',
@@ -12,7 +13,8 @@ import { Router } from '@angular/router';
 
 export class TAndCComponent {
   constructor(
-    private router: Router
+    private router: Router,
+    private constantsService: ConstantsService
   ) { }
 
   navigateHome() {
@@ -20,8 +22,8 @@ export class TAndCComponent {
   }
 
   openWhatsApp() {
-    const phoneNumber = '97233746962';
-    const message = encodeURIComponent('T_And_C-At-Eazix');
+    const phoneNumber = this.constantsService.getWhatsAppNumber();
+    const message = encodeURIComponent(this.constantsService.getWhatsAppDefaultMessage());
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(url, '_blank');
   }

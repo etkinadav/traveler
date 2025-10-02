@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { APP_CONSTANTS, WHATSAPP_NUMBER } from '../constants/app.constants';
+import { APP_CONSTANTS, WHATSAPP_NUMBER, WHATSAPP_DEFAULT_MESSAGE } from '../constants/app.constants';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +14,14 @@ export class ConstantsService {
    */
   getWhatsAppNumber(): string {
     return WHATSAPP_NUMBER;
+  }
+
+  /**
+   * Get default WhatsApp message
+   * @returns Default WhatsApp message as string
+   */
+  getWhatsAppDefaultMessage(): string {
+    return WHATSAPP_DEFAULT_MESSAGE;
   }
 
   /**

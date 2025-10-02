@@ -7,6 +7,7 @@ import { AuthService } from "src/app/auth/auth.service";
 import { Router } from "@angular/router";
 import { DialogService } from 'src/app/dialog/dialog.service';
 import { DataSharingService } from '../../main-section/data-shering-service/data-sharing.service';
+import { ConstantsService } from '../../services/constants.service';
 
 @Component({
   selector: "app-q-and-a-list",
@@ -48,6 +49,7 @@ export class QAndAComponent implements OnInit, OnDestroy {
     private router: Router,
     private dialogService: DialogService,
     private dataSharingService: DataSharingService,
+    private constantsService: ConstantsService,
   ) { }
 
   ngOnInit() {
@@ -96,8 +98,8 @@ export class QAndAComponent implements OnInit, OnDestroy {
   }
 
   openWhatsAppEditMode(msg: string) {
-    const phoneNumber = '97233746962';
-    const message = encodeURIComponent(msg);
+    const phoneNumber = this.constantsService.getWhatsAppNumber();
+    const message = encodeURIComponent(this.constantsService.getWhatsAppDefaultMessage());
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(url, '_blank');
   }

@@ -11,6 +11,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { DialogService } from 'src/app/dialog/dialog.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import * as _ from 'lodash';
+import { ConstantsService } from '../../services/constants.service';
 
 @Component({
   selector: "app-order-list",
@@ -63,6 +64,7 @@ export class MyOrdersComponent implements OnInit, OnDestroy {
     private router: Router,
     private dialogService: DialogService,
     private route: ActivatedRoute,
+    private constantsService: ConstantsService,
   ) { }
 
   ngOnInit() {
@@ -737,8 +739,8 @@ export class MyOrdersComponent implements OnInit, OnDestroy {
   }
 
   openWhatsApp() {
-    const phoneNumber = '97233746962';
-    const message = encodeURIComponent('My-Orders-at-Eazix');
+    const phoneNumber = this.constantsService.getWhatsAppNumber();
+    const message = encodeURIComponent(this.constantsService.getWhatsAppDefaultMessage());
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(url, '_blank');
   }

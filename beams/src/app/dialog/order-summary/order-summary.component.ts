@@ -16,6 +16,7 @@ import { HttpClient } from '@angular/common/http';
 import { DirectionService } from '../../direction.service';
 import { DialogService } from 'src/app/dialog/dialog.service';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { ConstantsService } from '../../services/constants.service';
 
 import { NgForm, FormControl, FormGroup, Validators, AbstractControl, FormBuilder } from "@angular/forms";
 import { CreditFormService } from 'src/app/other-pages/my-profile/credit-form-service';
@@ -131,6 +132,7 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
     private OrdersService: BranchesService,
     private fb: FormBuilder,
     private httpClient: HttpClient,
+    private constantsService: ConstantsService,
   ) {
     this.printingService = data.printingService;
     this.serverAddress = data.serverAddress;
@@ -602,8 +604,8 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
   }
 
   openWhatsApp() {
-    const phoneNumber = '97233746962';
-    const message = encodeURIComponent('After-Sending-To-Print');
+    const phoneNumber = this.constantsService.getWhatsAppNumber();
+    const message = encodeURIComponent(this.constantsService.getWhatsAppDefaultMessage());
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(url, '_blank');
   }

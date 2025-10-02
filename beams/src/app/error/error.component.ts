@@ -2,6 +2,7 @@ import { Component, Inject, OnInit, OnDestroy } from "@angular/core";
 import { MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { DirectionService } from "../direction.service";
 import { Subscription } from "rxjs";
+import { ConstantsService } from "../services/constants.service";
 
 @Component({
     templateUrl: './error.component.html',
@@ -19,6 +20,7 @@ export class ErrorComponent {
     constructor(
         @Inject(MAT_DIALOG_DATA) public data: { message: string },
         private directionService: DirectionService,
+        private constantsService: ConstantsService,
     ) { }
 
     ngOnInit() {
@@ -36,8 +38,8 @@ export class ErrorComponent {
     }
 
     openWhatsApp() {
-        const phoneNumber = '97233746962';
-        const message = encodeURIComponent('I-Have-an-Error: ' + this.data.message);
+        const phoneNumber = this.constantsService.getWhatsAppNumber();
+        const message = encodeURIComponent(this.constantsService.getWhatsAppDefaultMessage());
         const url = `https://wa.me/${phoneNumber}?text=${message}`;
         window.open(url, '_blank');
     }

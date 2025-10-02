@@ -17,6 +17,7 @@ import { DateAdapter } from '@angular/material/core';
 import { getLocaleId } from '@angular/common';
 import { Direction } from '@angular/cdk/bidi';
 import { MatTooltip } from '@angular/material/tooltip';
+import { ConstantsService } from '../../services/constants.service';
 
 import { CreditFormService } from '../my-profile/credit-form-service';
 
@@ -94,6 +95,7 @@ export class MyProfileComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private dateAdapter: DateAdapter<Date>,
     private creditFormService: CreditFormService,
+    private constantsService: ConstantsService,
   ) { }
 
   ngOnInit() {
@@ -249,8 +251,8 @@ export class MyProfileComponent implements OnInit, OnDestroy {
   }
 
   openWhatsApp() {
-    const phoneNumber = '97233746962';
-    const message = encodeURIComponent('My-Profile-at-Eazix');
+    const phoneNumber = this.constantsService.getWhatsAppNumber();
+    const message = encodeURIComponent(this.constantsService.getWhatsAppDefaultMessage());
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(url, '_blank');
   }
