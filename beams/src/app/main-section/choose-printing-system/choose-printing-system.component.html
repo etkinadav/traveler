@@ -155,7 +155,10 @@
         <div class="d-none d-md-flex h-100 flex-grow-1 position-relative justify-content-center align-items-end" 
              style="z-index: 10; padding-bottom: 80px;">
             <!-- טקסט קבוע מעל התמונה -->
-            <div class="hero-text-block">
+            <div *ngFor="let key of [currentTransitionKey]; trackBy: trackByTransitionKey" 
+                 class="hero-text-block" 
+                 [@fadeInOut]="key"
+                 style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);">
                 <!-- שכבת רקע כהה-שקופה -->
                 <div class="hero-text-bg-overlay"></div>
                 

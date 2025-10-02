@@ -19,7 +19,17 @@ import { set } from 'lodash';
   host: {
     class: 'fill-screen'
   },
-  animations: []
+  animations: [
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('150ms ease-in', style({ opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('150ms ease-out', style({ opacity: 0 }))
+      ])
+    ])
+  ]
 })
 
 export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
@@ -255,9 +265,16 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     return this.imageKeys.map(key => `../../../assets/images/ondi-example/ondi-example-${key}.png`);
   }
   
+  trackByTransitionKey(index: number, key: string): string {
+    return key;
+  }
+
   updateTextImmediately() {
     // הטקסט מתחלף עם התמונות
     const currentKey = this.imageKeys[this.currentImageIndex];
+    
+    // עדכון מפתח האנימציה לחומר מעבר פשוט
+    this.currentTransitionKey = 'card-' + currentKey + '-' + Date.now();
     
     // קבלת הטקסטים מתורגמים
     const title = this.translateService.instant('choose-system.empty-title-' + currentKey);
