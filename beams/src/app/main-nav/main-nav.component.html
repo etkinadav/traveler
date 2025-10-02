@@ -152,18 +152,7 @@
 <mat-sidenav-container>
   <mat-sidenav #drawer class="sidenav" mode="over" [(opened)]="isDrawerOpen">
 
-    <div class="position-absolute w-100 d-flex justify-content-end">
-      <button type="button" mat-icon-button aria-label="Toggle sidenav"
-        class="close-icon d-flex align-items-center justify-content-center zx-z-index-2" (click)="closeDrawer()">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-
     <mat-nav-list class="d-flex flex-column vh-100 pb-5">
-
-      <div class="w-100 d-flex justify-content-center zx-z-index-1 c-pointer" (click)="goToHome()">
-        <img src="assets/images/logo/ondi-logo.png" alt="OnDi Logo" class="ondi-logo c-pointer">
-      </div>
 
       <a class="d-sm-none" mat-list-item (click)="goToNewOrder()">
         <span class="mat-list-item-small text-green fw-bold">

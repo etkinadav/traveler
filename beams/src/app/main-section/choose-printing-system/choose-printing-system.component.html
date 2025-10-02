@@ -154,7 +154,8 @@
              style="z-index: 10; padding-bottom: 80px;">
             <!-- טקסט מתחלף מעל התמונה -->
             <div class="hero-text-block" 
-                 [@slideInOut]="imageKeys[currentImageIndex]">
+                 [@slideInOut]="imageKeys[currentImageIndex]"
+                 [style.animation-delay]="currentImageIndex * 10 + 's'">
                 <!-- שכבת רקע כהה-שקופה -->
                 <div class="hero-text-bg-overlay"></div>
                 
