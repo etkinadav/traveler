@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 import { DirectionService } from '../../direction.service';
 import { DataSharingService } from '../data-shering-service/data-sharing.service';
@@ -17,7 +18,23 @@ import { set } from 'lodash';
   styleUrls: ['./choose-printing-system.component.scss'],
   host: {
     class: 'fill-screen'
-  }
+  },
+  animations: [
+    trigger('slideInOut', [
+      transition('* => *', [
+        style({ 
+          opacity: 0, 
+          transform: 'translateX(30px) scale(0.95)' 
+        }),
+        animate('600ms cubic-bezier(0.25, 0.8, 0.25, 1)', 
+          style({ 
+            opacity: 1, 
+            transform: 'translateX(0) scale(1)' 
+          })
+        )
+      ])
+    ])
+  ]
 })
 
 export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {

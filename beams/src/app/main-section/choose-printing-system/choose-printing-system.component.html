@@ -144,6 +144,31 @@
                  alt="Background image"
                  class="w-100 h-100 object-fit-cover"
                  style="min-height: 100vh;">
+            
+            <!-- טקסט מתחלף מעל התמונה -->
+            <div class="position-absolute top-0 end-0 h-100 d-flex flex-column justify-content-center text-container-responsive" 
+                 style="max-width: 80%; z-index: 10;">
+                <div class="text-white text-end text-responsive" 
+                     [@slideInOut]="imageKeys[currentImageIndex]">
+                    <!-- כותרת ראשית -->
+                    <h1 class="display-4 fw-bold mb-3 text-shadow text-hover-effect text-glow"
+                        style="font-size: 3.5rem; line-height: 1.1; letter-spacing: -0.02em;">
+                        {{'choose-system.empty-title-' + imageKeys[currentImageIndex] | translate}}
+                    </h1>
+                    
+                    <!-- טקסט הסבר -->
+                    <p class="fs-5 mb-3 text-shadow opacity-90 text-hover-effect"
+                       style="font-size: 1.25rem; line-height: 1.4; max-width: 800px; margin-left: auto; font-weight: 400;">
+                        {{'choose-system.empty-text-' + imageKeys[currentImageIndex] | translate}}
+                    </p>
+                    
+                    <!-- סלוגן -->
+                    <p class="fs-6 text-shadow opacity-80 fst-italic text-hover-effect subtitle"
+                       style="font-size: 1.1rem; line-height: 1.3; max-width: 600px; margin-left: auto; font-weight: 300; letter-spacing: 0.02em;">
+                        {{'choose-system.empty-subtitle-' + imageKeys[currentImageIndex] | translate}}
+                    </p>
+                </div>
+            </div>
         </div>
         <!-- // LEFT SIDE CONTAINER -->
 

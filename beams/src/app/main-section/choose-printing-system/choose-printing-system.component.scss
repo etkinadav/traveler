@@ -469,3 +469,226 @@
     background-position: 200% 0;
   }
 }
+
+// עיצוב טקסט מתחלף מעל התמונה
+.text-shadow {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+// אפקט גרדיאנט עדין לטקסט
+.text-gradient {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// אפקט hover עדין לטקסט
+.text-hover-effect {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.text-hover-effect:hover {
+  transform: translateY(-2px);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+// אנימציה לכניסת טקסט
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(30px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+// אפקט זוהר עדין לטקסט
+.text-glow {
+  position: relative;
+}
+
+.text-glow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.text-glow:hover::before {
+  opacity: 1;
+}
+
+// עיצוב רספונסיבי לטקסט עם רווחים דינמיים
+.text-container-responsive {
+  padding-right: 3rem; // ברירת מחדל
+}
+
+// מסכים גדולים מאוד (4K ומעלה)
+@media only screen and (min-width: 1920px) {
+  .text-container-responsive {
+    padding-right: 12rem !important; // 8rem * 1.5
+  }
+  
+  .text-responsive h1 {
+    font-size: 4.5rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .text-responsive p {
+    font-size: 1.5rem !important;
+    line-height: 1.4 !important;
+    max-width: 1000px !important;
+  }
+  
+  .text-responsive .subtitle {
+    font-size: 1.3rem !important;
+    max-width: 800px !important;
+  }
+}
+
+// מסכים גדולים (1440px+)
+@media only screen and (min-width: 1440px) and (max-width: 1919px) {
+  .text-container-responsive {
+    padding-right: 9rem !important; // 6rem * 1.5
+  }
+  
+  .text-responsive h1 {
+    font-size: 4rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .text-responsive p {
+    font-size: 1.4rem !important;
+    line-height: 1.4 !important;
+    max-width: 900px !important;
+  }
+  
+  .text-responsive .subtitle {
+    font-size: 1.2rem !important;
+    max-width: 700px !important;
+  }
+}
+
+// מסכים בינוניים-גדולים (1200px-1439px)
+@media only screen and (min-width: 1200px) and (max-width: 1439px) {
+  .text-container-responsive {
+    padding-right: 7.5rem !important; // 5rem * 1.5
+  }
+  
+  .text-responsive h1 {
+    font-size: 3.5rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .text-responsive p {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+    max-width: 800px !important;
+  }
+  
+  .text-responsive .subtitle {
+    font-size: 1.1rem !important;
+    max-width: 600px !important;
+  }
+}
+
+// מסכים בינוניים (992px-1199px)
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+  .text-container-responsive {
+    padding-right: 4rem !important;
+  }
+  
+  .text-responsive h1 {
+    font-size: 3rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .text-responsive p {
+    font-size: 1.1rem !important;
+    line-height: 1.3 !important;
+    max-width: 700px !important;
+  }
+  
+  .text-responsive .subtitle {
+    font-size: 1rem !important;
+    max-width: 500px !important;
+  }
+}
+
+// מסכים קטנים-בינוניים (768px-991px)
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+  .text-container-responsive {
+    padding-right: 3rem !important;
+  }
+  
+  .text-responsive h1 {
+    font-size: 2.5rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .text-responsive p {
+    font-size: 1rem !important;
+    line-height: 1.3 !important;
+    max-width: 600px !important;
+  }
+  
+  .text-responsive .subtitle {
+    font-size: 0.9rem !important;
+    max-width: 450px !important;
+  }
+}
+
+// מסכים קטנים (576px-767px)
+@media only screen and (min-width: 576px) and (max-width: 767px) {
+  .text-container-responsive {
+    padding-right: 2rem !important;
+  }
+  
+  .text-responsive h1 {
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .text-responsive p {
+    font-size: 0.9rem !important;
+    line-height: 1.3 !important;
+    max-width: 500px !important;
+  }
+  
+  .text-responsive .subtitle {
+    font-size: 0.8rem !important;
+    max-width: 400px !important;
+  }
+}
+
+// מסכים קטנים מאוד (מתחת ל-576px)
+@media only screen and (max-width: 575px) {
+  .text-container-responsive {
+    padding-right: 1.5rem !important;
+  }
+  
+  .text-responsive h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .text-responsive p {
+    font-size: 0.8rem !important;
+    line-height: 1.2 !important;
+    max-width: 350px !important;
+  }
+  
+  .text-responsive .subtitle {
+    font-size: 0.7rem !important;
+    max-width: 300px !important;
+  }
+}
