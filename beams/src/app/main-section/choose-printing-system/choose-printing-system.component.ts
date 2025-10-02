@@ -228,7 +228,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     this.imageRotationInterval = setInterval(() => {
       this.currentImageIndex = (this.currentImageIndex + 1) % this.imageKeys.length;
       console.log('תמונה התחלפה ל:', this.imageKeys[this.currentImageIndex]);
-    }, 6000); // החלפה כל 6 שניות
+    }, 10000); // החלפה כל 10 שניות - מסונכרן עם התמונות
   }
 
   stopImageRotation() {
