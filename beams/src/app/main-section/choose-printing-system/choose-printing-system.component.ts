@@ -52,6 +52,11 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   displayedSubtitle: string = '';
   isTransitioning: boolean = false;
   currentTransitionKey: string = 'card-' + Math.random();
+  
+  // טקסט ברירת מחדל עד שהתרגום נטען
+  defaultTitle: string = 'פינות משחקים';
+  defaultText: string = 'צרו פינות משחקים ופנאי עבור ילדים עם מדפים צבעוניים ובטיחותיים';
+  defaultSubtitle: string = 'פינות פנאי לילדים';
 
   
 
@@ -72,6 +77,11 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     console.log('=== ChoosePrintingSystemComponent ngOnInit התחיל ===');
+    
+    // הצגת טקסט ברירת מחדל מיד כדי למנוע כרטיסאי ריקה
+    this.displayedTitle = this.defaultTitle;
+    this.displayedText = this.defaultText;
+    this.displayedSubtitle = this.defaultSubtitle;
     
     this.directionService.direction$.subscribe(direction => {
       this.isRTL = direction === 'rtl';
@@ -224,7 +234,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
       this.currentImageIndex = (this.currentImageIndex + 1) % this.imageKeys.length;
       console.log('תמונה וטקסט מתחלפים ל:', this.imageKeys[this.currentImageIndex]);
       
-      // עדכון הטקסט מיידית עם התמונה
+      // עדכון הטקסט עם התמונה
       this.updateTextImmediately();
     }, 10000); // החלפה כל 10 שניות - מסונכרן עם התמונות
   }
@@ -246,45 +256,35 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   }
   
   updateTextImmediately() {
-    if (this.isTransitioning) return;
-    
-    this.isTransitioning = true;
-    
-    // יצירת key חדש לאפקט האנימציה
-    this.currentTransitionKey = 'card-' + Math.random();
-    
+    // הטקסט מתחלף עם התמונות
     const currentKey = this.imageKeys[this.currentImageIndex];
     
-    // קבלת הטקסטים החדשים מתורגמים
-    const newTitle = this.translateService.instant('choose-system.empty-title-' + currentKey);
-    const newText = this.translateService.instant('choose-system.empty-text-' + currentKey);
-    const newSubtitle = this.translateService.instant('choose-system.empty-subtitle-' + currentKey);
+    // קבלת הטקסטים מתורגמים
+    const title = this.translateService.instant('choose-system.empty-title-' + currentKey);
+    const text = this.translateService.instant('choose-system.empty-text-' + currentKey);
+    const subtitle = this.translateService.instant('choose-system.empty-subtitle-' + currentKey);
     
-    // בדיקה שהתרגום מושלם
-    if (newTitle.includes('choose-system.empty-title-') || 
-        newText.includes('choose-system.empty-text-') || 
-        newSubtitle.includes('choose-system.empty-subtitle-')) {
-      console.log('תרגום לא מוכן, מחכה...');
-      
-      // ניסיון נוסף לאחר זמן קצר
-      setTimeout(() => {
-        this.isTransitioning = false;
-        this.updateTextImmediately();
-      }, 500);
-      return;
-    }
+    console.log('תרגומים:', { title, text, subtitle, currentKey });
     
     // עדכון הטקסט
-    this.displayedTitle = newTitle;
-    this.displayedText = newText;
-    this.displayedSubtitle = newSubtitle;
+    if (!title.includes('choose-system.empty-title-')) {
+      this.displayedTitle = title;
+    }
+    if (!text.includes('choose-system.empty-text-')) {
+      this.displayedText = text;
+    }
+    if (!subtitle.includes('choose-system.empty-subtitle-')) {
+      this.displayedSubtitle = subtitle;
+    }
     
-    // סיום המעבר אחרי אנימציה
-    setTimeout(() => {
-      this.isTransitioning = false;
-    }, 400);
+    console.log('טקסט עודכן לתמונה:', currentKey, { displayedTitle: this.displayedTitle });
     
-    console.log('טקסט עודכן עם slide:', { displayedTitle: this.displayedTitle });
+    // אם התרגום עדיין לא עובד, retry אחרי זמן קצר
+    if (title.includes('choose-system.empty-title-') || this.displayedTitle === '') {
+      setTimeout(() => {
+        this.updateTextImmediately();
+      }, 500);
+    }
   }
   
   // ==================

@@ -28,9 +28,8 @@
                         <div class="w-100 d-flex flex-column justify-content-between px-3 pt-4 pt-md-2 pb-4" style="padding-bottom: 1.8125rem !important;">
 
                             <div class="w-100 d-flex justify-content-center justify-content-md-between align-items-center">
-                                <h6 class="mb-0 fw-bold" 
-                                    [style.color]="(imageKeys[currentImageIndex] === 'kids' || imageKeys[currentImageIndex] === 'garden') ? '#0066cc' : 'white'"
-                                    style="font-size: 1.5rem;">
+                                <h6 class="mb-0 fw-bold zx-text-big" 
+                                    style="color: #0066cc !important;">
                                     {{'choose-system.step-1' | translate}}
                                 </h6>
                             </div>
@@ -155,17 +154,16 @@
         <!-- RIGHT SIDE CONTAINER - טקסט מעל התמונה -->
         <div class="d-none d-md-flex h-100 flex-grow-1 position-relative justify-content-center align-items-end" 
              style="z-index: 10; padding-bottom: 80px;">
-            <!-- טקסט מתחלף מעל התמונה -->
-            <div class="hero-text-block" 
-                 [style.transform]="isTransitioning ? 'translateY(0px)' : ''"
-                 [attr.data-transition-key]="currentTransitionKey">
+            <!-- טקסט קבוע מעל התמונה -->
+            <div class="hero-text-block">
                 <!-- שכבת רקע כהה-שקופה -->
                 <div class="hero-text-bg-overlay"></div>
                 
                 <!-- תוכן הטקסטים -->
                 <div class="text-responsive" style="color: var(--zx-green);">
                     <!-- כותרת ראשית -->
-                    <h6 class="fw-bold zx-text-big mb-3 text-shadow text-hover-effect text-glow">
+                    <h6 class="fw-bold zx-text-big mb-3 text-shadow text-hover-effect text-glow" 
+                        style="color: #0066cc !important;">
                         {{displayedTitle}}
                     </h6>
                     

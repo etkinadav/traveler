@@ -76,13 +76,13 @@
 .hamburger-line {
   width: 25px;
   height: 2px;
-  background-color: #333;
+  background-color: #0066cc; // כחול רגיל
   border-radius: 1px;
   transition: all 0.3s ease;
   transform-origin: center;
   
   &.hovered {
-    background-color: var(--zx-green);
+    background-color: #004499; // כחול יותר כהה
     animation: shrinkExpand 0.3s ease-in-out;
   }
   
@@ -521,8 +521,8 @@ mat-toolbar.transparent-toolbar {
 
 // דריסה עם סלקטור הכי ספציפי
 ::ng-deep .mat-toolbar.mat-toolbar-single-row.mat-toolbar {
-  background: #ffffffc9 !important;
-  background-color: #ffffffc9 !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 /* For Webkit browsers like Chrome, Safari */

@@ -45,7 +45,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.4); // מתחיל ב-40%
+  background-color: rgba(255, 255, 255, 0.55); // מתחיל ב-55%
   z-index: 2;
   pointer-events: none; // לא מפריע לקליקים
   animation: opacityPulse 10s ease-in-out infinite; // לופ כל 10 שניות (2 שלבים של 5 שניות)
@@ -69,16 +69,16 @@
   }
 }
 
-// אנימציה לשכבה הלבנה - החליפה בין 40% ל-70%
+// אנימציה לשכבה הלבנה - החליפה בין 55% ל-70%
 @keyframes opacityPulse {
   0% {
-    background-color: rgba(255, 255, 255, 0.4); // 40%
+    background-color: rgba(255, 255, 255, 0.55); // 55%
   }
   50% {
     background-color: rgba(255, 255, 255, 0.7); // 70%
   }
   100% {
-    background-color: rgba(255, 255, 255, 0.4); // חזרה ל-40%
+    background-color: rgba(255, 255, 255, 0.55); // חזרה ל-55%
   }
 }
 
@@ -630,38 +630,6 @@
   padding: 1.5rem;
   max-width: 290px;
   margin: 0 auto;
-  
-  // אפקט slide לכניסה ויציאה אפקטים
-  animation: slideInOut 0.4s ease-in-out;
-  
-  // כאשר יש מעבר, הכרטיסיה נשארת במקום זמנית לרגע
-  &[style*="translateY(0px)"] {
-    animation: slideOutIn 0.4s ease-in-out;
-  }
-}
-
-// אפקט slide: נכנס מלמטה ומתייצב במקום
-@keyframes slideInOut {
-  0% {
-    transform: translateY(500px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0px);
-    opacity: 1;
-  }
-}
-
-// אפקט slide: יוצא למטה ונכנס החדש
-@keyframes slideOutIn {
-  0% {
-    transform: translateY(0px);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(500px);
-    opacity: 0;
-  }
 }
 
 

@@ -56,8 +56,8 @@ $dark-warn: mat.define-palette(palette.$dark-warn);
 
 // דריסה גלובלית ל-mat-toolbar שקוף
 .mat-toolbar.mat-toolbar-single-row.transparent-toolbar {
-  background: #ffffffc9 !important;
-  background-color: #ffffffc9 !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .continue-to-product-btn:hover {
