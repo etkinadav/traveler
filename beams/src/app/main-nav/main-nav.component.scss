@@ -88,12 +88,12 @@ button.mat-icon-hanburger-con {
 .zx-login-btn::after {
   content: '';
   position: absolute;
-  bottom: -4px;
+  bottom: 4px;
   left: 50%;
   transform: translateX(-50%);
   width: 10px;
   height: 0;
-  border-bottom: 1px solid var(--zx-green);
+  border-bottom: 2px solid var(--zx-green);
 }
 
 @media (min-width: 576px) {
