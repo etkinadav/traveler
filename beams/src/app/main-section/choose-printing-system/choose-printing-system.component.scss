@@ -535,10 +535,11 @@
 // עיצוב שכבת הרקע הכהה-שקופה לטקסטים
 .hero-text-block {
   position: relative;
-  display: inline-block;
+  display: block;
   padding: 1.5rem;
   max-width: 600px;
-  margin-inline: auto;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .hero-text-bg-overlay {

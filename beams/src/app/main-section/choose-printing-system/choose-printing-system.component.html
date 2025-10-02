@@ -138,7 +138,7 @@
          
 
         <!-- LEFT SIDE CONTAINER -->
-        <div class="d-flex h-100 flex-grow-1 position-relative">
+        <div class="d-none d-md-flex h-100 flex-grow-1 position-relative">
             <!-- תמונה מתחלפת -->
             <img [src]="getCurrentImagePath()" 
                  alt="Background image"
@@ -146,8 +146,8 @@
                  style="min-height: 100vh;">
             
             <!-- טקסט מתחלף מעל התמונה -->
-            <div class="position-absolute top-0 end-0 h-100 d-flex flex-column justify-content-center text-container-responsive" 
-                 style="max-width: 80%; z-index: 10;">
+            <div class="position-absolute top-0 start-0 end-0 h-100 d-flex flex-column justify-content-center text-container-responsive" 
+                 style="z-index: 10;">
                 <div class="hero-text-block" 
                      [@slideInOut]="imageKeys[currentImageIndex]">
                     <!-- שכבת רקע כהה-שקופה -->
