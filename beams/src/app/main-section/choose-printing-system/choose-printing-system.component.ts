@@ -241,6 +241,11 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     const currentKey = this.imageKeys[this.currentImageIndex];
     return `../../../assets/images/ondi-example/ondi-example-${currentKey}.png`;
   }
+
+  // פונקציה לקבלת כל נתיבי התמונות לסרט
+  getAllImagePaths(): string[] {
+    return this.imageKeys.map(key => `../../../assets/images/ondi-example/ondi-example-${key}.png`);
+  }
   
   // ==================
 }
