@@ -39,6 +39,11 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   selectedProduct: any = null;
   hoveredProduct: any = null;
 
+  // משתנים לתמונות מתחלפות
+  imageKeys: string[] = ['kids', 'hangar', 'garden', 'flexable', 'beergarden', 'inside'];
+  currentImageIndex: number = 0;
+  imageRotationInterval: any;
+
   
 
   constructor(
@@ -76,7 +81,8 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     console.log('קורא לפונקציה loadAllProducts');
     this.loadAllProducts();
 
-    // התחלת אנימציית הטקסטים המתחלפים
+    // התחלת החלפת התמונות
+    this.startImageRotation();
 
     this.userId = this.authService.getUserId();
     this.userIsAuthenticated = this.authService.getIsAuth();
@@ -90,6 +96,8 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     // this.authStatusSub.unsubscribe();
+    // עצירת החלפת התמונות
+    this.stopImageRotation();
   }
 
   onHoverPrintingService(value: string) {
@@ -198,6 +206,24 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     }
   }
 
+  // פונקציות להחלפת תמונות
+  startImageRotation() {
+    this.imageRotationInterval = setInterval(() => {
+      this.currentImageIndex = (this.currentImageIndex + 1) % this.imageKeys.length;
+      console.log('תמונה התחלפה ל:', this.imageKeys[this.currentImageIndex]);
+    }, 4000); // החלפה כל 4 שניות
+  }
+
+  stopImageRotation() {
+    if (this.imageRotationInterval) {
+      clearInterval(this.imageRotationInterval);
+    }
+  }
+
+  getCurrentImagePath(): string {
+    const currentKey = this.imageKeys[this.currentImageIndex];
+    return `../../../assets/images/ondi-example/ondi-example-${currentKey}.png`;
+  }
   
   // ==================
 }
