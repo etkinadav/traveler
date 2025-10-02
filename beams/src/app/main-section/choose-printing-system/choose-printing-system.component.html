@@ -1,16 +1,14 @@
 <div class="full-screen overflow-hidden position-relative">
-    <!-- סרט תמונות רציף -->
-    <div class="d-none d-md-block position-absolute top-0 start-0 w-100 h-100 overflow-hidden" style="z-index: 1;">
-        <div class="image-film-container">
-            <img *ngFor="let imagePath of getAllImagePaths(); let i = index" 
-                 [src]="imagePath" 
-                 [alt]="'Background image ' + (i + 1)"
-                 class="image-film-item"
-                 [style.animation-delay]="i * 10 + 's'">
-        </div>
+    <!-- סרט תמונות רציף - מאחורי הכל כולל navBar -->
+    <div class="image-film-container">
+        <img *ngFor="let imagePath of getAllImagePaths(); let i = index" 
+             [src]="imagePath" 
+             [alt]="'Background image ' + (i + 1)"
+             class="image-film-item"
+             [style.animation-delay]="i * 10 + 's'">
     </div>
     
-    <div class="d-flex flex-grow-1 position-relative" style="z-index: 2;">
+    <div class="d-flex flex-grow-1 position-relative" style="z-index: 10;">
 
         <!-- CHOOSE PRINTING SYSTEM SIDE -->
         <div class="zx-settings-nav flex-shrink h-100 d-flex flex-column overflow-hidden position-relative"
@@ -153,7 +151,7 @@
 
         <!-- RIGHT SIDE CONTAINER - טקסט מעל התמונה -->
         <div class="d-none d-md-flex h-100 flex-grow-1 position-relative justify-content-center align-items-end" 
-             style="z-index: 3; padding-bottom: 80px;">
+             style="z-index: 10; padding-bottom: 80px;">
             <!-- טקסט מתחלף מעל התמונה -->
             <div class="hero-text-block" 
                  [@slideInOut]="imageKeys[currentImageIndex]">

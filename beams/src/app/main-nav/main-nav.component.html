@@ -1,3 +1,142 @@
+<!-- NavBar קבוע מעל הכל -->
+<mat-toolbar [ngClass]="{'transparent-toolbar': isHomePage()}" 
+             style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 99999 !important;"
+             [class.zx-100-opp]="isRootScreen">
+
+    <button class="mat-icon-hanburger-con" mat-icon-button type="button" aria-label="Toggle sidenav"
+      (click)="toggleDrawer()">
+      <mat-icon class="mat-icon-hanburger" aria-label="Side nav toggle icon">menu</mat-icon>
+    </button>
+
+    <span class="spacer d-lg-none"></span>
+
+    <div (click)="goToHome()"
+      class="d-flex align-items-center gap-2 zx-flex-grow-lg-1 justify-content-lg-center mx-lg-2">
+      <img *ngIf="userName !== ''" src="assets/images/logo/ondi-logo-small.png" alt="OnDi Logo"
+        class="d-flex d-sm-none ondi-logo-small c-pointer mx-2">
+      <img *ngIf="userName !== ''" src="assets/images/logo/ondi-logo.png" alt="OnDi Logo"
+        class="d-none d-sm-flex ondi-logo c-pointer mx-2">
+      <img *ngIf="userName === ''" src="assets/images/logo/ondi-logo-small.png" alt="OnDi Logo"
+        class="d-flex d-sm-none ondi-logo-small c-pointer mx-2">
+      <img *ngIf="userName === ''" src="assets/images/logo/ondi-logo.png" alt="OnDi Logo"
+        class="d-none d-sm-flex ondi-logo c-pointer mx-2">
+
+      <span *ngIf="userName !== ''" class="zx-text-tiny text-green px-lg-3" [class.zx-rtl]="isRTL">
+        <span>{{ 'main-nav.greeting.' + greeting | translate }}, </span>
+        <span class="d-lg-none">
+          <b>
+            {{ userName| slice:0:8 }}
+          </b>
+          <span *ngIf="userName.length > 8">
+            ...
+          </span>
+        </span>
+        <span class="d-none d-lg-inline">
+          <b>
+            {{ userName| slice:0:30 }}
+          </b>
+          <span *ngIf="userName.length > 30">
+            ...
+          </span>
+        </span>
+      </span>
+    </div>
+
+    <span class="spacer d-lg-none"></span>
+
+    <div class="d-flex align-items-center gap-2 h-100">
+
+      <button *ngIf="userIsAuthenticated" class="d-none d-sm-flex zx-text-tiny zx-bg-gray-light" mat-flat-button
+        (click)="goToMyOrders()" [class.num-pending-btn]="userIsAuthenticated && numOfPendingOrders > 0">
+        <div class="position-relative" [class.fw-bold]="userIsAuthenticated && numOfPendingOrders > 0">
+          <span [class.num-pending-text]="userIsAuthenticated && numOfPendingOrders > 0 && !isDarkMode">
+            {{'main-nav.my-orders' | translate }}
+          </span>
+          <span class="num-pending-con position-absolute" [class.num-pending-con-not-rtl]="!isRTL"
+            *ngIf="userIsAuthenticated && numOfPendingOrders > 0">
+            <span class="num-pending">
+              {{ numOfPendingOrders < 9 ? numOfPendingOrders : '9+' }} </span>
+            </span>
+        </div>
+      </button>
+
+      <button *ngIf="userIsAuthenticated" class="d-none d-sm-flex zx-text-tiny zx-bg-gray-light" mat-flat-button
+        (click)="goToNewOrder()">
+        {{'main-nav.new-order' | translate }}
+      </button>
+
+      <div class="h-100 d-flex align-items-center">
+
+        <button *ngIf="userName === '' && !isLoggedOutLoading" type="button" mat-stroked-button color="primary"
+          class="zx-login-btn text-primary rounded-pill" (click)="openLoginDialog()">
+          {{'main-nav.log-in' | translate}}
+        </button>
+
+        <div *ngIf="userName !== ''" class="h-100 d-flex align-items-center c-pointer">
+          <div class="h-100 d-flex align-items-center c-pointer" (click)="toggleProfileManu()">
+            <mat-icon *ngIf="!isProManuOpen" class="zx-tiny-arrow-size">arrow_drop_down</mat-icon>
+            <mat-icon *ngIf="isProManuOpen" class="zx-tiny-arrow-size">arrow_drop_up</mat-icon>
+            <a type="button" color="primary">
+              <img class="rounded-circle svg zx-profile-default" [src]="getUserProfileImg(user)"
+                alt="Default Profile Image">
+            </a>
+          </div>
+          <div class="overlay-manu" *ngIf="isProManuOpen" (click)="closeProfileManu()"></div>
+          <div class="position-absolute" *ngIf="isProManuOpen">
+            <div class="position-relative">
+              <div class="zx-profile-manu rounded-3 step-item" [class.zx-profile-manu-rtl]="isRTL"
+                [class.zx-profile-manu-dark]="isDarkMode">
+
+                <button class="justify-content-start d-sm-none rounded-top-3" mat-menu-item (click)="goToNewOrder()">
+                  <span class="mat-list-item-small text-green fw-bold">
+                    {{'main-nav.new-order' | translate}}
+                  </span>
+                </button>
+
+                <button *ngIf="userIsAuthenticated" class="justify-content-start d-sm-none" mat-menu-item
+                  (click)="goToMyOrders()">
+                  <div class="d-flex align-items-center justify-content-center gap-2">
+                    <span class="mat-list-item-small" [class.fw-bold]="userIsAuthenticated && numOfPendingOrders > 0"
+                      [class.num-pending-text]="userIsAuthenticated && numOfPendingOrders > 0 && !isDarkMode">
+                      {{'main-nav.my-orders' | translate }}
+                    </span>
+                    <span class="num-pending-con" [class.num-pending-con-not-rtl]="!isRTL"
+                      *ngIf="userIsAuthenticated && numOfPendingOrders > 0">
+                      <span class="num-pending">
+                        {{ numOfPendingOrders < 9 ? numOfPendingOrders : '9+' }} </span>
+                      </span>
+                  </div>
+                </button>
+
+                <button class="justify-content-start rounded-sm-top-3" mat-menu-item (click)="goToMyProfile()">
+                  <span class="mat-list-item-small">
+                    {{'main-nav.my-profile' | translate}}
+                  </span>
+                </button>
+
+                <button class="justify-content-start" mat-menu-item (click)="goToMyProfileCreditMode()">
+                  <span class="mat-list-item-small">
+                    {{'main-nav.methods-of-payment' | translate}}
+                  </span>
+                </button>
+
+                <hr class="m-1">
+
+                <button class="justify-content-start rounded-bottom-3" mat-menu-item (click)="onLogout()">
+                  <span class="mat-list-item-small" [class.zx-text-warn]="!isDarkMode">
+                    {{'main-nav.logout' | translate}}
+                  </span>
+                </button>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+</mat-toolbar>
+
 <mat-sidenav-container>
   <mat-sidenav #drawer class="sidenav" mode="over" [(opened)]="isDrawerOpen">
 
@@ -249,143 +388,7 @@
 
     </mat-nav-list>
   </mat-sidenav>
-  <mat-sidenav-content [class.zx-no-scroller]="isHomePage()" style="overflow-x: hidden;">
-    <mat-toolbar [ngClass]="{'transparent-toolbar': isHomePage()}" style="z-index: 3;"
-      [class.zx-100-opp]="isRootScreen">
-
-      <button class="mat-icon-hanburger-con" mat-icon-button type="button" aria-label="Toggle sidenav"
-        (click)="toggleDrawer()">
-        <mat-icon class="mat-icon-hanburger" aria-label="Side nav toggle icon">menu</mat-icon>
-      </button>
-
-      <span class="spacer d-lg-none"></span>
-
-      <div (click)="goToHome()"
-        class="d-flex align-items-center gap-2 zx-flex-grow-lg-1 justify-content-lg-center mx-lg-2">
-        <img *ngIf="userName !== ''" src="assets/images/logo/ondi-logo-small.png" alt="OnDi Logo"
-          class="d-flex d-sm-none ondi-logo-small c-pointer mx-2">
-        <img *ngIf="userName !== ''" src="assets/images/logo/ondi-logo.png" alt="OnDi Logo"
-          class="d-none d-sm-flex ondi-logo c-pointer mx-2">
-        <img *ngIf="userName === ''" src="assets/images/logo/ondi-logo-small.png" alt="OnDi Logo"
-          class="d-flex d-sm-none ondi-logo-small c-pointer mx-2">
-        <img *ngIf="userName === ''" src="assets/images/logo/ondi-logo.png" alt="OnDi Logo"
-          class="d-none d-sm-flex ondi-logo c-pointer mx-2">
-
-        <span *ngIf="userName !== ''" class="zx-text-tiny text-green px-lg-3" [class.zx-rtl]="isRTL">
-          <span>{{ 'main-nav.greeting.' + greeting | translate }}, </span>
-          <span class="d-lg-none">
-            <b>
-              {{ userName| slice:0:8 }}
-            </b>
-            <span *ngIf="userName.length > 8">
-              ...
-            </span>
-          </span>
-          <span class="d-none d-lg-inline">
-            <b>
-              {{ userName| slice:0:30 }}
-            </b>
-            <span *ngIf="userName.length > 30">
-              ...
-            </span>
-          </span>
-        </span>
-      </div>
-
-      <span class="spacer d-lg-none"></span>
-
-      <div class="d-flex align-items-center gap-2 h-100">
-
-        <button *ngIf="userIsAuthenticated" class="d-none d-sm-flex zx-text-tiny zx-bg-gray-light" mat-flat-button
-          (click)="goToMyOrders()" [class.num-pending-btn]="userIsAuthenticated && numOfPendingOrders > 0">
-          <div class="position-relative" [class.fw-bold]="userIsAuthenticated && numOfPendingOrders > 0">
-            <span [class.num-pending-text]="userIsAuthenticated && numOfPendingOrders > 0 && !isDarkMode">
-              {{'main-nav.my-orders' | translate }}
-            </span>
-            <span class="num-pending-con position-absolute" [class.num-pending-con-not-rtl]="!isRTL"
-              *ngIf="userIsAuthenticated && numOfPendingOrders > 0">
-              <span class="num-pending">
-                {{ numOfPendingOrders < 9 ? numOfPendingOrders : '9+' }} </span>
-              </span>
-          </div>
-        </button>
-
-        <button *ngIf="userIsAuthenticated" class="d-none d-sm-flex zx-text-tiny zx-bg-gray-light" mat-flat-button
-          (click)="goToNewOrder()">
-          {{'main-nav.new-order' | translate }}
-        </button>
-
-        <div class="h-100 d-flex align-items-center">
-
-          <button *ngIf="userName === '' && !isLoggedOutLoading" type="button" mat-stroked-button color="primary"
-            class="zx-login-btn text-primary rounded-pill" (click)="openLoginDialog()">
-            {{'main-nav.log-in' | translate}}
-          </button>
-
-          <div *ngIf="userName !== ''" class="h-100 d-flex align-items-center c-pointer">
-            <div class="h-100 d-flex align-items-center c-pointer" (click)="toggleProfileManu()">
-              <mat-icon *ngIf="!isProManuOpen" class="zx-tiny-arrow-size">arrow_drop_down</mat-icon>
-              <mat-icon *ngIf="isProManuOpen" class="zx-tiny-arrow-size">arrow_drop_up</mat-icon>
-              <a type="button" color="primary">
-                <img class="rounded-circle svg zx-profile-default" [src]="getUserProfileImg(user)"
-                  alt="Default Profile Image">
-              </a>
-            </div>
-            <div class="overlay-manu" *ngIf="isProManuOpen" (click)="closeProfileManu()"></div>
-            <div class="position-absolute" *ngIf="isProManuOpen">
-              <div class="position-relative">
-                <div class="zx-profile-manu rounded-3 step-item" [class.zx-profile-manu-rtl]="isRTL"
-                  [class.zx-profile-manu-dark]="isDarkMode">
-
-                  <button class="justify-content-start d-sm-none rounded-top-3" mat-menu-item (click)="goToNewOrder()">
-                    <span class="mat-list-item-small text-green fw-bold">
-                      {{'main-nav.new-order' | translate}}
-                    </span>
-                  </button>
-
-                  <button *ngIf="userIsAuthenticated" class="justify-content-start d-sm-none" mat-menu-item
-                    (click)="goToMyOrders()">
-                    <div class="d-flex align-items-center justify-content-center gap-2">
-                      <span class="mat-list-item-small" [class.fw-bold]="userIsAuthenticated && numOfPendingOrders > 0"
-                        [class.num-pending-text]="userIsAuthenticated && numOfPendingOrders > 0 && !isDarkMode">
-                        {{'main-nav.my-orders' | translate }}
-                      </span>
-                      <span class="num-pending-con" [class.num-pending-con-not-rtl]="!isRTL"
-                        *ngIf="userIsAuthenticated && numOfPendingOrders > 0">
-                        <span class="num-pending">
-                          {{ numOfPendingOrders < 9 ? numOfPendingOrders : '9+' }} </span>
-                        </span>
-                    </div>
-                  </button>
-
-                  <button class="justify-content-start rounded-sm-top-3" mat-menu-item (click)="goToMyProfile()">
-                    <span class="mat-list-item-small">
-                      {{'main-nav.my-profile' | translate}}
-                    </span>
-                  </button>
-
-                  <button class="justify-content-start" mat-menu-item (click)="goToMyProfileCreditMode()">
-                    <span class="mat-list-item-small">
-                      {{'main-nav.methods-of-payment' | translate}}
-                    </span>
-                  </button>
-
-                  <hr class="m-1">
-
-                  <button class="justify-content-start rounded-bottom-3" mat-menu-item (click)="onLogout()">
-                    <span class="mat-list-item-small" [class.zx-text-warn]="!isDarkMode">
-                      {{'main-nav.logout' | translate}}
-                    </span>
-                  </button>
-
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </mat-toolbar>
+  <mat-sidenav-content [class.zx-no-scroller]="isHomePage()" style="overflow-x: hidden; padding-top: 45px;">
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

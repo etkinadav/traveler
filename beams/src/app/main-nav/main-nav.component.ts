@@ -402,7 +402,7 @@ export class MainNavComponent implements OnInit, OnDestroy {
   }
 
   isHomePage(): boolean {
-    return this.router.url === '/home';
+    return this.router.url === '/home' || this.router.url === '/main-section/choose-printing-system' || this.router.url.includes('/main-section/choose-printing-system');
   }
 
   async goToManagementPage(page: string) {

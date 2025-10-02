@@ -15,12 +15,15 @@
   border: none !important;
 }
 
-// החלפת תמונות עם fade in/out
+// החלפת תמונות עם fade in/out - כיסוי מלא של המסך
 .image-film-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
+  z-index: 1;
 }
 
 .image-film-item {
@@ -30,7 +33,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  min-height: 100vh;
   opacity: 0;
   transform: translateY(5px);
   animation: fadeInOut 60s linear infinite;
@@ -820,3 +822,4 @@
     max-width: 300px !important;
   }
 }
+

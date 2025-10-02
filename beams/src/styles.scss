@@ -54,6 +54,12 @@ $dark-warn: mat.define-palette(palette.$dark-warn);
   }
 }
 
+// דריסה גלובלית ל-mat-toolbar שקוף
+.mat-toolbar.mat-toolbar-single-row.transparent-toolbar {
+  background: #ffffffc9 !important;
+  background-color: #ffffffc9 !important;
+}
+
 .continue-to-product-btn:hover {
   background: linear-gradient(135deg, var(--zx-green-vivid-light), var(--zx-green-vivid-mid), var(--zx-green)) !important;
   animation-play-state: paused !important;
