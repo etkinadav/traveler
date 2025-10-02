@@ -52,6 +52,10 @@ export class MainNavComponent implements OnInit, OnDestroy {
   isRootScreen = false;
   private defaultProfileUrl = "../../assets/images/profile-default.svg";
   isLoggedOutLoading: boolean = false;
+  
+  // משתנים להמבורגר מותאם אישית
+  isHamburgerHovered: boolean = false;
+  isHamburgerOpen: boolean = false;
 
   constructor(
     public translateService: TranslateService,
@@ -222,14 +226,28 @@ export class MainNavComponent implements OnInit, OnDestroy {
   // Drawer
   toggleDrawer() {
     this.isDrawerOpen = !this.isDrawerOpen;
+    this.isHamburgerOpen = this.isDrawerOpen; // סנכרון עם מצב ההמבורגר
+  }
+  
+  // פונקציות להמבורגר מותאם אישית
+  onHamburgerHover() {
+    this.isHamburgerHovered = true;
+    console.log('המבורגר hover - התחיל');
+  }
+  
+  onHamburgerLeave() {
+    this.isHamburgerHovered = false;
+    console.log('המבורגר hover - הסתיים');
   }
 
   openDrawer() {
     this.isDrawerOpen = true;
+    this.isHamburgerOpen = true;
   }
 
   closeDrawer() {
     this.isDrawerOpen = false;
+    this.isHamburgerOpen = false;
   }
 
   // Profile Manu

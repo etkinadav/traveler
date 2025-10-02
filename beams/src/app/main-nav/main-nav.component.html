@@ -3,9 +3,21 @@
              style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 99999 !important;"
              [class.zx-100-opp]="isRootScreen">
 
-    <button class="mat-icon-hanburger-con" mat-icon-button type="button" aria-label="Toggle sidenav"
-      (click)="toggleDrawer()">
-      <mat-icon class="mat-icon-hanburger" aria-label="Side nav toggle icon">menu</mat-icon>
+    <button class="custom-hamburger-btn" type="button" aria-label="Toggle sidenav"
+      (click)="toggleDrawer()" 
+      (mouseenter)="onHamburgerHover()" 
+      (mouseleave)="onHamburgerLeave()">
+      <div class="hamburger-lines">
+        <div class="hamburger-line" 
+             [class.hovered]="isHamburgerHovered && !isHamburgerOpen"
+             [class.open]="isHamburgerOpen"></div>
+        <div class="hamburger-line" 
+             [class.hovered]="isHamburgerHovered && !isHamburgerOpen"
+             [class.open]="isHamburgerOpen"></div>
+        <div class="hamburger-line" 
+             [class.hovered]="isHamburgerHovered && !isHamburgerOpen"
+             [class.open]="isHamburgerOpen"></div>
+      </div>
     </button>
 
     <span class="spacer d-lg-none"></span>
