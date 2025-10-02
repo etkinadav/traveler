@@ -44,6 +44,12 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   textChangeInterval: any;
   isTextChanging: boolean = false;
   
+  // משתנים לתמונות מתחלפות
+  currentImageIndex: number = 0;
+  isImageChanging: boolean = false;
+  imageKeys: string[] = ['kids', 'flexable', 'beergarden', 'inside', 'garden', 'hangar'];
+  currentImagePath: string = '';
+  
 
   constructor(
     private directionService: DirectionService,
@@ -82,6 +88,9 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
     // התחלת אנימציית הטקסטים המתחלפים
     this.startTextRotation();
+    
+    // אתחול נתיב התמונה הראשונה
+    this.updateCurrentImagePath();
 
     this.userId = this.authService.getUserId();
     this.userIsAuthenticated = this.authService.getIsAuth();
@@ -220,43 +229,56 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
   changeText() {
     this.isTextChanging = true;
+    this.changeImage(); // החלפת תמונה יחד עם טקסט
     setTimeout(() => {
-      this.currentTextIndex = (this.currentTextIndex + 1) % 5; // 5 טקסטים
+      this.currentTextIndex = (this.currentTextIndex + 1) % this.imageKeys.length; // 6 טקסטים ותמונות
       this.isTextChanging = false;
     }, 800); // זמן ארוך יותר לאנימציה חלקה
   }
 
+  // פונקציות לתמונות מתחלפות
+  changeImage() {
+    this.isImageChanging = true;
+    setTimeout(() => {
+      this.currentImageIndex = (this.currentImageIndex + 1) % this.imageKeys.length;
+      this.updateCurrentImagePath();
+      this.isImageChanging = false;
+    }, 300); // fade out/in מהיר
+  }
+
+  updateCurrentImagePath() {
+    const key = this.imageKeys[this.currentImageIndex];
+    this.currentImagePath = `../../../assets/images/ondi-example/ondi-example-${key}.png`;
+    console.log('Current image path:', this.currentImagePath);
+  }
+
+  getCurrentImage(): string {
+    return this.currentImagePath;
+  }
+
   getCurrentTitle(): string {
-    const titles = [
-      'choose-system.empty-title-1',
-      'choose-system.empty-title-2', 
-      'choose-system.empty-title-3',
-      'choose-system.empty-title-4',
-      'choose-system.empty-title-5'
-    ];
-    return titles[this.currentTextIndex];
+    const key = this.imageKeys[this.currentTextIndex];
+    return `choose-system.empty-title-${key}`;
   }
 
   getCurrentText(): string {
-    const texts = [
-      'choose-system.empty-text-1',
-      'choose-system.empty-text-2',
-      'choose-system.empty-text-3', 
-      'choose-system.empty-text-4',
-      'choose-system.empty-text-5'
-    ];
-    return texts[this.currentTextIndex];
+    const key = this.imageKeys[this.currentTextIndex];
+    return `choose-system.empty-text-${key}`;
   }
 
   getCurrentSubtitle(): string {
-    const subtitles = [
-      'choose-system.empty-subtitle-1',
-      'choose-system.empty-subtitle-2',
-      'choose-system.empty-subtitle-3',
-      'choose-system.empty-subtitle-4',
-      'choose-system.empty-subtitle-5'
-    ];
-    return subtitles[this.currentTextIndex];
+    const key = this.imageKeys[this.currentTextIndex];
+    return `choose-system.empty-subtitle-${key}`;
+  }
+
+  // פונקציות דיבוג לתמונות
+  onImageError(event: any) {
+    console.error('Image failed to load:', event.target.src);
+    console.error('Error details:', event);
+  }
+
+  onImageLoad(event: any) {
+    console.log('Image loaded successfully:', event.target.src);
   }
   
   // ==================

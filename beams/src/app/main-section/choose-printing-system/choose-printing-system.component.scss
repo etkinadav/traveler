@@ -25,6 +25,34 @@
   animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+// אנימציות לתמונות מתחלפות
+.background-image-container {
+  transition: opacity 0.3s ease-in-out;
+  opacity: 1;
+}
+
+.background-image-container.fade-out {
+  opacity: 0;
+}
+
+.background-image-container img {
+  object-fit: cover;
+  object-position: center;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  min-height: 100vh;
+  min-width: 100%;
+}
+
+.max-width-600 {
+  max-width: 600px;
+}
+
+.text-white {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
 // עיצוב הקנבס החדש
 .canvas-content {
   padding: 2rem 3rem;
