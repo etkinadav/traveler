@@ -372,7 +372,7 @@
     left: unset;
     border-radius: 50px !important; // rounded pill
     border: none !important; // הסרת border
-    background: #2196f3 !important; // רקע כחול
+    background: var(--zx-green) !important; // רקע כחול
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; // צללה עדינה
     padding: 6px 16px !important;
     min-height: unset !important;
@@ -383,7 +383,7 @@
 }
 
 .continue-to-product-btn:hover {
-    background: #1976d2 !important; // כחול כהה יותר ב-hover
+    background: var(--zx-green-dark) !important; // כחול כהה יותר ב-hover
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
     transform: scale(1.02);
 }
@@ -472,7 +472,7 @@
 
 // עיצוב טקסט מתחלף מעל התמונה
 .text-shadow {
-  text-shadow: 0 2px 8px rgba(0, 102, 204, 0.4), 0 4px 16px rgba(0, 102, 204, 0.3);
+  text-shadow: 0 2px 8px var(--zx-green-vivid-m-light), 0 4px 16px var(--zx-green-vivid-v-light);
 }
 
 // אפקט גרדיאנט עדין לטקסט
@@ -490,7 +490,7 @@
 
 .text-hover-effect:hover {
   transform: translateY(-2px);
-  text-shadow: 0 4px 12px rgba(0, 102, 204, 0.5), 0 8px 24px rgba(0, 102, 204, 0.4);
+  text-shadow: 0 4px 12px var(--zx-green-vivid-m-light), 0 8px 24px var(--zx-green-vivid-v-light);
 }
 
 // אנימציה לכניסת טקסט
@@ -517,7 +517,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, transparent 30%, rgba(0, 102, 204, 0.15) 50%, transparent 70%);
+  background: linear-gradient(45deg, transparent 30%, var(--zx-green-vivid-v-light) 50%, transparent 70%);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
