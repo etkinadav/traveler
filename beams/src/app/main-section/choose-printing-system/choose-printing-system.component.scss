@@ -532,6 +532,30 @@
   padding-right: 3rem; // ברירת מחדל
 }
 
+// עיצוב שכבת הרקע הכהה-שקופה לטקסטים
+.hero-text-block {
+  position: relative;
+  display: inline-block;
+  padding: 1.5rem;
+  max-width: 600px;
+  margin-inline: auto;
+}
+
+.hero-text-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25); // כהות עדינה יותר
+  border-radius: 12px;
+  z-index: 0;
+}
+
+// הטקסטים מעל שכבת הרקע
+.hero-text-block h1,
+.hero-text-block p {
+  position: relative;
+  z-index: 1;
+}
+
 // מסכים גדולים מאוד (4K ומעלה)
 @media only screen and (min-width: 1920px) {
   .text-container-responsive {
