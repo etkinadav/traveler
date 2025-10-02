@@ -529,7 +529,7 @@
 
 // עיצוב רספונסיבי לטקסט עם רווחים דינמיים
 .text-container-responsive {
-  padding-right: 3rem; // ברירת מחדל
+  padding-right: 0; // הסרת padding מימין
 }
 
 // עיצוב שכבת הרקע הכהה-שקופה לטקסטים
@@ -537,9 +537,8 @@
   position: relative;
   display: block;
   padding: 1.5rem;
-  max-width: 600px;
+  max-width: 290px;
   margin: 0 auto;
-  width: 100%;
 }
 
 .hero-text-bg-overlay {
@@ -615,7 +614,11 @@
 // מסכים גדולים (1440px+)
 @media only screen and (min-width: 1440px) and (max-width: 1919px) {
   .text-container-responsive {
-    padding-right: 7.5rem !important; // העברה מ-1200px ל-1440px
+    padding-right: 0 !important; // הסרת padding מימין
+  }
+  
+  .hero-text-block {
+    max-width: 600px !important; // הגדלה ל-600px במסכים גדולים
   }
   
   .text-responsive h1 {
@@ -638,7 +641,11 @@
 // מסכים בינוניים-גדולים (1200px-1439px)
 @media only screen and (min-width: 1200px) and (max-width: 1439px) {
   .text-container-responsive {
-    padding-right: 3.5rem !important; // הקטנה מ-7.5rem ל-3.5rem
+    padding-right: 0 !important; // הסרת padding מימין
+  }
+  
+  .hero-text-block {
+    max-width: 450px !important; // הקטנה ל-450px במסכים בינוניים
   }
   
   .text-responsive h1 {
@@ -664,6 +671,10 @@
     padding-right: 2.5rem !important; // הקטנה מ-4rem ל-2.5rem
   }
   
+  .hero-text-block {
+    max-width: 400px !important; // הקטנה ל-400px במסכים קטנים
+  }
+  
   .text-responsive h1 {
     font-size: 3rem !important;
     line-height: 1.1 !important;
@@ -684,7 +695,12 @@
 // מסכים קטנים-בינוניים (768px-991px)
 @media only screen and (min-width: 768px) and (max-width: 991px) {
   .text-container-responsive {
-    padding-right: 2rem !important; // הקטנה מ-3rem ל-2rem
+    padding-right: 0 !important; // הסרת padding מימין
+  }
+  
+  .hero-text-block {
+    max-width: 290px !important; // הגבלה ל-290px במסכים קטנים-בינוניים
+    padding: 1rem !important; // הקטנת padding מ-1.5rem ל-1rem
   }
   
   .text-responsive h1 {
@@ -707,7 +723,12 @@
 // מסכים קטנים (576px-767px)
 @media only screen and (min-width: 576px) and (max-width: 767px) {
   .text-container-responsive {
-    padding-right: 2rem !important;
+    padding-right: 0 !important; // הסרת padding מימין
+  }
+  
+  .hero-text-block {
+    max-width: 290px !important; // הגבלה ל-290px במסכים קטנים
+    padding: 0.75rem !important; // הקטנת padding ל-0.75rem
   }
   
   .text-responsive h1 {
@@ -730,7 +751,7 @@
 // מסכים קטנים מאוד (מתחת ל-576px)
 @media only screen and (max-width: 575px) {
   .text-container-responsive {
-    padding-right: 1.5rem !important;
+    padding-right: 0 !important; // הסרת padding מימין
   }
   
   .text-responsive h1 {

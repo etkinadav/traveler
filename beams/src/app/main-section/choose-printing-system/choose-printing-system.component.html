@@ -146,15 +146,15 @@
                  style="min-height: 100vh;">
             
             <!-- טקסט מתחלף מעל התמונה -->
-            <div class="position-absolute top-0 start-0 end-0 h-100 d-flex flex-column justify-content-center text-container-responsive" 
-                 style="z-index: 10;">
+            <div class="position-absolute top-0 start-0 end-0 h-100 d-flex flex-column justify-content-center" 
+                 style="z-index: 10; padding-right: 0 !important;">
                 <div class="hero-text-block" 
                      [@slideInOut]="imageKeys[currentImageIndex]">
                     <!-- שכבת רקע כהה-שקופה -->
                     <div class="hero-text-bg-overlay"></div>
                     
                     <!-- תוכן הטקסטים -->
-                    <div class="text-end text-responsive" style="color: var(--zx-green);">
+                    <div class="text-responsive" style="color: var(--zx-green);">
                         <!-- כותרת ראשית - שורה ראשונה -->
                         <h1 class="display-4 fw-bold mb-1 text-shadow text-hover-effect text-glow"
                             style="font-size: 3.5rem; line-height: 1.1; letter-spacing: -0.02em;">
