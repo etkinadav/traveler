@@ -16,7 +16,6 @@ import { PhoneComponent } from './phone/phone.component';
 import { CopyScanComponent } from './scan-copy/scan-copy.component';
 import { FixProductsComponent } from './fix-products/fix-products.component';
 import { PropertyExplainComponent } from './property-explain/property-explain.component';
-import { PrinterNumberComponent } from './printer-number/printer-number.component';
 import { SuCloseBranchComponent } from './su-close-branch/su-close-branch.component';
 import { SuEditUserComponent } from './su-edit-user/su-edit-user.component';
 
@@ -40,7 +39,6 @@ export class DialogService {
   private dialogCopyScanRef: MatDialogRef<CopyScanComponent> | null = null;
   private dialogFixProductsRef: MatDialogRef<FixProductsComponent> | null = null;
   private dialogPropertyExplainRef: MatDialogRef<PropertyExplainComponent> | null = null;
-  private dialogPrinterNumberRef: MatDialogRef<PrinterNumberComponent> | null = null;
   private dialogSuCloseBranchRef: MatDialogRef<SuCloseBranchComponent> | null = null;
   private dialogSuEditUserRef: MatDialogRef<SuEditUserComponent> | null = null;
 
@@ -335,16 +333,6 @@ export class DialogService {
     this.dialogPropertyExplainRef.close();
   }
 
-  // Printer Number Dialog
-  onOpenPrinterNumberDialog(): void {
-    this.dialogPrinterNumberRef = this.dialog.open(PrinterNumberComponent, {
-      panelClass: 'zx-printer-number-dialog',
-    });
-  }
-
-  onClosePrinterNumberDialog(): void {
-    this.dialogPrinterNumberRef.close();
-  }
 
 
   // Su Close Branch Dialog

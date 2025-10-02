@@ -368,11 +368,6 @@ export class MainNavComponent implements OnInit, OnDestroy {
     this.router.navigate(["/qanda"]);
   }
 
-  openByPrinterNumberDialog() {
-    this.closeDrawer();
-    this.closeProfileManu();
-    this.dialogService.onOpenPrinterNumberDialog();
-  }
 
   updateGreeting() {
     const currentHour = new Date().getHours();

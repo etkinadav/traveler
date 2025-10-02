@@ -56,7 +56,6 @@ import { CopyScanComponent } from "./dialog/scan-copy/scan-copy.component";
 import { FixProductsComponent } from "./dialog/fix-products/fix-products.component";
 import { PropertyExplainComponent } from "./dialog/property-explain/property-explain.component";
 import { StationScreenComponent } from "./super-management/station-screen/station-screen.component";
-import { PrinterNumberComponent } from "./dialog/printer-number/printer-number.component"
 import { PendingOrderComponent } from "./other-pages/pending-order/pending-order.component";
 import { PrinterComponent } from "./super-management/printer/printer.component";
 import { SuCloseBranchComponent } from "./dialog/su-close-branch/su-close-branch.component";
@@ -105,7 +104,6 @@ import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
     DeleteUserComponent,
     AddPointsComponent,
     CloseBranchComponent,
-    PrinterNumberComponent,
     PendingOrderComponent,
     PrinterComponent,
     SuEditUserComponent
