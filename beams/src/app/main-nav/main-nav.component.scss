@@ -97,9 +97,21 @@ button.mat-icon-hanburger-con {
   transition: width 0.15s ease-out;
 }
 
+.zx-login-btn:hover {
+  background: transparent !important;
+}
+
+.zx-login-btn:hover .mat-button-focus-overlay {
+  opacity: 0 !important;
+}
+
+.zx-login-btn:hover .mat-button-ripple {
+  opacity: 0 !important;
+}
+
 .zx-login-btn:hover::after {
   width: 70px;
-  transition: width 0.7s ease-in-out;
+  transition: width 0.4s ease-in-out;
 }
 
 @media (min-width: 576px) {
