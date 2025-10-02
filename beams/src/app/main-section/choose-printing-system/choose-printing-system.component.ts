@@ -39,16 +39,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   selectedProduct: any = null;
   hoveredProduct: any = null;
 
-  // משתנים לטקסטים מתחלפים
-  currentTextIndex: number = 0;
-  textChangeInterval: any;
-  isTextChanging: boolean = false;
-  
-  // משתנים לתמונות מתחלפות
-  currentImageIndex: number = 0;
-  isImageChanging: boolean = false;
-  imageKeys: string[] = ['kids', 'flexable', 'beergarden', 'inside', 'garden', 'hangar'];
-  currentImagePath: string = '';
   
 
   constructor(
@@ -87,10 +77,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     this.loadAllProducts();
 
     // התחלת אנימציית הטקסטים המתחלפים
-    this.startTextRotation();
-    
-    // אתחול נתיב התמונה הראשונה
-    this.updateCurrentImagePath();
 
     this.userId = this.authService.getUserId();
     this.userIsAuthenticated = this.authService.getIsAuth();
@@ -104,8 +90,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     // this.authStatusSub.unsubscribe();
-    // עצירת רוטציית הטקסטים
-    this.stopTextRotation();
   }
 
   onHoverPrintingService(value: string) {
@@ -214,72 +198,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     }
   }
 
-  // פונקציות לטקסטים מתחלפים
-  startTextRotation() {
-    this.textChangeInterval = setInterval(() => {
-      this.changeText();
-    }, 10000); // החלפה כל 10 שניות
-  }
-
-  stopTextRotation() {
-    if (this.textChangeInterval) {
-      clearInterval(this.textChangeInterval);
-    }
-  }
-
-  changeText() {
-    this.isTextChanging = true;
-    this.changeImage(); // החלפת תמונה יחד עם טקסט
-    setTimeout(() => {
-      this.currentTextIndex = (this.currentTextIndex + 1) % this.imageKeys.length; // 6 טקסטים ותמונות
-      this.isTextChanging = false;
-    }, 800); // זמן ארוך יותר לאנימציה חלקה
-  }
-
-  // פונקציות לתמונות מתחלפות
-  changeImage() {
-    this.isImageChanging = true;
-    setTimeout(() => {
-      this.currentImageIndex = (this.currentImageIndex + 1) % this.imageKeys.length;
-      this.updateCurrentImagePath();
-      this.isImageChanging = false;
-    }, 300); // fade out/in מהיר
-  }
-
-  updateCurrentImagePath() {
-    const key = this.imageKeys[this.currentImageIndex];
-    this.currentImagePath = `../../../assets/images/ondi-example/ondi-example-${key}.png`;
-    console.log('Current image path:', this.currentImagePath);
-  }
-
-  getCurrentImage(): string {
-    return this.currentImagePath;
-  }
-
-  getCurrentTitle(): string {
-    const key = this.imageKeys[this.currentTextIndex];
-    return `choose-system.empty-title-${key}`;
-  }
-
-  getCurrentText(): string {
-    const key = this.imageKeys[this.currentTextIndex];
-    return `choose-system.empty-text-${key}`;
-  }
-
-  getCurrentSubtitle(): string {
-    const key = this.imageKeys[this.currentTextIndex];
-    return `choose-system.empty-subtitle-${key}`;
-  }
-
-  // פונקציות דיבוג לתמונות
-  onImageError(event: any) {
-    console.error('Image failed to load:', event.target.src);
-    console.error('Error details:', event);
-  }
-
-  onImageLoad(event: any) {
-    console.log('Image loaded successfully:', event.target.src);
-  }
   
   // ==================
 }

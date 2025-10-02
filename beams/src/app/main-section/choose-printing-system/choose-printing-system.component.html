@@ -137,63 +137,11 @@
         <!-- // CHOOSE PRINTING SYSTEM SIDE -->
          
 
-        <!-- BACKGROUND IMAGE SIDE -->
+        <!-- LEFT SIDE CONTAINER -->
         <div class="d-flex h-100 flex-grow-1 position-relative">
-            <!-- רקע תמונה מתחלפת -->
-            <div class="position-absolute w-100 h-100 background-image-container"
-                [class.fade-out]="isImageChanging"
-                style="z-index: 1;">
-                <img src="../../../assets/images/ondi-example/ondi-example-kids.png" 
-                     alt="Background image kids"
-                     class="w-100 h-100 object-fit-cover"
-                     (error)="onImageError($event)"
-                     (load)="onImageLoad($event)"
-                     style="min-height: 100vh; min-width: 100%; display: block;">
-            </div>
-            
-            <!-- overlay כהה - זמנית מוסתר -->
-            <!-- <div class="position-absolute w-100 h-100 bg-dark opacity-60" style="z-index: 2;"></div> -->
-            
-            <!-- תוכן טקסטים על התמונה -->
-            <div class="position-relative w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white px-5" style="z-index: 3;">
-                
-                <!-- מצב רגיל - טקסטים מתחלפים -->
-                <div *ngIf="hoveredPrintingService === ''" 
-                     class="text-center max-width-600">
-                    <h1 class="display-4 fw-bold mb-4 animated-text" 
-                        [class.zx-rtl]="isRTL"
-                        [class.fade-out]="isTextChanging">
-                        {{ getCurrentTitle() | translate }}
-                    </h1>
-                    
-                    <h2 class="h3 mb-4 animated-text" 
-                        [class.zx-rtl]="isRTL"
-                        [class.fade-out]="isTextChanging">
-                        {{ getCurrentText() | translate }}
-                    </h2>
-                    
-                    <h3 class="h5 opacity-75 animated-text" 
-                        [class.zx-rtl]="isRTL"
-                        [class.fade-out]="isTextChanging">
-                        {{ getCurrentSubtitle() | translate }}
-                    </h3>
-                </div>
-                
-                <!-- מצב hover על מוצר -->
-                <div *ngIf="hoveredPrintingService !== ''" 
-                     class="text-center max-width-600">
-                    <h1 class="display-5 fw-bold mb-4">
-                        {{ 'choose-system.' + hoveredPrintingService | translate }}
-                    </h1>
-                    
-                    <h2 class="h4 opacity-90">
-                        {{ 'choose-system.explanation-' + hoveredPrintingService | translate }}
-                    </h2>
-                </div>
-                
-            </div>
+            <!-- קונטיינר ריק -->
         </div>
-        <!-- // BACKGROUND IMAGE SIDE -->
+        <!-- // LEFT SIDE CONTAINER -->
 
     </div>
 </div>
