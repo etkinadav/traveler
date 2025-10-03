@@ -5721,23 +5721,22 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 }
 
                 // מיקום הקורה במרכז ה-Y כמוצרים אחרים
-                // כל קורה מתחילה מנקודה קבועה על ציר ה-X ומתרחבת לאותו כיוון
-                // הרווח ביניהן על ציר ה-Y כדי שלא יהיו אחת על השניה
+                // כל קורה מתחילה מנקודה קבועה ומתרחבת לאותו כיוון
                 mesh.position.set(
-                    currentX, // כל קורה מתחילה בנקודה קבועה ב-X
+                    0, // נקודת התחלה קבועה לכל הקורות
                     0, // במרכז ה-Y
-                    currentX // רווח על ציר ה-Z כדי שלא יהיו אחת על השניה
+                    currentX // רווח קבוע של 10 ס"מ בין הקורות על ציר Z
                 );
                 
-                // כליפ הקורה כדי שתתחיל מהנקודה הקבועה ותתארך לאותו כיוון ב-X
-                mesh.translateX(-beamLengthCm / 2); // הזזת הקורה כך שהקצה התחילי יהיה בנקודה הקבועה
+                // כליפ הקורה כך שהקצה התחילי יהיה בנקודה הקבועה
+                mesh.translateX(-beamLengthCm / 2); // מזיז את הקורה כך שהקצה התחילי יהיה בנקודה 0
 
                 // הוספה לסצנה
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
 
-                // התקדמות למיקום הבא (רק הרווח הקבוע בין קורות)
-                currentX += beamSpacing;
+                // התקדמות למיקום הבא (עומק הקורה + רווח קבוע של 10 ס"מ)
+                currentX += beamDepthCm + beamSpacing;
             }
 
             console.log(`קורה באורך ${beamLengthCm}ס"מ × ${beamAmount}יח: גובה ${beamHeightCm}ס"מ, עומק ${beamDepthCm}ס"מ`);
