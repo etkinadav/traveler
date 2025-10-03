@@ -685,6 +685,30 @@
                                     flex: 0 0 80px !important; /* 105px - 25px */
                                 }
                             }
+                            /* במובייל - הקונטיינר תופס שורה משל עצמו */
+                            @media (max-width: 768px) {
+                                .quantity-selector {
+                                    display: block !important;
+                                    margin-top: 40px !important;
+                                    margin-bottom: 10px !important;
+                                    padding-top: 40px !important;
+                                    width: fit-content !important;
+                                    max-width: 60px !important;
+                                }
+                                .quantity-selector .quantity-control {
+                                    position: relative !important;
+                                    left: auto !important;
+                                    top: auto !important;
+                                    transform: none !important;
+                                    display: flex !important;
+                                    align-items: center !important;
+                                    gap: 3px !important;
+                                    justify-content: flex-start !important;
+                                }
+                                .quantity-selector .quantity-label {
+                                    display: none !important; /* סכון הכותרת כשהאינפוט בשורה משל עצמו */
+                                }
+                            }
                         </style>
                         <!-- עיצוב זהה לכמות מוצרים כללית -->
                         <style>
@@ -729,6 +753,65 @@
                                 color: #333 !important;
                             }
                             .quantity-btn-general:hover {
+                                background: rgba(0,0,0,0.1) !important;
+                            }
+                            /* סטייל זהה לאינפוט כמות יחידות */
+                            .quantity-selector {
+                                position: relative !important;
+                                border: none !important;
+                                background: transparent !important;
+                                box-shadow: none !important;
+                                outline: none !important;
+                                width: fit-content !important;
+                                max-width: 80px !important;
+                            }
+                            .quantity-selector .quantity-control {
+                                position: absolute !important;
+                                left: -130px !important;
+                                top: 50% !important;
+                                transform: translateY(-50%) !important;
+                                display: flex !important;
+                                align-items: center !important;
+                                gap: 3px !important;
+                                border: none !important;
+                                background: transparent !important;
+                                box-shadow: none !important;
+                                outline: none !important;
+                                z-index: 10 !important;
+                            }
+                            .quantity-selector .quantity-input {
+                                width: 40px !important;
+                                max-width: 40px !important;
+                                min-width: 40px !important;
+                                text-align: center !important;
+                                padding: 4px 2px !important;
+                                border: none !important;
+                                background: rgba(0,0,0,0.02) !important;
+                                border-radius: 2px !important;
+                                font-size: 12px !important;
+                                -moz-appearance: textfield !important;
+                            }
+                            .quantity-selector .quantity-input::-webkit-outer-spin-button,
+                            .quantity-selector .quantity-input::-webkit-inner-spin-button {
+                                -webkit-appearance: none !important;
+                                margin: 0 !important;
+                            }
+                            .quantity-selector .quantity-btn {
+                                width: 20px !important;
+                                height: 20px !important;
+                                border: none !important;
+                                background: rgba(0,0,0,0.05) !important;
+                                cursor: pointer !important;
+                                font-size: 12px !important;
+                                padding: 0 !important;
+                                margin: 0 !important;
+                                display: flex !important;
+                                align-items: center !important;
+                                justify-content: center !important;
+                                border-radius: 2px !important;
+                                color: #333 !important;
+                            }
+                            .quantity-selector .quantity-btn:hover {
                                 background: rgba(0,0,0,0.1) !important;
                             }
                         </style>
