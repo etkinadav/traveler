@@ -689,8 +689,8 @@
                             @media (max-width: 768px) {
                                 .quantity-selector {
                                     display: block !important;
-                                    margin-top: 40px !important;
-                                    margin-bottom: 10px !important;
+                                    margin-top: -22px !important;
+                                    margin-bottom: 43px !important;
                                     padding-top: 40px !important;
                                     width: fit-content !important;
                                     max-width: 60px !important;
@@ -698,15 +698,27 @@
                                 .quantity-selector .quantity-control {
                                     position: relative !important;
                                     left: auto !important;
-                                    top: auto !important;
-                                    transform: none !important;
+                                    top: 93% !important;
+                                    transform: translateY(-65%) !important;
                                     display: flex !important;
                                     align-items: center !important;
                                     gap: 3px !important;
                                     justify-content: flex-start !important;
                                 }
-                                .quantity-selector .quantity-label {
-                                    display: none !important; /* סכון הכותרת כשהאינפוט בשורה משל עצמו */
+                                /* הגדרה ספציפית שעובדת במובייל */
+                                .quantity-selector[_ngcontent-ng-c1935166447] .quantity-control[_ngcontent-ng-c1935166447] {
+                                    position: absolute !important;
+                                    left: -111px !important;
+                                    top: 108% !important;
+                                    transform: translateY(-50%) !important;
+                                    display: flex !important;
+                                    align-items: center !important;
+                                    gap: 3px !important;
+                                    border: none !important;
+                                    background: transparent !important;
+                                    box-shadow: none !important;
+                                    outline: none !important;
+                                    z-index: 10 !important;
                                 }
                             }
                         </style>
