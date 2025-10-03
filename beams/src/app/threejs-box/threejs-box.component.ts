@@ -1357,6 +1357,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // טיפול במוצר קורות לפי מידה (beams)
         if (this.isBelams) {
             this.updateBeamsModel();
+            // הגדרת מיקום הסצנה כמו בשאר המוצרים
+            this.scene.position.y = -120;
+            // מצלמה רגילה כמו בכל המוצרים
+            this.centerCameraOnWireframe();
             return;
         }
         if (this.isTable && !this.getParam('height')) {
@@ -4226,6 +4230,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         return beams;
     }
+
     // מרכוז המצלמה על קוביית ה-wireframe בפתיחה הראשונית
     private centerCameraOnWireframe() {
         // קבועים
@@ -5669,7 +5674,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
 
         let currentX = 0; // מיקום X הנוכחי לקורות
-        const beamSpacing = 20; // רווח של 20 ס"מ בין קורות
+        const beamSpacing = 10; // רווח של 10 ס"מ בין קורות
 
         // מעבר על כל קורה במערך - עם אורך וכמות עבור setAmount
         beamsArray.forEach((beamData: any) => {
@@ -5715,19 +5720,24 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.addWireframeToBeam(mesh);
                 }
 
-                // מיקום הקורה על הרצפה
+                // מיקום הקורה במרכז ה-Y כמוצרים אחרים
+                // כל קורה מתחילה מנקודה קבועה על ציר ה-X ומתרחבת לאותו כיוון
+                // הרווח ביניהן על ציר ה-Y כדי שלא יהיו אחת על השניה
                 mesh.position.set(
-                    currentX, 
-                    beamHeightCm / 2, // חצי גובה הקורה מעל הרצפה
-                    0 // במרכז Z
+                    currentX, // כל קורה מתחילה בנקודה קבועה ב-X
+                    0, // במרכז ה-Y
+                    currentX // רווח על ציר ה-Z כדי שלא יהיו אחת על השניה
                 );
+                
+                // כליפ הקורה כדי שתתחיל מהנקודה הקבועה ותתארך לאותו כיוון ב-X
+                mesh.translateX(-beamLengthCm / 2); // הזזת הקורה כך שהקצה התחילי יהיה בנקודה הקבועה
 
                 // הוספה לסצנה
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
 
-                // התקדמות למיקום הבא (רוחב הקורה שהמשתמש הגדיר)
-                currentX += beamLengthCm + beamSpacing;
+                // התקדמות למיקום הבא (רק הרווח הקבוע בין קורות)
+                currentX += beamSpacing;
             }
 
             console.log(`קורה באורך ${beamLengthCm}ס"מ × ${beamAmount}יח: גובה ${beamHeightCm}ס"מ, עומק ${beamDepthCm}ס"מ`);
