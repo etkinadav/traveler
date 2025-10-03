@@ -322,6 +322,7 @@
                                                 (input)="onShelfInputChange($event, param, idx)">
                                         </mat-form-field>
                                         <div class="quantity-container">
+                                            <div class="quantity-label-above">כמות</div>
                                             <div class="quantity-control">
                                                 <button class="quantity-btn minus" 
                                                         (click)="decreaseAmount(param, idx)">
@@ -410,6 +411,18 @@
                                 flex-direction: column !important;
                                 gap: 4px !important;
                                 position: relative !important;
+                            }
+                            .quantity-label-above {
+                                font-size: 13px !important;
+                                color: #888 !important;
+                                font-weight: 400 !important;
+                                text-align: center !important;
+                                position: absolute !important;
+                                left: -77px !important;
+                                top: -35px !important;
+                                z-index: 15 !important;
+                                width: 75px !important;
+                                background: transparent !important;
                             }
                             .beam-entry-container mat-form-field.max-width-124 {
                                 max-width: 124px !important;
