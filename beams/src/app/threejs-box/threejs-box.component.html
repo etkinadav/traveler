@@ -312,30 +312,42 @@
                         <div class="shelf-measurements-container beam-array-container">
                             <div *ngFor="let i of [].constructor(param.default.length); let idx = index" class="shelf-row">
                                 <div class="shelf-gap-field-wrapper">
-                                    <mat-form-field appearance="outline" class="shelf-gap-field-length">
-                                        <mat-label>אורך {{param.default.length - idx}}</mat-label>
-                                        <input matInput type="number" [min]="param.min" [max]="param.max" [step]="1"
-                                            [(ngModel)]="param.default[param.default.length - 1 - idx].length"
-                                            (blur)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
-                                            (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
-                                            (input)="onShelfInputChange($event, param, idx)">
-                                    </mat-form-field>
-                                    <div class="quantity-controls">
-                                        <button class="quantity-btn minus" 
-                                                (click)="decreaseAmount(param, idx)">
-                                            -
-                                        </button>
-                                        <mat-form-field appearance="outline" class="quantity-field">
-                                            <input matInput type="number" [min]="1" [max]="100" [step]="1"
-                                                [(ngModel)]="param.default[param.default.length - 1 - idx].amount"
+                                    <div class="beam-entry-container">
+                                        <mat-form-field appearance="outline" class="shelf-gap-field-length">
+                                            <mat-label>אורך {{param.default.length - idx}}</mat-label>
+                                            <input matInput type="number" [min]="param.min" [max]="param.max" [step]="1"
+                                                [(ngModel)]="param.default[param.default.length - 1 - idx].length"
                                                 (blur)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
                                                 (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
                                                 (input)="onShelfInputChange($event, param, idx)">
                                         </mat-form-field>
-                                        <button class="quantity-btn plus"
-                                                (click)="increaseAmount(param, idx)">
-                                            +
-                                        </button>
+                                        <div class="quantity-container">
+                                            <div class="quantity-label">כמות:</div>
+                                            <div class="quantity-control">
+                                                <button class="quantity-btn minus" 
+                                                        (click)="decreaseAmount(param, idx)">
+                                                    <svg width="12" height="12" viewBox="0 0 12 12">
+                                                        <line x1="3" y1="6" x2="9" y2="6" stroke="currentColor" stroke-width="2"/>
+                                                    </svg>
+                                                </button>
+                                                <input 
+                                                    type="number" 
+                                                    class="quantity-input max-width-124" 
+                                                    [(ngModel)]="param.default[param.default.length - 1 - idx].amount"
+                                                    (change)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                                    (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                                    (input)="onShelfInputChange($event, param, idx)"
+                                                    min="1"
+                                                    style="max-width: 120px !important; width: 120px !important;">
+                                                <button class="quantity-btn plus"
+                                                        (click)="increaseAmount(param, idx)">
+                                                    <svg width="12" height="12" viewBox="0 0 12 12">
+                                                        <line x1="6" y1="3" x2="6" y2="9" stroke="currentColor" stroke-width="2"/>
+                                                        <line x1="3" y1="6" x2="9" y2="6" stroke="currentColor" stroke-width="2"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn"
                                         (click)="param.default.splice(param.default.length - 1 - idx,1); updateBeams()"
@@ -351,35 +363,147 @@
                         </div>
                         
                         <style>
-                            .beam-array-container {
+                            * {
+                                --mat-mdc-text-field-wrapper-max-width: 120px !important;
+                            }
+                            .shelf-gap-field-wrapper {
+                                display: flex !important;
+                                align-items: center !important;
                                 width: 100% !important;
-                                max-width: 100% !important;
+                                flex-direction: row !important;
+                            }
+                            .beam-entry-container {
+                                flex: 1 !important;
+                                display: flex !important;
+                                flex-direction: row !important;
+                                align-items: center !important;
                             }
                             .shelf-gap-field-length {
-                                width: 120px !important;
+                                flex: 1 !important;
                                 margin-right: 8px !important;
                             }
-                            .quantity-controls {
-                                width: 200px !important;
-                                display: inline-flex !important;
+                            .quantity-container {
+                                display: flex !important;
+                                flex-direction: column !important;
+                                gap: 4px !important;
+                                transform: translateX(95px) !important;
+                            }
+                            .beam-entry-container mat-form-field.max-width-124 {
+                                max-width: 124px !important;
+                                width: 124px !important;
+                            }
+                            .beam-entry-container .mat-mdc-form-field,
+                            .beam-entry-container .mat-mdc-text-field-wrapper,
+                            .beam-entry-container .mdc-text-field {
+                                max-width: 124px !important;
+                                width: 124px !important;
+                            }
+                            .beam-entry-container .mat-mdc-text-field-wrapper .mdc-text-field__native-control {
+                                max-width: 124px !important;
+                            }
+                            .mdc-notched-outline,
+                            .mdc-notched-outline--upgraded,
+                            .mdc-notched-outline--notched {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            .quantity-container .mdc-notched-outline {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            .beam-entry-container input[type="number"] {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            .quantity-input {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                                min-width: 120px !important;
+                            }
+                            .quantity-container input,
+                            .quantity-container mat-form-field,
+                            .quantity-container .mat-mdc-form-field,
+                            .quantity-container .mat-mdc-text-field-wrapper,
+                            .quantity-container .mdc-text-field,
+                            .quantity-container .mat-form-field-infix {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            .mdc-notched-outline__leading,
+                            .mdc-notched-outline__trailing {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            .mat-mdc-text-field-wrapper.mdc-text-field,
+                            .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            .mat-mdc-text-field-wrapper.mdc-text-field.matic-text-field--outlined {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            [class*="ng-tns-c1205077789-12"] .mat-mdc-text-field-wrapper,
+                            [class*="ng-tns-c1205077789-12"] .mdc-text-field {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            ::ng-deep .mat-mdc-text-field-wrapper,
+                            ::ng-deep .mdc-text-field {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            ::ng-deep .beam-entry-container .mat-mdc-text-field-wrapper,
+                            ::ng-deep .beam-entry-container .mdc-text-field {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            ::ng-deep .quantity-container .mat-mdc-text-field-wrapper,
+                            ::ng-deep .quantity-container .mdc-text-field {
+                                max-width: 120px !important;
+                                width: 120px !important;
+                            }
+                            .quantity-label {
+                                font-size: 12px !important;
+                                color: #666 !important;
+                                margin-bottom: 2px !important;
+                            }
+                            .quantity-control {
+                                display: flex !important;
                                 align-items: center !important;
                                 gap: 4px !important;
                             }
-                            .quantity-field {
-                                width: 60px !important;
+                            .quantity-input {
+                                width: 124px !important;
+                                max-width: 124px !important;
+                                text-align: center !important;
+                                padding: 4px !important;
+                                border: 1px solid #ccc !important;
+                                border-radius: 4px !important;
+                            }
+                            .max-width-124 {
+                                max-width: 124px !important;
+                                width: 124px !important;
                             }
                             .quantity-btn {
-                                width: 30px !important;
-                                height: 32px !important;
+                                width: 24px !important;
+                                height: 24px !important;
                                 border: 1px solid #ccc !important;
                                 background: #f5f5f5 !important;
                                 cursor: pointer !important;
-                                font-size: 16px !important;
+                                font-size: 12px !important;
                                 padding: 0 !important;
                                 margin: 0 !important;
+                                display: flex !important;
+                                align-items: center !important;
+                                justify-content: center !important;
                             }
                             .quantity-btn:hover {
                                 background: #e0e0e0 !important;
+                            }
+                            .remove-shelf-btn {
+                                flex: 0 0 24px !important;
+                                margin-left: 8px !important;
                             }
                         </style>
                     </div>
