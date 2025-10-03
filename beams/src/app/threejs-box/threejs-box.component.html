@@ -425,6 +425,15 @@
                                  width: 105px !important;
                                  min-width: 105px !important;
                              }
+                             /* הסרת חצים של spinner בsetAmount */
+                             .beam-entry-container .shelf-gap-field-length input[type="number"] {
+                                 -moz-appearance: textfield !important;
+                             }
+                             .beam-entry-container .shelf-gap-field-length input[type="number"]::-webkit-outer-spin-button,
+                             .beam-entry-container .shelf-gap-field-length input[type="number"]::-webkit-inner-spin-button {
+                                 -webkit-appearance: none !important;
+                                 margin: 0 !important;
+                             }
                             .beam-entry-container .mat-mdc-text-field-wrapper .mdc-text-field__native-control {
                                 max-width: 124px !important;
                             }
@@ -550,16 +559,25 @@
                                 transform: translateY(-50%) !important;
                                 z-index: 10 !important;
                             }
-                            /* רק עבור אינפוט כמות בתוך beamArray */
-                            .beam-entry-container .quantity-input {
-                                width: 40px !important;
-                                max-width: 40px !important;
-                                text-align: center !important;
-                                padding: 6px 4px !important;
-                                border: 1px solid #ddd !important;
-                                border-radius: 4px !important;
-                                font-size: 14px !important;
-                            }
+                             /* רק עבור אינפוט כמות בתוך beamArray */
+                             .beam-entry-container .quantity-input {
+                                 width: 40px !important;
+                                 max-width: 40px !important;
+                                 text-align: center !important;
+                                 padding: 6px 4px !important;
+                                 border: 1px solid #ddd !important;
+                                 border-radius: 4px !important;
+                                 font-size: 14px !important;
+                             }
+                             /* הסרת חצים של spinner באינפוט כמות */
+                             .beam-entry-container .quantity-input-field input[type="number"] {
+                                 -moz-appearance: textfield !important;
+                             }
+                             .beam-entry-container .quantity-input-field input[type="number"]::-webkit-outer-spin-button,
+                             .beam-entry-container .quantity-input-field input[type="number"]::-webkit-inner-spin-button {
+                                 -webkit-appearance: none !important;
+                                 margin: 0 !important;
+                             }
                             /* הגבלת רוחב mat-form-field-infix עבור כמות בbeamArray */
                             .beam-entry-container .mat-mdc-form-field-infix,
                             .beam-entry-container .ng-tns-c1205077789-13 {
