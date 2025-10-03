@@ -329,15 +329,13 @@
                                                         <line x1="4" y1="6" x2="8" y2="6" stroke="currentColor" stroke-width="1.5"/>
                                                     </svg>
                                                 </button>
-                                                 <mat-form-field appearance="outline" class="quantity-input-field">
-                                                     <input matInput
-                                                             type="number" 
-                                                             [(ngModel)]="param.default[param.default.length - 1 - idx].amount"
-                                                             (change)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
-                                                             (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
-                                                             (input)="onShelfInputChange($event, param, idx)"
-                                                             min="1">
-                                                 </mat-form-field>
+                                                 <input class="quantity-input"
+                                                        type="number" 
+                                                        [(ngModel)]="param.default[param.default.length - 1 - idx].amount"
+                                                        (change)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                                        (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                                        (input)="onShelfInputChange($event, param, idx)"
+                                                        min="1">
                                                 <button class="quantity-btn plus"
                                                         (click)="increaseAmount(param, idx)">
                                                     <svg width="12" height="12" viewBox="0 0 12 12">
@@ -540,19 +538,20 @@
                                  min-width: 105px !important;
                                  flex: 0 0 105px !important;
                              }
-                             /* הגבלת רוחב mat-form-field-infix אפשרות כמות עם ::ng-deep */
-                             ::ng-deep .beam-entry-container .mat-mdc-form-field-infix,
-                             ::ng-deep .beam-entry-container .ng-tns-c1205077789-13,
-                             ::ng-deep .beam-entry-container .mat-mdc-text-field__native-control {
-                                 width: 40px !important;
-                                 max-width: 40px !important;
-                                 min-width: 40px !important;
+                             /* הגבלה רוחב חזקה עבור אינפוט כמות */
+                             ::ng-deep .beam-entry-container .quantity-input,
+                             ::ng-deep .beam-entry-container input[type="number"],
+                             ::ng-deep .beam-entry-container input.quantity-input {
+                                 width: 35px !important;
+                                 max-width: 35px !important;
+                                 min-width: 35px !important;
+                                 flex: 0 0 35px !important;
                              }
                             /* רק עבור כמות בתוך beamArray */
                             .beam-entry-container .quantity-control {
                                 display: flex !important;
                                 align-items: center !important;
-                                gap: 6px !important;
+                                gap: 3px !important;
                                 position: absolute !important;
                                 left: -112px !important;
                                 top: 50% !important;
@@ -561,61 +560,50 @@
                             }
                              /* רק עבור אינפוט כמות בתוך beamArray */
                              .beam-entry-container .quantity-input {
-                                 width: 40px !important;
-                                 max-width: 40px !important;
+                                 width: 35px !important;
+                                 max-width: 35px !important;
+                                 min-width: 35px !important;
                                  text-align: center !important;
-                                 padding: 6px 4px !important;
-                                 border: 1px solid #ddd !important;
-                                 border-radius: 4px !important;
-                                 font-size: 14px !important;
+                                 padding: 3px 1px !important;
+                                 border: 1px solid #ccc !important;
+                                 border-radius: 2px !important;
+                                 font-size: 12px !important;
+                                 background: #fff !important;
+                                 box-sizing: border-box !important;
                              }
-                             /* הסרת חצים של spinner באינפוט כמות */
-                             .beam-entry-container .quantity-input-field input[type="number"] {
+                             /* הסרת חצים של spinner באינפוט כמות רגיל */
+                             .beam-entry-container .quantity-input {
                                  -moz-appearance: textfield !important;
                              }
-                             .beam-entry-container .quantity-input-field input[type="number"]::-webkit-outer-spin-button,
-                             .beam-entry-container .quantity-input-field input[type="number"]::-webkit-inner-spin-button {
+                             .beam-entry-container .quantity-input::-webkit-outer-spin-button,
+                             .beam-entry-container .quantity-input::-webkit-inner-spin-button {
                                  -webkit-appearance: none !important;
                                  margin: 0 !important;
                              }
-                            /* הגבלת רוחב mat-form-field-infix עבור כמות בbeamArray */
-                            .beam-entry-container .mat-mdc-form-field-infix,
-                            .beam-entry-container .ng-tns-c1205077789-13 {
-                                width: 40px !important;
-                                max-width: 40px !important;
-                                min-width: 40px !important;
-                            }
                             .max-width-124 {
                                 max-width: 124px !important;
                                 width: 124px !important;
                             }
-                            /* רק עבור כפתורי כמות בתוך beamArray */
+                            /* רק עבור כפתורי כמות בתוך beamArray - עיצוב פשוט */
                             .beam-entry-container .quantity-btn {
-                                width: 22px !important;
-                                height: 22px !important;
-                                border: none !important;
-                                background: #007bff !important;
+                                width: 20px !important;
+                                height: 20px !important;
+                                border: 1px solid #ccc !important;
+                                background: #f8f9fa !important;
                                 cursor: pointer !important;
-                                font-size: 14px !important;
+                                font-size: 12px !important;
                                 padding: 0 !important;
                                 margin: 0 !important;
                                 display: flex !important;
                                 align-items: center !important;
                                 justify-content: center !important;
-                                border-radius: 50% !important;
-                                color: white !important;
-                                transition: all 0.2s ease !important;
+                                border-radius: 2px !important;
+                                color: #333 !important;
                             }
-                            /* רק עבור הover של כפתורי beamArray */
+                            /* הובר פשוט */
                             .beam-entry-container .quantity-btn:hover {
-                                background: #0056b3 !important;
-                                transform: scale(1.1) !important;
-                            }
-                            .beam-entry-container .quantity-btn.minus:hover {
-                                background: #dc3545 !important;
-                            }
-                            .beam-entry-container .quantity-btn.plus:hover {
-                                background: #28a745 !important;
+                                background: #e9ecef !important;
+                                border-color: #999 !important;
                             }
                             .remove-shelf-btn {
                                 flex: 0 0 24px !important;
