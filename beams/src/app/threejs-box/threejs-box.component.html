@@ -631,7 +631,7 @@
                             @media (max-width: 768px) {
                                 /* מבנה אנכי של אינפוט הכמות במובייל */
                                 .beam-entry-container .quantity-control {
-                                    left: -52px !important; /* -112px + 60px */
+                                    left: -42px !important; /* -112px + 70px */
                                     top: 50% !important;
                                     transform: translateY(-50%) !important;
                                     flex-direction: column !important;
@@ -640,17 +640,28 @@
                                     width: 25px !important;
                                     max-width: 25px !important;
                                 }
-                                /* קטנת הכפתורים והאינפוט במובייל */
+                                /* קטנת הכפתורים והאינבוט במובייל ללא גבולות */
                                 .beam-entry-container .quantity-btn {
                                     width: 20px !important;
                                     height: 18px !important;
                                     min-width: 20px !important;
+                                    border: none !important;
+                                    background: rgba(0,0,0,0.05) !important;
+                                    border-radius: 2px !important;
                                 }
                                 .beam-entry-container .quantity-input {
                                     width: 20px !important;
                                     max-width: 20px !important;
                                     padding: 2px !important;
                                     font-size: 11px !important;
+                                    border: none !important;
+                                    background: rgba(0,0,0,0.02) !important;
+                                    border-radius: 2px !important;
+                                }
+                                .beam-entry-container .quantity-control {
+                                    border: none !important;
+                                    background: transparent !important;
+                                    box-shadow: none !important;
                                 }
                                 .quantity-label-above {
                                     display: none !important;
