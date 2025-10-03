@@ -277,6 +277,113 @@
                         </div>
                     </div>
                     
+                    <!-- טיפול במוצר קורות לפי מידה - פרמטר beams עם setAmount (בדיוק כמו קורות מדף של השולחן) -->
+                    <div *ngIf="isBelams && param.name === 'beams' && param.setAmount">
+                        <label style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
+                        <div class="shelf-row">
+                            <mat-form-field appearance="outline">
+                                <mat-label>סוג קורה</mat-label>
+                                <mat-select [(ngModel)]="param.selectedBeamIndex" (selectionChange)="updateBeams()">
+                                    <mat-option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
+                                        {{beam.translatedName}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline">
+                                <mat-label>סוג עץ</mat-label>
+                                <mat-select [(ngModel)]="param.selectedTypeIndex" (selectionChange)="updateBeams()">
+                                    <mat-option
+                                        *ngFor="let type of param.beams[param.selectedBeamIndex || 0]?.types || []; let tIdx = index"
+                                        [value]="tIdx">
+                                        {{type.translatedName}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        <div class="add-shelf-btn-container">
+                            <button class="add-shelf-btn" (click)="addBeamWithAmount(param); updateBeams()">
+                                <svg viewBox="0 0 16 16" width="14" height="14">
+                                    <circle cx="8" cy="8" r="7" fill="#fff" />
+                                    <line x1="8" y1="4" x2="8" y2="12" stroke="#333" stroke-width="2" />
+                                    <line x1="4" y1="8" x2="12" y2="8" stroke="#333" stroke-width="2" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="shelf-measurements-container beam-array-container">
+                            <div *ngFor="let i of [].constructor(param.default.length); let idx = index" class="shelf-row">
+                                <div class="shelf-gap-field-wrapper">
+                                    <mat-form-field appearance="outline" class="shelf-gap-field-length">
+                                        <mat-label>אורך {{param.default.length - idx}}</mat-label>
+                                        <input matInput type="number" [min]="param.min" [max]="param.max" [step]="1"
+                                            [(ngModel)]="param.default[param.default.length - 1 - idx].length"
+                                            (blur)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                            (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                            (input)="onShelfInputChange($event, param, idx)">
+                                    </mat-form-field>
+                                    <div class="quantity-controls">
+                                        <button class="quantity-btn minus" 
+                                                (click)="decreaseAmount(param, idx)">
+                                            -
+                                        </button>
+                                        <mat-form-field appearance="outline" class="quantity-field">
+                                            <input matInput type="number" [min]="1" [max]="100" [step]="1"
+                                                [(ngModel)]="param.default[param.default.length - 1 - idx].amount"
+                                                (blur)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                                (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                                (input)="onShelfInputChange($event, param, idx)">
+                                        </mat-form-field>
+                                        <button class="quantity-btn plus"
+                                                (click)="increaseAmount(param, idx)">
+                                            +
+                                        </button>
+                                    </div>
+                                    <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn"
+                                        (click)="param.default.splice(param.default.length - 1 - idx,1); updateBeams()"
+                                        [disabled]="param.default.length<=1" aria-label="הסר קורה">
+                                        <svg width="14" height="14" viewBox="0 0 14 14">
+                                            <circle cx="7" cy="7" r="6" fill="#fff" stroke="#d32f2f" stroke-width="1.2" />
+                                            <line x1="4.5" y1="4.5" x2="9.5" y2="9.5" stroke="#d32f2f" stroke-width="1.5" />
+                                            <line x1="9.5" y1="4.5" x2="4.5" y2="9.5" stroke="#d32f2f" stroke-width="1.5" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <style>
+                            .beam-array-container {
+                                width: 100% !important;
+                                max-width: 100% !important;
+                            }
+                            .shelf-gap-field-length {
+                                width: 120px !important;
+                                margin-right: 8px !important;
+                            }
+                            .quantity-controls {
+                                width: 200px !important;
+                                display: inline-flex !important;
+                                align-items: center !important;
+                                gap: 4px !important;
+                            }
+                            .quantity-field {
+                                width: 60px !important;
+                            }
+                            .quantity-btn {
+                                width: 30px !important;
+                                height: 32px !important;
+                                border: 1px solid #ccc !important;
+                                background: #f5f5f5 !important;
+                                cursor: pointer !important;
+                                font-size: 16px !important;
+                                padding: 0 !important;
+                                margin: 0 !important;
+                            }
+                            .quantity-btn:hover {
+                                background: #e0e0e0 !important;
+                            }
+                        </style>
+                    </div>
+                    
                     <!-- טיפול בשולחן - פרמטר plata -->
                     <div *ngIf="isTable && param.name === 'plata'">
                         <label style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
@@ -417,9 +524,14 @@
                             <td>כמות מדפים:</td>
                             <td [innerHTML]="getProductDimensions().shelfCount"></td>
                         </tr>
-                        <tr *ngIf="!isTable">
+                        <tr *ngIf="!isTable && !isBelams">
                             <td>גבהי המדפים:</td>
                             <td [innerHTML]="getProductDimensions().shelfHeights"></td>
+                        </tr>
+                        <!-- מידע מיוחד למוצר קורות -->
+                        <tr *ngIf="isBelams">
+                            <td>מידות קורות (עם כמות):</td>
+                            <td [innerHTML]="getBelamsWithQuantitiesText()"></td>
                         </tr>
                     </table>
                 </div>

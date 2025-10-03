@@ -263,6 +263,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     isTable: boolean = false; // האם זה שולחן או ארון
     isPlanter: boolean = false; // האם זה עדנית עץ
     isBox: boolean = false; // האם זה קופסת עץ (זהה לעדנית)
+    isBelams: boolean = false; // האם זה קורות לפי מידה
     isPriceManuOpen: boolean = false; // האם תפריט המחיר פתוח
     hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
@@ -295,6 +296,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.isTable = this.selectedProductName === 'table';
                 this.isPlanter = this.selectedProductName === 'planter';
                 this.isBox = this.selectedProductName === 'box';
+                this.isBelams = this.selectedProductName === 'beams';
                 console.log(
                     'מוצר נבחר:',
                     this.selectedProductName,
@@ -437,6 +439,37 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 : null;
                         console.log('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                     }
+                    // טיפול בפרמטר beamArray עם setAmount עבור מוצר קורות
+                    if (
+                        param.name === 'beams' &&
+                        param.setAmount === true &&
+                        Array.isArray(param.beams) &&
+                        param.beams.length
+                    ) {
+                        console.log('Setting default beam for beams parameter with setAmount');
+                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                        param.selectedBeamIndex = defaultBeamIndex;
+                        param.selectedTypeIndex =
+                            Array.isArray(param.beams[defaultBeamIndex].types) &&
+                            param.beams[defaultBeamIndex].types.length
+                                ? this.findDefaultTypeIndex(param.beams[defaultBeamIndex].types, param.defaultType)
+                                : 0;
+                        console.log('Beams parameter with setAmount set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                
+                        // המרה של ברירת המחדל למבנה עם setAmount
+                        if (Array.isArray(param.default)) {
+                            param.default = param.default.map((value: any) => {
+                                if (typeof value === 'object' && value.length !== undefined) {
+                                    // כבר במבנה הנכון
+                                    return value;
+                                } else {
+                                    // המרה ממספר לאובייקט עם כמות 1
+                                    return { length: value, amount: 1 };
+                                }
+                            });
+                        }
+                        console.log('Beams parameter default array converted for setAmount:', param.default);
+                    }
                     return param;
                 });
                 this.initParamsFromProduct();
@@ -506,6 +539,37 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 ? 0
                                 : null;
                         console.log('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                    }
+                    // טיפול בפרמטר beamArray עם setAmount עבור מוצר קורות
+                    if (
+                        param.name === 'beams' &&
+                        param.setAmount === true &&
+                        Array.isArray(param.beams) &&
+                        param.beams.length
+                    ) {
+                        console.log('Setting default beam for beams parameter with setAmount');
+                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                        param.selectedBeamIndex = defaultBeamIndex;
+                        param.selectedTypeIndex =
+                            Array.isArray(param.beams[defaultBeamIndex].types) &&
+                            param.beams[defaultBeamIndex].types.length
+                                ? this.findDefaultTypeIndex(param.beams[defaultBeamIndex].types, param.defaultType)
+                                : 0;
+                        console.log('Beams parameter with setAmount set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                
+                        // המרה של ברירת המחדל למבנה עם setAmount
+                        if (Array.isArray(param.default)) {
+                            param.default = param.default.map((value: any) => {
+                                if (typeof value === 'object' && value.length !== undefined) {
+                                    // כבר במבנה הנכון
+                                    return value;
+                                } else {
+                                    // המרה ממספר לאובייקט עם כמות 1
+                                    return { length: value, amount: 1 };
+                                }
+                            });
+                        }
+                        console.log('Beams parameter default array converted for setAmount:', param.default);
                     }
                     return param;
                 });
@@ -608,6 +672,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.updateBeams();
         }
     }
+    
     updateShelfGap(idx: number, value: number) {
         const shelfsParam = this.getParam('shelfs');
         if (shelfsParam && Array.isArray(shelfsParam.default)) {
@@ -619,6 +684,46 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
             this.updateBeams();
         }
+    }
+    
+    // פונקציה להוספת קורה עם אורך וכמות עבור setAmount
+    addBeamWithAmount(param: any) {
+        if (param && param.setAmount && Array.isArray(param.default)) {
+            param.default.push({
+                length: param.min,
+                amount: 1
+            });
+            this.updateBeams();
+        }
+    }
+    
+    // פונקציה להמרת מבנה נתונים לזהה עם setAmount
+    convertDefaultArrayForSetAmount(param: any) {
+        if (param && param.setAmount && Array.isArray(param.default)) {
+            param.default = param.default.map((value: any) => {
+                if (typeof value === 'object' && value.length !== undefined) {
+                    return value; // כבר במבנה הנכון
+                } else {
+                    return { length: value, amount: 1 }; // המרה ממספר לאובייקט
+                }
+            });
+        }
+    }
+    
+    // פונקציה להקטנת כמות
+    decreaseAmount(param: any, index: number) {
+        const idx = param.default.length - 1 - index;
+        if (param.default[idx].amount > 1) {
+            param.default[idx].amount--;
+            this.updateBeams();
+        }
+    }
+    
+    // פונקציה להגדלת כמות
+    increaseAmount(param: any, index: number) {
+        const idx = param.default.length - 1 - index;
+        param.default[idx].amount++;
+        this.updateBeams();
     }
     // Numeric params
     get surfaceWidth(): number {
@@ -1244,8 +1349,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
         this.beamMeshes = [];
         // Defensive checks
-        if (!this.isTable && !this.isPlanter && !this.isBox && (!this.shelves || !this.shelves.length)) {
+        if (!this.isTable && !this.isPlanter && !this.isBox && !this.isBelams && (!this.shelves || !this.shelves.length)) {
             console.warn('No shelves found, cannot render model.');
+            return;
+        }
+        
+        // טיפול במוצר קורות לפי מידה (beams)
+        if (this.isBelams) {
+            this.updateBeamsModel();
             return;
         }
         if (this.isTable && !this.getParam('height')) {
@@ -2505,6 +2616,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // חישוב נתוני הקורות לחישוב מחיר
     async calculateBeamsData() {
         this.BeamsDataForPricing = [];
+        
+        // טיפול מיוחד במוצר קורות לפי מידה
+        if (this.isBelams) {
+            await this.calculateBelamsData();
+            return;
+        }
+        
         // איסוף כל הקורות מהמודל התלת מימדי
         const allBeams: any[] = [];
         // קבלת נתוני הקורות מהפרמטרים
@@ -4653,6 +4771,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         shelfHeights: number[];
         totalScrews: number;
     } {
+        // טיפול במוצר קורות לפי מידה
+        if (this.isBelams) {
+            return this.getBelamsDimensionsRaw();
+        }
+
         // רוחב כולל
         let totalWidth = this.surfaceWidth;
         // אורך כולל
@@ -5292,6 +5415,200 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
     }
 
+    // חישוב נתוני קורות לפי מידה למחיר
+    private async calculateBelamsData() {
+        console.log('בחישוב נתוני קורות לפי מידה למחיר...');
+        
+        const beamsParam = this.getParam('beams');
+        if (!beamsParam || !beamsParam.setAmount) {
+            console.warn('לא נמצא פרמטר beams עם setAmount');
+            return;
+        }
+
+        const beamsArray = beamsParam.default || [];
+        
+        // יצירת נתוני קורה למחיר - כל קורה עם המידה שהמשתמש הגדיר
+        const selectedBeamIndex = beamsParam.selectedBeamIndex || 0;
+        const beamInfo = beamsParam.beams[selectedBeamIndex];
+        
+        if (beamInfo) {
+            const beamTypeIndex = beamsParam.selectedTypeIndex || (beamsParam.defaultType ? 
+                this.findDefaultTypeIndex(beamInfo.types, beamsParam.defaultType) : 0);
+            const beamType = beamInfo.types?.[beamTypeIndex];
+            
+            if (beamType) {
+                // פתיחת קורה עבור כל אורך וכמות שהמשתמש הגדיר
+                beamsArray.forEach((beamData: any, index: number) => {
+                    if (beamData && typeof beamData === 'object') {
+                        const beamLengthCm = beamData.length || beamData;
+                        const beamAmount = beamData.amount || 1;
+                        const beamHeightCm = beamInfo.height / 10; // גובה קבוע מהקורה
+                        const beamDepthCm = (beamInfo.depth || beamInfo.width) / 10; // עומק קבוע מהקורה
+                        
+                        this.BeamsDataForPricing.push({
+                            beamName: beamInfo.name,
+                            beamTranslatedName: beamInfo.translatedName || beamInfo.name,
+                            beamWoodType: beamType.translatedName || beamType.name,
+                            length: beamLengthCm, // האורך שהמשתמש הגדיר
+                            width: beamDepthCm, // העומק
+                            height: beamHeightCm, // הגובה
+                            depth: beamDepthCm,
+                            count: beamAmount, // הכמות שהמשתמש הגדיר
+                            description: `${beamInfo.translatedName || beamInfo.name} - ${beamLengthCm}ס"מ × ${beamAmount}יח - ${beamType.translatedName || beamType.name}`,
+                            productType: 'beams',
+                            screwCount: 0 // אין ברגים במוצר קורות
+                        });
+                        
+                        console.log(`קורה נוספה למחיר: ${beamLengthCm}ס"מ × ${beamAmount}יח × ${beamDepthCm}×${beamHeightCm} ס"מ - ${beamInfo.name} (${beamType.name})`);
+                    } else if (typeof beamData === 'number') {
+                        // תאמיכה במבנה הישן של מספרים
+                        const beamLengthCm = beamData;
+                        const beamHeightCm = beamInfo.height / 10;
+                        const beamDepthCm = (beamInfo.depth || beamInfo.width) / 10;
+                        
+                        this.BeamsDataForPricing.push({
+                            beamName: beamInfo.name,
+                            beamTranslatedName: beamInfo.translatedName || beamInfo.name,
+                            beamWoodType: beamType.translatedName || beamType.name,
+                            length: beamLengthCm,
+                            width: beamDepthCm,
+                            height: beamHeightCm,
+                            depth: beamDepthCm,
+                            count: 1,
+                            description: `${beamInfo.translatedName || beamInfo.name} - ${beamLengthCm}ס"מ - ${beamType.translatedName || beamType.name}`,
+                            productType: 'beams',
+                            screwCount: 0
+                        });
+                        
+                        console.log(`קורה נוספה למחיר (מבנה ישן): ${beamLengthCm}ס"מ × ${beamDepthCm}×${beamHeightCm} ס"מ - ${beamInfo.name} (${beamType.name})`);
+                    }
+                });
+            }
+        }
+
+        // אין ברגים במוצר זה
+        this.ForgingDataForPricing = [];
+
+        console.log(`נתוני קורות לחישוב מחיר נשלחו: ${this.BeamsDataForPricing.length} קורות`);
+    }
+
+    // תצוגת מידות הקורות עם כמות
+    getBelamsWithQuantitiesText(): string {
+        const beamsParam = this.getParam('beams');
+        if (!beamsParam || !beamsParam.setAmount) {
+            return '';
+        }
+
+        const beamsArray = beamsParam.default || [];
+        
+        // יצירת רשימת המידות שהמשתמש הגדיר (בסל"מ כמו מדף שולחן)
+        const selectedBeamIndex = beamsParam.selectedBeamIndex || 0;
+        const beamInfo = beamsParam.beams[selectedBeamIndex];
+        
+        if (beamInfo) {
+            const beamTypeIndex = beamsParam.selectedTypeIndex || (beamsParam.defaultType ? 
+                this.findDefaultTypeIndex(beamInfo.types, beamsParam.defaultType) : 0);
+            const beamType = beamInfo.types?.[beamTypeIndex];
+            const beamName = beamType?.name || beamInfo.translatedName || `קורה ${selectedBeamIndex}`;
+            
+            // הכנה של רשימת מידות וכמויות כמו במדפים
+            const beamDimensions: string[] = [];
+            beamsArray.forEach((beamData: any, index: number) => {
+                if (beamData && typeof beamData === 'object') {
+                    const beamLengthCm = beamData.length || beamData;
+                    const beamAmount = beamData.amount || 1;
+                    beamDimensions.push(`${beamLengthCm} ס"מ × ${beamAmount}יח`);
+                } else if (typeof beamData === 'number') {
+                    beamDimensions.push(`${beamData} ס"מ`);
+                }
+            });
+            
+            return `${beamDimensions.join(', ')}`;
+        }
+
+        return '';
+    }
+
+    // חיפוש קורה לפי שם הטיפוס
+    private findBeamByName(beamTypeName: string, beamsParam: any): any {
+        for (const beam of beamsParam.beams) {
+            if (beam.types) {
+                for (const type of beam.types) {
+                    if (type.name === beamTypeName) {
+                        return beam;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // טפול במידות מוצר קורות לפי מידה
+    private getBelamsDimensionsRaw(): {
+        length: number;
+        width: number;
+        height: number;
+        beamCount: number;
+        gapBetweenBeams: number;
+        shelfCount: number;
+        shelfHeights: number[];
+        totalScrews: number;
+    } {
+        const beamsParam = this.getParam('beams');
+        if (!beamsParam || !beamsParam.setAmount) {
+            return {
+                length: 0,
+                width: 0,
+                height: 0,
+                beamCount: 0,
+                gapBetweenBeams: 0,
+                shelfCount: 0,
+                shelfHeights: [],
+                totalScrews: 0
+            };
+        }
+
+        const beamsArray = beamsParam.default || [];
+        
+        // חישוב אורך כולל מהמידות שהמשתמש הגדיר (בסל"מ)
+        const beamSpacing = 20;
+        let totalLength = 0;
+        
+        // סיכום כל המידות והכמויות שהמשתמש הגדיר + רווחים
+        beamsArray.forEach((beamData: any) => {
+            if (beamData && typeof beamData === 'object') {
+                const beamLengthCm = beamData.length || beamData;
+                const beamAmount = beamData.amount || 1;
+                totalLength += (beamLengthCm + beamSpacing) * beamAmount;
+            } else if (typeof beamData === 'number') {
+                totalLength += beamData + beamSpacing;
+            }
+        });
+        
+        // מציאת מידות הקורה הנבחרת (כי כל הקורות עם גובה ועומק זהים)
+        let beamHeightCm = 0;
+        let beamDepthCm = 0;
+        
+        const selectedBeamIndex = beamsParam.selectedBeamIndex || 0;
+        const beamInfo = beamsParam.beams[selectedBeamIndex];
+        
+        if (beamInfo) {
+            beamHeightCm = beamInfo.height / 10;
+            beamDepthCm = (beamInfo.depth || beamInfo.width) / 10;
+        }
+
+        return {
+            length: totalLength,
+            width: beamDepthCm, // עומק הקורה הנבחרת
+            height: beamHeightCm, // גובה הקורה הנבחרת 
+            beamCount: beamsArray.length,
+            gapBetweenBeams: beamSpacing,
+            shelfCount: 0, // אין מדפים
+            shelfHeights: [], // אין מדפים
+            totalScrews: 0 // אין ברגים
+        };
+    }
+
     // Helper function to find default beam index based on defaultType
     findDefaultBeamIndex(beams: any[], defaultType?: any): number {
         if (!Array.isArray(beams) || beams.length === 0) {
@@ -5331,6 +5648,118 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         // אם לא נמצאה התאמה, חזרה לאינדקס 0
         console.log('No matching beam found for defaultType, using index 0');
+        return 0;
+    }
+
+    // טפול במודל קורות לפי מידה
+    private updateBeamsModel() {
+        console.log('יצירת מודל קורות לפי מידה...');
+        
+        // קבלת פרמטר beamArray עם setAmount
+        const beamsParam = this.getParam('beams');
+        if (!beamsParam || !beamsParam.setAmount) {
+            console.warn('לא נמצא פרמטר beams עם setAmount');
+            return;
+        }
+
+        const beamsArray = beamsParam.default || [];
+        if (!Array.isArray(beamsArray) || beamsArray.length === 0) {
+            console.warn('מערך קורות ריק');
+            return;
+        }
+
+        let currentX = 0; // מיקום X הנוכחי לקורות
+        const beamSpacing = 20; // רווח של 20 ס"מ בין קורות
+
+        // מעבר על כל קורה במערך - עם אורך וכמות עבור setAmount
+        beamsArray.forEach((beamData: any) => {
+            if (!beamData || typeof beamData !== 'object') {
+                console.warn('נתוני קורה לא חוקיים:', beamData);
+                return;
+            }
+
+            const beamLengthCm = beamData.length || beamData; // תמיכה בשני המבנים
+            const beamAmount = beamData.amount || 1;
+            
+            // שימוש במידות ברירת המחלה של הקורה הנבחרת
+            const selectedBeamIndex = beamsParam.selectedBeamIndex || 0;
+            const beamInfo = beamsParam.beams[selectedBeamIndex];
+            
+            if (!beamInfo) {
+                console.warn('קורה לא נמצאה באינדקס:', selectedBeamIndex);
+                return;
+            }
+
+            // קבלת סוג הקורה (type)
+            const beamTypeIndex = beamsParam.selectedTypeIndex || beamsParam.defaultType ? 
+                this.findDefaultTypeIndex(beamInfo.types, beamsParam.defaultType) : 0;
+            const beamType = beamInfo.types?.[beamTypeIndex];
+
+            // מידות הקורה בפיקסלים מהמשתמש (בס"מ כמו מדף שולחן)
+            const beamHeightCm = beamInfo.height / 10; // גובה קבוע מהקורה הנבחרת
+            const beamDepthCm = (beamInfo.depth || beamInfo.width) / 10; // עומק קבוע מהקורה הנבחרת
+
+            // יצירת קורות לפי הכמות הרצויה
+            for (let i = 0; i < beamAmount; i++) {
+                // יצירת גיאומטריה וחומר
+                const geometry = new THREE.BoxGeometry(beamLengthCm, beamHeightCm, beamDepthCm);
+                const material = this.getWoodMaterial(beamType?.name || '');
+
+                // יצירת mesh
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                // הוספת wireframe אם נדרש
+                if (this.isTransparentMode) {
+                    this.addWireframeToBeam(mesh);
+                }
+
+                // מיקום הקורה על הרצפה
+                mesh.position.set(
+                    currentX, 
+                    beamHeightCm / 2, // חצי גובה הקורה מעל הרצפה
+                    0 // במרכז Z
+                );
+
+                // הוספה לסצנה
+                this.scene.add(mesh);
+                this.beamMeshes.push(mesh);
+
+                // התקדמות למיקום הבא (רוחב הקורה שהמשתמש הגדיר)
+                currentX += beamLengthCm + beamSpacing;
+            }
+
+            console.log(`קורה באורך ${beamLengthCm}ס"מ × ${beamAmount}יח: גובה ${beamHeightCm}ס"מ, עומק ${beamDepthCm}ס"מ`);
+        });
+
+        // עדכון מצב הטעינה
+        this.isLoading = false;
+        this.isModelLoading = false;
+
+        console.log(`נוצרו ${this.beamMeshes.length} קורות באוכליי שונים עם רווח של ${beamSpacing}ס"מ ביניהן`);
+    }
+
+    // חיפוש אינדקס הטיפוס בהתבסס על defaultType
+    private findDefaultTypeIndex(types: any[], defaultType: any): number {
+        if (!Array.isArray(types) || types.length === 0) {
+            return 0;
+        }
+        
+        if (!defaultType) {
+            return 0;
+        }
+        
+        for (let i = 0; i < types.length; i++) {
+            const type = types[i];
+            const typeId = type._id?.toString() || type._id?.$oid?.toString();
+            const defaultTypeId = defaultType?.toString() || defaultType?.$oid?.toString();
+            
+            if (typeId && defaultTypeId && typeId === defaultTypeId) {
+                return i;
+            }
+        }
+        
         return 0;
     }
 }
