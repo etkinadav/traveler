@@ -324,12 +324,15 @@
                                         <div class="quantity-container">
                                             <div class="quantity-label-above">כמות</div>
                                             <div class="quantity-control">
-                                                <button class="quantity-btn minus" 
-                                                        (click)="decreaseAmount(param, idx)">
+                                                <!-- במובייל: פלוס למעלה -->
+                                                <button class="quantity-btn plus"
+                                                        (click)="increaseAmount(param, idx)">
                                                     <svg width="12" height="12" viewBox="0 0 12 12">
+                                                        <line x1="6" y1="4" x2="6" y2="8" stroke="currentColor" stroke-width="1.5"/>
                                                         <line x1="4" y1="6" x2="8" y2="6" stroke="currentColor" stroke-width="1.5"/>
                                                     </svg>
                                                 </button>
+                                                 <!-- באמצע: ערך הזנה -->
                                                  <input class="quantity-input"
                                                         type="number" 
                                                         [(ngModel)]="param.default[param.default.length - 1 - idx].amount"
@@ -337,10 +340,10 @@
                                                         (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
                                                         (input)="onShelfInputChange($event, param, idx)"
                                                         min="1">
-                                                <button class="quantity-btn plus"
-                                                        (click)="increaseAmount(param, idx)">
+                                                <!-- למטה: מינוס -->
+                                                <button class="quantity-btn minus" 
+                                                        (click)="decreaseAmount(param, idx)">
                                                     <svg width="12" height="12" viewBox="0 0 12 12">
-                                                        <line x1="6" y1="4" x2="6" y2="8" stroke="currentColor" stroke-width="1.5"/>
                                                         <line x1="4" y1="6" x2="8" y2="6" stroke="currentColor" stroke-width="1.5"/>
                                                     </svg>
                                                 </button>
@@ -621,6 +624,47 @@
                             .remove-shelf-btn {
                                 flex: 0 0 24px !important;
                                 margin-left: 8px !important;
+                            }
+                        </style>
+                        <!-- כללים למובייל -->
+                        <style>
+                            @media (max-width: 768px) {
+                                /* מבנה אנכי של אינפוט הכמות במובייל */
+                                .beam-entry-container .quantity-control {
+                                    left: -52px !important; /* -112px + 60px */
+                                    top: 50% !important;
+                                    transform: translateY(-50%) !important;
+                                    flex-direction: column !important;
+                                    gap: 1px !important;
+                                    align-items: center !important;
+                                    width: 25px !important;
+                                    max-width: 25px !important;
+                                }
+                                /* קטנת הכפתורים והאינפוט במובייל */
+                                .beam-entry-container .quantity-btn {
+                                    width: 20px !important;
+                                    height: 18px !important;
+                                    min-width: 20px !important;
+                                }
+                                .beam-entry-container .quantity-input {
+                                    width: 20px !important;
+                                    max-width: 20px !important;
+                                    padding: 2px !important;
+                                    font-size: 11px !important;
+                                }
+                                .quantity-label-above {
+                                    display: none !important;
+                                }
+                                /* קטנת רוחב האינפוט הפנימי של האורך במובייל */
+                                .beam-entry-container .shelf-gap-field-length input[type="number"],
+                                .beam-entry-container .shelf-gap-field-length .mat-mdc-text-field__native-control,
+                                .beam-entry-container .shelf-gap-field-length .mat-input-element {
+                                    max-width: 80px !important; /* 105px - 25px */
+                                    width: 80px !important;
+                                }
+                                .shelf-gap-field-length {
+                                    flex: 0 0 80px !important; /* 105px - 25px */
+                                }
                             }
                         </style>
                     </div>
