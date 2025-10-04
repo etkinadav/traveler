@@ -1363,7 +1363,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.updateBeamsModel();
             // הגדרת מיקום הסצנה כמו בשאר המוצרים
             this.scene.position.y = -120;
-            // ללא קריאה נוספת ל-centerCameraOnWireframe - המצלמה כבר אותחלה ב-initThree()
+            // אתחול המצלמה עם אנימציה - זהה לשאר המוצרים
+            this.centerCameraOnBeams();
             return;
         }
         if (this.isTable && !this.getParam('height')) {
@@ -2331,6 +2332,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         // אתחול המצלמה אחרי שהמודל נטען
         if (this.isBelams) {
+            // הגדרת מיקום הסצנה עבור beams - זהה לשאר המוצרים
+            this.scene.position.y = -120;
             this.centerCameraOnBeams();
         } else {
             // הגדרת מיקום הסצנה עבור שאר המוצרים
@@ -4312,12 +4315,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // מרכוז המצלמה עבור מוצר beams עם מידות קבועות
     private centerCameraOnBeams() {
-        // קבועים - זהה לחלוטין ל-centerCameraOnWireframe הרגילה
+        // קבועים עבור beams - מידות קבועות של 50x50x50 ס"מ
         const ROTATION_ANGLE = 30; // 30 מעלות סיבוב כלפי מטה (קבוע)
-        const FIXED_DISTANCE = 100; // מרחק קבוע מהמרכז
+        const BEAMS_BOX_SIZE = 50; // מידות קבועות של 50x50x50 ס"מ
+        
+        // חישוב מרחק על בסיס המידות הקבועות
+        const maxDimension = BEAMS_BOX_SIZE; // 50 ס"מ
+        const FIXED_DISTANCE = maxDimension * 2; // מרחק פי 2 מהמידה הגדולה
         
         // מיקום המצלמה במרחק קבוע מהמרכז
-        this.camera.position.set(0, FIXED_DISTANCE, 200);
+        this.camera.position.set(0, FIXED_DISTANCE, maxDimension * 4);
         
         // מרכוז על מרכז העולם (0,0,0)
         this.camera.lookAt(0, 0, 0);
@@ -4328,9 +4335,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         spherical.phi += ROTATION_ANGLE * Math.PI / 180; // 30 מעלות כלפי מטה
         this.camera.position.setFromSpherical(spherical);
         this.camera.lookAt(0, 0, 0);
-        
-        // ללא זום אאוט - המצלמה תישאר במרחק המקורי
-        // הזום אין ב-performAutoZoomIn() יטפל בזה
         
         // pan למעלה במצב הפתיחה - זהה לחלוטין לרגיל
         const screenHeight = window.innerHeight;
@@ -4346,8 +4350,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.performAutoZoomIn();
         }, 1000);
         
-        console.log('מצלמה מורכזת על beams - זהה לחלוטין למוצרים אחרים:', {
+        console.log('מצלמה מורכזת על beams עם מידות קבועות 50x50x50:', {
             rotationAngle: ROTATION_ANGLE,
+            beamsBoxSize: BEAMS_BOX_SIZE,
             fixedDistance: FIXED_DISTANCE,
             panAmount: panAmount,
             cameraPosition: this.camera.position.clone(),
@@ -5794,9 +5799,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             console.log(`קורה באורך ${beamLengthCm}ס"מ × ${beamAmount}יח: גובה ${beamHeightCm}ס"מ, עומק ${beamDepthCm}ס"מ`);
         });
 
-        // עדכון מצב הטעינה
-        this.isLoading = false;
-        this.isModelLoading = false;
+        // עדכון מצב הטעינה - עם המתנה מלאכותית כדי לראות את ה-loader
+        setTimeout(() => {
+            this.isLoading = false;
+            this.isModelLoading = false;
+        }, 1000); // המתנה של שנייה כדי לראות את ה-loader
 
         console.log(`נוצרו ${this.beamMeshes.length} קורות באוכליי שונים עם רווח של ${beamSpacing}ס"מ ביניהן`);
     }
