@@ -2671,8 +2671,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   }
 
   private generateRandomBeams() {
-    // גרילה של מספר קורות (1-4)
-    const numBeams = Math.floor(Math.random() * 4) + 1;
+    // גרילה של מספר סוגי אורכים (1-3 בלבד)
+    const numBeams = Math.floor(Math.random() * 3) + 1; // 1-3
     
     // אתחול מערך הקורות
     this.dynamicBeams = [];
@@ -2720,9 +2720,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       
       // מיקום הקורה - מיושר לצדדים ומוזז מהמרכז כמו בקובץ הראשי
       mesh.position.set(
-        25, // מוזז 25 ס"מ ימינה (כיוון החץ האדום) - מותאם למיני
+        50, // מוזז 50 ס"מ ימינה (כיוון החץ האדום) - זהה לקובץ הראשי
         0, // במרכז ה-Y כמו מוצרים אחרים
-        currentZ - 12.5 // רווח קבוע של 10 ס"מ בין הקורות על ציר Z, מוזז 12.5 ס"מ לכיוון הפוך לחץ הכחול - מותאם למיני
+        currentZ - 25 // רווח קבוע של 10 ס"מ בין הקורות על ציר Z, מוזז 25 ס"מ לכיוון הפוך לחץ הכחול - מותאם למיני
       );
       
       // כליפ הקורה כך שהקצה התחילי יהיה בנקודה הקבועה
