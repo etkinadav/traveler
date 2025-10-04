@@ -1127,9 +1127,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         cam.position.add(pan);
         this.target.add(pan);
       } else {
-        // סיבוב - הפוך את הכיוון
+        // סיבוב - תיקון כיוון (הפוך ימין-שמאל)
         const rotateSpeed = 0.01;
-        this.spherical.theta += deltaX * rotateSpeed;
+        this.spherical.theta -= deltaX * rotateSpeed; // הפוך מ-+ ל-- כדי לתקן את הכיוון
         this.spherical.phi -= deltaY * rotateSpeed;
         
         // הגבלת זווית אנכית
@@ -1191,7 +1191,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         const angleX = dy * 0.01;
         const offset = this.camera.position.clone().sub(this.target);
         const spherical = new THREE.Spherical().setFromVector3(offset);
-        spherical.theta -= angleY;
+        spherical.theta += angleY; // הפוך מ-- ל-+ כדי לתקן את הכיוון במגע
         spherical.phi -= angleX;
         spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
         this.camera.position.setFromSpherical(spherical).add(this.target);
