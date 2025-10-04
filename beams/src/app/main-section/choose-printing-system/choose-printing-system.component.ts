@@ -93,6 +93,8 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     this.displayedText = this.defaultText;
     this.displayedSubtitle = this.defaultSubtitle;
     
+    console.log('טקסט ברירת מחדל:', { displayedTitle: this.displayedTitle, displayedText: this.displayedText, displayedSubtitle: this.displayedSubtitle });
+    
     this.directionService.direction$.subscribe(direction => {
       this.isRTL = direction === 'rtl';
     });
@@ -113,8 +115,11 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     // התחלת החלפת התמונות
     this.startImageRotation();
     
-    // עדכון טקסט ראשון
-    this.updateTextImmediately();
+    // עדכון טקסט ראשון - עם עיכוב קטן כדי לתת זמן לתרגום להיטען
+    console.log('מתחיל עדכון טקסט ראשון...');
+    setTimeout(() => {
+      this.updateTextImmediately();
+    }, 100);
 
     this.userId = this.authService.getUserId();
     this.userIsAuthenticated = this.authService.getIsAuth();
@@ -273,35 +278,60 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     // הטקסט מתחלף עם התמונות
     const currentKey = this.imageKeys[this.currentImageIndex];
     
+    console.log('=== updateTextImmediately התחיל ===');
+    console.log('currentKey:', currentKey);
+    console.log('currentImageIndex:', this.currentImageIndex);
+    
     // עדכון מפתח האנימציה לחומר מעבר פשוט
     this.currentTransitionKey = 'card-' + currentKey + '-' + Date.now();
     
     // קבלת הטקסטים מתורגמים
-    const title = this.translateService.instant('choose-system.empty-title-' + currentKey);
-    const text = this.translateService.instant('choose-system.empty-text-' + currentKey);
-    const subtitle = this.translateService.instant('choose-system.empty-subtitle-' + currentKey);
+    const titleKey = 'choose-system.empty-title-' + currentKey;
+    const textKey = 'choose-system.empty-text-' + currentKey;
+    const subtitleKey = 'choose-system.empty-subtitle-' + currentKey;
+    
+    console.log('מפתחות תרגום:', { titleKey, textKey, subtitleKey });
+    
+    const title = this.translateService.instant(titleKey);
+    const text = this.translateService.instant(textKey);
+    const subtitle = this.translateService.instant(subtitleKey);
     
     console.log('תרגומים:', { title, text, subtitle, currentKey });
+    console.log('title.includes check:', title.includes('choose-system.empty-title-'));
     
     // עדכון הטקסט
     if (!title.includes('choose-system.empty-title-')) {
       this.displayedTitle = title;
-    }
-    if (!text.includes('choose-system.empty-text-')) {
-      this.displayedText = text;
-    }
-    if (!subtitle.includes('choose-system.empty-subtitle-')) {
-      this.displayedSubtitle = subtitle;
+      console.log('כותרת עודכנה ל:', this.displayedTitle);
+    } else {
+      console.log('כותרת לא עודכנה - תרגום לא מוכן');
     }
     
-    console.log('טקסט עודכן לתמונה:', currentKey, { displayedTitle: this.displayedTitle });
+    if (!text.includes('choose-system.empty-text-')) {
+      this.displayedText = text;
+      console.log('טקסט עודכן ל:', this.displayedText);
+    } else {
+      console.log('טקסט לא עודכן - תרגום לא מוכן');
+    }
+    
+    if (!subtitle.includes('choose-system.empty-subtitle-')) {
+      this.displayedSubtitle = subtitle;
+      console.log('סלוגן עודכן ל:', this.displayedSubtitle);
+    } else {
+      console.log('סלוגן לא עודכן - תרגום לא מוכן');
+    }
+    
+    console.log('טקסט סופי:', { displayedTitle: this.displayedTitle, displayedText: this.displayedText, displayedSubtitle: this.displayedSubtitle });
     
     // אם התרגום עדיין לא עובד, retry אחרי זמן קצר
     if (title.includes('choose-system.empty-title-') || this.displayedTitle === '') {
+      console.log('מנסה שוב אחרי 500ms...');
       setTimeout(() => {
         this.updateTextImmediately();
       }, 500);
     }
+    
+    console.log('=== updateTextImmediately הסתיים ===');
   }
   
   // ==================
