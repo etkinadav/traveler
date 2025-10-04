@@ -40,6 +40,7 @@ $dark-warn: mat.define-palette(palette.$dark-warn);
   animation: gradientFlow 4s ease-in-out infinite !important;
   color: white !important;
   border: 2px solid var(--zx-green-vivid-light) !important;
+  border-radius: 0.5rem !important; /* rounded-2 equivalent */
 }
 
 @keyframes gradientFlow {
@@ -577,7 +578,7 @@ body[dir='rtl'] .custom-tooltip {
     // בדסקטופ - התאמה לתצוגה אנכית
     @media only screen and (min-width: 768px) {
         padding: 20px !important;
-        border-radius: 16px !important;
+        border-radius: 0 !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
         margin-bottom: 16px;
     }

@@ -461,7 +461,7 @@
     position: relative;
     bottom: unset;
     left: unset;
-    border-radius: 50px !important; // rounded pill
+    border-radius: 0 !important; // ללא רדיוס
     border: none !important; // הסרת border
     background: var(--zx-green) !important; // רקע כחול
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; // צללה עדינה
@@ -642,7 +642,7 @@
     rgba(255, 255, 255, 0.325) 50%, 
     rgba(255, 255, 255, 0.275) 75%, 
     rgba(255, 255, 255, 0.3) 100%);
-  border-radius: 12px;
+  border-radius: 0;
   z-index: 0;
   box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
 }

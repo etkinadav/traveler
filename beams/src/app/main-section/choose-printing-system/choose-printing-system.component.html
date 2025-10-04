@@ -54,7 +54,7 @@
                                          <!-- מצב טעינה - 3 כרטיסי דמה -->
                                          <ng-container *ngIf="isLoading">
                                              <div *ngFor="let item of [1,2,3]; let i = index" 
-                                                 class="col-12 col-md-6 step-item-trans-product step-item rounded-3 shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                                 class="col-12 col-md-6 step-item-trans-product step-item shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
                                                  [class.step-item-dark]="isDarkMode">
                                              <!-- כפתור המשך למוצר -->
                                              <button mat-stroked-button 
@@ -89,11 +89,11 @@
                                                  (mouseenter)="onHoverProduct(product)"
                                                  (mouseleave)="onHoverProduct(null)"
                                                  [class.zx-step-choosen]="selectedProduct?._id === product._id"
-                                                 class="col-12 col-md-6 step-item-trans-product step-item rounded-3 shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                                 class="col-12 col-md-6 step-item-trans-product step-item shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
                                                  [class.step-item-dark]="isDarkMode">
                                         <!-- כפתור המשך למוצר -->
                                         <button mat-stroked-button 
-                                                class="continue-to-product-btn" 
+                                                class="continue-to-product-btn rounded-2" 
                                                 (click)="navigateToProduct(product); $event.stopPropagation()">
                                             <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">{{product.model || product.translatedName || 'המוצר'}} במידות שלך</span>
                                         </button>
@@ -139,7 +139,7 @@
                 *ngIf="printingService === 'express' || printingService === 'plotter' || printingService === 'ph'"
                 [class.show-main-btn]="isSystemSet">
                 <button type="button" mat-raised-button color="primary"
-                    class="text-white rounded-pill w-100 zx-medium-btn zx-main-btn-effects fw-bold"
+                    class="text-white rounded-2 w-100 zx-medium-btn zx-main-btn-effects fw-bold"
                     (click)="onSetPrintingService()">
                     {{ continueToServiceText }}
                 </button>
