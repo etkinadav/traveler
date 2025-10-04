@@ -3,11 +3,12 @@
     
     <!-- קונטיינר לכפתורי תצוגה -->
     <div class="view-controls-container">
-        <!-- כפתור להצגת wireframe - מוסתר במובייל -->
+        <!-- כפתור להצגת wireframe - מוסתר במובייל ובמוצר קורות -->
         <button class="wireframe-toggle hide-on-mobile" (click)="toggleWireframe()" 
                 [class.active]="showWireframe" 
                 matTooltip="הצג את מידות המוצר המלאות"
-                matTooltipPosition="below">
+                matTooltipPosition="below"
+                *ngIf="!isBelams">
             <!-- SVG Icon -->
             <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left:8px;">
                 <rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="0.8" fill="none"/>
@@ -88,8 +89,8 @@
             <span class="menu-text">החלף מוצר</span>
         </button>
         
-        <!-- אפשרות הצג מידות - מוצג רק במובייל -->
-        <button mat-menu-item (click)="toggleWireframe()" [class.active]="showWireframe" class="menu-option show-on-mobile">
+        <!-- אפשרות הצג מידות - מוצג רק במובייל ובמוצרים שאינם קורות -->
+        <button mat-menu-item (click)="toggleWireframe()" [class.active]="showWireframe" class="menu-option show-on-mobile" *ngIf="!isBelams">
             <svg width="12" height="12" viewBox="0 0 12 12" class="menu-icon">
                 <rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="0.8" fill="none"/>
                 <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="0.8"/>
@@ -125,8 +126,8 @@
             <span class="menu-text">בחר מבט</span>
         </button>
         
-        <!-- אפשרות הצגת חצים לכיוונים -->
-        <button mat-menu-item (click)="toggleCoordinateAxes(); menuTrigger.closeMenu()" [class.active]="showCoordinateAxes" class="menu-option">
+        <!-- אפשרות הצגת חצים לכיוונים - מוסתר במוצר קורות -->
+        <button mat-menu-item (click)="toggleCoordinateAxes(); menuTrigger.closeMenu()" [class.active]="showCoordinateAxes" class="menu-option" *ngIf="!isBelams">
             <svg width="14" height="14" viewBox="0 0 14 14" class="menu-icon">
                 <!-- ריבוע עם 2 פאות סמוכות בלבד -->
                 <!-- פאה עליונה -->

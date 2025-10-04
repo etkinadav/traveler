@@ -5508,7 +5508,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 // פתיחת קורה עבור כל אורך וכמות שהמשתמש הגדיר
                 beamsArray.forEach((beamData: any, index: number) => {
                     if (beamData && typeof beamData === 'object') {
-                        const beamLengthCm = beamData.length || beamData;
+                        const beamLengthCm = beamData.length;
                         const beamAmount = beamData.amount || 1;
                         const beamHeightCm = beamInfo.height / 10; // גובה קבוע מהקורה
                         const beamDepthCm = (beamInfo.depth || beamInfo.width) / 10; // עומק קבוע מהקורה
