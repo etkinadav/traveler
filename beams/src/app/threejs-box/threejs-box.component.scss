@@ -15,7 +15,7 @@
     height: 28px;
     padding: 0;
     border: none;
-    border-radius: 6px;
+    border-radius: 0;
     background: rgba(0, 102, 204, 0.1);
     color: #0066cc;
     cursor: pointer;
@@ -50,7 +50,7 @@
     height: 28px;
     padding: 4px 8px;
     border: none;
-    border-radius: 6px;
+    border-radius: 0;
     background: rgba(0, 102, 204, 0.1);
     color: #0066cc;
     cursor: pointer;
@@ -115,7 +115,7 @@
     .menu-option {
         min-height: 28px !important;
         height: 28px !important;
-        border-radius: 6px;
+        border-radius: 0;
         margin: 2px 0;
         font-size: 11px;
         font-weight: 500;
@@ -841,7 +841,7 @@ mat-form-field {
     bottom: 20px;
     right: 20px;
     background: white;
-    border-radius: 12px;
+    border-radius: 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 12px 16px;
     z-index: 1000;
@@ -1018,7 +1018,7 @@ mat-form-field {
         right: 0;
         margin-bottom: 15px; // רווח קטן מעליה (הוגדל מ-10px ל-15px)
         background: white;
-        border-radius: 12px;
+        border-radius: 0;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border: 1px solid #e0e0e0;
         padding: 12px 16px;
@@ -1589,7 +1589,7 @@ mat-form-field {
     
     .price-capsule {
         background: rgba(0, 102, 204, 0.08);
-        border-radius: 8px;
+        border-radius: 0;
         padding: 4px 8px;
         display: flex;
         flex-direction: column;
@@ -1649,7 +1649,7 @@ mat-form-field {
 .minimized-continue-button {
     background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
     border: none;
-    border-radius: 20px;
+    border-radius: 0;
     padding: 10px 18px;
     display: flex;
     align-items: center;
@@ -1685,7 +1685,7 @@ mat-form-field {
 .continue-button {
     background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
     border: none;
-    border-radius: 20px;
+    border-radius: 0;
     padding: 8px 16px;
     display: flex;
     align-items: center;
