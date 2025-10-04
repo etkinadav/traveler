@@ -73,7 +73,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.isTransparentMode = !this.isTransparentMode;
         console.log('Toggle transparent mode:', this.isTransparentMode);
         // עדכון המודל כדי להחיל את השקיפות
-        this.updateBeams();
+        this.updateBeams(); // טוגל שקיפות - עם אנימציה
     }
     
     // ניווט לעמוד הבית (בחירת מוצר)
@@ -495,7 +495,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 if (lastProductId === currentProductId) {
                 this.loadConfiguration();
                 }
-                this.updateBeams();
+                this.updateBeams(); // טעינת מוצר - עם אנימציה
             },
             error: (err) => {
                 console.error('Failed to load product:', err);
@@ -596,7 +596,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 if (lastProductId === currentProductId) {
                 this.loadConfiguration();
                 }
-                this.updateBeams();
+                this.updateBeams(); // טעינת מוצר - עם אנימציה
             },
             error: (err) => {
                 console.error('Failed to load product by name:', err);
@@ -1224,10 +1224,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // get total model height
         const dimensions = this.getProductDimensionsRaw();
         console.log('Total model height:', dimensions.height);
-        this.scene.position.y = -120; // 200 * 0.5 = 100 (panSpeed)
+        // this.scene.position.y = -120; // הוסר מכאן - יוגדר רק עבור beams
         
-        // מרכוז המצלמה על קוביית ה-wireframe
-        this.centerCameraOnWireframe();
+        // מרכוז המצלמה על קוביית ה-wireframe - רק אחרי שהמוצר נטען
+        // this.centerCameraOnWireframe(); // הוסר מכאן
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(width, height);
         this.renderer.shadowMap.enabled = true;
@@ -1289,6 +1289,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const pointLight = new THREE.PointLight(0xffffff, 0.5, 200);
         pointLight.position.set(0, 100, 0);
         this.scene.add(pointLight);
+        
+        // הוספת חצים לכיוונים במרכז המודל (0,0,0)
+        this.addCoordinateAxes();
+        
         this.beamMeshes = [];
     }
     private onResize() {
@@ -1359,8 +1363,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.updateBeamsModel();
             // הגדרת מיקום הסצנה כמו בשאר המוצרים
             this.scene.position.y = -120;
-            // מצלמה רגילה כמו בכל המוצרים
-            this.centerCameraOnWireframe();
+            // ללא קריאה נוספת ל-centerCameraOnWireframe - המצלמה כבר אותחלה ב-initThree()
             return;
         }
         if (this.isTable && !this.getParam('height')) {
@@ -2324,6 +2327,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // Add wireframe cube showing product dimensions (only if enabled)
         if (this.showWireframe) {
         this.addWireframeCube();
+        }
+        
+        // אתחול המצלמה אחרי שהמודל נטען
+        if (this.isBelams) {
+            this.centerCameraOnBeams();
+        } else {
+            // הגדרת מיקום הסצנה עבור שאר המוצרים
+            this.scene.position.y = -120;
+            this.centerCameraOnWireframe();
         }
     }
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
@@ -4235,10 +4247,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     private centerCameraOnWireframe() {
         // קבועים
         const ROTATION_ANGLE = 30; // 30 מעלות סיבוב כלפי מטה (קבוע)
-        const FIXED_DISTANCE = 100; // מרחק קבוע מהמרכז
+        const FIXED_DISTANCE = 200; // מרחק רחוק מהמרכז (היה 100, עכשיו 200)
         
-        // מיקום המצלמה במרחק קבוע מהמרכז
-        this.camera.position.set(0, FIXED_DISTANCE, 200);
+        // מיקום המצלמה במרחק רחוק מהמרכז
+        this.camera.position.set(0, FIXED_DISTANCE, 400);
         
         // מרכוז על מרכז העולם (0,0,0)
         this.camera.lookAt(0, 0, 0);
@@ -4250,12 +4262,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.camera.position.setFromSpherical(spherical);
         this.camera.lookAt(0, 0, 0);
         
-        // זום אאוט במצב הפתיחה
-        const currentDistance = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
-        const zoomOutAmount = 200; // זום אאוט ב-200 יחידות (פי 2 יותר מקודם)
-        const newDistance = currentDistance + zoomOutAmount;
-        const direction = this.camera.position.clone().normalize();
-        this.camera.position.copy(direction.multiplyScalar(newDistance));
+        // ללא זום אאוט - המצלמה תישאר במרחק המקורי
+        // הזום אין ב-performAutoZoomIn() יטפל בזה
         
         // pan למעלה במצב הפתיחה
         const screenHeight = window.innerHeight;
@@ -4302,6 +4310,51 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
     }
     
+    // מרכוז המצלמה עבור מוצר beams עם מידות קבועות
+    private centerCameraOnBeams() {
+        // קבועים - זהה לחלוטין ל-centerCameraOnWireframe הרגילה
+        const ROTATION_ANGLE = 30; // 30 מעלות סיבוב כלפי מטה (קבוע)
+        const FIXED_DISTANCE = 100; // מרחק קבוע מהמרכז
+        
+        // מיקום המצלמה במרחק קבוע מהמרכז
+        this.camera.position.set(0, FIXED_DISTANCE, 200);
+        
+        // מרכוז על מרכז העולם (0,0,0)
+        this.camera.lookAt(0, 0, 0);
+
+        // סיבוב המצלמה 30 מעלות כלפי מטה (קבוע)
+        const offset = this.camera.position.clone();
+        const spherical = new THREE.Spherical().setFromVector3(offset);
+        spherical.phi += ROTATION_ANGLE * Math.PI / 180; // 30 מעלות כלפי מטה
+        this.camera.position.setFromSpherical(spherical);
+        this.camera.lookAt(0, 0, 0);
+        
+        // ללא זום אאוט - המצלמה תישאר במרחק המקורי
+        // הזום אין ב-performAutoZoomIn() יטפל בזה
+        
+        // pan למעלה במצב הפתיחה - זהה לחלוטין לרגיל
+        const screenHeight = window.innerHeight;
+        const panAmount = screenHeight / 2; // חצי מגובה המסך
+        const cam = this.camera;
+        const pan = new THREE.Vector3();
+        pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), panAmount * 0.2); // חיובי = למעלה
+        cam.position.add(pan);
+        this.scene.position.add(pan);
+        
+        // המתנה של שנייה כדי שהמודל יסיים לעלות, ואז זום אין אוטומטי
+        setTimeout(() => {
+            this.performAutoZoomIn();
+        }, 1000);
+        
+        console.log('מצלמה מורכזת על beams - זהה לחלוטין למוצרים אחרים:', {
+            rotationAngle: ROTATION_ANGLE,
+            fixedDistance: FIXED_DISTANCE,
+            panAmount: panAmount,
+            cameraPosition: this.camera.position.clone(),
+            scenePosition: this.scene.position.clone()
+        });
+    }
+    
     // פונקציה לביצוע זום אין אוטומטי עם ease-in-out + rotate + pan
     private performAutoZoomIn() {
         const startTime = Date.now();
@@ -4317,9 +4370,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const rotateAngle = rotatePixels * 0.01; // זהה ללוגיקה בשורה 938
         const panAmount = panPixels * 0.2; // זהה ללוגיקה בשורה 926
         
-        // חישוב מרכז קוביית ה-wireframe לסיבוב
-        const dimensions = this.getProductDimensionsRaw();
-        const wireframeCenter = new THREE.Vector3(0, dimensions.height / 2, 0);
+        // חישוב מרכז קוביית ה-wireframe לסיבוב - תמיד מרכז העולם
+        const wireframeCenter = new THREE.Vector3(0, 0, 0);
         
         // שמירת מיקום התחלתי של הסיבוב
         const startOffset = startPosition.clone().sub(wireframeCenter);
@@ -4349,7 +4401,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const newOffset = new THREE.Vector3().setFromSpherical(currentSpherical);
             this.camera.position.copy(wireframeCenter.clone().add(newOffset));
             
-            // 3. Pan - הזזה מתקדמת (גרירה של 30 פיקסלים למטה עם גלגלת)
+            // 3. Pan - הזזה מתקדמת (גרירה של 60 פיקסלים למטה עם גלגלת)
             const currentPanAmount = THREE.MathUtils.lerp(0, panAmount, easeProgress);
             const cam = this.camera;
             const pan = new THREE.Vector3();
@@ -5673,7 +5725,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             return;
         }
 
-        let currentX = 0; // מיקום X הנוכחי לקורות
+        let currentZ = 0; // מיקום Z הנוכחי לקורות - מתחיל מ-0
         const beamSpacing = 10; // רווח של 10 ס"מ בין קורות
 
         // מעבר על כל קורה במערך - עם אורך וכמות עבור setAmount
@@ -5720,12 +5772,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.addWireframeToBeam(mesh);
                 }
 
-                // מיקום הקורה במרכז ה-Y כמוצרים אחרים
+                // מיקום הקורה במרכז ה-Y כמו מוצרים אחרים
                 // כל קורה מתחילה מנקודה קבועה ומתרחבת לאותו כיוון
                 mesh.position.set(
                     0, // נקודת התחלה קבועה לכל הקורות
-                    0, // במרכז ה-Y
-                    currentX // רווח קבוע של 10 ס"מ בין הקורות על ציר Z
+                    0, // במרכז ה-Y כמו מוצרים אחרים
+                    currentZ // רווח קבוע של 10 ס"מ בין הקורות על ציר Z
                 );
                 
                 // כליפ הקורה כך שהקצה התחילי יהיה בנקודה הקבועה
@@ -5736,7 +5788,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.beamMeshes.push(mesh);
 
                 // התקדמות למיקום הבא (עומק הקורה + רווח קבוע של 10 ס"מ)
-                currentX += beamDepthCm + beamSpacing;
+                currentZ += beamDepthCm + beamSpacing;
             }
 
             console.log(`קורה באורך ${beamLengthCm}ס"מ × ${beamAmount}יח: גובה ${beamHeightCm}ס"מ, עומק ${beamDepthCm}ס"מ`);
@@ -5770,5 +5822,74 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         
         return 0;
+    }
+    
+    // הוספת חצים לכיוונים במרכז המודל
+    private addCoordinateAxes() {
+        const axesLength = 50; // אורך החצים בס"מ
+        
+        // חץ X (אדום) - ימינה
+        const xArrow = this.createArrow(axesLength, 0xff0000, 'X');
+        xArrow.position.set(0, 0, 0);
+        this.scene.add(xArrow);
+        
+        // חץ Y (ירוק) - למעלה
+        const yArrow = this.createArrow(axesLength, 0x00ff00, 'Y');
+        yArrow.position.set(0, 0, 0);
+        yArrow.rotation.z = -Math.PI / 2; // סיבוב 90 מעלות סביב Z
+        this.scene.add(yArrow);
+        
+        // חץ Z (כחול) - קדימה (לכיוון המצלמה)
+        const zArrow = this.createArrow(axesLength, 0x0000ff, 'Z');
+        zArrow.position.set(0, 0, 0);
+        zArrow.rotation.x = Math.PI / 2; // סיבוב 90 מעלות סביב X
+        this.scene.add(zArrow);
+        
+        console.log('נוספו חצים לכיוונים במרכז המודל');
+    }
+    
+    // יצירת חץ בודד
+    private createArrow(length: number, color: number, label: string) {
+        const group = new THREE.Group();
+        
+        // יצירת הגוף של החץ (צילינדר)
+        const shaftGeometry = new THREE.CylinderGeometry(0.5, 0.5, length - 10, 8);
+        const shaftMaterial = new THREE.MeshBasicMaterial({ color: color });
+        const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+        shaft.position.y = length / 2 - 5; // מיקום הגוף
+        group.add(shaft);
+        
+        // יצירת הראש של החץ (קונוס)
+        const headGeometry = new THREE.ConeGeometry(2, 10, 8);
+        const headMaterial = new THREE.MeshBasicMaterial({ color: color });
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        head.position.y = length - 5; // מיקום הראש
+        group.add(head);
+        
+        // הוספת טקסט לכיוון
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const context = canvas.getContext('2d')!;
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, 64, 64);
+        context.fillStyle = '#000000';
+        context.font = 'bold 32px Arial';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(label, 32, 32);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        const textMaterial = new THREE.MeshBasicMaterial({ 
+            map: texture, 
+            transparent: true,
+            alphaTest: 0.1
+        });
+        const textGeometry = new THREE.PlaneGeometry(8, 8);
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        textMesh.position.y = length + 5; // מיקום הטקסט מעל החץ
+        group.add(textMesh);
+        
+        return group;
     }
 }
