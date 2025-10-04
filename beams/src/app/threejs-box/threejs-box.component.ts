@@ -56,7 +56,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         if (isMobile) {
             // במובייל - לא לעשות כלום, הקוביה לא תופיע
-            console.log('Wireframe disabled on mobile');
             return;
         }
         
@@ -72,12 +71,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     toggleTransparentMode() {
         // במוצר קורות - לא לאפשר מצב שקוף
         if (this.isBelams) {
-            console.log('מצב שקוף לא זמין במוצר קורות');
             return;
         }
         
         this.isTransparentMode = !this.isTransparentMode;
-        console.log('Toggle transparent mode:', this.isTransparentMode);
         // עדכון המודל כדי להחיל את השקיפות
         this.updateBeams(); // עם אנימציה רגילה
     }
@@ -90,7 +87,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // הפעלת קוביית ניווט במובייל
     toggleNavigationCube() {
         this.showNavigationCube = !this.showNavigationCube;
-        console.log('Toggle navigation cube:', this.showNavigationCube);
         // סגירת תפריט האפשרויות
         this.isOptionsMenuOpen = false;
     }
@@ -98,13 +94,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // צמצום/הרחבת תפריט המחיר
     togglePriceMinimize() {
         this.isPriceMinimized = !this.isPriceMinimized;
-        console.log('Price minimized:', this.isPriceMinimized);
     }
     
     // איפוס מבט המצלמה לנקודת ההתחלה
     resetCameraView() {
-        console.log('איפוס מבט המצלמה לנקודת ההתחלה...');
-        
         // סגירת תפריט האפשרויות
         this.isOptionsMenuOpen = false;
         
@@ -127,7 +120,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
         }, 100);
         
-        console.log('איפוס מבט הושלם - המצלמה חזרה לנקודת ההתחלה');
     }
     
     // בדיקת מגבלות המוצר
@@ -137,7 +129,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         // בדיקה אם יש restrictions
         if (!product.restrictions || !Array.isArray(product.restrictions)) {
-            console.log('אין מגבלות למוצר זה');
             return;
         }
         
@@ -148,10 +139,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         if (dimensionsAlertRestriction && dimensionsAlertRestriction.val === true) {
             this.hasDimensionsAlert = true;
-            console.log('למוצר זה יש מגבלת התרעת מידות');
         }
-        
-        console.log('מגבלות המוצר:', product.restrictions);
     }
     private removeWireframeCube() {
         const existingWireframe =
@@ -162,7 +150,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     // פונקציית ניווט
     onNavigationClick(direction: string) {
-        console.log(direction);
         this.setCameraView(direction);
     }
     
@@ -404,16 +391,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         if (token) {
             this.authToken = token;
             this.isUserAuthenticated = true;
-            console.log('User is authenticated');
         } else {
             this.isUserAuthenticated = false;
-            console.log('User is not authenticated, using localStorage');
         }
     }
     // Clear user configuration when switching products
     private clearUserConfiguration() {
         // ניקוי כל ההגדרות הקשורות למוצר הקודם
-        console.log('Current localStorage keys:', Object.keys(localStorage));
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
@@ -428,16 +412,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         keysToRemove.forEach((key) => {
             localStorage.removeItem(key);
-            console.log('Removed configuration:', key);
         });
         
         // מחיקת קונפיגורציה כללית
         localStorage.removeItem('beam-configuration');
-        console.log('Removed beam-configuration');
-        console.log(
-            'User configuration cleared for new product. Removed keys:',
-            keysToRemove
-        );
         
         // איפוס הפרמטרים לערכי ברירת המחדל
         this.resetParamsToDefaults();
@@ -913,7 +891,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         if (this.isTransparentMode && !this.isBelams) {
             material.transparent = true;
             material.opacity = 0.1; // 10% שקיפות
-            console.log('Creating transparent material for:', beamType);
         }
         
         return material;
@@ -978,7 +955,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // Save configuration to localStorage (fallback)
     private saveConfigurationToLocalStorage(config: any) {
         localStorage.setItem('beam-configuration', JSON.stringify(config));
-        console.log('Configuration saved to localStorage');
     }
     // Load saved configuration (user-specific or localStorage)
     private loadConfiguration() {
@@ -1000,7 +976,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     Object.keys(response.configuration).length > 0
                 ) {
                         this.applyConfiguration(response.configuration);
-                        console.log('Configuration loaded from server');
                     } else {
                         // No server config, try localStorage
                         this.loadConfigurationFromLocalStorage();
@@ -1022,7 +997,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             try {
                 const config = JSON.parse(savedConfig);
                 this.applyConfiguration(config);
-                console.log('Configuration loaded from localStorage');
             } catch (error) {
                 console.error(
                     'Error loading configuration from localStorage:',
@@ -1265,7 +1239,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // PAN למטה של 200 פיקסלים - הזזת הסצנה
         // get total model height
         const dimensions = this.getProductDimensionsRaw();
-        console.log('Total model height:', dimensions.height);
         // this.scene.position.y = -120; // הוסר מכאן - יוגדר רק עבור beams
         
         // מרכוז המצלמה על קוביית ה-wireframe - רק אחרי שהמוצר נטען
