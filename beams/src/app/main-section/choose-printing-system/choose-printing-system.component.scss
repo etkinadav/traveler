@@ -688,6 +688,20 @@
   mix-blend-mode: normal;
 }
 
+// כותרת הכרטיסיה המתחלפת - כחולה ללא אפקטים
+.hero-text-block h6 {
+  position: relative !important;
+  z-index: 2 !important;
+  color: var(--zx-green) !important;
+  text-shadow: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: var(--zx-green) !important;
+}
+
 
 
 // מסכים גדולים מאוד (4K ומעלה)
