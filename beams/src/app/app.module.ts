@@ -47,7 +47,6 @@ import { AddPointsComponent } from "./dialog/add-points/add-points.component";
 import { CloseBranchComponent } from "./dialog/close-branch/close-branch.component";
 import { NavigationFromPrinterManigmentComponent } from "./super-management/printer/navigation-from-printer-manigment/navigation-from-printer-manigment.component";
 import { MyOrdersComponent } from "./other-pages/my-orders/my-orders.component";
-import { HomeComponent } from "./other-pages/home/home.component";
 import { MyProfileComponent } from "./other-pages/my-profile/my-profile.component";
 import { PrintingQueComponent } from "./other-pages/printing-que/printing-que.component";
 import { QAndAComponent } from "./other-pages/q-and-a/q-and-a.component";
@@ -81,7 +80,6 @@ import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
     NavigationFromPrinterManigmentComponent,
     QrLinkComponent,
     MyOrdersComponent,
-    HomeComponent,
     MyProfileComponent,
     PrintingQueComponent,
     QAndAComponent,
