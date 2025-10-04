@@ -1363,8 +1363,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.updateBeamsModel();
             // הגדרת מיקום הסצנה כמו בשאר המוצרים
             this.scene.position.y = -120;
-            // אתחול המצלמה עם אנימציה - מבוטל כדי למנוע אנימציה בעדכון ערכים
-            // this.centerCameraOnBeams();
+            // אתחול המצלמה עם אנימציה - רק בטעינה ראשונית
+            if (isInitialLoad) {
+                this.centerCameraOnBeams();
+            }
             return;
         }
         if (this.isTable && !this.getParam('height')) {
