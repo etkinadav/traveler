@@ -359,6 +359,17 @@ mat-form-field {
     background: #ffeaea;
 }
 
+.remove-shelf-btn-with-amount {
+    left: 125px !important; /* 25px + 60px + 40px = 125px */
+    top: calc(50% - 3px) !important; /* 50% - 12px + 5px + 7px - 3px = 50% - 3px */
+}
+
+@media (max-width: 768px) {
+    .remove-shelf-btn-with-amount {
+        left: 55px !important; /* 125px - 70px = 55px */
+    }
+}
+
 .remove-shelf-btn svg {
     display: block;
     width: 14px;
@@ -388,6 +399,32 @@ mat-form-field {
 
 .shelf-row:last-child {
     margin-bottom: 0;
+}
+
+.shelf-row-with-amount {
+    margin-bottom: calc(0.3em + 10px) !important; /* 0.3em + 10px נוסף */
+}
+
+.shelf-row-with-amount:first-child {
+    margin-top: 15px !important; /* רווח נוסף מעל השורה הראשונה */
+}
+
+.shelf-row-with-amount:last-child {
+    margin-bottom: 0 !important; /* ללא רווח מתחת לשורה האחרונה */
+}
+
+@media (max-width: 768px) {
+    .shelf-row-with-amount {
+        margin-bottom: calc(0.3em + 30px) !important; /* 0.3em + 10px + 20px נוסף במובייל */
+    }
+    
+    .shelf-row-with-amount:first-child {
+        margin-top: 20px !important; /* רווח נוסף יותר במובייל */
+    }
+    
+    .shelf-row-with-amount:last-child {
+        margin-bottom: 10px !important; /* רווח קטן מתחת לשורה האחרונה במובייל */
+    }
 }
 
 /* Parameter box without shadow and minimal padding */

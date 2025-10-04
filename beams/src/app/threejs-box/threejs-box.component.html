@@ -267,7 +267,9 @@
                             </button>
                         </div>
                         <div class="shelf-measurements-container beam-array-container">
-                            <div *ngFor="let i of [].constructor(param.default.length); let idx = index" class="shelf-row">
+                            <div *ngFor="let i of [].constructor(param.default.length); let idx = index" 
+                                class="shelf-row" 
+                                [class.shelf-row-with-amount]="param.setAmount === true">
                                 <div class="shelf-gap-field-wrapper">
                                     <mat-form-field appearance="outline" class="shelf-gap-field">
                                         <mat-label>מידה {{param.default.length - idx}} - {{getUnitForParameter(param)}}</mat-label>
@@ -277,7 +279,8 @@
                   (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
                   (input)="onShelfInputChange($event, param, idx)">
                                     </mat-form-field>
-                                    <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn"
+                                    <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn" 
+                                        [class.remove-shelf-btn-with-amount]="param.setAmount === true"
                                         (click)="param.default.splice(param.default.length - 1 - idx,1); updateBeams()"
                                         [disabled]="param.default.length<=1" aria-label="הסר מדף">
                                         <svg width="14" height="14" viewBox="0 0 14 14">
@@ -325,7 +328,9 @@
                             </button>
                         </div>
                         <div class="shelf-measurements-container beam-array-container">
-                            <div *ngFor="let i of [].constructor(param.default.length); let idx = index" class="shelf-row">
+                            <div *ngFor="let i of [].constructor(param.default.length); let idx = index" 
+                                class="shelf-row" 
+                                [class.shelf-row-with-amount]="param.setAmount === true">
                                 <div class="shelf-gap-field-wrapper">
                                     <div class="beam-entry-container">
                                         <mat-form-field appearance="outline" class="shelf-gap-field-length">
@@ -366,6 +371,7 @@
                                         </div>
                                     </div>
                                     <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn"
+                                        [class.remove-shelf-btn-with-amount]="param.setAmount === true"
                                         (click)="param.default.splice(param.default.length - 1 - idx,1); updateBeams()"
                                         [disabled]="param.default.length<=1" aria-label="הסר קורה">
                                         <svg width="14" height="14" viewBox="0 0 14 14">
