@@ -2698,7 +2698,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   private createDynamicBeams(beamWidthCm: number, beamHeightCm: number, beamDepthCm: number) {
     const beamSpacing = 10; // רווח של 10 ס"מ בין קורות
-    let currentX = -25; // התחלה ב-25 ס"מ שמאלה מהמרכז
+    let currentZ = 0; // מיקום Z הנוכחי לקורות - מתחיל מ-0
     
     // קבלת טקסטורת עץ - כמו שאר המוצרים
     const woodTexture = this.getWoodTexture('pine'); // טקסטורה אחת כמו שאר המוצרים
@@ -2706,24 +2706,27 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.dynamicBeams.forEach((beamInfo, index) => {
       // יצירת גיאומטריה של הקורה
       const geometry = new THREE.BoxGeometry(
-        beamWidthCm,  // רוחב
+        beamInfo.length, // אורך
         beamHeightCm, // גובה
-        beamInfo.length // אורך
+        beamDepthCm // עומק
       );
       
       // הגדרת מיפוי טקסטורה נכון
-      this.setCorrectTextureMapping(geometry, beamWidthCm, beamHeightCm, beamInfo.length);
+      this.setCorrectTextureMapping(geometry, beamInfo.length, beamHeightCm, beamDepthCm);
       
       // יצירת חומר עם טקסטורה
       const material = new THREE.MeshStandardMaterial({ map: woodTexture });
       const mesh = new THREE.Mesh(geometry, material);
       
-      // מיקום הקורה
+      // מיקום הקורה - מיושר לצדדים ומוזז מהמרכז כמו בקובץ הראשי
       mesh.position.set(
-        currentX,
-        beamHeightCm / 2, // על הרצפה
-        0 // מרכוז במישור Z
+        25, // מוזז 25 ס"מ ימינה (כיוון החץ האדום) - מותאם למיני
+        0, // במרכז ה-Y כמו מוצרים אחרים
+        currentZ - 12.5 // רווח קבוע של 10 ס"מ בין הקורות על ציר Z, מוזז 12.5 ס"מ לכיוון הפוך לחץ הכחול - מותאם למיני
       );
+      
+      // כליפ הקורה כך שהקצה התחילי יהיה בנקודה הקבועה
+      mesh.translateX(-beamInfo.length / 2); // מזיז את הקורה כך שהקצה התחילי יהיה בנקודה 0
       
       // הגדרות צל
       mesh.castShadow = true;
@@ -2733,8 +2736,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.scene.add(mesh);
       this.meshes.push(mesh);
       
-      // מעבר לקורה הבאה
-      currentX += beamWidthCm + beamSpacing;
+      // התקדמות למיקום הבא (עומק הקורה + רווח קבוע של 10 ס"מ)
+      currentZ += beamDepthCm + beamSpacing;
     });
     
     console.log(`נוצרו ${this.meshes.length} קורות במיני-פרוויו`);
