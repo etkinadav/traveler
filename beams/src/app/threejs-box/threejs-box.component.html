@@ -976,10 +976,11 @@
                     </div>
                 </div>
                 
-                <!-- טבלת מידות המוצר -->
-                <div class="product-dimensions-container" *ngIf="!isLoading">
+                <!-- טבלת מידות המוצר - מוסתר למוצר beams -->
+                <div class="product-dimensions-container" *ngIf="!isLoading && !isBelams">
                     <h3>מידות המוצר הסופי</h3>
                     <table class="dimensions-table">
+                        <!-- מידות כוללות - לכל המוצרים -->
                         <tr>
                             <td>אורך כולל:</td>
                             <td [innerHTML]="getProductDimensions().length"></td>
@@ -992,26 +993,21 @@
                             <td>גובה כולל:</td>
                             <td [innerHTML]="getProductDimensions().height"></td>
                         </tr>
-                        <tr>
-                            <td>כמות קורות במדף:</td>
+                        
+                        <!-- מידות ספציפיות - רק לארון ושולחן -->
+                        <tr *ngIf="!isPlanter && !isBox">
+                            <td>{{ isTable ? 'כמות קורות בפלטה:' : 'כמות קורות במדף:' }}</td>
                             <td [innerHTML]="getProductDimensions().beamCount"></td>
                         </tr>
-                        <tr>
-                            <td>רווח בין קורות המדף:</td>
+                        <tr *ngIf="!isPlanter && !isBox">
+                            <td>{{ isTable ? 'רווח בין קורות הפלטה:' : 'רווח בין קורות המדף:' }}</td>
                             <td [innerHTML]="getProductDimensions().gapBetweenBeams"></td>
                         </tr>
-                        <tr>
+                        
+                        <!-- כמות מדפים - רק לארון -->
+                        <tr *ngIf="!isTable && !isPlanter && !isBox">
                             <td>כמות מדפים:</td>
                             <td [innerHTML]="getProductDimensions().shelfCount"></td>
-                        </tr>
-                        <tr *ngIf="!isTable && !isBelams">
-                            <td>גבהי המדפים:</td>
-                            <td [innerHTML]="getProductDimensions().shelfHeights"></td>
-                        </tr>
-                        <!-- מידע מיוחד למוצר קורות -->
-                        <tr *ngIf="isBelams">
-                            <td>מידות קורות (עם כמות):</td>
-                            <td [innerHTML]="getBelamsWithQuantitiesText()"></td>
                         </tr>
                     </table>
                 </div>
