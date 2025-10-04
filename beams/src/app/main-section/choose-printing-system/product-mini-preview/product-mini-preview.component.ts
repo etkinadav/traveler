@@ -2771,4 +2771,10 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     console.log('קורות דינמיות עודכנו עבור beams');
   }
+
+  // פונקציה להפסקת הסיבוב האוטומטי
+  public stopAutoRotation(): void {
+    this.hasUserInteracted = true;
+    console.log('סיבוב אוטומטי הופסק');
+  }
 }

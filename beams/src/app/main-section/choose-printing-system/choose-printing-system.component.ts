@@ -67,6 +67,9 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   defaultTitle: string = 'פינות משחקים';
   defaultText: string = 'צרו פינות משחקים ופנאי עבור ילדים עם מדפים צבעוניים ובטיחותיים';
   defaultSubtitle: string = 'פינות פנאי לילדים';
+  
+  // מפה להצגת טקסט ההוראה בריחוף לכל מוצר
+  showHintMap: { [key: string]: boolean } = {};
 
   
 
@@ -335,4 +338,50 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   }
   
   // ==================
+  
+  // פונקציות לניהול הטקסט לכל מוצר
+  showHintForProduct(productId: string): void {
+    this.showHintMap[productId] = true;
+  }
+  
+  hideHintForProduct(productId: string): void {
+    this.showHintMap[productId] = false;
+  }
+  
+  // פונקציה להסרת הכיסוי עם אפקט ripple
+  removeOverlay(event: MouseEvent, miniPreview: any): void {
+    const overlay = event.target as HTMLElement;
+    
+    // יצירת אפקט ripple
+    const ripple = document.createElement('div');
+    ripple.style.position = 'absolute';
+    ripple.style.borderRadius = '50%';
+    ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+    ripple.style.transform = 'scale(0)';
+    ripple.style.animation = 'ripple 0.6s linear';
+    ripple.style.left = (event.offsetX - 10) + 'px';
+    ripple.style.top = (event.offsetY - 10) + 'px';
+    ripple.style.width = '20px';
+    ripple.style.height = '20px';
+    ripple.style.pointerEvents = 'none';
+    
+    overlay.appendChild(ripple);
+    
+    // הפסקת הסיבוב האוטומטי של המודל
+    if (miniPreview && miniPreview.stopAutoRotation) {
+      miniPreview.stopAutoRotation();
+    }
+    
+    // הסרת הכיסוי אחרי 100ms
+    setTimeout(() => {
+      overlay.style.display = 'none';
+    }, 100);
+    
+    // הסרת ה-ripple אחרי האנימציה
+    setTimeout(() => {
+      if (ripple.parentNode) {
+        ripple.parentNode.removeChild(ripple);
+      }
+    }, 600);
+  }
 }

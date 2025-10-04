@@ -688,6 +688,61 @@
   mix-blend-mode: normal;
 }
 
+// כיסוי שקוף מעל המודלים התלת-ממדיים
+.product-3d-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent; // שקוף לחלוטין
+  border-radius: 8px; // פינות מעוגלות
+  pointer-events: auto; // חוסם אינטראקציות עם המודל התלת-ממדי
+  z-index: 10; // מעל המודל התלת-ממדי
+  cursor: pointer; // עכבר לחיצה
+  
+  // מניעת גלילה ומשיכה
+  touch-action: none; // מונע משיכה במובייל
+  -webkit-touch-callout: none; // מונע קריאה לפעולה במובייל
+  -webkit-user-select: none; // מונע בחירת טקסט
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  // אפקט ripple
+  overflow: hidden;
+  
+  // טקסט הוראה בריחוף
+  .overlay-hint {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: none;
+    color: var(--zx-green);
+    padding: 0;
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 11;
+    
+    &.show {
+      opacity: 1;
+    }
+  }
+}
+
+// אנימציית ripple
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
 // כותרת הכרטיסיה המתחלפת - כחולה ללא אפקטים
 .hero-text-block h6 {
   position: relative !important;

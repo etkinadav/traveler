@@ -99,8 +99,20 @@
                                         </button>
                                         
                                         <div class="d-flex align-items-center gap-3">
-                                            <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded">
-                                                <app-product-mini-preview [product]="product" style="width: 100%; height: 100%;"></app-product-mini-preview>
+                                            <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded position-relative">
+                                                <app-product-mini-preview #miniPreview [product]="product" style="width: 100%; height: 100%;"></app-product-mini-preview>
+                                                <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
+                                                <div class="product-3d-overlay" 
+                                                     (click)="removeOverlay($event, miniPreview)"
+                                                     (mouseenter)="showHintForProduct(product._id)"
+                                                     (mouseleave)="hideHintForProduct(product._id)">
+                                                    <!-- טקסט הוראה בריחוף -->
+                                                    <div class="overlay-hint" 
+                                                         [class.show]="showHintMap[product._id]"
+                                                         [@fadeInOut]="showHintMap[product._id] ? 'in' : 'out'">
+                                                        לחץ לשינוי זוית מבט
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         
