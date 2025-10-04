@@ -495,7 +495,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 if (lastProductId === currentProductId) {
                 this.loadConfiguration();
                 }
-                this.updateBeams(); // טעינת מוצר - עם אנימציה
+                this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
             error: (err) => {
                 console.error('Failed to load product:', err);
@@ -596,7 +596,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 if (lastProductId === currentProductId) {
                 this.loadConfiguration();
                 }
-                this.updateBeams(); // טעינת מוצר - עם אנימציה
+                this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
             error: (err) => {
                 console.error('Failed to load product by name:', err);
@@ -1321,7 +1321,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.addWireframeCube();
         }
     }
-    updateBeams() {
+    updateBeams(isInitialLoad: boolean = false) {
         // הפעלת loading
         this.isLoading = true;
         this.isModelLoading = true;
@@ -1363,8 +1363,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.updateBeamsModel();
             // הגדרת מיקום הסצנה כמו בשאר המוצרים
             this.scene.position.y = -120;
-            // אתחול המצלמה עם אנימציה - זהה לשאר המוצרים
-            this.centerCameraOnBeams();
+            // אתחול המצלמה עם אנימציה - מבוטל כדי למנוע אנימציה בעדכון ערכים
+            // this.centerCameraOnBeams();
             return;
         }
         if (this.isTable && !this.getParam('height')) {
@@ -2330,15 +2330,17 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.addWireframeCube();
         }
         
-        // אתחול המצלמה אחרי שהמודל נטען
-        if (this.isBelams) {
-            // הגדרת מיקום הסצנה עבור beams - זהה לשאר המוצרים
-            this.scene.position.y = -120;
-            this.centerCameraOnBeams();
-        } else {
-            // הגדרת מיקום הסצנה עבור שאר המוצרים
-            this.scene.position.y = -120;
-            this.centerCameraOnWireframe();
+        // אתחול המצלמה אחרי שהמודל נטען - רק בטעינה ראשונית
+        if (isInitialLoad) {
+            if (this.isBelams) {
+                // הגדרת מיקום הסצנה עבור beams - זהה לשאר המוצרים
+                this.scene.position.y = -120;
+                this.centerCameraOnBeams();
+            } else {
+                // הגדרת מיקום הסצנה עבור שאר המוצרים
+                this.scene.position.y = -120;
+                this.centerCameraOnWireframe();
+            }
         }
     }
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
