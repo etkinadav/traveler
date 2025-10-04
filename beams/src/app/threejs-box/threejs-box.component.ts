@@ -95,6 +95,35 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         console.log('Price minimized:', this.isPriceMinimized);
     }
     
+    // איפוס מבט המצלמה לנקודת ההתחלה
+    resetCameraView() {
+        console.log('איפוס מבט המצלמה לנקודת ההתחלה...');
+        
+        // סגירת תפריט האפשרויות
+        this.isOptionsMenuOpen = false;
+        
+        // איפוס המצלמה למצב ההתחלתי המדויק כמו ב-initThree()
+        // זה המצב שלפני הקריאה ל-centerCameraOnWireframe() או centerCameraOnBeams()
+        this.camera.position.set(0, 200, 400);
+        this.camera.lookAt(0, 0, 0);
+        
+        // הגדרת מיקום הסצנה כמו בטעינה ראשונית
+        this.scene.position.y = -120;
+        
+        // המתנה של 100 מילישניות ואז הפעלת האנימציה בדיוק כמו בפתיחה
+        setTimeout(() => {
+            if (this.isBelams) {
+                // עבור מוצר קורות - שימוש בפונקציה המיוחדת
+                this.centerCameraOnBeams();
+            } else {
+                // עבור שאר המוצרים - שימוש בפונקציה הרגילה
+                this.centerCameraOnWireframe();
+            }
+        }, 100);
+        
+        console.log('איפוס מבט הושלם - המצלמה חזרה לנקודת ההתחלה');
+    }
+    
     // בדיקת מגבלות המוצר
     private checkProductRestrictions(product: any) {
         // איפוס המשתנה
