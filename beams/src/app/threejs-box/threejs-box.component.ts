@@ -774,6 +774,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     frameHeight: number = 5;
     beamHeight: number = 2;
     private beamMeshes: THREE.Mesh[] = [];
+    private coordinateAxes: THREE.Group[] = []; // מערך לשמירת החצים
+    public showCoordinateAxes: boolean = false; // משתנה לשליטה בהצגת החצים
     @ViewChild('rendererContainer', { static: true })
     rendererContainer!: ElementRef;
     width = 2;
@@ -1290,8 +1292,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         pointLight.position.set(0, 100, 0);
         this.scene.add(pointLight);
         
-        // הוספת חצים לכיוונים במרכז המודל (0,0,0)
-        this.addCoordinateAxes();
+        // החצים יוצגו רק לפי בקשה מהמשתמש
+        // this.addCoordinateAxes();
         
         this.beamMeshes = [];
     }
@@ -5837,69 +5839,105 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // הוספת חצים לכיוונים במרכז המודל
     private addCoordinateAxes() {
-        const axesLength = 50; // אורך החצים בס"מ
+        // הסרת חצים קיימים אם יש
+        this.removeCoordinateAxes();
         
-        // חץ X (אדום) - ימינה
-        const xArrow = this.createArrow(axesLength, 0xff0000, 'X');
+        const axesLength = 5; // אורך החצים בס"מ - קוצר ל-5 ס"מ
+        
+        // חץ X (כחול בהיר) - ימינה
+        const xArrow = this.createArrow(axesLength, 0x0066ff, ''); // כחול בהיר ללא טקסט
         xArrow.position.set(0, 0, 0);
         this.scene.add(xArrow);
+        this.coordinateAxes.push(xArrow);
         
-        // חץ Y (ירוק) - למעלה
-        const yArrow = this.createArrow(axesLength, 0x00ff00, 'Y');
+        // חץ Y (כחול בינוני) - למעלה
+        const yArrow = this.createArrow(axesLength, 0x4d94ff, ''); // כחול בינוני ללא טקסט
         yArrow.position.set(0, 0, 0);
         yArrow.rotation.z = -Math.PI / 2; // סיבוב 90 מעלות סביב Z
         this.scene.add(yArrow);
+        this.coordinateAxes.push(yArrow);
         
-        // חץ Z (כחול) - קדימה (לכיוון המצלמה)
-        const zArrow = this.createArrow(axesLength, 0x0000ff, 'Z');
+        // חץ Z (כחול כהה) - קדימה (לכיוון המצלמה)
+        const zArrow = this.createArrow(axesLength, 0x003d99, ''); // כחול כהה ללא טקסט
         zArrow.position.set(0, 0, 0);
         zArrow.rotation.x = Math.PI / 2; // סיבוב 90 מעלות סביב X
         this.scene.add(zArrow);
+        this.coordinateAxes.push(zArrow);
         
         console.log('נוספו חצים לכיוונים במרכז המודל');
+    }
+    
+    // הצגה/הסתרה של חצים לכיוונים
+    toggleCoordinateAxes() {
+        this.showCoordinateAxes = !this.showCoordinateAxes;
+        
+        if (this.showCoordinateAxes) {
+            this.addCoordinateAxes();
+        } else {
+            this.removeCoordinateAxes();
+        }
+        
+        console.log('חצים לכיוונים:', this.showCoordinateAxes ? 'מוצגים' : 'מוסתרים');
+    }
+    
+    // הסרת חצים מהסצנה
+    private removeCoordinateAxes() {
+        this.coordinateAxes.forEach(arrow => {
+            this.scene.remove(arrow);
+            // ניקוי זיכרון
+            arrow.children.forEach(child => {
+                if (child instanceof THREE.Mesh) {
+                    child.geometry.dispose();
+                    (child.material as THREE.Material).dispose();
+                }
+            });
+        });
+        this.coordinateAxes = [];
     }
     
     // יצירת חץ בודד
     private createArrow(length: number, color: number, label: string) {
         const group = new THREE.Group();
         
-        // יצירת הגוף של החץ (צילינדר)
-        const shaftGeometry = new THREE.CylinderGeometry(0.5, 0.5, length - 10, 8);
+        // יצירת הגוף של החץ (צילינדר) - דק ועדין
+        const shaftGeometry = new THREE.CylinderGeometry(0.2, 0.2, length - 1, 8); // קוטר קטן יותר (0.2 במקום 0.5)
         const shaftMaterial = new THREE.MeshBasicMaterial({ color: color });
         const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
-        shaft.position.y = length / 2 - 5; // מיקום הגוף
+        shaft.position.y = (length - 1) / 2; // מיקום הגוף - מתחיל מהמרכז
         group.add(shaft);
         
-        // יצירת הראש של החץ (קונוס)
-        const headGeometry = new THREE.ConeGeometry(2, 10, 8);
+        // יצירת הראש של החץ (קונוס) - קטן ועדין
+        const headGeometry = new THREE.ConeGeometry(0.3, 1, 8); // רדיוס קטן יותר (0.3) וגובה קטן יותר (1)
         const headMaterial = new THREE.MeshBasicMaterial({ color: color });
         const head = new THREE.Mesh(headGeometry, headMaterial);
-        head.position.y = length - 5; // מיקום הראש
+        head.position.y = length - 0.5; // מיקום הראש - מותאם לגובה החדש
         group.add(head);
         
-        // הוספת טקסט לכיוון
-        const canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 64;
-        const context = canvas.getContext('2d')!;
-        context.fillStyle = '#ffffff';
-        context.fillRect(0, 0, 64, 64);
-        context.fillStyle = '#000000';
-        context.font = 'bold 32px Arial';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(label, 32, 32);
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        const textMaterial = new THREE.MeshBasicMaterial({ 
-            map: texture, 
-            transparent: true,
-            alphaTest: 0.1
-        });
-        const textGeometry = new THREE.PlaneGeometry(8, 8);
-        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-        textMesh.position.y = length + 5; // מיקום הטקסט מעל החץ
-        group.add(textMesh);
+        // הוספת טקסט לכיוון - רק אם יש label
+        if (label && label.length > 0) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const context = canvas.getContext('2d')!;
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, 64, 64);
+            context.fillStyle = '#000000';
+            context.font = 'bold 32px Arial';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(label, 32, 32);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const textMaterial = new THREE.MeshBasicMaterial({ 
+                map: texture, 
+                transparent: true,
+                alphaTest: 0.1
+            });
+            const textGeometry = new THREE.PlaneGeometry(8, 8);
+            const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+            textMesh.position.y = length + 5; // מיקום הטקסט מעל החץ
+            group.add(textMesh);
+        }
         
         return group;
     }
