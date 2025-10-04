@@ -2637,6 +2637,26 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // פונקציה לחישוב חומרים (קורות) לחישוב מחיר
     async calculatePricing() {
         await this.calculateBeamsData();
+        
+        // עבור מוצר קורות - אין ברגים, אבל עדיין צריך לקרוא ל-calculateForgingData
+        if (this.isBelams) {
+            this.ForgingDataForPricing = []; // אין ברגים במוצר קורות
+            console.log('מוצר קורות - אין ברגים לחישוב מחיר');
+            
+            // חישוב מחיר עבור מוצר קורות
+            this.calculatedPrice = await this.pricingService.calculatePrice(
+                this.BeamsDataForPricing,
+                this.ForgingDataForPricing
+            );
+            this.cuttingPlan = await this.pricingService.getCuttingPlan(
+                this.BeamsDataForPricing,
+                this.ForgingDataForPricing
+            );
+            console.log('=== FINAL CALCULATED PRICE FOR BEAMS ===', this.calculatedPrice);
+            console.log('=== CUTTING PLAN FOR BEAMS ===', this.cuttingPlan);
+        } else {
+            await this.calculateForgingData();
+        }
     }
     // חישוב נתוני הקורות לחישוב מחיר
     async calculateBeamsData() {
@@ -5505,59 +5525,47 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const beamType = beamInfo.types?.[beamTypeIndex];
             
             if (beamType) {
-                // פתיחת קורה עבור כל אורך וכמות שהמשתמש הגדיר
+                // יצירת רשימת אורכים עם שכפול לפי כמות
+                const beamLengths: number[] = [];
+                
                 beamsArray.forEach((beamData: any, index: number) => {
                     if (beamData && typeof beamData === 'object') {
                         const beamLengthCm = beamData.length;
                         const beamAmount = beamData.amount || 1;
-                        const beamHeightCm = beamInfo.height / 10; // גובה קבוע מהקורה
-                        const beamDepthCm = (beamInfo.depth || beamInfo.width) / 10; // עומק קבוע מהקורה
                         
-                        this.BeamsDataForPricing.push({
-                            beamName: beamInfo.name,
-                            beamTranslatedName: beamInfo.translatedName || beamInfo.name,
-                            beamWoodType: beamType.translatedName || beamType.name,
-                            length: beamLengthCm, // האורך שהמשתמש הגדיר
-                            width: beamDepthCm, // העומק
-                            height: beamHeightCm, // הגובה
-                            depth: beamDepthCm,
-                            count: beamAmount, // הכמות שהמשתמש הגדיר
-                            description: `${beamInfo.translatedName || beamInfo.name} - ${beamLengthCm}ס"מ × ${beamAmount}יח - ${beamType.translatedName || beamType.name}`,
-                            productType: 'beams',
-                            screwCount: 0 // אין ברגים במוצר קורות
-                        });
+                        // שכפול האורך לפי הכמות
+                        for (let i = 0; i < beamAmount; i++) {
+                            beamLengths.push(beamLengthCm);
+                        }
                         
-                        console.log(`קורה נוספה למחיר: ${beamLengthCm}ס"מ × ${beamAmount}יח × ${beamDepthCm}×${beamHeightCm} ס"מ - ${beamInfo.name} (${beamType.name})`);
+                        console.log(`קורה נוספה למחיר: ${beamLengthCm}ס"מ × ${beamAmount}יח`);
                     } else if (typeof beamData === 'number') {
                         // תאמיכה במבנה הישן של מספרים
                         const beamLengthCm = beamData;
-                        const beamHeightCm = beamInfo.height / 10;
-                        const beamDepthCm = (beamInfo.depth || beamInfo.width) / 10;
+                        beamLengths.push(beamLengthCm);
                         
-                        this.BeamsDataForPricing.push({
-                            beamName: beamInfo.name,
-                            beamTranslatedName: beamInfo.translatedName || beamInfo.name,
-                            beamWoodType: beamType.translatedName || beamType.name,
-                            length: beamLengthCm,
-                            width: beamDepthCm,
-                            height: beamHeightCm,
-                            depth: beamDepthCm,
-                            count: 1,
-                            description: `${beamInfo.translatedName || beamInfo.name} - ${beamLengthCm}ס"מ - ${beamType.translatedName || beamType.name}`,
-                            productType: 'beams',
-                            screwCount: 0
-                        });
-                        
-                        console.log(`קורה נוספה למחיר (מבנה ישן): ${beamLengthCm}ס"מ × ${beamDepthCm}×${beamHeightCm} ס"מ - ${beamInfo.name} (${beamType.name})`);
+                        console.log(`קורה נוספה למחיר (מבנה ישן): ${beamLengthCm}ס"מ`);
                     }
+                });
+                
+                // יצירת נתוני קורה למחיר - במבנה הנכון
+                this.BeamsDataForPricing.push({
+                    type: beamType,
+                    beamName: beamInfo.name,
+                    beamTranslatedName: beamInfo.translatedName || beamInfo.name,
+                    beamWoodType: beamType.translatedName || beamType.name,
+                    sizes: beamLengths // מערך של כל האורכים
+                });
+                
+                console.log(`נתוני קורות לחישוב מחיר:`, {
+                    beamName: beamInfo.name,
+                    woodType: beamType.translatedName || beamType.name,
+                    sizes: beamLengths
                 });
             }
         }
 
-        // אין ברגים במוצר זה
-        this.ForgingDataForPricing = [];
-
-        console.log(`נתוני קורות לחישוב מחיר נשלחו: ${this.BeamsDataForPricing.length} קורות`);
+        console.log(`נתוני קורות לחישוב מחיר נשלחו: ${this.BeamsDataForPricing.length} סוגי קורות`);
     }
 
     // תצוגת מידות הקורות עם כמות
