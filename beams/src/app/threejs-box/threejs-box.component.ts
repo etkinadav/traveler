@@ -70,10 +70,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // פונקציה להפעלת מצב שקוף
     toggleTransparentMode() {
+        // במוצר קורות - לא לאפשר מצב שקוף
+        if (this.isBelams) {
+            console.log('מצב שקוף לא זמין במוצר קורות');
+            return;
+        }
+        
         this.isTransparentMode = !this.isTransparentMode;
         console.log('Toggle transparent mode:', this.isTransparentMode);
         // עדכון המודל כדי להחיל את השקיפות
-        this.updateBeams(); // טוגל שקיפות - עם אנימציה
+        this.updateBeams(); // עם אנימציה רגילה
     }
     
     // ניווט לעמוד הבית (בחירת מוצר)
@@ -326,6 +332,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.isPlanter = this.selectedProductName === 'planter';
                 this.isBox = this.selectedProductName === 'box';
                 this.isBelams = this.selectedProductName === 'beams';
+                
+                // איפוס מצב שקוף במוצר קורות
+                if (this.isBelams) {
+                    this.isTransparentMode = false;
+                }
                 console.log(
                     'מוצר נבחר:',
                     this.selectedProductName,
@@ -898,8 +909,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             map: texture,
         });
         
-        // אם במצב שקוף, הפוך את הקורות לשקופות כמעט לחלוטין
-        if (this.isTransparentMode) {
+        // אם במצב שקוף, הפוך את הקורות לשקופות כמעט לחלוטין (לא במוצר קורות)
+        if (this.isTransparentMode && !this.isBelams) {
             material.transparent = true;
             material.opacity = 0.1; // 10% שקיפות
             console.log('Creating transparent material for:', beamType);
@@ -910,7 +921,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // Add wireframe edges to a mesh (for transparent mode)
     private addWireframeToBeam(mesh: THREE.Mesh) {
-        if (this.isTransparentMode) {
+        if (this.isTransparentMode && !this.isBelams) {
             const edges = new THREE.EdgesGeometry(mesh.geometry);
             const lineMaterial = new THREE.LineBasicMaterial({ 
                 color: 0x4a3520, // חום כהה
