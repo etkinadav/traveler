@@ -2681,13 +2681,16 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // גרילה של אורך (20-100 ס"מ)
       const length = Math.floor(Math.random() * 81) + 20; // 20-100
       
-      // גרילה של כמות (1-3)
+      // גרילה של כמות (1-3) - עיגול ל-1, 2, או 3
       const quantity = Math.floor(Math.random() * 3) + 1; // 1-3
       
-      this.dynamicBeams.push({
-        length: length,
-        quantity: quantity
-      });
+      // הוספת אותה קורה מספר פעמים לפי הכמות
+      for (let q = 0; q < quantity; q++) {
+        this.dynamicBeams.push({
+          length: length,
+          quantity: 1 // כל קורה בודדת היא כמות 1
+        });
+      }
     }
     
     console.log('קורות דינמיות נוצרו:', this.dynamicBeams);
@@ -2701,36 +2704,34 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const woodTexture = this.getWoodTexture('pine'); // טקסטורה אחת כמו שאר המוצרים
     
     this.dynamicBeams.forEach((beamInfo, index) => {
-      for (let q = 0; q < beamInfo.quantity; q++) {
-        // יצירת גיאומטריה של הקורה
-        const geometry = new THREE.BoxGeometry(
-          beamWidthCm,  // רוחב
-          beamHeightCm, // גובה
-          beamInfo.length // אורך
-        );
-        
-        // הגדרת מיפוי טקסטורה נכון
-        this.setCorrectTextureMapping(geometry, beamWidthCm, beamHeightCm, beamInfo.length);
-        
-        // יצירת חומר עם טקסטורה
-        const material = new THREE.MeshStandardMaterial({ map: woodTexture });
-        const mesh = new THREE.Mesh(geometry, material);
-        
-        // מיקום הקורה
-        mesh.position.set(
-          currentX,
-          beamHeightCm / 2, // על הרצפה
-          (q * beamSpacing) - ((beamInfo.quantity - 1) * beamSpacing / 2) // מרכוז במישור Z
-        );
-        
-        // הגדרות צל
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        
-        // הוספה לסצנה
-        this.scene.add(mesh);
-        this.meshes.push(mesh);
-      }
+      // יצירת גיאומטריה של הקורה
+      const geometry = new THREE.BoxGeometry(
+        beamWidthCm,  // רוחב
+        beamHeightCm, // גובה
+        beamInfo.length // אורך
+      );
+      
+      // הגדרת מיפוי טקסטורה נכון
+      this.setCorrectTextureMapping(geometry, beamWidthCm, beamHeightCm, beamInfo.length);
+      
+      // יצירת חומר עם טקסטורה
+      const material = new THREE.MeshStandardMaterial({ map: woodTexture });
+      const mesh = new THREE.Mesh(geometry, material);
+      
+      // מיקום הקורה
+      mesh.position.set(
+        currentX,
+        beamHeightCm / 2, // על הרצפה
+        0 // מרכוז במישור Z
+      );
+      
+      // הגדרות צל
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      
+      // הוספה לסצנה
+      this.scene.add(mesh);
+      this.meshes.push(mesh);
       
       // מעבר לקורה הבאה
       currentX += beamWidthCm + beamSpacing;
