@@ -63,7 +63,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   // Get wood texture based on beam type - זהה לקובץ הראשי
   private getWoodTexture(beamType: string): THREE.Texture {
     console.log('getWoodTexture נקרא עם beamType:', beamType);
-    const texturePath = beamType ? `assets/textures/${beamType}.jpg` : 'assets/textures/pine.jpg';
+    
+    // טקסטורה אחת פשוטה כמו שאר המוצרים
+    const texturePath = 'assets/textures/pine.jpg';
     console.log('טוען טקסטורה מהנתיב:', texturePath);
     return this.textureLoader.load(texturePath);
   }
@@ -82,6 +84,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private iterationCounter: number = 0; // מונה איטרציות לשינוי מדפים
   private lastSaveTime: number = 0; // זמן השמירה האחרונה של הסיבוב
   private rotationSpeed: number = 0.005; // מהירות הסיבוב האוטומטי (רדיאנים לפריים)
+  
+  // משתנה לאחסון הקורות הדינמיות עבור beams
+  private dynamicBeams: Array<{length: number, quantity: number}> = [];
 
   ngAfterViewInit() {
     this.initThreeJS();
@@ -146,8 +151,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private changeRandomParameter() {
     this.iterationCounter++; // הגדלת מונה האיטרציות
     
-    // בדיקה אם זו קופסא
+    // בדיקה אם זו קופסא או beams
     const isBox = this.product?.name === 'box';
+    const isBeams = this.product?.name === 'beams';
     
     const actions = [
       'changeWidth',
@@ -160,6 +166,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // הוספת פתיחת מכסה רק לקופסא
     if (isBox) {
       actions.push('changeCoverOpening');
+    }
+    
+    // עבור beams - רק שינוי קורות דינמיות
+    if (isBeams) {
+      this.changeRandomBeams();
+      return; // יציאה מהפונקציה - beams לא משתמש בפרמטרים רגילים
     }
     
     // הוספת שינוי מספר מדפים הוסרה - לא רוצים לשנות את כמות המדפים
@@ -1376,12 +1388,17 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
 
-    // בדיקה אם זו עדנית או קופסא
+    // בדיקה אם זו עדנית, קופסא או beams
     const isPlanter = this.product?.name === 'planter';
     const isBox = this.product?.name === 'box';
+    const isBeams = this.product?.name === 'beams';
     if (isPlanter || isBox) {
       this.createPlanterModel();
       return; // יציאה מהפונקציה - העדנית/קופסא לא משתמשת במדפים רגילים
+    }
+    if (isBeams) {
+      this.createBeamsModel();
+      return; // יציאה מהפונקציה - beams לא משתמש במדפים רגילים
     }
 
     // יצירת מדפים דינמיים - זהה לקובץ הראשי
@@ -1677,12 +1694,17 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
 
-    // בדיקה אם זו עדנית או קופסא
+    // בדיקה אם זו עדנית, קופסא או beams
     const isPlanter = this.product?.name === 'planter';
     const isBox = this.product?.name === 'box';
+    const isBeams = this.product?.name === 'beams';
     if (isPlanter || isBox) {
       this.createPlanterModel();
       return; // יציאה מהפונקציה - העדנית/קופסא לא משתמשת במדפים רגילים
+    }
+    if (isBeams) {
+      this.createBeamsModel();
+      return; // יציאה מהפונקציה - beams לא משתמש במדפים רגילים
     }
 
     // יצירת מדפים דינמיים - זהה לקובץ הראשי
@@ -2606,5 +2628,143 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.updateCameraPosition();
     
     console.log('Planter model created successfully');
+  }
+
+  private createBeamsModel() {
+    console.log('יצירת מודל beams במיני-פרוויו...');
+    
+    // ניקוי המודל הקודם
+    this.meshes.forEach(mesh => this.scene.remove(mesh));
+    this.meshes = [];
+
+    // יצירת קורות דינמיות עם פרמטרים רנדומליים
+    this.generateRandomBeams();
+    
+    // קבלת פרמטר beams מהמוצר
+    const beamsParam = this.product?.params?.find((p: any) => p.name === 'beams');
+    if (!beamsParam || !beamsParam.beams || beamsParam.beams.length === 0) {
+      console.log('לא נמצא פרמטר beams או קורות זמינות');
+      return;
+    }
+
+    // קבלת קורה ברירת מחדל
+    const defaultBeam = beamsParam.beams[0];
+    const defaultType = defaultBeam.types && defaultBeam.types.length > 0 ? defaultBeam.types[0] : defaultBeam;
+    
+    // מידות הקורה
+    const beamWidthCm = (defaultType.width || defaultBeam.width || 40) / 10; // המרה ממ"מ לס"מ
+    const beamHeightCm = (defaultType.height || defaultBeam.height || 15) / 10; // המרה ממ"מ לס"מ
+    const beamDepthCm = (defaultType.depth || defaultBeam.depth || 100) / 10; // המרה ממ"מ לס"מ
+
+    console.log('מידות קורה ברירת מחדל:', { beamWidthCm, beamHeightCm, beamDepthCm });
+
+    // יצירת הקורות הדינמיות
+    this.createDynamicBeams(beamWidthCm, beamHeightCm, beamDepthCm);
+    
+    // סיבוב המודל
+    this.scene.rotation.y = Math.PI / 6;
+    
+    // התאמת מצלמה
+    this.updateCameraPosition();
+    
+    console.log('Beams model created successfully');
+  }
+
+  private generateRandomBeams() {
+    // גרילה של מספר קורות (1-4)
+    const numBeams = Math.floor(Math.random() * 4) + 1;
+    
+    // אתחול מערך הקורות
+    this.dynamicBeams = [];
+    
+    for (let i = 0; i < numBeams; i++) {
+      // גרילה של אורך (20-100 ס"מ)
+      const length = Math.floor(Math.random() * 81) + 20; // 20-100
+      
+      // גרילה של כמות (1-3)
+      const quantity = Math.floor(Math.random() * 3) + 1; // 1-3
+      
+      this.dynamicBeams.push({
+        length: length,
+        quantity: quantity
+      });
+    }
+    
+    console.log('קורות דינמיות נוצרו:', this.dynamicBeams);
+  }
+
+  private createDynamicBeams(beamWidthCm: number, beamHeightCm: number, beamDepthCm: number) {
+    const beamSpacing = 10; // רווח של 10 ס"מ בין קורות
+    let currentX = -25; // התחלה ב-25 ס"מ שמאלה מהמרכז
+    
+    // קבלת טקסטורת עץ - כמו שאר המוצרים
+    const woodTexture = this.getWoodTexture('pine'); // טקסטורה אחת כמו שאר המוצרים
+    
+    this.dynamicBeams.forEach((beamInfo, index) => {
+      for (let q = 0; q < beamInfo.quantity; q++) {
+        // יצירת גיאומטריה של הקורה
+        const geometry = new THREE.BoxGeometry(
+          beamWidthCm,  // רוחב
+          beamHeightCm, // גובה
+          beamInfo.length // אורך
+        );
+        
+        // הגדרת מיפוי טקסטורה נכון
+        this.setCorrectTextureMapping(geometry, beamWidthCm, beamHeightCm, beamInfo.length);
+        
+        // יצירת חומר עם טקסטורה
+        const material = new THREE.MeshStandardMaterial({ map: woodTexture });
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // מיקום הקורה
+        mesh.position.set(
+          currentX,
+          beamHeightCm / 2, // על הרצפה
+          (q * beamSpacing) - ((beamInfo.quantity - 1) * beamSpacing / 2) // מרכוז במישור Z
+        );
+        
+        // הגדרות צל
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        
+        // הוספה לסצנה
+        this.scene.add(mesh);
+        this.meshes.push(mesh);
+      }
+      
+      // מעבר לקורה הבאה
+      currentX += beamWidthCm + beamSpacing;
+    });
+    
+    console.log(`נוצרו ${this.meshes.length} קורות במיני-פרוויו`);
+  }
+
+  // פונקציה לשינוי קורות דינמיות עבור beams
+  private changeRandomBeams() {
+    console.log('שינוי קורות דינמיות עבור beams...');
+    
+    // יצירת קורות חדשות עם פרמטרים רנדומליים
+    this.generateRandomBeams();
+    
+    // קבלת פרמטר beams מהמוצר
+    const beamsParam = this.product?.params?.find((p: any) => p.name === 'beams');
+    if (!beamsParam || !beamsParam.beams || beamsParam.beams.length === 0) {
+      console.log('לא נמצא פרמטר beams או קורות זמינות');
+      return;
+    }
+
+    // קבלת קורה ברירת מחדל
+    const defaultBeam = beamsParam.beams[0];
+    const defaultType = defaultBeam.types && defaultBeam.types.length > 0 ? defaultBeam.types[0] : defaultBeam;
+    
+    // מידות הקורה
+    const beamWidthCm = (defaultType.width || defaultBeam.width || 40) / 10; // המרה ממ"מ לס"מ
+    const beamHeightCm = (defaultType.height || defaultBeam.height || 15) / 10; // המרה ממ"מ לס"מ
+    const beamDepthCm = (defaultType.depth || defaultBeam.depth || 100) / 10; // המרה ממ"מ לס"מ
+
+    // יצירת הקורות החדשות
+    this.createDynamicBeams(beamWidthCm, beamHeightCm, beamDepthCm);
+    
+    console.log('קורות דינמיות עודכנו עבור beams');
   }
 }
