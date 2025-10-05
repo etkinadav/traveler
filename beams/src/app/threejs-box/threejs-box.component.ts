@@ -123,54 +123,60 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     
     // פונקציות לטיפול בבחירת קורות וסוגי עץ
-    onBeamSelectionChange(event: any) {
+    onBeamSelectionChange(event: any, param: any) {
         console.log('=== onBeamSelectionChange נקרא ===');
         console.log('event:', event);
-        console.log('event.value:', event.value);
-        
-        // מציאת הפרמטר המתאים
-        const param = this.params.find(p => p.name === 'shelfs' || p.name === 'leg' || p.name === 'beamSingle');
+        console.log('param:', param);
+
         if (!param) {
-            console.error('לא נמצא פרמטר מתאים');
+            console.error('param is null or undefined!');
             return;
         }
-        
+
+        if (!param.beams || param.beams.length === 0) {
+            console.error('param.beams is empty or undefined!', param.beams);
+            return;
+        }
+
+        // קבלת הערך החדש מה-event
+        const newValue = parseInt(event.target.value);
         console.log('param.name:', param.name);
-        console.log('newIndex:', event.value);
+        console.log('param.beams length:', param.beams.length);
+        console.log('newIndex:', newValue);
         console.log('param.selectedBeamIndex לפני:', param.selectedBeamIndex);
-        
+
         // עדכון הערך
-        param.selectedBeamIndex = event.value;
+        param.selectedBeamIndex = newValue;
         console.log('param.selectedBeamIndex אחרי:', param.selectedBeamIndex);
-        
+
         // איפוס בחירת סוג העץ
         param.selectedTypeIndex = 0;
         console.log('param.selectedTypeIndex אופס ל-0');
-        
+
         // קריאה לעדכון
         this.updateBeams();
     }
     
-    onTypeSelectionChange(event: any) {
+    onTypeSelectionChange(event: any, param: any) {
         console.log('=== onTypeSelectionChange נקרא ===');
         console.log('event:', event);
-        console.log('event.value:', event.value);
-        
-        // מציאת הפרמטר המתאים
-        const param = this.params.find(p => p.name === 'shelfs' || p.name === 'leg' || p.name === 'beamSingle');
+        console.log('param:', param);
+
         if (!param) {
-            console.error('לא נמצא פרמטר מתאים');
+            console.error('param is null or undefined!');
             return;
         }
-        
+
+        // קבלת הערך החדש מה-event
+        const newValue = parseInt(event.target.value);
         console.log('param.name:', param.name);
-        console.log('newIndex:', event.value);
+        console.log('newIndex:', newValue);
         console.log('param.selectedTypeIndex לפני:', param.selectedTypeIndex);
-        
+
         // עדכון הערך
-        param.selectedTypeIndex = event.value;
+        param.selectedTypeIndex = newValue;
         console.log('param.selectedTypeIndex אחרי:', param.selectedTypeIndex);
-        
+
         // קריאה לעדכון
         this.updateBeams();
     }

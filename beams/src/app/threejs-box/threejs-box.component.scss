@@ -355,6 +355,60 @@
     }
 }
 
+/* Custom select styling */
+.custom-select-wrapper {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.custom-select-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 4px;
+    line-height: 1.125;
+}
+
+.custom-select {
+    width: 100%;
+    height: 56px;
+    padding: 0 16px;
+    border: 1px solid rgba(0, 0, 0, 0.23);
+    border-radius: 4px;
+    background-color: transparent;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.87);
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    
+    &:hover {
+        border-color: rgba(0, 0, 0, 0.87);
+    }
+    
+    &:focus {
+        outline: none;
+        border-color: #0066cc;
+        border-width: 2px;
+    }
+    
+    &:disabled {
+        color: rgba(0, 0, 0, 0.38);
+        cursor: not-allowed;
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+}
+
+/* Ensure custom selects work well in shelf-row */
+.shelf-row .custom-select-wrapper {
+    flex: 1;
+    margin-right: 16px;
+    
+    &:last-child {
+        margin-right: 0;
+    }
+}
+
 /* Uniform width for all input fields and mat-form-fields */
 .shelf-gap-field-wrapper,
 .shelf-gap-field,

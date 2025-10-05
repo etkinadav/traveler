@@ -198,24 +198,22 @@
                         <label
                             style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="shelf-row">
-                            <mat-form-field appearance="outline">
-                                <mat-label>סוג קורה</mat-label>
-                                <mat-select [(ngModel)]="param.selectedBeamIndex" (selectionChange)="onBeamSelectionChange($event)">
-                                    <mat-option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
+                            <div class="custom-select-wrapper">
+                                <label class="custom-select-label">סוג קורה</label>
+                                <select [(ngModel)]="param.selectedBeamIndex" (change)="onBeamSelectionChange($event, param)" class="custom-select">
+                                    <option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
                                         {{beam.translatedName}}
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                            <mat-form-field appearance="outline">
-                                <mat-label>סוג עץ</mat-label>
-                                <mat-select [(ngModel)]="param.selectedTypeIndex" (selectionChange)="onTypeSelectionChange($event)">
-                                    <mat-option
-                                        *ngFor="let type of param.beams[param.selectedBeamIndex]?.types; let tIdx = index"
-                                        [value]="tIdx">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="custom-select-wrapper">
+                                <label class="custom-select-label">סוג עץ</label>
+                                <select [(ngModel)]="param.selectedTypeIndex" (change)="onTypeSelectionChange($event, param)" class="custom-select">
+                                    <option *ngFor="let type of param.beams[param.selectedBeamIndex]?.types; let tIdx = index" [value]="tIdx">
                                         {{type.translatedName}}
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
+                                    </option>
+                                </select>
+                            </div>
                         </div>
                         <div class="add-shelf-btn-container">
                             <button class="add-shelf-btn" (click)="param.default.push(param.min); updateBeams()">
@@ -259,24 +257,22 @@
                     <div *ngIf="isBelams && param.name === 'beams' && param.setAmount">
                         <label style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="shelf-row">
-                            <mat-form-field appearance="outline">
-                                <mat-label>סוג קורה</mat-label>
-                                <mat-select [(ngModel)]="param.selectedBeamIndex" (selectionChange)="onBeamSelectionChange($event)">
-                                    <mat-option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
+                            <div class="custom-select-wrapper">
+                                <label class="custom-select-label">סוג קורה</label>
+                                <select [(ngModel)]="param.selectedBeamIndex" (change)="onBeamSelectionChange($event, param)" class="custom-select">
+                                    <option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
                                         {{beam.translatedName}}
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                            <mat-form-field appearance="outline">
-                                <mat-label>סוג עץ</mat-label>
-                                <mat-select [(ngModel)]="param.selectedTypeIndex" (selectionChange)="onTypeSelectionChange($event)">
-                                    <mat-option
-                                        *ngFor="let type of param.beams[param.selectedBeamIndex || 0]?.types || []; let tIdx = index"
-                                        [value]="tIdx">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="custom-select-wrapper">
+                                <label class="custom-select-label">סוג עץ</label>
+                                <select [(ngModel)]="param.selectedTypeIndex" (change)="onTypeSelectionChange($event, param)" class="custom-select">
+                                    <option *ngFor="let type of param.beams[param.selectedBeamIndex || 0]?.types || []; let tIdx = index" [value]="tIdx">
                                         {{type.translatedName}}
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
+                                    </option>
+                                </select>
+                            </div>
                         </div>
                         <div class="add-shelf-btn-container">
                             <button class="add-shelf-btn" (click)="addBeamWithAmount(param); updateBeams()">
@@ -814,46 +810,44 @@
                     <div *ngIf="isTable && param.name === 'plata'">
                         <label style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="shelf-row">
-                            <mat-form-field appearance="outline">
-                                <mat-label>סוג קורה</mat-label>
-                                <mat-select [(ngModel)]="param.selectedBeamIndex" (selectionChange)="onBeamSelectionChange($event)">
-                                    <mat-option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
+                            <div class="custom-select-wrapper">
+                                <label class="custom-select-label">סוג קורה</label>
+                                <select [(ngModel)]="param.selectedBeamIndex" (change)="onBeamSelectionChange($event, param)" class="custom-select">
+                                    <option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
                                         {{beam.translatedName}}
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                            <mat-form-field appearance="outline">
-                                <mat-label>סוג עץ</mat-label>
-                                <mat-select [(ngModel)]="param.selectedTypeIndex" (selectionChange)="onTypeSelectionChange($event)">
-                                    <mat-option *ngFor="let type of param.beams[param.selectedBeamIndex || 0]?.types || []; let tIdx = index" [value]="tIdx">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="custom-select-wrapper">
+                                <label class="custom-select-label">סוג עץ</label>
+                                <select [(ngModel)]="param.selectedTypeIndex" (change)="onTypeSelectionChange($event, param)" class="custom-select">
+                                    <option *ngFor="let type of param.beams[param.selectedBeamIndex || 0]?.types || []; let tIdx = index" [value]="tIdx">
                                         {{type.translatedName}}
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
+                                    </option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     
                     <div *ngIf="param.type === 'beamSingle' && (!isTable || param.name !== 'plata')">
                         <label
                             style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
-                        <mat-form-field appearance="outline">
-                            <mat-label>סוג קורה</mat-label>
-                            <mat-select [(ngModel)]="param.selectedBeamIndex" (selectionChange)="onBeamSelectionChange($event)">
-                                <mat-option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
+                        <div class="custom-select-wrapper">
+                            <label class="custom-select-label">סוג קורה</label>
+                            <select [(ngModel)]="param.selectedBeamIndex" (change)="onBeamSelectionChange($event, param)" class="custom-select">
+                                <option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
                                     {{beam.translatedName}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline">
-                            <mat-label>סוג עץ</mat-label>
-                            <mat-select [(ngModel)]="param.selectedTypeIndex" (selectionChange)="onTypeSelectionChange($event)">
-                                <mat-option
-                                    *ngFor="let type of param.beams[param.selectedBeamIndex]?.types; let tIdx = index"
-                                    [value]="tIdx">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="custom-select-wrapper">
+                            <label class="custom-select-label">סוג עץ</label>
+                            <select [(ngModel)]="param.selectedTypeIndex" (change)="onTypeSelectionChange($event, param)" class="custom-select">
+                                <option *ngFor="let type of param.beams[param.selectedBeamIndex]?.types; let tIdx = index" [value]="tIdx">
                                     {{type.translatedName}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
+                                </option>
+                            </select>
+                        </div>
                     </div>
                     
                     <!-- פרמטר extraBeam מיוחד עבור שולחן -->
