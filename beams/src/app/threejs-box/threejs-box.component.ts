@@ -154,6 +154,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.openDropdowns[key] = false;
     }
 
+    closeAllDropdowns() {
+        this.openDropdowns = {};
+    }
+
     // פונקציות לטיפול בבחירת קורות וסוגי עץ
     onBeamSelectionChange(event: any, param: any) {
         console.log('=== onBeamSelectionChange נקרא ===');
@@ -402,6 +406,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     ngOnInit() {
         // isLoading כבר מוגדר ל-true בברירת המחדל
         this.checkUserAuthentication();
+        
+        // הוספת listener לסגירת dropdowns כשלוחצים מחוץ להם
+        document.addEventListener('click', (event) => {
+            const target = event.target as HTMLElement;
+            if (!target.closest('.custom-dropdown')) {
+                this.closeAllDropdowns();
+            }
+        });
+        
         // קבלת פרמטר המוצר מה-URL
         this.route.queryParams.subscribe((params) => {
             if (params['product']) {
