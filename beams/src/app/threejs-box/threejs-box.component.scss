@@ -2180,6 +2180,40 @@ mat-form-field {
 ::ng-deep .pricing-options-menu {
     .mat-mdc-menu-panel {
         min-width: 280px !important;
+        border: none !important; // הסרת border מהתפריט
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; // shadow עדין במקום border
+    }
+    
+    // עיצוב הכפתורים בתוך התפריט
+    button {
+        width: 100%;
+        background: transparent;
+        border: none !important; // הסרת border
+        padding: 8px 12px 8px 20px !important; // הוספת רווח שמאלה
+        cursor: pointer;
+        text-align: right;
+        transition: all 0.2s ease;
+        display: block;
+        position: relative;
+        min-height: 70px !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important; // קו עדין בין אופציות
+        
+        &:last-child {
+            border-bottom: none !important; // הסרת קו מהאופציה האחרונה
+        }
+        
+        &:hover {
+            background: rgba(0, 102, 204, 0.05) !important;
+        }
+        
+        &.selected {
+            background: rgba(0, 102, 204, 0.1) !important;
+            
+            .option-title {
+                color: #0066cc;
+                font-weight: 600;
+            }
+        }
     }
     
     .pricing-menu-header {
@@ -2224,7 +2258,14 @@ mat-form-field {
     .mat-mdc-menu-item {
         height: auto !important;
         min-height: 70px !important;
-        padding: 8px 12px !important;
+        padding: 8px 12px 8px 20px !important; // הוספת רווח שמאלה
+        border: none !important; // הסרת border
+        border-radius: 0 !important; // הסרת פינות מעוגלות
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important; // קו עדין בין אופציות
+        
+        &:last-child {
+            border-bottom: none !important; // הסרת קו מהאופציה האחרונה
+        }
         
         &.selected {
             background: rgba(0, 102, 204, 0.1) !important;
