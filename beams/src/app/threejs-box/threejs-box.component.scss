@@ -2262,6 +2262,7 @@ mat-form-field {
         border: none !important; // הסרת border
         border-radius: 0 !important; // הסרת פינות מעוגלות
         border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important; // קו עדין בין אופציות
+        cursor: pointer !important; // הוספת cursor pointer
         
         &:last-child {
             border-bottom: none !important; // הסרת קו מהאופציה האחרונה

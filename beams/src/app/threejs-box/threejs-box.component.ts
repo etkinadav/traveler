@@ -5540,8 +5540,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // פונקציות לניהול אופציות תמחור
     selectPricingOption(option: 'cut' | 'full' | 'plan') {
+        console.log('=== selectPricingOption נקרא ===');
+        console.log('option:', option);
+        console.log('selectedPricingOption לפני:', this.selectedPricingOption);
+        
         this.selectedPricingOption = option;
-        console.log('Pricing option changed to:', option);
+        
+        console.log('selectedPricingOption אחרי:', this.selectedPricingOption);
+        console.log('=== selectPricingOption הסתיים ===');
     }
     
     // המשך להזמנה

@@ -1187,7 +1187,7 @@
         </div>
         
         <!-- תפריט אופציות תמחור -->
-        <mat-menu #pricingOptionsMenu="matMenu" class="pricing-options-menu">
+        <mat-menu #pricingOptionsMenu="matMenu" class="pricing-options-menu" [hasBackdrop]="false">
             <!-- כותרת התפריט -->
             <div class="pricing-menu-header">
                 <svg width="22" height="22" viewBox="0 0 22 22" class="header-icon">
@@ -1208,7 +1208,7 @@
             </div>
             
             <!-- אופציה 1: קורות חתוכות -->
-            <button  (click)="selectPricingOption('cut')" [class.selected]="selectedPricingOption === 'cut'">
+            <button mat-menu-item (click)="selectPricingOption('cut')" [class.selected]="selectedPricingOption === 'cut'">
                 <div class="pricing-menu-item">
                     <div class="option-title-row">
                         <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" *ngIf="selectedPricingOption === 'cut'">
@@ -1238,7 +1238,7 @@
             </button>
             
             <!-- אופציה 2: קורות שלמות + הוראות -->
-            <button  (click)="selectPricingOption('full')" [class.selected]="selectedPricingOption === 'full'">
+            <button mat-menu-item (click)="selectPricingOption('full')" [class.selected]="selectedPricingOption === 'full'">
                 <div class="pricing-menu-item">
                     <div class="option-title-row">
                         <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" *ngIf="selectedPricingOption === 'full'">
@@ -1264,7 +1264,7 @@
             </button>
             
             <!-- אופציה 3: הוראות בלבד -->
-            <button  (click)="selectPricingOption('plan')" [class.selected]="selectedPricingOption === 'plan'">
+            <button mat-menu-item (click)="selectPricingOption('plan')" [class.selected]="selectedPricingOption === 'plan'">
                 <div class="pricing-menu-item">
                     <div class="option-title-row">
                         <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" *ngIf="selectedPricingOption === 'plan'">
