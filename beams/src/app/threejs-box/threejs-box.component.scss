@@ -402,7 +402,7 @@
 /* Ensure custom selects work well in shelf-row */
 .shelf-row .custom-select-wrapper {
     flex: 1;
-    margin-right: 16px;
+    margin-right: 0;
     
     &:last-child {
         margin-right: 0;
@@ -496,9 +496,23 @@ mat-form-field {
     border-radius: 0 0 8px 8px; /* רדיוס 0 בפינה הימנית העליונה */
 }
 
+/* Ensure custom selects work well in shelf-row */
+.shelf-row .custom-select-wrapper {
+    width: 100%;
+    margin-right: 0;
+    
+    &:last-child {
+        margin-right: 0;
+    }
+}
+
 /* Compact shelf rows with reduced spacing */
 .shelf-row {
     margin-bottom: 0.3em;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
 }
 
 .shelf-row:last-child {
