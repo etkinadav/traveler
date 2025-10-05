@@ -122,6 +122,59 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
     }
     
+    // פונקציות לטיפול בבחירת קורות וסוגי עץ
+    onBeamSelectionChange(event: any) {
+        console.log('=== onBeamSelectionChange נקרא ===');
+        console.log('event:', event);
+        console.log('event.value:', event.value);
+        
+        // מציאת הפרמטר המתאים
+        const param = this.params.find(p => p.name === 'shelfs' || p.name === 'leg' || p.name === 'beamSingle');
+        if (!param) {
+            console.error('לא נמצא פרמטר מתאים');
+            return;
+        }
+        
+        console.log('param.name:', param.name);
+        console.log('newIndex:', event.value);
+        console.log('param.selectedBeamIndex לפני:', param.selectedBeamIndex);
+        
+        // עדכון הערך
+        param.selectedBeamIndex = event.value;
+        console.log('param.selectedBeamIndex אחרי:', param.selectedBeamIndex);
+        
+        // איפוס בחירת סוג העץ
+        param.selectedTypeIndex = 0;
+        console.log('param.selectedTypeIndex אופס ל-0');
+        
+        // קריאה לעדכון
+        this.updateBeams();
+    }
+    
+    onTypeSelectionChange(event: any) {
+        console.log('=== onTypeSelectionChange נקרא ===');
+        console.log('event:', event);
+        console.log('event.value:', event.value);
+        
+        // מציאת הפרמטר המתאים
+        const param = this.params.find(p => p.name === 'shelfs' || p.name === 'leg' || p.name === 'beamSingle');
+        if (!param) {
+            console.error('לא נמצא פרמטר מתאים');
+            return;
+        }
+        
+        console.log('param.name:', param.name);
+        console.log('newIndex:', event.value);
+        console.log('param.selectedTypeIndex לפני:', param.selectedTypeIndex);
+        
+        // עדכון הערך
+        param.selectedTypeIndex = event.value;
+        console.log('param.selectedTypeIndex אחרי:', param.selectedTypeIndex);
+        
+        // קריאה לעדכון
+        this.updateBeams();
+    }
+    
     // בדיקת מגבלות המוצר
     private checkProductRestrictions(product: any) {
         // איפוס המשתנה
