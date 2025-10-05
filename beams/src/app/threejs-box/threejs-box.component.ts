@@ -138,7 +138,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
 
     selectBeam(index: number, param: any) {
         param.selectedBeamIndex = index;
-        param.selectedTypeIndex = 0; // איפוס בחירת סוג העץ
+        param.selectedTypeIndex = 0; // איפוס בחירת סוג העץ לסוג הראשון
         this.updateBeams();
         this.closeDropdown('beam', param);
     }
@@ -185,9 +185,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         param.selectedBeamIndex = newValue;
         console.log('param.selectedBeamIndex אחרי:', param.selectedBeamIndex);
 
-        // איפוס בחירת סוג העץ
+        // איפוס בחירת סוג העץ לסוג הראשון ברשימה
         param.selectedTypeIndex = 0;
-        console.log('param.selectedTypeIndex אופס ל-0');
+        console.log('param.selectedTypeIndex אופס ל-0 (סוג העץ הראשון)');
 
         // קריאה לעדכון
         this.updateBeams();
