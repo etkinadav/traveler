@@ -219,11 +219,22 @@
                             </div>
                             <div class="custom-select-wrapper">
                                 <label class="custom-select-label">סוג עץ</label>
-                                <select [(ngModel)]="param.selectedTypeIndex" (change)="onTypeSelectionChange($event, param)" class="custom-select">
-                                    <option *ngFor="let type of param.beams[param.selectedBeamIndex]?.types; let tIdx = index" [value]="tIdx">
-                                        {{type.translatedName}}
-                                    </option>
-                                </select>
+                                <div class="custom-dropdown" (click)="toggleDropdown('type', param)" [class.open]="isDropdownOpen('type', param)">
+                                    <div class="dropdown-selected">
+                                        {{param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex]?.translatedName}}
+                                        <svg class="dropdown-arrow" [class.rotated]="isDropdownOpen('type', param)" width="16" height="16" viewBox="0 0 24 24">
+                                            <polyline points="6,9 12,15 18,9" stroke="currentColor" stroke-width="2" fill="none"/>
+                                        </svg>
+                                    </div>
+                                    <div class="dropdown-options" *ngIf="isDropdownOpen('type', param)" (click)="$event.stopPropagation()">
+                                        <div *ngFor="let type of param.beams[param.selectedBeamIndex]?.types; let tIdx = index" 
+                                             class="dropdown-option" 
+                                             [class.selected]="tIdx === param.selectedTypeIndex"
+                                             (click)="selectType(tIdx, param)">
+                                            {{type.translatedName}}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="add-shelf-btn-container">
@@ -278,11 +289,22 @@
                             </div>
                             <div class="custom-select-wrapper">
                                 <label class="custom-select-label">סוג עץ</label>
-                                <select [(ngModel)]="param.selectedTypeIndex" (change)="onTypeSelectionChange($event, param)" class="custom-select">
-                                    <option *ngFor="let type of param.beams[param.selectedBeamIndex || 0]?.types || []; let tIdx = index" [value]="tIdx">
-                                        {{type.translatedName}}
-                                    </option>
-                                </select>
+                                <div class="custom-dropdown" (click)="toggleDropdown('type', param)" [class.open]="isDropdownOpen('type', param)">
+                                    <div class="dropdown-selected">
+                                        {{param.beams[param.selectedBeamIndex || 0]?.types[param.selectedTypeIndex]?.translatedName}}
+                                        <svg class="dropdown-arrow" [class.rotated]="isDropdownOpen('type', param)" width="16" height="16" viewBox="0 0 24 24">
+                                            <polyline points="6,9 12,15 18,9" stroke="currentColor" stroke-width="2" fill="none"/>
+                                        </svg>
+                                    </div>
+                                    <div class="dropdown-options" *ngIf="isDropdownOpen('type', param)" (click)="$event.stopPropagation()">
+                                        <div *ngFor="let type of param.beams[param.selectedBeamIndex || 0]?.types || []; let tIdx = index" 
+                                             class="dropdown-option" 
+                                             [class.selected]="tIdx === param.selectedTypeIndex"
+                                             (click)="selectType(tIdx, param)">
+                                            {{type.translatedName}}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="add-shelf-btn-container">
