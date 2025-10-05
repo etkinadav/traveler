@@ -200,11 +200,22 @@
                         <div class="shelf-row">
                             <div class="custom-select-wrapper">
                                 <label class="custom-select-label">סוג קורה</label>
-                                <select [(ngModel)]="param.selectedBeamIndex" (change)="onBeamSelectionChange($event, param)" class="custom-select">
-                                    <option *ngFor="let beam of param.beams; let bIdx = index" [value]="bIdx">
-                                        {{beam.translatedName}}
-                                    </option>
-                                </select>
+                                <div class="custom-dropdown" (click)="toggleDropdown('beam', param)" [class.open]="isDropdownOpen('beam', param)">
+                                    <div class="dropdown-selected">
+                                        {{param.beams[param.selectedBeamIndex]?.translatedName}}
+                                        <svg class="dropdown-arrow" [class.rotated]="isDropdownOpen('beam', param)" width="16" height="16" viewBox="0 0 24 24">
+                                            <polyline points="6,9 12,15 18,9" stroke="currentColor" stroke-width="2" fill="none"/>
+                                        </svg>
+                                    </div>
+                                    <div class="dropdown-options" *ngIf="isDropdownOpen('beam', param)">
+                                        <div *ngFor="let beam of param.beams; let bIdx = index" 
+                                             class="dropdown-option" 
+                                             [class.selected]="bIdx === param.selectedBeamIndex"
+                                             (click)="selectBeam(bIdx, param)">
+                                            {{beam.translatedName}}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="custom-select-wrapper">
                                 <label class="custom-select-label">סוג עץ</label>

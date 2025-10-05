@@ -122,6 +122,38 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
     }
     
+    // משתנים לניהול dropdowns
+    openDropdowns: { [key: string]: boolean } = {};
+
+    // פונקציות לניהול dropdowns
+    toggleDropdown(type: string, param: any) {
+        const key = `${type}_${param.name}`;
+        this.openDropdowns[key] = !this.openDropdowns[key];
+    }
+
+    isDropdownOpen(type: string, param: any): boolean {
+        const key = `${type}_${param.name}`;
+        return this.openDropdowns[key] || false;
+    }
+
+    selectBeam(index: number, param: any) {
+        param.selectedBeamIndex = index;
+        param.selectedTypeIndex = 0; // איפוס בחירת סוג העץ
+        this.updateBeams();
+        this.closeDropdown('beam', param);
+    }
+
+    selectType(index: number, param: any) {
+        param.selectedTypeIndex = index;
+        this.updateBeams();
+        this.closeDropdown('type', param);
+    }
+
+    closeDropdown(type: string, param: any) {
+        const key = `${type}_${param.name}`;
+        this.openDropdowns[key] = false;
+    }
+
     // פונקציות לטיפול בבחירת קורות וסוגי עץ
     onBeamSelectionChange(event: any, param: any) {
         console.log('=== onBeamSelectionChange נקרא ===');
