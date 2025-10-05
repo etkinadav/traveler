@@ -1007,5 +1007,13 @@
   "view_bottom": "מבט מלמטה",
   "view_left": "מבט משמאל",
   "view_right": "מבט מימין",
-  "view_front": "מבט מקדימה"
+  "view_front": "מבט מקדימה",
+  "change_product": "החלף מוצר",
+  "hide_transparent": "הסתר מצב שקוף",
+  "show_transparent": "הצג מצב שקוף",
+  "hide_navigation_cube": "הסתר קוביית ניווט",
+  "show_navigation_cube": "הצג קוביית ניווט",
+  "reset_camera": "איפוס מבט",
+  "hide_axes": "הסתר חצים",
+  "show_axes": "הצג חצים"
 }
