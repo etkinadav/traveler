@@ -2353,3 +2353,534 @@ mat-form-field {
         }
     }
 }
+
+/* ========================================
+   CSS שהועבר מקובץ HTML
+   ======================================== */
+
+/* עיצוב לכמות בתוך beamArray */
+.quantity-container {
+    --mat-mdc-text-field-wrapper-max-width: 120px !important;
+}
+
+/* החזרת גובה רגיל לאינפוטים של beamArray */
+.beam-entry-container .mat-mdc-form-field,
+.beam-entry-container .mat-mdc-text-field-wrapper,
+.beam-entry-container .mdc-text-field {
+    height: auto !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+}
+
+.beam-entry-container .mat-mdc-form-field-subscript-wrapper,
+.beam-entry-container .mat-mdc-form-field-bottom-align {
+    height: auto !important;
+    min-height: 13px !important;
+}
+
+.quantity-input-field {
+    height: auto !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+}
+
+.quantity-input-field .mat-mdc-text-field-wrapper,
+.quantity-input-field .mdc-text-field {
+    height: auto !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+}
+
+.shelf-gap-field-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    flex-direction: row !important;
+}
+
+.beam-entry-container {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+}
+
+.shelf-gap-field-length {
+    flex: 0 0 105px !important;
+    max-width: 105px !important;
+    width: 105px !important;
+    margin-right: 8px !important;
+}
+
+.quantity-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    position: relative !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.quantity-label-above {
+    font-size: 13px !important;
+    color: #888 !important;
+    font-weight: 400 !important;
+    text-align: center !important;
+    position: absolute !important;
+    left: -77px !important;
+    top: -35px !important;
+    z-index: 15 !important;
+    width: 75px !important;
+    background: transparent !important;
+}
+
+.beam-entry-container mat-form-field.max-width-124 {
+    max-width: 124px !important;
+    width: 124px !important;
+}
+
+/* כללים ספציפיים רק למוצר קורות עם setAmount=true */
+.beam-entry-container .shelf-gap-field-length,
+.beam-entry-container .shelf-gap-field-length .mat-mdc-text-field-wrapper,
+.beam-entry-container .shelf-gap-field-length .mdc-text-field {
+    max-width: 105px !important;
+    width: 105px !important;
+    min-width: 105px !important;
+}
+
+/* הסרת חצים של spinner בsetAmount */
+.beam-entry-container .shelf-gap-field-length input[type="number"] {
+    -moz-appearance: textfield !important;
+}
+
+.beam-entry-container .shelf-gap-field-length input[type="number"]::-webkit-outer-spin-button,
+.beam-entry-container .shelf-gap-field-length input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+.beam-entry-container .mat-mdc-text-field-wrapper .mdc-text-field__native-control {
+    max-width: 124px !important;
+}
+
+.mdc-notched-outline,
+.mdc-notched-outline--upgraded,
+.mdc-notched-outline--notched {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+.quantity-container .mdc-notched-outline {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+.quantity-container input[type="number"] {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+.quantity-input-field {
+    max-width: 120px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    flex: 0 0 120px !important;
+    box-sizing: border-box !important;
+}
+
+.quantity-input {
+    max-width: 120px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    flex: 0 0 120px !important;
+    box-sizing: border-box !important;
+}
+
+.max-width-124 {
+    max-width: 120px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    flex: 0 0 120px !important;
+}
+
+.quantity-container input,
+.quantity-container mat-form-field,
+.quantity-container .mat-mdc-form-field,
+.quantity-container .mat-mdc-text-field-wrapper,
+.quantity-container .mdc-text-field,
+.quantity-container .mat-form-field-infix {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+.quantity-container .mdc-notched-outline__leading,
+.quantity-container .mdc-notched-outline__trailing {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+.quantity-container .mat-mdc-text-field-wrapper.mdc-text-field,
+.quantity-container .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+.quantity-container .mat-mdc-text-field-wrapper.mdc-text-field.matic-text-field--outlined {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+.quantity-container [class*="ng-tns-c1205077789-12"] .mat-mdc-text-field-wrapper,
+.quantity-container [class*="ng-tns-c1205077789-12"] .mdc-text-field {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+::ng-deep .quantity-container .mat-mdc-text-field-wrapper,
+::ng-deep .quantity-container .mdc-text-field {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+::ng-deep .beam-entry-container .quantity-container .mat-mdc-text-field-wrapper,
+::ng-deep .beam-entry-container .quantity-container .mdc-text-field {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+::ng-deep .quantity-container .quantity-container .mat-mdc-text-field-wrapper,
+::ng-deep .quantity-container .quantity-container .mdc-text-field {
+    max-width: 120px !important;
+    width: 120px !important;
+}
+
+/* החזרת גובה רגיל עם ::ng-deep */
+::ng-deep .beam-entry-container .mat-mdc-text-field-wrapper,
+::ng-deep .beam-entry-container .mdc-text-field,
+::ng-deep .quantity-input-field .mat-mdc-text-field-wrapper,
+::ng-deep .quantity-input-field .mdc-text-field {
+    height: 56px !important;
+    max-height: 56px !important;
+}
+
+/* כללי חזקים יותר עבור אינפוט הכמות */
+::ng-deep .quantity-input-field,
+::ng-deep .quantity-input-field .mat-mdc-text-field-wrapper,
+::ng-deep .quantity-input-field .mdc-text-field,
+::ng-deep .quantity-input-field .mdc-notched-outline,
+::ng-deep .quantity-container .input[class*="quantity-input"],
+::ng-deep .quantity-container input.max-width-124,
+::ng-deep .quantity-container input,
+/* כללי חזקים עבור אינפוט האורך */
+::ng-deep .shelf-gap-field-length,
+::ng-deep .shelf-gap-field-length .mat-mdc-text-field-wrapper,
+::ng-deep .shelf-gap-field-length .mdc-text-field,
+::ng-deep .shelf-gap-field-length .mdc-notched-outline {
+    max-width: 105px !important;
+    width: 105px !important;
+    min-width: 105px !important;
+    flex: 0 0 105px !important;
+}
+
+/* הגבלה רוחב חזקה עבור אינפוט כמות */
+::ng-deep .beam-entry-container .quantity-input,
+::ng-deep .beam-entry-container input[type="number"],
+::ng-deep .beam-entry-container input.quantity-input {
+    width: 35px !important;
+    max-width: 35px !important;
+    min-width: 35px !important;
+    flex: 0 0 35px !important;
+}
+
+/* רק עבור כמות בתוך beamArray */
+.beam-entry-container .quantity-control {
+    display: flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    position: absolute !important;
+    left: -109px !important; /* 15 פיקסל יותר שמאלה */
+    top: 50% !important;
+    transform: translateY(-29%) translateY(5px) !important;
+    z-index: 10 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* רק עבור אינפוט כמות בתוך beamArray */
+.beam-entry-container .quantity-input {
+    width: 35px !important;
+    max-width: 35px !important;
+    min-width: 35px !important;
+    text-align: center !important;
+    padding: 3px 1px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 2px !important;
+    font-size: 12px !important;
+    background: #fff !important;
+    box-sizing: border-box !important;
+}
+
+/* הסרת חצים של spinner באינפוט כמות רגיל */
+.beam-entry-container .quantity-input {
+    -moz-appearance: textfield !important;
+}
+
+.beam-entry-container .quantity-input::-webkit-outer-spin-button,
+.beam-entry-container .quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+.max-width-124 {
+    max-width: 124px !important;
+    width: 124px !important;
+}
+
+/* רק עבור כפתורי כמות בתוך beamArray - עיצוב פשוט */
+.beam-entry-container .quantity-btn {
+    width: 20px !important;
+    height: 20px !important;
+    border: 1px solid #ccc !important;
+    background: #f8f9fa !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 2px !important;
+    color: #333 !important;
+}
+
+/* הובר פשוט */
+.beam-entry-container .quantity-btn:hover {
+    background: #e9ecef !important;
+    border-color: #999 !important;
+}
+
+.remove-shelf-btn {
+    flex: 0 0 24px !important;
+    margin-left: 8px !important;
+}
+
+/* כללים למובייל */
+@media (max-width: 768px) {
+    /* מבנה אנכי של אינפוט הכמות במובייל */
+    .beam-entry-container .quantity-control {
+        left: -42px !important; /* -112px + 70px */
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        flex-direction: column !important;
+        gap: 1px !important;
+        align-items: center !important;
+        width: 25px !important;
+        max-width: 25px !important;
+    }
+    
+    /* קטנת הכפתורים והאינבוט במובייל ללא גבולות */
+    .beam-entry-container .quantity-btn {
+        width: 20px !important;
+        height: 18px !important;
+        min-width: 20px !important;
+        border: none !important;
+        background: rgba(0,0,0,0.05) !important;
+        border-radius: 2px !important;
+    }
+    
+    .beam-entry-container .quantity-input {
+        width: 20px !important;
+        max-width: 20px !important;
+        padding: 2px !important;
+        font-size: 11px !important;
+        border: none !important;
+        background: rgba(0,0,0,0.02) !important;
+        border-radius: 2px !important;
+    }
+    
+    .beam-entry-container .quantity-control {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    
+    .quantity-label-above {
+        display: none !important;
+    }
+    
+    /* קטנת רוחב האינפוט הפנימי של האורך במובייל */
+    .beam-entry-container .shelf-gap-field-length input[type="number"],
+    .beam-entry-container .shelf-gap-field-length .mat-mdc-text-field__native-control,
+    .beam-entry-container .shelf-gap-field-length .mat-input-element {
+        max-width: 80px !important; /* 105px - 25px */
+        width: 80px !important;
+    }
+    
+    .shelf-gap-field-length {
+        flex: 0 0 80px !important; /* 105px - 25px */
+    }
+}
+
+/* במובייל - הקונטיינר תופס שורה משל עצמו */
+@media (max-width: 768px) {
+    .quantity-selector {
+        display: block !important;
+        margin-top: -22px !important;
+        margin-bottom: 43px !important;
+        padding-top: 40px !important;
+        width: fit-content !important;
+        max-width: 60px !important;
+    }
+    
+    .quantity-selector .quantity-control {
+        position: relative !important;
+        left: auto !important;
+        top: 93% !important;
+        transform: translateY(-65%) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+        justify-content: flex-start !important;
+    }
+    
+    /* הגדרה ספציפית שעובדת במובייל */
+    .quantity-selector .quantity-control {
+        position: absolute !important;
+        left: -112px !important;
+        top: 118% !important;
+        transform: translateY(-50%) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+        z-index: 10 !important;
+    }
+}
+
+/* כללי כלליים עבור כל אינפוטי כמות במערכת */
+.quantity-control-general {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.quantity-input-general {
+    width: 35px !important;
+    max-width: 35px !important;
+    text-align: center !important;
+    padding: 4px 2px !important;
+    border: none !important;
+    background: rgba(0,0,0,0.02) !important;
+    border-radius: 2px !important;
+    font-size: 12px !important;
+    -moz-appearance: textfield !important;
+}
+
+.quantity-input-general::-webkit-outer-spin-button,
+.quantity-input-general::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+.quantity-btn-general {
+    width: 20px !important;
+    height: 20px !important;
+    border: none !important;
+    background: rgba(0,0,0,0.05) !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 2px !important;
+    color: #333 !important;
+}
+
+.quantity-btn-general:hover {
+    background: rgba(0,0,0,0.1) !important;
+}
+
+/* סטייל זהה לאינפוט כמות יחידות */
+.quantity-selector {
+    position: relative !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    width: fit-content !important;
+    max-width: 80px !important;
+}
+
+.quantity-selector .quantity-control {
+    position: absolute !important;
+    left: -110px !important;
+    top: 110% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    z-index: 10 !important;
+}
+
+/* הגדרה נפרדת לדסקטופ */
+@media (min-width: 769px) {
+    .quantity-selector .quantity-control {
+        left: -182px !important;
+        top: 54% !important;
+    }
+}
+
+.quantity-selector .quantity-input {
+    width: 40px !important;
+    max-width: 40px !important;
+    min-width: 40px !important;
+    text-align: center !important;
+    padding: 4px 2px !important;
+    border: none !important;
+    background: rgba(0,0,0,0.02) !important;
+    border-radius: 2px !important;
+    font-size: 12px !important;
+    -moz-appearance: textfield !important;
+}
+
+.quantity-selector .quantity-input::-webkit-outer-spin-button,
+.quantity-selector .quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+.quantity-selector .quantity-btn {
+    width: 20px !important;
+    height: 20px !important;
+    border: none !important;
+    background: rgba(0,0,0,0.05) !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 2px !important;
+    color: #333 !important;
+}
+
+.quantity-selector .quantity-btn:hover {
+    background: rgba(0,0,0,0.1) !important;
+}
