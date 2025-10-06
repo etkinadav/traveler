@@ -795,7 +795,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.snackBar.open(message, 'סגור', {
                 duration: 3000,
                 horizontalPosition: 'center',
-                verticalPosition: 'top',
+                verticalPosition: 'bottom',
                 panelClass: ['custom-snackbar'],
             });
         }
