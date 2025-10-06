@@ -558,18 +558,18 @@
                             <td [innerHTML]="getProductDimensions().height"></td>
                         </tr>
                         
-                        <!-- מידות ספציפיות - רק לארון ושולחן -->
+                        <!-- מידות ספציפיות - רק לארון, שולחן ומיטה -->
                         <tr *ngIf="!isPlanter && !isBox">
-                            <td>{{ isTable ? 'כמות קורות בפלטה:' : 'כמות קורות במדף:' }}</td>
+                            <td>{{ (isTable || isFuton) ? 'כמות קורות בפלטה:' : 'כמות קורות במדף:' }}</td>
                             <td [innerHTML]="getProductDimensions().beamCount"></td>
                         </tr>
                         <tr *ngIf="!isPlanter && !isBox">
-                            <td>{{ isTable ? 'רווח בין קורות הפלטה:' : 'רווח בין קורות המדף:' }}</td>
+                            <td>{{ (isTable || isFuton) ? 'רווח בין קורות הפלטה:' : 'רווח בין קורות המדף:' }}</td>
                             <td [innerHTML]="getProductDimensions().gapBetweenBeams"></td>
                         </tr>
                         
                         <!-- כמות מדפים - רק לארון -->
-                        <tr *ngIf="!isTable && !isPlanter && !isBox">
+                        <tr *ngIf="!isTable && !isFuton && !isPlanter && !isBox">
                             <td>כמות מדפים:</td>
                             <td [innerHTML]="getProductDimensions().shelfCount"></td>
                         </tr>
