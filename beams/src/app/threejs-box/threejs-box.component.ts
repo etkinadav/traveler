@@ -378,13 +378,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     this.updateParameterValue(param, value);
                 }, 0);
             } else {
-                // עבור הקלדה ידנית - validation בזמן אמת
-                const validatedValue = this.validateParameterValue(param, value);
-                if (validatedValue !== value) {
-                    // אם הערך לא תקין, נחזיר אותו לערך המאומת
-                    event.target.value = validatedValue;
-                    param.default = validatedValue;
-                }
+                // עבור הקלדה ידנית - רק עדכון הערך ללא validation מיידי
+                param.default = value;
             }
         }
     }
