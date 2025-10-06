@@ -2840,6 +2840,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     async calculateBeamsData() {
         this.BeamsDataForPricing = [];
         
+        console.log('🔍 START - calculateBeamsData:', {
+            isBelams: this.isBelams,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isTable: this.isTable,
+            isFuton: this.isFuton
+        });
+        
         // טיפול מיוחד במוצר קורות לפי מידה
         if (this.isBelams) {
             await this.calculateBelamsData();
@@ -2869,140 +2877,151 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const extraParam = this.product?.params?.find(
             (p: any) => p.type === 'beamSingle' && p.name === 'extraBeam'
         );
+        
+        console.log('🔍 PARAMS - Found parameters:', {
+            shelfParam: shelfParam,
+            frameParam: frameParam,
+            legParam: legParam,
+            extraParam: extraParam,
+            surfaceWidth: this.surfaceWidth,
+            surfaceLength: this.surfaceLength,
+            condition1: this.surfaceWidth && this.surfaceLength && shelfParam,
+            condition2: (this.isPlanter || this.isBox) && shelfParam,
+            finalCondition: (this.surfaceWidth && this.surfaceLength && shelfParam) || ((this.isPlanter || this.isBox) && shelfParam)
+        });
+        
         if ((this.surfaceWidth && this.surfaceLength && shelfParam) || ((this.isPlanter || this.isBox) && shelfParam)) {
             const selectedBeam =
                 shelfParam.beams?.[shelfParam.selectedBeamIndex || 0];
             const selectedType =
                 selectedBeam?.types?.[shelfParam.selectedTypeIndex || 0];
-            if (selectedBeam && selectedType) {
-                let beamWidth = selectedType.width / 10 || this.beamWidth; // המרה ממ"מ לס"מ
-                const beamHeight = selectedType.height / 10 || this.beamHeight;
-                // עבור ארון, אם הקורה רחבה מדי, נשתמש ברוחב קטן יותר
-                if (!this.isTable && !this.isPlanter && !this.isBox && beamWidth > 5) {
-                    beamWidth = 4; // רוחב קטן יותר עבור ארון
-                }
-                
-                if (this.isPlanter || this.isBox) {
-                    // עבור עדנית - קורות רצפה
-                    const depthParam = this.getParam('depth');
-                    const widthParam = this.getParam('width');
+                if (selectedBeam && selectedType) {
+                    console.log('🔍 ENTERED - selectedBeam && selectedType block');
+                    let beamWidth = selectedBeam.height / 10 || this.beamWidth; // המרה ממ"מ לס"מ (height של הקורה)
+                    const beamHeight = selectedBeam.width / 10 || this.beamHeight; // width של הקורה
                     
-                    const planterDepth = widthParam ? widthParam.default : 50;  // depth input -> planterDepth
-                    const planterWidth = depthParam ? depthParam.default : 40;  // width input -> planterWidth
-                    
-                    // חישוב כמות הקורות בעומק (41/5 = 8 קורות)
-                    const beamsInDepth = Math.floor(planterWidth / beamWidth);
-                    
-                    // חישוב רווחים ויזואליים (זהה לחישוב הויזואלי)
-                    const visualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
-                    const totalGaps = beamsInDepth - 1; // כמות הרווחים
-                    const totalGapWidth = totalGaps * visualGap; // רוחב כולל של כל הרווחים
-                    const availableWidth = planterWidth - totalGapWidth; // רוחב זמין לקורות
-                    const adjustedBeamWidth = availableWidth / beamsInDepth; // רוחב קורה מותאם
-                    
-                    // הוספת כל קורת רצפה
-                    for (let i = 0; i < beamsInDepth; i++) {
-                        allBeams.push({
-                            type: selectedType,
-                            length: planterDepth, // אורך הקורה = עומק העדנית
-                            width: beamHeight,
-                            height: adjustedBeamWidth, // רוחב קורה מותאם עם רווחים
-                            name: `Planter Floor Beam ${i + 1}`,
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                    }
-                    
-                    console.log('קורות רצפת עדנית נוספו לחישוב מחיר:', {
-                        beamsCount: beamsInDepth,
-                        length: planterDepth,
-                        width: beamWidth,
-                        height: adjustedBeamWidth,
-                        visualGap: visualGap,
-                        beamName: selectedBeam.name,
-                        woodType: selectedType.translatedName
+                    console.log('🔍 DEBUG - Beam dimensions calculation:', {
+                        selectedType: selectedType,
+                        selectedBeam: selectedBeam,
+                        originalWidth: selectedType.width,
+                        originalHeight: selectedType.height,
+                        selectedBeamWidth: selectedBeam.width,
+                        selectedBeamHeight: selectedBeam.height,
+                        calculatedBeamWidth: beamWidth,
+                        calculatedBeamHeight: beamHeight,
+                        isPlanter: this.isPlanter,
+                        isBox: this.isBox,
+                        isTable: this.isTable,
+                        isFuton: this.isFuton,
+                        isBelams: this.isBelams
                     });
                     
-                    // הוספת קורות מכסה לחישוב מחיר (רק אם הפרמטר isCover מופעל)
-                    const isCoverParam = this.getParam('isCover');
-                    const shouldCreateCover = this.isBox && isCoverParam && isCoverParam.default === true;
+                    console.log('🔍 AFTER DEBUG - Continuing execution');
                     
-                    if (shouldCreateCover) {
-                        console.log('הוספת קורות מכסה לחישוב מחיר...');
+                    // עבור ארון, אם הקורה רחבה מדי, נשתמש ברוחב קטן יותר
+                    if (!this.isTable && !this.isPlanter && !this.isBox && beamWidth > 5) {
+                        console.log('🔍 ARMOIRE - Beam width adjustment for armoire');
+                        beamWidth = 4; // רוחב קטן יותר עבור ארון
+                    }
+                    
+                    console.log('🔍 CHECKPOINT 1 - After armoire check:', {
+                        isPlanter: this.isPlanter,
+                        isBox: this.isBox,
+                        isTable: this.isTable,
+                        isFuton: this.isFuton,
+                        condition: this.isPlanter || this.isBox
+                    });
+                    
+                    if (this.isPlanter || this.isBox) {
+                        // עבור עדנית/קופסא - לוג פשוט עם הנתונים הגולמיים
+                        const depthParam = this.getParam('depth');
+                        const widthParam = this.getParam('width');
+                        const heightParam = this.getParam('height');
+                    
+                        const planterDepth = widthParam ? widthParam.default : 50;
+                        const planterWidth = depthParam ? depthParam.default : 40;
+                        const planterHeight = heightParam ? heightParam.default : 50;
+                        
+                        // חישוב כמות הקורות ברצפה ובקיר
+                        const beamsInDepth = Math.floor(planterWidth / beamHeight); // כמות קורות ברצפה
+                        const beamsInHeight = Math.floor(planterHeight / beamHeight); // כמות קורות בקיר (W)
+                        
+                        console.log('DEBUG-DEBUG-DEBUG: Planter/Box Raw Data:', {
+                            // מידות המוצר הגולמיות
+                            planterDepth: planterDepth,
+                            planterWidth: planterWidth,
+                            planterHeight: planterHeight,
+                            
+                            // מידות הקורה הגולמיות
+                            beamWidth: beamWidth,
+                            beamHeight: beamHeight,
+                            
+                            // חישובי כמות קורות
+                            beamsInDepth: beamsInDepth, // כמות קורות ברצפה
+                            beamsInHeight: beamsInHeight // כמות קורות בקיר (W)
+                        });
+                        
+                        // חישוב אורכי הקורות
+                        const length1 = planterDepth; // אורך 1: planterDepth
+                        const length2 = planterDepth - (beamWidth * 2); // אורך 2: planterDepth פחות (beamWidth כפול 2)
+                        const length3 = planterWidth; // אורך 3: planterWidth
+                        const length4 = planterHeight; // אורך 4: planterHeight
+                        
+                        // הוספת קורות אורך 1 (רצפה)
                         for (let i = 0; i < beamsInDepth; i++) {
                             allBeams.push({
                                 type: selectedType,
-                                length: planterDepth, // אורך הקורה = עומק הקופסא
+                                length: length1,
                                 width: beamHeight,
-                                height: adjustedBeamWidth, // רוחב קורה מותאם עם רווחים
-                                name: `Box Cover Beam ${i + 1}`,
+                                height: beamWidth,
+                                name: `Planter Floor Beam ${i + 1}`,
                                 beamName: selectedBeam.name,
                                 beamTranslatedName: selectedBeam.translatedName,
                                 beamWoodType: selectedType.translatedName,
                             });
                         }
-                        console.log('קורות מכסה נוספו לחישוב מחיר:', { beamsCount: beamsInDepth });
                         
-                        // הוספת קורות תמיכה למכסה לחישוב מחיר (2 קורות)
-                        const supportBeamLength = planterWidth - (4 * beamHeight) - 0.4; // קיצור נוסף של 0.2 ס"מ מכל צד
-                        for (let i = 0; i < 2; i++) {
+                        // הוספת קורות אורך 2 (קירות ארוכים) - כמות: beamsInHeight * 2
+                        for (let i = 0; i < beamsInHeight * 2; i++) {
                             allBeams.push({
                                 type: selectedType,
-                                length: supportBeamLength, // אורך מקוצר יותר
+                                length: length2,
                                 width: beamHeight,
-                                height: adjustedBeamWidth,
-                                name: `Box Cover Support Beam ${i + 1}`,
+                                height: beamWidth,
+                                name: `Planter Long Wall Beam ${i + 1}`,
                                 beamName: selectedBeam.name,
                                 beamTranslatedName: selectedBeam.translatedName,
                                 beamWoodType: selectedType.translatedName,
                             });
                         }
-                        console.log('קורות תמיכה למכסה נוספו לחישוב מחיר:', { beamsCount: 2 });
-                    }
-                    
-                    // הוספת קורות הקירות לחישוב מחיר
-                    const heightParam = this.getParam('height');
-                    const planterHeight = heightParam ? heightParam.default : 50;
-                    const maxWallHeight = planterHeight - beamHeight;
-                    const beamsInHeight = Math.floor(maxWallHeight / beamWidth);
-                    
-                    if (beamsInHeight > 0) {
-                        // חישוב רווחים ויזואליים לקירות
-                        const wallVisualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
-                        const wallTotalGaps = beamsInHeight - 1; // כמות הרווחים
-                        const wallTotalGapHeight = wallTotalGaps * wallVisualGap; // גובה כולל של כל הרווחים
-                        const availableHeight = maxWallHeight - wallTotalGapHeight; // גובה זמין לקורות
-                        const adjustedBeamHeight = availableHeight / beamsInHeight; // גובה קורה מותאם
                         
-                        // הוספת קורות הקירות (2 קירות)
-                        for (let wallIndex = 0; wallIndex < 2; wallIndex++) {
-                            for (let i = 0; i < beamsInHeight; i++) {
-                                allBeams.push({
-                                    type: selectedType,
-                                    length: widthParam.default, // אורך הקורה = width input (הוחלף עם depth)
-                                    width: beamHeight,
-                                    height: adjustedBeamHeight, // גובה קורה מותאם עם רווחים
-                                    name: `Planter Wall ${wallIndex + 1} Beam ${i + 1}`,
-                                    beamName: selectedBeam.name,
-                                    beamTranslatedName: selectedBeam.translatedName,
-                                    beamWoodType: selectedType.translatedName, // סוג העץ
-                                });
-                            }
+                        // הוספת קורות אורך 3 (קירות קצרים) - כמות: beamsInHeight * 2
+                        for (let i = 0; i < beamsInHeight * 2; i++) {
+                            allBeams.push({
+                                type: selectedType,
+                                length: length3,
+                                width: beamHeight,
+                                height: beamWidth,
+                                name: `Planter Short Wall Beam ${i + 1}`,
+                                beamName: selectedBeam.name,
+                                beamTranslatedName: selectedBeam.translatedName,
+                                beamWoodType: selectedType.translatedName,
+                            });
                         }
                         
-                        console.log('קורות קירות עדנית נוספו לחישוב מחיר:', {
-                            wallsCount: 2,
-                            beamsPerWall: beamsInHeight,
-                            totalWallBeams: beamsInHeight * 2,
-                            length: widthParam.default,
-                            width: beamHeight,
-                            height: adjustedBeamHeight,
-                            visualGap: wallVisualGap,
-                            beamName: selectedBeam.name,
-                            woodType: selectedType.translatedName
-                        });
-                    }
+                        // הוספת קורות אורך 4 (קורות חיזוק) - כמות: 4
+                        for (let i = 0; i < 4; i++) {
+                            allBeams.push({
+                                type: selectedType,
+                                length: length4,
+                                width: beamHeight,
+                                height: beamWidth,
+                                name: `Planter Support Beam ${i + 1}`,
+                                beamName: selectedBeam.name,
+                                beamTranslatedName: selectedBeam.translatedName,
+                                beamWoodType: selectedType.translatedName,
+                            });
+                        }
                 } else if (this.isFuton) {
                     // עבור בסיס מיטה - חישוב קורות הפלטה
                     const widthParam = this.getParam('width');
