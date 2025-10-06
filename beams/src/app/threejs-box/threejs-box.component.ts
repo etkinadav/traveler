@@ -5180,8 +5180,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const legParam = this.getParam('leg');
             const extraBeamParam = this.getParam('extraBeam');
             
-            totalWidth = widthParam ? widthParam.default : 120;
-            totalLength = depthParam ? depthParam.default : 200;
+            totalWidth = depthParam ? depthParam.default : 200;  // החלפה: width = depth
+            totalLength = widthParam ? widthParam.default : 120;  // החלפה: length = width
             
             // חישוב גובה - רוחב קורת הרגל + גובה קורת הפלטה
             let legBeamWidth = 5; // ברירת מחדל
@@ -6263,8 +6263,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             return;
         }
         
-        const futonWidth = widthParam.default;
-        const futonDepth = depthParam.default;
+        const futonWidth = depthParam.default;  // החלפה: width = depth
+        const futonDepth = widthParam.default;   // החלפה: depth = width
         
         // קבלת מידות קורת הפלטה
         let plataBeam = null;
