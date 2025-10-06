@@ -3022,6 +3022,38 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 beamWoodType: selectedType.translatedName,
                             });
                         }
+                        
+                        // הוספת קורות מכסה לקופסא בלבד
+                        if (this.isBox) {
+                            // קורות רצפת המכסה - כפילות של קורות הרצפה
+                            for (let i = 0; i < beamsInDepth; i++) {
+                                allBeams.push({
+                                    type: selectedType,
+                                    length: length1, // אותו אורך כמו קורות הרצפה
+                                    width: beamHeight,
+                                    height: beamWidth,
+                                    name: `Box Cover Floor Beam ${i + 1}`,
+                                    beamName: selectedBeam.name,
+                                    beamTranslatedName: selectedBeam.translatedName,
+                                    beamWoodType: selectedType.translatedName,
+                                });
+                            }
+                            
+                            // קורות חיזוק המכסה - 2 קורות
+                            const coverSupportLength = planterWidth - (beamWidth * 4);
+                            for (let i = 0; i < 2; i++) {
+                                allBeams.push({
+                                    type: selectedType,
+                                    length: coverSupportLength,
+                                    width: beamHeight,
+                                    height: beamWidth,
+                                    name: `Box Cover Support Beam ${i + 1}`,
+                                    beamName: selectedBeam.name,
+                                    beamTranslatedName: selectedBeam.translatedName,
+                                    beamWoodType: selectedType.translatedName,
+                                });
+                            }
+                        }
                 } else if (this.isFuton) {
                     // עבור בסיס מיטה - חישוב קורות הפלטה
                     const widthParam = this.getParam('width');
