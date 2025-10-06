@@ -381,6 +381,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     isPlanter: boolean = false; // האם זה עדנית עץ
     isBox: boolean = false; // האם זה קופסת עץ (זהה לעדנית)
     isBelams: boolean = false; // האם זה קורות לפי מידה
+    isFuton: boolean = false; // האם זה בסיס מיטה
     isPriceManuOpen: boolean = false; // האם תפריט המחיר פתוח
     hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
@@ -423,6 +424,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.isPlanter = this.selectedProductName === 'planter';
                 this.isBox = this.selectedProductName === 'box';
                 this.isBelams = this.selectedProductName === 'beams';
+                this.isFuton = this.selectedProductName === 'futon';
                 
                 // איפוס מצב שקוף במוצר קורות
                 if (this.isBelams) {
@@ -1472,7 +1474,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
         this.beamMeshes = [];
         // Defensive checks
-        if (!this.isTable && !this.isPlanter && !this.isBox && !this.isBelams && (!this.shelves || !this.shelves.length)) {
+        if (!this.isTable && !this.isPlanter && !this.isBox && !this.isBelams && !this.isFuton && (!this.shelves || !this.shelves.length)) {
             console.warn('No shelves found, cannot render model.');
             return;
         }
@@ -1510,6 +1512,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         let shelfsParam = null;
         if (this.isTable) {
             // עבור שולחן, נשתמש בפרמטר plata במקום shelfs
+            shelfsParam = this.product?.params?.find(
+                (p: any) => p.type === 'beamSingle' && p.name === 'plata'
+            );
+        } else if (this.isFuton) {
+            // עבור בסיס מיטה, נשתמש בפרמטר plata (דומה לשולחן)
             shelfsParam = this.product?.params?.find(
                 (p: any) => p.type === 'beamSingle' && p.name === 'plata'
             );
@@ -1556,6 +1563,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             frameParam = this.params.find(
                 (p) => p.type === 'beamSingle' && p.name === 'leg'
             );
+        } else if (this.isFuton) {
+            // עבור בסיס מיטה, קורות החיזוק הן קורות הרגליים (דומה לשולחן)
+            frameParam = this.params.find(
+                (p) => p.type === 'beamSingle' && p.name === 'leg'
+            );
         } else {
             // עבור ארון, קורות החיזוק הן פרמטר beamSingle שאינו shelfs
             frameParam = this.params.find(
@@ -1591,6 +1603,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         let frameParamForShortening = null;
         if (this.isTable) {
             // עבור שולחן, קורות החיזוק הן קורות הרגליים
+            frameParamForShortening = this.params.find(
+                (p) => p.type === 'beamSingle' && p.name === 'leg'
+            );
+        } else if (this.isFuton) {
+            // עבור בסיס מיטה, קורות החיזוק הן קורות הרגליים (דומה לשולחן)
             frameParamForShortening = this.params.find(
                 (p) => p.type === 'beamSingle' && p.name === 'leg'
             );
@@ -1847,6 +1864,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             
             console.log('Adding lower frame screws - tableHeight:', tableHeight, 'extraBeamDistance:', extraBeamDistance, 'totalDistance:', totalDistanceForLower, 'lowerFrameY:', lowerFrameY, 'frameBeamHeight:', calculatedFrameBeamHeightForLower);
             this.addScrewsToLowerFrameBeams(legs, lowerFrameY, frameBeamHeight);
+        } else if (this.isFuton) {
+            // עבור בסיס מיטה - דומה לשולחן אבל עם גובה שונה
+            this.createFutonBeams();
         } else if (this.isPlanter || this.isBox) {
             // עבור עדנית, נציג רצפה של קורות
             const heightParam = this.getParam('height');
@@ -2965,6 +2985,20 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                     });
+                } else if (this.isFuton) {
+                    // עבור בסיס מיטה - מדף אחד בלבד (דומה לשולחן)
+                    surfaceBeams.forEach((beam) => {
+                        allBeams.push({
+                            type: selectedType,
+                            length: beam.depth, // אורך הקורה
+                            width: beam.width,
+                            height: beam.height,
+                            name: 'Futon Platform Beam',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                    });
                 } else {
                     // עבור ארון - קורות לכל מדף עם קיצור
                     // חישוב קיצור קורות המדפים
@@ -3035,6 +3069,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             let frameParamForCalculation = null;
             if (this.isTable) {
                 // עבור שולחן, קורות החיזוק הן קורות הרגליים
+                frameParamForCalculation = this.params.find(
+                    (p) => p.type === 'beamSingle' && p.name === 'leg'
+                );
+            } else if (this.isFuton) {
+                // עבור בסיס מיטה, קורות החיזוק הן קורות הרגליים (דומה לשולחן)
                 frameParamForCalculation = this.params.find(
                     (p) => p.type === 'beamSingle' && p.name === 'leg'
                 );
@@ -3120,6 +3159,53 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             beamTranslatedName: selectedBeam.translatedName,
                             beamWoodType: selectedType.translatedName, // סוג העץ
                         });
+                    } else if (this.isFuton) {
+                        // עבור בסיס מיטה - 4 קורות חיזוק מקוצרות (דומה לשולחן)
+                        // קורות רוחב מקוצרות
+                        allBeams.push({
+                            type: selectedType,
+                            length: this.surfaceWidth - shorteningAmountEx,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Futon Frame Beam Width 1',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        allBeams.push({
+                            type: selectedType,
+                            length: this.surfaceWidth - shorteningAmountEx,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Futon Frame Beam Width 2',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        // קורות אורך מקוצרות (מקבילות לקורות המדפים)
+                        // אורך כולל פחות פעמיים גובה קורות הרגליים
+                        const lengthBeamLength =
+                            this.surfaceLength - shorteningAmount;
+                        allBeams.push({
+                            type: selectedType,
+                            length: lengthBeamLength,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Futon Frame Beam Length 1',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        allBeams.push({
+                            type: selectedType,
+                            length: lengthBeamLength,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Futon Frame Beam Length 2',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
                         // שכפול קורות החיזוק לשולחן - עוד 4 קורות זהות
                         allBeams.push({
                             type: selectedType,
@@ -3157,6 +3243,52 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             width: frameWidth,
                             height: frameHeight,
                             name: 'Table Frame Beam Length 4',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                    } else if (this.isFuton) {
+                        // עבור בסיס מיטה - שכפול קורות החיזוק (דומה לשולחן)
+                        // חישוב אורך קורות האורך
+                        const lengthBeamLength = this.surfaceLength - shorteningAmount;
+                        
+                        // עוד 4 קורות זהות
+                        allBeams.push({
+                            type: selectedType,
+                            length: this.surfaceWidth - shorteningAmountEx,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Futon Frame Beam Width 3',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        allBeams.push({
+                            type: selectedType,
+                            length: this.surfaceWidth - shorteningAmountEx,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Futon Frame Beam Width 4',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        allBeams.push({
+                            type: selectedType,
+                            length: lengthBeamLength,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Futon Frame Beam Length 3',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        allBeams.push({
+                            type: selectedType,
+                            length: lengthBeamLength,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Futon Frame Beam Length 4',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
                             beamWoodType: selectedType.translatedName, // סוג העץ
@@ -3245,6 +3377,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const shelfBeamSelected =
                     shelfParam?.beams?.[shelfParam.selectedBeamIndex || 0];
                 shelfBeamHeight = shelfBeamSelected?.height / 10 || 0;
+            } else if (this.isFuton) {
+                // עבור בסיס מיטה - גובה קורות הפלטה (דומה לשולחן)
+                const shelfParam = this.product?.params?.find(
+                    (p: any) => p.type === 'beamSingle' && p.name === 'plata'
+                );
+                const shelfBeamSelected =
+                    shelfParam?.beams?.[shelfParam.selectedBeamIndex || 0];
+                shelfBeamHeight = shelfBeamSelected?.height / 10 || 0;
             } else {
                 // עבור ארון - רק גובה קורת המדף עצמה
                 const shelfParam = this.product?.params?.find(
@@ -3289,6 +3429,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         height: legHeightDimension, // גובה הקורה עצמה
                         name: this.isTable
                             ? `Table Leg ${i + 1}`
+                            : this.isFuton
+                            ? `Futon Leg ${i + 1}`
                             : `Cabinet Leg ${i + 1}`,
                         beamName: selectedBeam.name,
                         beamTranslatedName: selectedBeam.translatedName,
@@ -5031,6 +5173,35 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const hasCover = this.isBox && isCoverParam && isCoverParam.default === true;
             
             totalHeight = actualHeight + beamHeight + (hasCover ? beamHeight : 0); // גובה אמיתי + גובה הריצפה + גובה מכסה (אם יש)
+        } else if (this.isFuton) {
+            // עבור בסיס מיטה - דומה לשולחן
+            const widthParam = this.getParam('width');
+            const depthParam = this.getParam('depth');
+            const legParam = this.getParam('leg');
+            
+            totalWidth = widthParam ? widthParam.default : 120;
+            totalLength = depthParam ? depthParam.default : 200;
+            
+            // חישוב גובה - רוחב קורת הרגל + גובה קורת הפלטה
+            let legBeamWidth = 5; // ברירת מחדל
+            let plataBeamHeight = 2.5; // ברירת מחדל
+            
+            if (legParam && legParam.beams && legParam.beams.length > 0) {
+                const legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+                if (legBeam) {
+                    legBeamWidth = legBeam.width / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
+            const plataParam = this.getParam('plata');
+            if (plataParam && plataParam.beams && plataParam.beams.length > 0) {
+                const plataBeam = plataParam.beams[plataParam.selectedBeamIndex || 0];
+                if (plataBeam) {
+                    plataBeamHeight = plataBeam.height / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
+            totalHeight = legBeamWidth + plataBeamHeight; // גובה = רוחב רגל + גובה פלטה
         } else {
             // עבור ארון - חישוב זהה לחישוב הרגליים בפונקציה updateBeams
             // חישוב frameBeamHeight - זהה לחישוב בפונקציה updateBeams
@@ -6071,5 +6242,98 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         
         return group;
+    }
+    
+    // פונקציה ליצירת קורות בסיס מיטה
+    private createFutonBeams() {
+        console.log('יצירת קורות בסיס מיטה...');
+        
+        // קבלת פרמטרים
+        const widthParam = this.getParam('width');
+        const depthParam = this.getParam('depth');
+        const plataParam = this.getParam('plata');
+        const legParam = this.getParam('leg');
+        
+        if (!widthParam || !depthParam || !plataParam || !legParam) {
+            console.warn('חסרים פרמטרים לבסיס מיטה');
+            return;
+        }
+        
+        const futonWidth = widthParam.default;
+        const futonDepth = depthParam.default;
+        
+        // קבלת מידות קורת הפלטה
+        let plataBeam = null;
+        let plataType = null;
+        if (plataParam.beams && plataParam.beams.length > 0) {
+            plataBeam = plataParam.beams[plataParam.selectedBeamIndex || 0];
+            plataType = plataBeam.types && plataBeam.types.length 
+                ? plataBeam.types[plataParam.selectedTypeIndex || 0] 
+                : null;
+        }
+        
+        // קבלת מידות קורת הרגל
+        let legBeam = null;
+        let legType = null;
+        if (legParam.beams && legParam.beams.length > 0) {
+            legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+            legType = legBeam.types && legBeam.types.length 
+                ? legBeam.types[legParam.selectedTypeIndex || 0] 
+                : null;
+        }
+        
+        if (!plataBeam || !legBeam) {
+            console.warn('חסרות קורות לבסיס מיטה');
+            return;
+        }
+        
+        // המרת מידות ממ"מ לס"מ
+        const plataBeamWidth = plataBeam.width / 10;
+        const plataBeamHeight = plataBeam.height / 10;
+        const legBeamWidth = legBeam.width / 10;
+        const legBeamHeight = legBeam.height / 10;
+        
+        // חישוב גובה הפלטה - רוחב קורת הרגל מעל הקרקע
+        const platformHeight = legBeamWidth;
+        
+        console.log('מידות בסיס מיטה:', {
+            width: futonWidth,
+            depth: futonDepth,
+            platformHeight: platformHeight,
+            plataBeam: { width: plataBeamWidth, height: plataBeamHeight },
+            legBeam: { width: legBeamWidth, height: legBeamHeight }
+        });
+        
+        // יצירת קורות הפלטה (דומה לשולחן)
+        const surfaceBeams = this.createSurfaceBeams(
+            futonWidth,
+            futonDepth,
+            plataBeamWidth,
+            plataBeamHeight,
+            this.minGap
+        );
+        
+        for (let i = 0; i < surfaceBeams.length; i++) {
+            const beam = { ...surfaceBeams[i] };
+            const geometry = new THREE.BoxGeometry(
+                beam.width,
+                beam.height,
+                beam.depth
+            );
+            const material = this.getWoodMaterial(plataType ? plataType.name : '');
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            this.addWireframeToBeam(mesh);
+            
+            // מיקום הפלטה בגובה של רוחב קורת הרגל
+            mesh.position.set(beam.x, platformHeight + beam.height / 2, 0);
+            this.scene.add(mesh);
+            this.beamMeshes.push(mesh);
+            
+            console.log(`קורת פלטה ${i + 1} - X: ${beam.x}, Y: ${platformHeight + beam.height / 2}, Z: 0`);
+        }
+        
+        console.log('קורות הפלטה נוצרו בהצלחה');
     }
 }
