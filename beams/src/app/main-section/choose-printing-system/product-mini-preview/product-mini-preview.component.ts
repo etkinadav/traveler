@@ -296,6 +296,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const isTable = this.product?.name === 'table';
     const isPlanter = this.product?.name === 'planter';
     const isBox = this.product?.name === 'box';
+    const isFuton = this.product?.name === 'futon';
     console.log('changeRandomShelfHeight נקרא - סוג מוצר:', isTable ? 'שולחן' : (isPlanter ? 'עדנית' : (isBox ? 'קופסא' : 'ארון')));
     
     if (isPlanter || isBox) {
@@ -1241,6 +1242,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const isTable = this.product.name === 'table';
     const isPlanter = this.product.name === 'planter';
     const isBox = this.product.name === 'box';
+    const isFuton = this.product.name === 'futon';
 
     // אתחול אינדקס הקורה הנוכחית - תמיד הקורה הראשונה וה-type הראשון שלה
     this.currentBeamIndex = 0;
@@ -1259,6 +1261,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       } else if (isPlanter || isBox) {
         // עדנית או קופסא - חיפוש פרמטר beam
         if (param.name === 'beam' && param.beams && param.beams.length > 0) {
+          shelfBeams = param.beams;
+        }
+      } else if (isFuton) {
+        // מיטה - חיפוש פרמטר plata (דומה לשולחן)
+        if (param.type === 'beamSingle' && param.name === 'plata' && param.beams && param.beams.length > 0) {
           shelfBeams = param.beams;
         }
       } else {
@@ -1388,13 +1395,18 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
 
-    // בדיקה אם זו עדנית, קופסא או beams
+    // בדיקה אם זו עדנית, קופסא, מיטה או beams
     const isPlanter = this.product?.name === 'planter';
     const isBox = this.product?.name === 'box';
+    const isFuton = this.product?.name === 'futon';
     const isBeams = this.product?.name === 'beams';
     if (isPlanter || isBox) {
       this.createPlanterModel();
       return; // יציאה מהפונקציה - העדנית/קופסא לא משתמשת במדפים רגילים
+    }
+    if (isFuton) {
+      this.createFutonModel();
+      return; // יציאה מהפונקציה - המיטה לא משתמשת במדפים רגילים
     }
     if (isBeams) {
       this.createBeamsModel();
@@ -1694,13 +1706,18 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
 
-    // בדיקה אם זו עדנית, קופסא או beams
+    // בדיקה אם זו עדנית, קופסא, מיטה או beams
     const isPlanter = this.product?.name === 'planter';
     const isBox = this.product?.name === 'box';
+    const isFuton = this.product?.name === 'futon';
     const isBeams = this.product?.name === 'beams';
     if (isPlanter || isBox) {
       this.createPlanterModel();
       return; // יציאה מהפונקציה - העדנית/קופסא לא משתמשת במדפים רגילים
+    }
+    if (isFuton) {
+      this.createFutonModel();
+      return; // יציאה מהפונקציה - המיטה לא משתמשת במדפים רגילים
     }
     if (isBeams) {
       this.createBeamsModel();
@@ -2034,6 +2051,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const isTable = this.product?.name === 'table';
     const isPlanter = this.product?.name === 'planter';
     const isBox = this.product?.name === 'box';
+    const isFuton = this.product?.name === 'futon';
     
     if (isPlanter || isBox) {
       // עדנית או קופסא - גובה הקירות + גובה הרצפה
@@ -2046,6 +2064,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const hasCover = isBox && this.dynamicParams.coverOpenOffset !== null;
       const coverOffset = (isBox && this.dynamicParams.coverOpenOffset !== null) ? this.dynamicParams.coverOpenOffset : 0;
       totalModelHeight = actualWallHeight + beamHeight + (hasCover ? beamHeight : 0) + coverOffset; // גובה הקירות + גובה הרצפה + גובה מכסה + פתיחה
+    } else if (isFuton) {
+      // מיטה - גובה הפלטה + גובה הרגליים
+      const platformHeight = this.dynamicParams.frameWidth || 5; // גובה הפלטה (רוחב קורת הרגל)
+      const legHeight = this.dynamicParams.frameHeight || 5; // גובה הרגליים
+      totalModelHeight = platformHeight + legHeight;
     } else if (isTable) {
       // שולחן - גובה המדף + גובה הרגליים
       totalModelHeight = this.shelfGaps[0] + this.dynamicParams.frameHeight + this.dynamicParams.beamHeight;
@@ -2770,6 +2793,137 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.createDynamicBeams(beamWidthCm, beamHeightCm, beamDepthCm);
     
     console.log('קורות דינמיות עודכנו עבור beams');
+  }
+
+  // יצירת מודל מיטה
+  private createFutonModel() {
+    console.log('=== Creating Futon Model ===');
+    
+    // שימוש בפרמטרים הדינמיים
+    const futonWidth = this.dynamicParams.width || 200; // רוחב המיטה
+    const futonDepth = this.dynamicParams.length || 120; // עומק המיטה
+    
+    // קבלת פרמטרי קורת הפלטה
+    const plataParam = this.product?.params?.find((p: any) => p.name === 'plata');
+    let plataBeam = null;
+    let plataType = null;
+    
+    if (plataParam && plataParam.beams && plataParam.beams.length > 0) {
+      plataBeam = plataParam.beams[plataParam.selectedBeamIndex || 0];
+      if (plataBeam && plataBeam.types && plataBeam.types.length > 0) {
+        plataType = plataBeam.types[plataParam.selectedBeamTypeIndex || 0];
+      }
+    }
+    
+    // קבלת פרמטרי קורת הרגל
+    const legParam = this.product?.params?.find((p: any) => p.name === 'leg');
+    let legBeam = null;
+    let legType = null;
+    
+    if (legParam && legParam.beams && legParam.beams.length > 0) {
+      legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+      if (legBeam && legBeam.types && legBeam.types.length > 0) {
+        legType = legBeam.types[legParam.selectedBeamTypeIndex || 0];
+      }
+    }
+    
+    // מידות קורות
+    const plataBeamWidth = plataType ? (plataType.width || plataBeam.width || 100) / 10 : 10;
+    const plataBeamHeight = plataType ? (plataType.height || plataBeam.height || 25) / 10 : 2.5;
+    const legBeamWidth = legType ? (legType.width || legBeam.width || 50) / 10 : 5;
+    const legBeamHeight = legType ? (legType.height || legBeam.height || 50) / 10 : 5;
+    
+    // גובה הפלטה - רוחב קורת הרגל מעל הקרקע
+    const platformHeight = legBeamWidth;
+    
+    // קבלת טקסטורות
+    const plataWoodTexture = this.getWoodTexture(plataType ? plataType.name : '');
+    const legWoodTexture = this.getWoodTexture(legType ? legType.name : '');
+    
+    console.log('Futon params:', { futonWidth, futonDepth, platformHeight, plataBeamWidth, plataBeamHeight, legBeamWidth, legBeamHeight });
+    
+    // 1. יצירת קורות הפלטה (דומה לשולחן)
+    const minGap = 2; // רווח מינימלי בין קורות
+    const surfaceBeams = this.createSurfaceBeamsForFuton(futonWidth, futonDepth, plataBeamWidth, plataBeamHeight, minGap);
+    
+    surfaceBeams.forEach((beam, i) => {
+      const geometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
+      this.setCorrectTextureMapping(geometry, beam.width, beam.height, beam.depth);
+      const material = new THREE.MeshStandardMaterial({ map: plataWoodTexture });
+      const mesh = new THREE.Mesh(geometry, material);
+      
+      // מיקום הפלטה בגובה של רוחב קורת הרגל
+      mesh.position.set(beam.x, platformHeight + beam.height / 2, beam.z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      
+      this.scene.add(mesh);
+      this.meshes.push(mesh);
+      
+      console.log(`קורת פלטה ${i + 1} - X: ${beam.x}, Y: ${platformHeight + beam.height / 2}, Z: ${beam.z}`);
+    });
+    
+    // 2. יצירת קורות הרגליים (4 רגליים בפינות)
+    const legPositions = [
+      { x: -futonWidth / 2 + legBeamWidth / 2, z: -futonDepth / 2 + legBeamWidth / 2 },
+      { x: futonWidth / 2 - legBeamWidth / 2, z: -futonDepth / 2 + legBeamWidth / 2 },
+      { x: -futonWidth / 2 + legBeamWidth / 2, z: futonDepth / 2 - legBeamWidth / 2 },
+      { x: futonWidth / 2 - legBeamWidth / 2, z: futonDepth / 2 - legBeamWidth / 2 }
+    ];
+    
+    legPositions.forEach((pos, i) => {
+      const geometry = new THREE.BoxGeometry(
+        futonWidth,    // אורך הקורה = רוחב המיטה (ציר X)
+        legBeamHeight, // גובה הקורה (ציר Y)
+        legBeamWidth   // רוחב הקורה (ציר Z)
+      );
+      this.setCorrectTextureMapping(geometry, futonWidth, legBeamHeight, legBeamWidth);
+      const material = new THREE.MeshStandardMaterial({ map: legWoodTexture });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      
+      // מיקום הרגל - צמודה למטה (Y=0) + חצי גובה הקורה
+      mesh.position.set(0, legBeamHeight / 2, pos.z);
+      this.scene.add(mesh);
+      this.meshes.push(mesh);
+      
+      console.log(`רגל ${i + 1} - X: 0, Y: ${legBeamHeight / 2}, Z: ${pos.z}, אורך: ${futonWidth}ס"מ`);
+    });
+    
+    console.log('מיטה נוצרה בהצלחה');
+  }
+  
+  // פונקציה עזר ליצירת קורות פלטה למיטה (דומה לשולחן)
+  private createSurfaceBeamsForFuton(width: number, depth: number, beamWidth: number, beamHeight: number, minGap: number) {
+    const beams: Array<{x: number, y: number, z: number, width: number, height: number, depth: number}> = [];
+    
+    // חישוב כמות הקורות
+    const beamsCount = Math.floor(depth / (beamWidth + minGap));
+    if (beamsCount === 0) return beams;
+    
+    // חישוב רווחים
+    const totalGaps = beamsCount - 1;
+    const totalGapWidth = totalGaps * minGap;
+    const availableWidth = depth - totalGapWidth;
+    const adjustedBeamWidth = availableWidth / beamsCount;
+    
+    // יצירת הקורות
+    for (let i = 0; i < beamsCount; i++) {
+      const x = 0; // ממורכז בציר X
+      const z = (i * (adjustedBeamWidth + minGap)) - (depth / 2) + (adjustedBeamWidth / 2);
+      
+      beams.push({
+        x: x,
+        y: 0,
+        z: z,
+        width: width,
+        height: beamHeight,
+        depth: adjustedBeamWidth
+      });
+    }
+    
+    return beams;
   }
 
   // פונקציה להפסקת הסיבוב האוטומטי

@@ -64,6 +64,42 @@ exports.getProductById = async (req, res, next) => {
     }
 };
 
+// Create a new product
+exports.createProduct = async (req, res, next) => {
+    try {
+        console.log('Creating new product:', req.body);
+        const product = new Product(req.body);
+        const savedProduct = await product.save();
+        console.log('Product created successfully:', savedProduct._id);
+        res.status(201).json(savedProduct);
+    } catch (error) {
+        console.error('Error creating product:', error);
+        res.status(500).json({ message: "Error creating product", error: error.message });
+    }
+};
+
+// Delete a product
+exports.deleteProduct = async (req, res, next) => {
+    const id = req.params.id;
+    console.log('Deleting product with ID:', id);
+    
+    if (!ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid product ID" });
+    }
+    
+    try {
+        const deletedProduct = await Product.findByIdAndDelete(id);
+        if (!deletedProduct) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        console.log('Product deleted successfully:', id);
+        res.status(200).json({ message: "Product deleted successfully", deletedProduct });
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.status(500).json({ message: "Error deleting product", error: error.message });
+    }
+};
+
 // Get product by name
 exports.getProductByName = async (req, res, next) => {
     const name = req.params.name;

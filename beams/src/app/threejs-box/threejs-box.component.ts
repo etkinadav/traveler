@@ -503,7 +503,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 if (params['productId']) {
                     this.getProductById(params['productId']);
                 } else {
-                    this.getProductByName(this.selectedProductName);
+                this.getProductByName(this.selectedProductName);
                 }
             } else {
                 // אם אין פרמטר מוצר, נטען את המוצר האחרון או ברירת מחדל
@@ -2895,7 +2895,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 shelfParam.beams?.[shelfParam.selectedBeamIndex || 0];
             const selectedType =
                 selectedBeam?.types?.[shelfParam.selectedTypeIndex || 0];
-                if (selectedBeam && selectedType) {
+            if (selectedBeam && selectedType) {
                     console.log('🔍 ENTERED - selectedBeam && selectedType block');
                     let beamWidth = selectedBeam.height / 10 || this.beamWidth; // המרה ממ"מ לס"מ (height של הקורה)
                     const beamHeight = selectedBeam.width / 10 || this.beamHeight; // width של הקורה
@@ -2918,11 +2918,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     
                     console.log('🔍 AFTER DEBUG - Continuing execution');
                     
-                    // עבור ארון, אם הקורה רחבה מדי, נשתמש ברוחב קטן יותר
+                // עבור ארון, אם הקורה רחבה מדי, נשתמש ברוחב קטן יותר
                     if (!this.isTable && !this.isPlanter && !this.isBox && beamWidth > 5) {
                         console.log('🔍 ARMOIRE - Beam width adjustment for armoire');
-                        beamWidth = 4; // רוחב קטן יותר עבור ארון
-                    }
+                    beamWidth = 4; // רוחב קטן יותר עבור ארון
+                }
                     
                     console.log('🔍 CHECKPOINT 1 - After armoire check:', {
                         isPlanter: this.isPlanter,
@@ -3430,26 +3430,26 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     }
                 } else {
                     // עבור שולחן או ארון - 4 רגליים
-                    const numLegs = 4;
-                    for (let i = 0; i < numLegs; i++) {
-                        console.log(
-                            'DEBUG - Adding leg',
-                            i + 1,
-                            'with length:',
-                            legHeight
-                        );
-                        allBeams.push({
-                            type: selectedType,
-                            length: legHeight, // גובה הרגל המחושב (totalHeight - shelfBeamHeight)
-                            width: legWidth,
-                            height: legHeightDimension, // גובה הקורה עצמה
-                            name: this.isTable
-                                ? `Table Leg ${i + 1}`
-                                : `Cabinet Leg ${i + 1}`,
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
+                const numLegs = 4;
+                for (let i = 0; i < numLegs; i++) {
+                    console.log(
+                        'DEBUG - Adding leg',
+                        i + 1,
+                        'with length:',
+                        legHeight
+                    );
+                    allBeams.push({
+                        type: selectedType,
+                        length: legHeight, // גובה הרגל המחושב (totalHeight - shelfBeamHeight)
+                        width: legWidth,
+                        height: legHeightDimension, // גובה הקורה עצמה
+                        name: this.isTable
+                            ? `Table Leg ${i + 1}`
+                            : `Cabinet Leg ${i + 1}`,
+                        beamName: selectedBeam.name,
+                        beamTranslatedName: selectedBeam.translatedName,
                             beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
+                    });
                     }
                 }
             }
