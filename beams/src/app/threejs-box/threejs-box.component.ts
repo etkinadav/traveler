@@ -323,7 +323,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     
     // פונקציה לטיפול בשינויי אינפוט מספרי (עדכון מיידי לחצים)
-    onNumberInputChange(event: any, updateFunction: string) {
+    onNumberInputChange(event: any, updateFunction: string, param?: any) {
         const value = parseFloat(event.target.value);
         if (!isNaN(value)) {
             // בדיקה אם זה שינוי על ידי חצים (לא הקלדה ידנית)
@@ -335,6 +335,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         this.updateModel();
                     }
                 }, 0);
+            } else if (param) {
+                // עבור הקלדה ידנית - validation בזמן אמת אם יש פרמטר
+                const validatedValue = this.validateParameterValue(param, value);
+                if (validatedValue !== value) {
+                    // אם הערך לא תקין, נחזיר אותו לערך המאומת
+                    event.target.value = validatedValue;
+                    param.default = validatedValue;
+                }
             }
         }
     }
@@ -342,14 +350,34 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // פונקציה לטיפול בשינויי אינפוט של פרמטרים
     onParameterInputChange(event: any, param: any) {
         const value = parseFloat(event.target.value);
+        
+        // Debug log for futon parameters
+        if (this.isFuton && (param.name === 'width' || param.name === 'depth')) {
+            console.log(`DEBUG FUTON INPUT CHANGE - ${param.name}:`, {
+                value: value,
+                min: param.min,
+                max: param.max,
+                inputType: event.inputType,
+                param: param
+            });
+        }
+        
         if (!isNaN(value)) {
             // בדיקה אם זה שינוי על ידי חצים (לא הקלדה ידנית)
             const isArrowKey = event.inputType === undefined || event.inputType === 'insertReplacementText';
             if (isArrowKey) {
-                // עדכון מיידי לחצים
+                // עדכון מיידי לחצים עם validation
                 setTimeout(() => {
                     this.updateParameterValue(param, value);
                 }, 0);
+            } else {
+                // עבור הקלדה ידנית - validation בזמן אמת
+                const validatedValue = this.validateParameterValue(param, value);
+                if (validatedValue !== value) {
+                    // אם הערך לא תקין, נחזיר אותו לערך המאומת
+                    event.target.value = validatedValue;
+                    param.default = validatedValue;
+                }
             }
         }
     }
@@ -737,6 +765,17 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     validateParameterValue(param: any, value: number): number {
         let validatedValue = value;
         let message = '';
+        
+        // Debug log for futon parameters
+        if (this.isFuton && (param.name === 'width' || param.name === 'depth')) {
+            console.log(`DEBUG FUTON VALIDATION - ${param.name}:`, {
+                value: value,
+                min: param.min,
+                max: param.max,
+                param: param
+            });
+        }
+        
         if (value < param.min) {
             validatedValue = param.min;
             message = `מידה מינימלית - ${param.min} ס"מ`;
