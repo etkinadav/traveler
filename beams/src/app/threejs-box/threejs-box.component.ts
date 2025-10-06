@@ -5178,18 +5178,21 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const widthParam = this.getParam('width');
             const depthParam = this.getParam('depth');
             const legParam = this.getParam('leg');
+            const extraBeamParam = this.getParam('extraBeam');
             
             totalWidth = widthParam ? widthParam.default : 120;
             totalLength = depthParam ? depthParam.default : 200;
             
             // חישוב גובה - רוחב קורת הרגל + גובה קורת הפלטה
             let legBeamWidth = 5; // ברירת מחדל
+            let legBeamHeight = 5; // ברירת מחדל
             let plataBeamHeight = 2.5; // ברירת מחדל
             
             if (legParam && legParam.beams && legParam.beams.length > 0) {
                 const legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
                 if (legBeam) {
                     legBeamWidth = legBeam.width / 10; // המרה ממ"מ לס"מ
+                    legBeamHeight = legBeam.height / 10; // המרה ממ"מ לס"מ
                 }
             }
             
@@ -5201,7 +5204,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 }
             }
             
-            totalHeight = legBeamWidth + plataBeamHeight; // גובה = רוחב רגל + גובה פלטה
+            // חישוב גובה כולל - גובה הרגליים + גובה הפלטה
+            totalHeight = legBeamHeight + plataBeamHeight;
         } else {
             // עבור ארון - חישוב זהה לחישוב הרגליים בפונקציה updateBeams
             // חישוב frameBeamHeight - זהה לחישוב בפונקציה updateBeams
@@ -6335,5 +6339,52 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
         
         console.log('קורות הפלטה נוצרו בהצלחה');
+        
+        // יצירת קורות הרגליים
+        const extraBeamParam = this.getParam('extraBeam');
+        if (extraBeamParam && extraBeamParam.default > 0) {
+            const legCount = extraBeamParam.default;
+            console.log(`יצירת ${legCount} קורות רגליים...`);
+            
+            // חישוב רווחים - 5 ס"מ מכל קצה
+            const totalLength = futonDepth;
+            const availableLength = totalLength - 10; // 5 ס"מ מכל קצה
+            const spacing = legCount > 1 ? availableLength / (legCount - 1) : 0;
+            
+            console.log('חישוב רווחי רגליים:', {
+                totalLength,
+                availableLength,
+                legCount,
+                spacing
+            });
+            
+            // יצירת קורות הרגליים
+            for (let i = 0; i < legCount; i++) {
+                const geometry = new THREE.BoxGeometry(
+                    futonWidth,    // אורך הקורה = רוחב המיטה (ציר X)
+                    legBeamHeight, // גובה הקורה (ציר Y)
+                    legBeamWidth   // רוחב הקורה (ציר Z)
+                );
+                const material = this.getWoodMaterial(legType ? legType.name : '');
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                this.addWireframeToBeam(mesh);
+                
+                // חישוב מיקום Z - מתחיל ב-5 ס"מ מהקצה
+                const zPosition = -totalLength / 2 + 5 + (i * spacing);
+                
+                // מיקום הרגל - צמודה למטה (Y=0) + חצי גובה הקורה
+                mesh.position.set(0, legBeamHeight / 2, zPosition);
+                this.scene.add(mesh);
+                this.beamMeshes.push(mesh);
+                
+                console.log(`רגל ${i + 1} - X: 0, Y: ${legBeamHeight / 2}, Z: ${zPosition}, אורך: ${futonWidth}ס"מ`);
+            }
+            
+            console.log(`${legCount} קורות רגליים נוצרו בהצלחה`);
+        } else {
+            console.log('לא נמצא פרמטר extraBeam או ערך 0 - לא נוצרות רגליים');
+        }
     }
 }
