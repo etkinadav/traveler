@@ -500,7 +500,7 @@
                     </div>
                     
                     
-                    <div *ngIf="param.type !== 'beamSingle' && param.type !== 'boolian' && param.name !== 'shelfs' && (!isTable || param.name !== 'height') && param.name !== 'extraBeam'">
+                    <div *ngIf="param.type !== 'beamSingle' && param.type !== 'boolian' && param.name !== 'shelfs' && !(isTable && param.name === 'height') && !(isTable && param.name === 'extraBeam')">
                         <label
                             style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="param-box non-beam">
