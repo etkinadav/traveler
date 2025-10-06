@@ -43,6 +43,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // כששוסגרים את התפריט - לצמצם את המחיר
         if (!this.drawerOpen) {
             this.isPriceMinimized = true;
+            // סגירת תפריט המחיר כשסוגרים את תפריט המידות
+            this.isPriceManuOpen = false;
         }
         
         // קריאה ל-onResize ללא איפוס isPriceMinimized
@@ -94,6 +96,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // צמצום/הרחבת תפריט המחיר
     togglePriceMinimize() {
         this.isPriceMinimized = !this.isPriceMinimized;
+        
+        // סגירת תפריט המחיר כשמצמצמים
+        if (this.isPriceMinimized) {
+            this.isPriceManuOpen = false;
+        }
     }
     
     // איפוס מבט המצלמה לנקודת ההתחלה
