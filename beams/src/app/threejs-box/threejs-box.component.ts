@@ -2808,7 +2808,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // איסוף כל הקורות מהמודל התלת מימדי
         const allBeams: any[] = [];
         // קבלת נתוני הקורות מהפרמטרים
-        const shelfParam = this.isTable 
+        const shelfParam = this.isTable || this.isFuton
             ? this.product?.params?.find(
                   (p: any) => p.type === 'beamSingle' && p.name === 'plata'
               )
@@ -2962,6 +2962,44 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             woodType: selectedType.translatedName
                         });
                     }
+                } else if (this.isFuton) {
+                    // עבור בסיס מיטה - חישוב קורות הפלטה
+                    const widthParam = this.getParam('width');
+                    const depthParam = this.getParam('depth');
+                    const futonWidth = depthParam ? depthParam.default : 200;  // החלפה: width = depth
+                    const futonDepth = widthParam ? widthParam.default : 120;   // החלפה: depth = width
+                    
+                    const surfaceBeams = this.createSurfaceBeams(
+                        futonWidth,
+                        futonDepth,
+                        beamWidth,
+                        beamHeight,
+                        this.minGap
+                    );
+                    
+                    // הוספת קורות הפלטה לחישוב המחיר
+                    surfaceBeams.forEach((beam) => {
+                        allBeams.push({
+                            type: selectedType,
+                            length: beam.depth, // אורך הקורה
+                            width: beam.width,
+                            height: beam.height,
+                            name: 'Futon Platform Beam',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                    });
+                    
+                    console.log('קורות פלטת מיטה נוספו לחישוב מחיר:', {
+                        beamsCount: surfaceBeams.length,
+                        futonWidth,
+                        futonDepth,
+                        beamWidth,
+                        beamHeight,
+                        beamName: selectedBeam.name,
+                        woodType: selectedType.translatedName
+                    });
                 } else {
                 // חישוב קורות המשטח
                 const surfaceBeams = this.createSurfaceBeams(
@@ -2980,20 +3018,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             width: beam.width,
                             height: beam.height,
                             name: 'Table Surface Beam',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                    });
-                } else if (this.isFuton) {
-                    // עבור בסיס מיטה - מדף אחד בלבד (דומה לשולחן)
-                    surfaceBeams.forEach((beam) => {
-                        allBeams.push({
-                            type: selectedType,
-                            length: beam.depth, // אורך הקורה
-                            width: beam.width,
-                            height: beam.height,
-                            name: 'Futon Platform Beam',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
                             beamWoodType: selectedType.translatedName, // סוג העץ
@@ -3160,139 +3184,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             beamWoodType: selectedType.translatedName, // סוג העץ
                         });
                     } else if (this.isFuton) {
-                        // עבור בסיס מיטה - 4 קורות חיזוק מקוצרות (דומה לשולחן)
-                        // קורות רוחב מקוצרות
-                        allBeams.push({
-                            type: selectedType,
-                            length: this.surfaceWidth - shorteningAmountEx,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Futon Frame Beam Width 1',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        allBeams.push({
-                            type: selectedType,
-                            length: this.surfaceWidth - shorteningAmountEx,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Futon Frame Beam Width 2',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        // קורות אורך מקוצרות (מקבילות לקורות המדפים)
-                        // אורך כולל פחות פעמיים גובה קורות הרגליים
-                        const lengthBeamLength =
-                            this.surfaceLength - shorteningAmount;
-                        allBeams.push({
-                            type: selectedType,
-                            length: lengthBeamLength,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Futon Frame Beam Length 1',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        allBeams.push({
-                            type: selectedType,
-                            length: lengthBeamLength,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Futon Frame Beam Length 2',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        // שכפול קורות החיזוק לשולחן - עוד 4 קורות זהות
-                        allBeams.push({
-                            type: selectedType,
-                            length: this.surfaceWidth - shorteningAmountEx,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Table Frame Beam Width 3',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        allBeams.push({
-                            type: selectedType,
-                            length: this.surfaceWidth - shorteningAmountEx,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Table Frame Beam Width 4',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        allBeams.push({
-                            type: selectedType,
-                            length: lengthBeamLength,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Table Frame Beam Length 3',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        allBeams.push({
-                            type: selectedType,
-                            length: lengthBeamLength,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Table Frame Beam Length 4',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                    } else if (this.isFuton) {
-                        // עבור בסיס מיטה - שכפול קורות החיזוק (דומה לשולחן)
-                        // חישוב אורך קורות האורך
-                        const lengthBeamLength = this.surfaceLength - shorteningAmount;
-                        
-                        // עוד 4 קורות זהות
-                        allBeams.push({
-                            type: selectedType,
-                            length: this.surfaceWidth - shorteningAmountEx,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Futon Frame Beam Width 3',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        allBeams.push({
-                            type: selectedType,
-                            length: this.surfaceWidth - shorteningAmountEx,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Futon Frame Beam Width 4',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        allBeams.push({
-                            type: selectedType,
-                            length: lengthBeamLength,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Futon Frame Beam Length 3',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
-                        allBeams.push({
-                            type: selectedType,
-                            length: lengthBeamLength,
-                            width: frameWidth,
-                            height: frameHeight,
-                            name: 'Futon Frame Beam Length 4',
-                            beamName: selectedBeam.name,
-                            beamTranslatedName: selectedBeam.translatedName,
-                            beamWoodType: selectedType.translatedName, // סוג העץ
-                        });
+                        // עבור בסיס מיטה - אין קורות חיזוק, רק פלטה ורגליים
+                        console.log('Futon: No frame beams needed - only platform and legs');
                     } else {
                         console.log(
                             'DEBUG - shorteningAmount:',
@@ -3413,29 +3306,59 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             if (selectedBeam && selectedType) {
                 const legWidth = selectedType.width / 10 || 5; // המרה ממ"מ לס"מ
                 const legHeightDimension = selectedType.height / 10 || 5;
-                // 4 רגליים לשולחן או לארון
-                const numLegs = 4;
-                for (let i = 0; i < numLegs; i++) {
-                    console.log(
-                        'DEBUG - Adding leg',
-                        i + 1,
-                        'with length:',
-                        legHeight
-                    );
-                    allBeams.push({
-                        type: selectedType,
-                        length: legHeight, // גובה הרגל המחושב (totalHeight - shelfBeamHeight)
-                        width: legWidth,
-                        height: legHeightDimension, // גובה הקורה עצמה
-                        name: this.isTable
-                            ? `Table Leg ${i + 1}`
-                            : this.isFuton
-                            ? `Futon Leg ${i + 1}`
-                            : `Cabinet Leg ${i + 1}`,
-                        beamName: selectedBeam.name,
-                        beamTranslatedName: selectedBeam.translatedName,
-                        beamWoodType: selectedType.name, // סוג העץ
-                    });
+                
+                if (this.isFuton) {
+                    // עבור בסיס מיטה - כמות רגליים לפי extraBeam
+                    const extraBeamParam = this.getParam('extraBeam');
+                    const legCount = extraBeamParam && extraBeamParam.default > 0 ? extraBeamParam.default : 0;
+                    
+                    // קבלת מידות המיטה
+                    const widthParam = this.getParam('width');
+                    const depthParam = this.getParam('depth');
+                    const futonWidth = depthParam ? depthParam.default : 200;  // החלפה: width = depth
+                    const futonDepth = widthParam ? widthParam.default : 120;   // החלפה: depth = width
+                    
+                    for (let i = 0; i < legCount; i++) {
+                        console.log(
+                            'DEBUG - Adding futon leg',
+                            i + 1,
+                            'with length:',
+                            futonWidth
+                        );
+                        allBeams.push({
+                            type: selectedType,
+                            length: futonWidth, // אורך הרגל = רוחב המיטה
+                            width: legWidth,
+                            height: legHeightDimension, // גובה הקורה עצמה
+                            name: `Futon Leg ${i + 1}`,
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                    }
+                } else {
+                    // עבור שולחן או ארון - 4 רגליים
+                    const numLegs = 4;
+                    for (let i = 0; i < numLegs; i++) {
+                        console.log(
+                            'DEBUG - Adding leg',
+                            i + 1,
+                            'with length:',
+                            legHeight
+                        );
+                        allBeams.push({
+                            type: selectedType,
+                            length: legHeight, // גובה הרגל המחושב (totalHeight - shelfBeamHeight)
+                            width: legWidth,
+                            height: legHeightDimension, // גובה הקורה עצמה
+                            name: this.isTable
+                                ? `Table Leg ${i + 1}`
+                                : `Cabinet Leg ${i + 1}`,
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                    }
                 }
             }
         } else {
