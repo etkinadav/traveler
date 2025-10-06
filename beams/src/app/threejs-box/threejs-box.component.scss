@@ -1153,6 +1153,7 @@ mat-form-field {
         ::ng-deep .mat-mdc-button-touch-target {
             width: 18px;
             height: 18px;
+            
         }
         
         mat-icon {
@@ -1216,6 +1217,13 @@ mat-form-field {
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
             background: #f8f9fa;
         }
+    }
+    
+    // כפתור צמצום במצב מצומצם
+    &.minimized .minimize-btn {
+        left: -19px;
+        top: 15px;
+        transition: left 300ms ease, top 300ms ease;
     }
     
     .price-info {
