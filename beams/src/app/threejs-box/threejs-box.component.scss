@@ -1224,6 +1224,32 @@ mat-form-field {
         left: -19px;
         top: 15px;
         transition: left 300ms ease, top 300ms ease;
+        
+        // רקע לבן ואייקון כחול במצב סגור
+        background: white !important;
+        color: #0066cc !important;
+        border: none !important; // הסרת גבול כחול
+        width: 15px !important; // הקטנת רוחב מ-18px ל-15px
+        height: 15px !important; // הקטנת גובה מ-18px ל-15px
+        min-width: 15px !important; // הקטנת min-width
+        
+        mat-icon {
+            color: #0066cc !important;
+            font-size: 16px !important; // הגדלת האייקון
+            width: 16px !important;
+            height: 16px !important;
+            transform: translate(8px, -18px) !important; // ימינה 8 פיקסלים ולמעלה 18 פיקסלים
+        }
+        
+        &:hover {
+            background: #f8f9fa !important;
+            color: #0066cc !important;
+            border: none !important; // הסרת גבול כחול גם בהובר
+            
+            mat-icon {
+                color: #0066cc !important;
+            }
+        }
     }
     
     .price-info {
