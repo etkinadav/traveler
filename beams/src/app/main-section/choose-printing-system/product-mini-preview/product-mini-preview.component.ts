@@ -2550,13 +2550,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     // 2. יצירת קורות הרגליים (3 רגליים עם הזחה של 5 ס"מ מכל קצה)
     const legOffset = 5; // הזחה של 5 ס"מ מכל קצה (כמו בקובץ threejs)
-    const availableLength = futonDepth - (legOffset * 2); // אורך זמין אחרי הזחה
-    const legSpacing = availableLength / 2; // רווח בין הרגליים (2 רווחים בין 3 רגליים)
+    const availableWidth = futonWidth - (legOffset * 2); // רוחב זמין אחרי הזחה
+    const legSpacing = availableWidth / 2; // רווח בין הרגליים (2 רווחים בין 3 רגליים)
     
     const legPositions = [
-      { x: 0, z: -futonDepth / 2 + legOffset }, // רגל שמאלית - מוזחת 5 ס"מ מהקצה
+      { x: -futonWidth / 2 + legOffset, z: 0 }, // רגל שמאלית - מוזחת 5 ס"מ מהקצה
       { x: 0, z: 0 }, // רגל מרכזית
-      { x: 0, z: futonDepth / 2 - legOffset }  // רגל ימנית - מוזחת 5 ס"מ מהקצה
+      { x: futonWidth / 2 - legOffset, z: 0 }  // רגל ימנית - מוזחת 5 ס"מ מהקצה
     ];
     
     legPositions.forEach((pos, i) => {
