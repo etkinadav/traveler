@@ -36,8 +36,11 @@
     <div class="custom-menu" [class.open]="isOptionsMenuOpen" *ngIf="isOptionsMenuOpen">
         <!-- אפשרות החלף מוצר -->
         <button class="menu-option" (click)="navigateToHome(); isOptionsMenuOpen = false">
-            <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left: 8px;">
-                <path d="M6 1L1 6H3V11H9V6H11L6 1Z" fill="currentColor"/>
+            <svg width="18" height="18" viewBox="0 0 12 12" style="margin-left: 8px; margin-top: 5px;">
+                <!-- חץ דו-כיווני פשוט -->
+                <path d="M3 6L1 4L3 2" stroke="currentColor" stroke-width="0.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 6L11 4L9 2" stroke="currentColor" stroke-width="0.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="1" y1="4" x2="11" y2="4" stroke="currentColor" stroke-width="0.8"/>
             </svg>
             <span>{{ 'change_product' | translate }}</span>
         </button>
@@ -47,7 +50,7 @@
                 (click)="toggleWireframe(); isOptionsMenuOpen = false" 
                 [class.active]="showWireframe" 
                 *ngIf="!isBelams">
-            <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left: 8px;">
+            <svg width="18" height="18" viewBox="0 0 12 12" style="margin-left: 8px;">
                 <rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="0.8" fill="none"/>
                 <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="0.8"/>
                 <line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="0.8"/>
@@ -60,7 +63,7 @@
                 (click)="toggleTransparentMode(); isOptionsMenuOpen = false" 
                 [class.active]="isTransparentMode" 
                 *ngIf="!isBelams">
-            <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left: 8px;">
+            <svg width="18" height="18" viewBox="0 0 12 12" style="margin-left: 8px;">
                 <rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="0.8" fill="none"/>
                 <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="0.8"/>
             </svg>
@@ -71,18 +74,25 @@
         <button class="menu-option" 
                 (click)="toggleNavigationCube(); isOptionsMenuOpen = false" 
                 [class.active]="showNavigationCube">
-            <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left: 8px;">
+            <svg width="18" height="18" viewBox="0 0 12 12" style="margin-left: 8px;">
+                <!-- קוביה תלת-מימדית עם קווים מחברים -->
                 <rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="0.8" fill="none"/>
-                <path d="M2 2L6 6L10 2M2 6L6 10L10 6M2 10L6 6L10 10" stroke="currentColor" stroke-width="0.8"/>
+                <rect x="3.5" y="3.5" width="5" height="5" stroke="currentColor" stroke-width="0.6" fill="none"/>
+                <line x1="2" y1="2" x2="3.5" y2="3.5" stroke="currentColor" stroke-width="0.6"/>
+                <line x1="10" y1="2" x2="8.5" y2="3.5" stroke="currentColor" stroke-width="0.6"/>
+                <line x1="2" y1="10" x2="3.5" y2="8.5" stroke="currentColor" stroke-width="0.6"/>
+                <line x1="10" y1="10" x2="8.5" y2="8.5" stroke="currentColor" stroke-width="0.6"/>
             </svg>
             <span>{{ showNavigationCube ? ('hide_navigation_cube' | translate) : ('show_navigation_cube' | translate) }}</span>
         </button>
         
         <!-- אפשרות איפוס מבט המצלמה -->
         <button class="menu-option" (click)="resetCameraView(); isOptionsMenuOpen = false">
-            <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left: 8px;">
-                <circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="0.8" fill="none"/>
-                <path d="M6 2V6L8 8" stroke="currentColor" stroke-width="0.8"/>
+            <svg width="18" height="18" viewBox="0 0 12 12" style="margin-left: 8px;">
+                <!-- עין פשוטה -->
+                <ellipse cx="6" cy="6" rx="4" ry="2.5" stroke="currentColor" stroke-width="0.8" fill="none"/>
+                <circle cx="6" cy="6" r="1.5" fill="currentColor"/>
+                <circle cx="6.5" cy="5.5" r="0.5" fill="white"/>
             </svg>
             <span>{{ 'reset_camera' | translate }}</span>
         </button>
@@ -92,10 +102,15 @@
                 (click)="toggleCoordinateAxes(); isOptionsMenuOpen = false" 
                 [class.active]="showCoordinateAxes" 
                 *ngIf="!isBelams">
-            <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left: 8px;">
+            <svg width="18" height="18" viewBox="0 0 12 12" style="margin-left: 8px; margin-top: 2px;">
+                <!-- חצים תלת-מימדיים -->
                 <line x1="6" y1="2" x2="6" y2="10" stroke="currentColor" stroke-width="0.8"/>
                 <line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="0.8"/>
                 <line x1="4" y1="4" x2="8" y2="8" stroke="currentColor" stroke-width="0.8"/>
+                <!-- חצים -->
+                <polygon points="6,2 5,4 7,4" fill="currentColor"/>
+                <polygon points="10,6 8,5 8,7" fill="currentColor"/>
+                <polygon points="8,8 6,7 7,9" fill="currentColor"/>
             </svg>
             <span>{{ showCoordinateAxes ? ('hide_axes' | translate) : ('show_axes' | translate) }}</span>
         </button>

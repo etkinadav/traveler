@@ -90,7 +90,7 @@
     top: 102px; // 74px + 28px (height of button)
     right: 19px;
     background: white;
-    border-radius: 8px;
+    border-radius: 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border: 1px solid #e0e0e0;
     z-index: 1001;
@@ -105,7 +105,7 @@
         border: none;
         background: none;
         cursor: pointer;
-        border-radius: 4px;
+        border-radius: 0;
         font-size: 12px;
         font-weight: 500;
         color: #0066cc;
@@ -114,11 +114,13 @@
         
         &:hover:not([disabled]) {
             background: rgba(0, 102, 204, 0.1);
+            border-radius: 0;
         }
         
         &.active {
             background: #0066cc;
             color: white;
+            border-radius: 0;
         }
         
         svg {
