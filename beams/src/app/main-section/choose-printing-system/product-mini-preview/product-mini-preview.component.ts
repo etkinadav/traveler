@@ -2066,9 +2066,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       totalModelHeight = actualWallHeight + beamHeight + (hasCover ? beamHeight : 0) + coverOffset; // גובה הקירות + גובה הרצפה + גובה מכסה + פתיחה
     } else if (isFuton) {
       // מיטה - גובה הפלטה + גובה הרגליים
-      const platformHeight = this.dynamicParams.frameWidth || 5; // גובה הפלטה (רוחב קורת הרגל)
-      const legHeight = this.dynamicParams.frameHeight || 5; // גובה הרגליים
-      totalModelHeight = platformHeight + legHeight;
+      // גובה הפלטה = רוחב קורת הרגל + גובה קורת הפלטה
+      const legBeamWidth = this.dynamicParams.frameWidth || 5; // רוחב קורת הרגל
+      const plataBeamHeight = this.dynamicParams.beamHeight || 2.5; // גובה קורת הפלטה
+      const legBeamHeight = this.dynamicParams.frameHeight || 5; // גובה קורת הרגל
+      
+      const platformTopHeight = legBeamWidth + plataBeamHeight; // גובה עליון של הפלטה
+      totalModelHeight = platformTopHeight; // הגובה הכולל הוא גובה הפלטה (הרגליים מתחילות מ-Y=0)
     } else if (isTable) {
       // שולחן - גובה המדף + גובה הרגליים
       totalModelHeight = this.shelfGaps[0] + this.dynamicParams.frameHeight + this.dynamicParams.beamHeight;
@@ -2090,7 +2094,14 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const fitDepth = depth * 1.2;
     const distanceY = fitHeight / (2 * Math.tan(fov / 2));
     const distanceX = fitWidth / (2 * Math.tan(fov / 2) * this.camera.aspect);
-    const distance = Math.max(distanceY, distanceX, fitDepth * 1.2) * 1.5; // זום אאוט פי 1.5
+    
+    let distance;
+    if (isFuton) {
+      // עבור מיטה - המרחק מבוסס על רוחב וגובה, לא על עומק (כי המיטה שטוחה)
+      distance = Math.max(distanceY, distanceX) * 1.2; // זום אאוט פחות עבור מיטה
+    } else {
+      distance = Math.max(distanceY, distanceX, fitDepth * 1.2) * 1.5; // זום אאוט פי 1.5
+    }
     this.defaultDistance = distance;
 
     // מיקום המצלמה - מותאם למידות המודל
@@ -2890,6 +2901,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       
       console.log(`רגל ${i + 1} - X: 0, Y: ${legBeamHeight / 2}, Z: ${pos.z}, אורך: ${futonWidth}ס"מ`);
     });
+    
+    // התאמת מצלמה
+    this.updateCameraPosition();
     
     console.log('מיטה נוצרה בהצלחה');
   }
