@@ -326,17 +326,17 @@
     align-items: center;
     text-align: center;
     
-    h6 {
+    h6.zx-text-big {
         color: var(--zx-green) !important; // ירוק
         
         // הגדלת פונט במובייל
         @media (max-width: 768px) {
-            font-size: calc(1rem + 2px) !important; // +2px במובייל
+            font-size: calc(20px + 2px) !important; // 20px + 2px = 22px במובייל
         }
         
         // הגדלת פונט בדסקטופ
         @media (min-width: 769px) {
-            font-size: calc(1rem + 4px) !important; // +4px בדסקטופ
+            font-size: calc(20px + 4px) !important; // 20px + 4px = 24px בדסקטופ
         }
     }
 }
