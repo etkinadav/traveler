@@ -2884,22 +2884,22 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     legPositions.forEach((pos, i) => {
       const geometry = new THREE.BoxGeometry(
-        futonWidth,    // אורך הקורה = רוחב המיטה (ציר X)
+        legBeamWidth,  // רוחב הקורה (ציר X)
         legBeamHeight, // גובה הקורה (ציר Y)
-        legBeamWidth   // רוחב הקורה (ציר Z)
+        futonDepth     // אורך הקורה = עומק המיטה (ציר Z)
       );
-      this.setCorrectTextureMapping(geometry, futonWidth, legBeamHeight, legBeamWidth);
+      this.setCorrectTextureMapping(geometry, legBeamWidth, legBeamHeight, futonDepth);
       const material = new THREE.MeshStandardMaterial({ map: legWoodTexture });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       
       // מיקום הרגל - צמודה למטה (Y=0) + חצי גובה הקורה
-      mesh.position.set(0, legBeamHeight / 2, pos.z);
+      mesh.position.set(pos.x, legBeamHeight / 2, 0);
       this.scene.add(mesh);
       this.meshes.push(mesh);
       
-      console.log(`רגל ${i + 1} - X: 0, Y: ${legBeamHeight / 2}, Z: ${pos.z}, אורך: ${futonWidth}ס"מ`);
+      console.log(`רגל ${i + 1} - X: ${pos.x}, Y: ${legBeamHeight / 2}, Z: 0, אורך: ${futonDepth}ס"מ`);
     });
     
     // התאמת מצלמה
