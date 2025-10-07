@@ -743,6 +743,16 @@
   margin: 0 auto;
 }
 
+// קונטיינר של הכרטיסיה עם הטקסט המתחלף - נעלם במסכים קטנים מ-950px
+.hero-text-container {
+  display: none; // מוסתר כברירת מחדל במסכים קטנים
+  
+  // מופיע רק במסכים גדולים מ-950px
+  @media only screen and (min-width: 950px) {
+    display: flex !important;
+  }
+}
+
 
 .hero-text-bg-overlay {
   position: absolute;

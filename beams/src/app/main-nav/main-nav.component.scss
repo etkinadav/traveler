@@ -62,8 +62,15 @@
   z-index: 100000 !important; // מעל הnavbar ומעל הoverlay
   
   &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    background: rgba(0, 0, 0, 0.04) !important;
   }
+}
+
+// הגדרה נוספת לוודא שהגוון יחל
+.custom-hamburger-btn:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
 }
 
 .hamburger-lines {
