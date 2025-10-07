@@ -385,7 +385,14 @@
 }
 
 .zx-about-con-down {
-    background-color: var(--zx-gray-light-light-light-opacity);
+    background-color: transparent;
+}
+
+// הסרת רקע לבן חצי שקוף מהקונטיינרים של המוצרים (לכל המסכים)
+.printing-service-btn-con-con,
+.printing-service-btn-con {
+    background: transparent !important;
+    background-color: transparent !important;
 }
 
 @media only screen and (min-width: 768px) {
