@@ -2874,11 +2874,15 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       console.log(`קורת פלטה ${i + 1} - X: ${beam.x}, Y: ${platformHeight + beam.height / 2}, Z: ${beam.z}`);
     });
     
-    // 2. יצירת קורות הרגליים (3 רגליים - 2 בקצוות + 1 במרכז)
+    // 2. יצירת קורות הרגליים (3 רגליים עם הזחה של 5 ס"מ מכל קצה)
+    const legOffset = 5; // הזחה של 5 ס"מ מכל קצה (כמו בקובץ threejs)
+    const availableLength = futonDepth - (legOffset * 2); // אורך זמין אחרי הזחה
+    const legSpacing = availableLength / 2; // רווח בין הרגליים (2 רווחים בין 3 רגליים)
+    
     const legPositions = [
-      { x: -futonWidth / 2 + legBeamWidth / 2, z: 0 }, // רגל שמאלית במרכז
+      { x: 0, z: -futonDepth / 2 + legOffset }, // רגל שמאלית - מוזחת 5 ס"מ מהקצה
       { x: 0, z: 0 }, // רגל מרכזית
-      { x: futonWidth / 2 - legBeamWidth / 2, z: 0 }  // רגל ימנית במרכז
+      { x: 0, z: futonDepth / 2 - legOffset }  // רגל ימנית - מוזחת 5 ס"מ מהקצה
     ];
     
     legPositions.forEach((pos, i) => {
@@ -2894,11 +2898,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       mesh.receiveShadow = true;
       
       // מיקום הרגל - צמודה למטה (Y=0) + חצי רוחב הקורה (כי עכשיו legBeamWidth הוא הגובה)
-      mesh.position.set(pos.x, legBeamWidth / 2, 0);
+      mesh.position.set(pos.x, legBeamWidth / 2, pos.z);
       this.scene.add(mesh);
       this.meshes.push(mesh);
       
-      console.log(`רגל ${i + 1} - X: ${pos.x}, Y: ${legBeamWidth / 2}, Z: 0, אורך: ${futonDepth}ס"מ`);
+      console.log(`רגל ${i + 1} - X: ${pos.x}, Y: ${legBeamWidth / 2}, Z: ${pos.z}, אורך: ${futonDepth}ס"מ`);
     });
     
     // התאמת מצלמה
