@@ -743,13 +743,182 @@
   margin: 0 auto;
 }
 
-// קונטיינר של הכרטיסיה עם הטקסט המתחלף - נעלם במסכים קטנים מ-950px
-.hero-text-container {
-  display: none; // מוסתר כברירת מחדל במסכים קטנים
+// הקונטיינר הראשי - צד שמאל של המסך
+.main-animation-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: calc(50vw - 50px); // חצי מסך מינוס רוחב התפריט
+  height: 100vh; // גובה מסך מלא
+  padding-top: 64px; // מתחיל מתחת ל-navbar
+  overflow: hidden; // חיתוך אלמנטים שיוצאים מהגבולות
+  z-index: 5;
+  pointer-events: none; // לא מפריע לקליקים
   
-  // מופיע רק במסכים גדולים מ-950px
-  @media only screen and (min-width: 950px) {
-    display: flex !important;
+  // מוסתר במובייל
+  @media only screen and (max-width: 950px) {
+    display: none;
+  }
+}
+
+// כרטיסיות צפות עם אנימציה סינוסואידית
+.floating-card {
+  position: absolute;
+  bottom: -250px; // מתחיל מחוץ למסך למטה (50px יותר למטה)
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  padding: 1.5rem;
+  pointer-events: auto; // מאפשר קליקים על הכרטיסיות
+  animation: sineFloat 10s linear infinite; // 10 שניות לאנימציה מלאה
+  animation-fill-mode: forwards;
+  margin-top: 64px; // מתחיל מתחת ל-navbar
+}
+
+// אנימציה סינוסואידית
+@keyframes sineFloat {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 0;
+  }
+  
+  5% {
+    opacity: 1;
+  }
+  
+  50% {
+    transform: translateX(-50%) translateY(calc(-50vh - 125px)); // באמצע המסך
+  }
+  
+  95% {
+    opacity: 1;
+  }
+  
+  100% {
+    transform: translateX(-50%) translateY(calc(-100vh - 250px)); // יוצא מהמסך
+    opacity: 0;
+  }
+}
+
+// אנימציה דינמית עם משתני CSS
+.floating-card:nth-child(1) {
+  animation: sineFloat1 10s linear infinite;
+}
+
+.floating-card:nth-child(2) {
+  animation: sineFloat2 10s linear infinite;
+}
+
+.floating-card:nth-child(3) {
+  animation: sineFloat3 10s linear infinite;
+}
+
+.floating-card:nth-child(4) {
+  animation: sineFloat4 10s linear infinite;
+}
+
+.floating-card:nth-child(5) {
+  animation: sineFloat5 10s linear infinite;
+}
+
+// אנימציות סינוסואידיות שונות
+@keyframes sineFloat1 {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(calc(-50% + 80px)) translateY(calc(-50vh - 125px)); // באמצע המסך
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(-50% + 0px)) translateY(calc(-100vh - 250px)); // יוצא מהמסך
+    opacity: 0;
+  }
+}
+
+@keyframes sineFloat2 {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(calc(-50% - 120px)) translateY(calc(-50vh - 250px));
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(-50% + 0px)) translateY(calc(-100vh - 250px)); // יוצא מהמסך
+    opacity: 0;
+  }
+}
+
+@keyframes sineFloat3 {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(calc(-50% + 60px)) translateY(calc(-50vh - 250px));
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(-50% + 0px)) translateY(calc(-100vh - 250px)); // יוצא מהמסך
+    opacity: 0;
+  }
+}
+
+@keyframes sineFloat4 {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(calc(-50% - 100px)) translateY(calc(-50vh - 250px));
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(-50% + 0px)) translateY(calc(-100vh - 250px)); // יוצא מהמסך
+    opacity: 0;
+  }
+}
+
+@keyframes sineFloat5 {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(calc(-50% + 90px)) translateY(calc(-50vh - 250px));
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(-50% + 0px)) translateY(calc(-100vh - 250px)); // יוצא מהמסך
+    opacity: 0;
   }
 }
 

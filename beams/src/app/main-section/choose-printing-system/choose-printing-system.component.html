@@ -163,15 +163,17 @@
         <!-- // CHOOSE PRINTING SYSTEM SIDE -->
          
 
-        <!-- RIGHT SIDE CONTAINER - טקסט מעל התמונה -->
-        <div class="hero-text-container h-100 flex-grow-1 position-relative justify-content-center align-items-end" 
-             style="z-index: 10; padding-bottom: 80px;">
-            <!-- טקסט קבוע מעל התמונה -->
-            <div *ngFor="let key of [currentTransitionKey]; trackBy: trackByTransitionKey" 
-                 class="hero-text-block white-background-card" 
-                 [@fadeInOut]="key"
-                 style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);">
-                <!-- שכבת רקע כהה-שקופה -->
+        <!-- הקונטיינר הראשי - צד שמאל של המסך -->
+        <div class="main-animation-container">
+            <!-- כרטיסיות עם אנימציה סינוסואידית -->
+            <div *ngFor="let card of animatedCards; let i = index; trackBy: trackByCardId" 
+                 class="floating-card white-background-card" 
+                 [style.animation-delay]="card.delay + 's'"
+                 [style.--sine-amplitude]="card.amplitude + 'px'"
+                 [style.--sine-frequency]="card.frequency"
+                 [style.--sine-phase]="card.phase + 'deg'"
+                 [style.--card-id]="card.id">
+                <!-- שכבת רקע -->
                 <div class="hero-text-bg-overlay"></div>
                 
                 <!-- תוכן הטקסטים -->
@@ -179,19 +181,19 @@
                     <!-- כותרת ראשית -->
                     <h6 class="fw-bold zx-text-title-main mb-3" 
                         style="color: var(--zx-green) !important; position: relative !important; z-index: 2 !important;">
-                        {{displayedTitle}}
+                        {{card.title}}
                     </h6>
                     
                     <!-- טקסט הסבר -->
                     <p class="mb-5 text-shadow opacity-90 text-hover-effect zx-text-big"
                        style="line-height: 1.4; max-width: 800px; margin-left: auto;">
-                        {{displayedText}}
+                        {{card.text}}
                     </p>
                     
                     <!-- סלוגן -->
                     <p class="text-shadow opacity-80 text-hover-effect subtitle text-start"
                        style="line-height: 1.3; max-width: 600px; margin-right: auto; letter-spacing: 0.02em; margin-bottom: 0.25rem;">
-                        {{displayedSubtitle}}
+                        {{card.subtitle}}
                     </p>
                 </div>
             </div>
