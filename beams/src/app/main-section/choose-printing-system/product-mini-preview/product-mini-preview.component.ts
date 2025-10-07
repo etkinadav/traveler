@@ -2874,32 +2874,31 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       console.log(`קורת פלטה ${i + 1} - X: ${beam.x}, Y: ${platformHeight + beam.height / 2}, Z: ${beam.z}`);
     });
     
-    // 2. יצירת קורות הרגליים (4 רגליים בפינות)
+    // 2. יצירת קורות הרגליים (3 רגליים - 2 בקצוות + 1 במרכז)
     const legPositions = [
-      { x: -futonWidth / 2 + legBeamWidth / 2, z: -futonDepth / 2 + legBeamWidth / 2 },
-      { x: futonWidth / 2 - legBeamWidth / 2, z: -futonDepth / 2 + legBeamWidth / 2 },
-      { x: -futonWidth / 2 + legBeamWidth / 2, z: futonDepth / 2 - legBeamWidth / 2 },
-      { x: futonWidth / 2 - legBeamWidth / 2, z: futonDepth / 2 - legBeamWidth / 2 }
+      { x: -futonWidth / 2 + legBeamWidth / 2, z: 0 }, // רגל שמאלית במרכז
+      { x: 0, z: 0 }, // רגל מרכזית
+      { x: futonWidth / 2 - legBeamWidth / 2, z: 0 }  // רגל ימנית במרכז
     ];
     
     legPositions.forEach((pos, i) => {
       const geometry = new THREE.BoxGeometry(
-        legBeamWidth,  // רוחב הקורה (ציר X)
-        legBeamHeight, // גובה הקורה (ציר Y)
+        legBeamHeight, // גובה הקורה (ציר X) - החלפה
+        legBeamWidth,  // רוחב הקורה (ציר Y) - החלפה
         futonDepth     // אורך הקורה = עומק המיטה (ציר Z)
       );
-      this.setCorrectTextureMapping(geometry, legBeamWidth, legBeamHeight, futonDepth);
+      this.setCorrectTextureMapping(geometry, legBeamHeight, legBeamWidth, futonDepth);
       const material = new THREE.MeshStandardMaterial({ map: legWoodTexture });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       
-      // מיקום הרגל - צמודה למטה (Y=0) + חצי גובה הקורה
-      mesh.position.set(pos.x, legBeamHeight / 2, 0);
+      // מיקום הרגל - צמודה למטה (Y=0) + חצי רוחב הקורה (כי עכשיו legBeamWidth הוא הגובה)
+      mesh.position.set(pos.x, legBeamWidth / 2, 0);
       this.scene.add(mesh);
       this.meshes.push(mesh);
       
-      console.log(`רגל ${i + 1} - X: ${pos.x}, Y: ${legBeamHeight / 2}, Z: 0, אורך: ${futonDepth}ס"מ`);
+      console.log(`רגל ${i + 1} - X: ${pos.x}, Y: ${legBeamWidth / 2}, Z: 0, אורך: ${futonDepth}ס"מ`);
     });
     
     // התאמת מצלמה
