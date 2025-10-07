@@ -310,8 +310,8 @@
 
 // קלאס חדש לרקע לבן אחיד ללא אפקטים
 .white-background-card {
-    background: rgba(255, 255, 255, 0.36) !important; // 36% שקיפות - 40% פחות מ-60%
-    background-color: rgba(255, 255, 255, 0.36) !important; // 36% שקיפות - 40% פחות מ-60%
+    background: rgba(255, 255, 255, 0.6) !important; // 60% שקיפות - יותר לבן
+    background-color: rgba(255, 255, 255, 0.8) !important; // 60% שקיפות - יותר לבן
     border-radius: 0 !important;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25) !important; // צל יותר חזק וגדול
     backdrop-filter: blur(4px) !important; // blur פחות מוגזם
@@ -1155,8 +1155,8 @@
   
   // וידוא שהקלאס החדש עובד גם במובייל
   .white-background-card {
-    background: rgba(255, 255, 255, 0.36) !important; // 36% שקיפות - 40% פחות מ-60%
-    background-color: rgba(255, 255, 255, 0.36) !important; // 36% שקיפות - 40% פחות מ-60%
+    background: rgba(255, 255, 255, 0.6) !important; // 60% שקיפות - יותר לבן
+    background-color: rgba(255, 255, 255, 0.6) !important; // 60% שקיפות - יותר לבן
     border-radius: 0 !important;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25) !important; // צל יותר חזק וגדול
     backdrop-filter: blur(4px) !important; // blur פחות מוגזם
