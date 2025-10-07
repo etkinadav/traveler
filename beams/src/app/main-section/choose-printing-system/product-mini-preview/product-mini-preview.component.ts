@@ -79,10 +79,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private lastMouseY = 0;
   private hasUserInteracted = false; // האם המשתמש התחיל להזיז את המודל
   private inactivityTimer: any = null; // טיימר לחוסר פעילות
-  private autoChangeTimer: any = null; // טיימר לשינוי אוטומטי של פרמטרים
-  private savedRotation: THREE.Euler = new THREE.Euler(); // שמירת סיבוב המודל
-  private iterationCounter: number = 0; // מונה איטרציות לשינוי מדפים
-  private lastSaveTime: number = 0; // זמן השמירה האחרונה של הסיבוב
   private rotationSpeed: number = 0.005; // מהירות הסיבוב האוטומטי (רדיאנים לפריים)
   
   // משתנה לאחסון הקורות הדינמיות עבור beams
@@ -93,7 +89,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.initializeParamsFromProduct();
     this.createSimpleProduct();
     this.animate();
-    this.startAutoParameterChange(); // התחלת שינוי אוטומטי של פרמטרים
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -117,9 +112,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (this.inactivityTimer) {
       clearTimeout(this.inactivityTimer);
     }
-    if (this.autoChangeTimer) {
-      clearInterval(this.autoChangeTimer);
-    }
   }
 
   // פונקציה לאפס את טיימר חוסר הפעילות
@@ -133,274 +125,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }, 30000); // 30 שניות
   }
 
-  // פונקציה לשינוי אוטומטי של פרמטרים כל 2 שניות
-  private startAutoParameterChange() {
-    if (this.autoChangeTimer) {
-      clearInterval(this.autoChangeTimer);
-    }
-    
-    this.autoChangeTimer = setInterval(() => {
-      // רק אם המשתמש לא נוגע במודל והמודל מסתובב
-      if (!this.hasUserInteracted) {
-        this.changeRandomParameter();
-      }
-    }, 5000); // כל 5 שניות
-  }
 
-  // פונקציה לשינוי פרמטר רנדומלי
-  private changeRandomParameter() {
-    this.iterationCounter++; // הגדלת מונה האיטרציות
-    
-    // בדיקה אם זו קופסא או beams
-    const isBox = this.product?.name === 'box';
-    const isBeams = this.product?.name === 'beams';
-    
-    const actions = [
-      'changeWidth',
-      'changeLength', 
-      'changeShelfHeight',
-      'changeFrameBeam',
-      'changeShelfBeam'
-    ];
-    
-    // הוספת פתיחת מכסה רק לקופסא
-    if (isBox) {
-      actions.push('changeCoverOpening');
-    }
-    
-    // עבור beams - רק שינוי קורות דינמיות
-    if (isBeams) {
-      this.changeRandomBeams();
-      return; // יציאה מהפונקציה - beams לא משתמש בפרמטרים רגילים
-    }
-    
-    // הוספת שינוי מספר מדפים הוסרה - לא רוצים לשנות את כמות המדפים
-    
-    // בחירת 3 פרמטרים רנדומליים שונים
-    const selectedActions: string[] = [];
-    const availableActions = [...actions]; // עותק של המערך
-    
-    for (let i = 0; i < 3 && availableActions.length > 0; i++) {
-      const randomIndex = Math.floor(Math.random() * availableActions.length);
-      const selectedAction = availableActions.splice(randomIndex, 1)[0];
-      selectedActions.push(selectedAction);
-    }
-    
-    // ביצוע השינויים
-    selectedActions.forEach(action => {
-      switch (action) {
-        case 'changeWidth':
-          this.changeRandomWidth();
-          break;
-        case 'changeLength':
-          this.changeRandomLength();
-          break;
-        case 'changeShelfHeight':
-          this.changeRandomShelfHeight();
-          break;
-        case 'changeFrameBeam':
-          this.changeFrameBeamTypeAuto();
-          break;
-        case 'changeShelfBeam':
-          this.changeShelfBeamTypeAuto();
-          break;
-        case 'changeCoverOpening':
-          this.changeRandomCoverOpening();
-          break;
-      }
-    });
-    
-    console.log(`שינוי אוטומטי של 3 פרמטרים (איטרציה ${this.iterationCounter}): ${selectedActions.join(', ')}`);
-  }
 
-  // פונקציות לשינוי רנדומלי של מידות
-  private changeRandomWidth() {
-    this.saveCurrentRotation(); // שמירת הסיבוב הנוכחי
-    
-    // חיפוש פרמטר הרוחב
-    const widthParam = this.product?.params?.find((p: any) => p.name === 'width');
-    if (!widthParam) return; // אם לא נמצא פרמטר רוחב, לא נשנה כלום
-    
-    const step = this.getStep(widthParam.type || 0);
-    // מינימום של 45 ס"מ לפרמטרים עם type = 0 (או undefined/null)
-    const min = (widthParam.type === 0 || widthParam.type === undefined || widthParam.type === null) ? 
-      Math.max(widthParam.min || 45, 45) : Math.max(widthParam.min || 50, 45);
-    const max = Math.min(widthParam.max || 200, 200); // הגבלה מקסימלית של 200
-    
-    // בחירת ערך רנדומלי בטווח המלא
-    const range = max - min;
-    const randomSteps = Math.floor(Math.random() * (range / step)) + 1;
-    const newValue = min + (randomSteps * step);
-    
-    this.dynamicParams.width = Math.min(newValue, max);
-    this.createSimpleProductWithoutCameraUpdate();
-    this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
-    this.restoreRotation(); // שחזור הסיבוב
-    
-    console.log(`רוחב השתנה ל: ${this.dynamicParams.width} (טווח: ${min}-${max}, צעד: ${step})`);
-  }
 
-  private changeRandomLength() {
-    this.saveCurrentRotation(); // שמירת הסיבוב הנוכחי
-    
-    // חיפוש פרמטר האורך
-    const lengthParam = this.product?.params?.find((p: any) => p.name === 'depth');
-    if (!lengthParam) return; // אם לא נמצא פרמטר אורך, לא נשנה כלום
-    
-    const step = this.getStep(lengthParam.type || 0);
-    // מינימום של 45 ס"מ לפרמטרים עם type = 0 (או undefined/null)
-    const min = (lengthParam.type === 0 || lengthParam.type === undefined || lengthParam.type === null) ? 
-      Math.max(lengthParam.min || 45, 45) : Math.max(lengthParam.min || 50, 45);
-    const max = Math.min(lengthParam.max || 200, 200); // הגבלה מקסימלית של 200
-    
-    // בחירת ערך רנדומלי בטווח המלא
-    const range = max - min;
-    const randomSteps = Math.floor(Math.random() * (range / step)) + 1;
-    const newValue = min + (randomSteps * step);
-    
-    this.dynamicParams.length = Math.min(newValue, max);
-    this.createSimpleProductWithoutCameraUpdate();
-    this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
-    this.restoreRotation(); // שחזור הסיבוב
-    
-    console.log(`אורך השתנה ל: ${this.dynamicParams.length} (טווח: ${min}-${max}, צעד: ${step})`);
-  }
-
-  private changeRandomCoverOpening() {
-    this.saveCurrentRotation(); // שמירת הסיבוב הנוכחי
-    
-    // בחירת ערך רנדומלי עם הסתברויות: 15% אין מכסה, 42.5% סגור, 42.5% פתוח
-    const random = Math.random() * 100; // 0-100
-    let selectedValue: number | null;
-    
-    if (random < 15) {
-      selectedValue = null; // 15% - אין מכסה
-    } else if (random < 57.5) {
-      selectedValue = 0; // 42.5% - מכסה סגור
-    } else {
-      selectedValue = 50; // 42.5% - מכסה פתוח
-    }
-    
-    this.dynamicParams.coverOpenOffset = selectedValue;
-    this.createSimpleProductWithoutCameraUpdate();
-    this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
-    this.restoreRotation(); // שחזור הסיבוב
-    
-    console.log(`פתיחת מכסה השתנתה ל: ${selectedValue === null ? 'אין מכסה' : (selectedValue === 0 ? 'סגור' : 'פתוח 50')}`);
-  }
-
-  private changeRandomShelfHeight() {
-    this.saveCurrentRotation(); // שמירת הסיבוב הנוכחי
-    
-    // זיהוי סוג המוצר
-    const isTable = this.product?.name === 'table';
-    const isPlanter = this.product?.name === 'planter';
-    const isBox = this.product?.name === 'box';
-    const isFuton = this.product?.name === 'futon';
-    console.log('changeRandomShelfHeight נקרא - סוג מוצר:', isTable ? 'שולחן' : (isPlanter ? 'עדנית' : (isBox ? 'קופסא' : 'ארון')));
-    
-    if (isPlanter || isBox) {
-      // עדנית או קופסא - שינוי גובה
-      const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
-      if (!heightParam) {
-        console.log('לא נמצא פרמטר גובה לעדנית');
-        return;
-      }
-      
-      const step = this.getStep(heightParam.type || 0);
-      const min = Math.max(heightParam.min || 20, 20);
-      const max = Math.min(heightParam.max || 100, 100);
-      
-      const range = max - min;
-      const randomSteps = Math.floor(Math.random() * (range / step)) + 1;
-      const newValue = min + (randomSteps * step);
-      
-      this.dynamicParams.height = Math.min(newValue, max);
-      console.log(`גובה עדנית השתנה ל: ${this.dynamicParams.height} (טווח: ${min}-${max}, צעד: ${step})`);
-      
-      this.createSimpleProductWithoutCameraUpdate();
-      this.updateCameraPosition();
-      this.restoreRotation();
-      return;
-    }
-    
-    if (isTable) {
-      // שולחן - שינוי גובה המדף היחיד
-      const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
-      console.log('פרמטר גובה שולחן:', heightParam);
-      if (!heightParam) {
-        console.log('לא נמצא פרמטר גובה לשולחן');
-        return;
-      }
-      
-      const step = this.getStep(heightParam.type || 0);
-      // מינימום של 45 ס"מ לפרמטרים עם type = 0 (או undefined/null)
-      const min = (heightParam.type === 0 || heightParam.type === undefined || heightParam.type === null) ? 
-        Math.max(heightParam.min || 45, 45) : Math.max(heightParam.min || 50, 45);
-      const max = Math.min(heightParam.max || 120, 200);
-      
-      // בחירת ערך רנדומלי בטווח המלא
-      const range = max - min;
-      const randomSteps = Math.floor(Math.random() * (range / step)) + 1;
-      const newValue = min + (randomSteps * step);
-      
-      this.shelfGaps[0] = Math.min(newValue, max); // שולחן - מדף אחד בלבד
-      this.dynamicParams.height = this.shelfGaps[0]; // עדכון פרמטר הגובה
-      console.log(`גובה שולחן השתנה ל: ${this.shelfGaps[0]} (טווח: ${min}-${max}, צעד: ${step})`);
-    } else {
-      // ארון - שינוי גובה המדף התחתון (השלישי)
-      // עבור ארון, נשתמש בטווח של פרמטר shelfs או נגדיר טווח ברירת מחדל
-      const shelfsParam = this.product?.params?.find((p: any) => p.type === 'beamArray' && p.name === 'shelfs');
-      console.log('פרמטר shelfs ארון:', shelfsParam);
-      
-      // הגדרת טווח ברירת מחדל עבור ארון
-      const min = 20; // מינימום 20 ס"מ למדף תחתון
-      const max = 100; // מקסימום 100 ס"מ למדף תחתון
-      const step = 1; // צעד של 1 ס"מ
-      
-      // בחירת ערך רנדומלי בטווח המלא
-      const range = max - min;
-      const randomSteps = Math.floor(Math.random() * (range / step)) + 1;
-      const newValue = min + (randomSteps * step);
-      
-      this.shelfGaps[2] = Math.min(newValue, max); // ארון - מדף תחתון (שלישי)
-      console.log(`גובה המדף התחתון השתנה ל: ${this.shelfGaps[2]} (טווח: ${min}-${max}, צעד: ${step})`);
-    }
-    
-    this.createSimpleProductWithoutCameraUpdate();
-    this.updateCameraPosition(); // עדכון מצלמה לשינויים אוטומטיים
-    this.restoreRotation(); // שחזור הסיבוב
-  }
-
-  // פונקציות לשמירה ושחזור סיבוב המודל עם חישוב זמן
-  private saveCurrentRotation() {
-    if (this.scene) {
-      this.savedRotation.copy(this.scene.rotation);
-      this.lastSaveTime = performance.now(); // שמירת זמן השמירה
-    }
-  }
-
-  private restoreRotation() {
-    if (this.scene) {
-      // חישוב הזמן שעבר מאז השמירה האחרונה
-      const currentTime = performance.now();
-      const timeElapsed = currentTime - this.lastSaveTime;
-      
-      // חישוב הסיבוב שהיה אמור להתרחש בזמן הזה
-      // נניח 60 FPS, אז כל פריים הוא ~16.67ms
-      const framesElapsed = timeElapsed / 16.67;
-      const rotationToAdd = framesElapsed * this.rotationSpeed;
-      
-      // הוספת הסיבוב המחושב + 10 מעלות נוספות (כ-0.175 רדיאנים)
-      const additionalRotation = 10 * Math.PI / 180; // 10 מעלות לרדיאנים
-      const totalRotationToAdd = rotationToAdd + additionalRotation;
-      
-      // עדכון הסיבוב
-      this.scene.rotation.y = this.savedRotation.y + totalRotationToAdd;
-      
-      console.log(`שחזור סיבוב: זמן שעבר=${timeElapsed.toFixed(1)}ms, פריימים=${framesElapsed.toFixed(1)}, סיבוב נוסף=${totalRotationToAdd.toFixed(3)} רדיאנים`);
-    }
-  }
 
   // פונקציה לקבלת שם התצוגה של קורת החיזוק הנוכחית
   getCurrentFrameBeamDisplayName(): string {
@@ -2671,9 +2398,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
 
-    // יצירת קורות דינמיות עם פרמטרים רנדומליים
-    this.generateRandomBeams();
-    
     // קבלת פרמטר beams מהמוצר
     const beamsParam = this.product?.params?.find((p: any) => p.name === 'beams');
     if (!beamsParam || !beamsParam.beams || beamsParam.beams.length === 0) {
@@ -2692,6 +2416,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
     console.log('מידות קורה ברירת מחדל:', { beamWidthCm, beamHeightCm, beamDepthCm });
 
+    // יצירת קורה אחת ברירת מחדל (100 ס"מ)
+    this.dynamicBeams = [{ length: 100, quantity: 1 }];
+
     // יצירת הקורות הדינמיות
     this.createDynamicBeams(beamWidthCm, beamHeightCm, beamDepthCm);
     
@@ -2704,31 +2431,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     console.log('Beams model created successfully');
   }
 
-  private generateRandomBeams() {
-    // גרילה של מספר סוגי אורכים (1-3 בלבד)
-    const numBeams = Math.floor(Math.random() * 3) + 1; // 1-3
-    
-    // אתחול מערך הקורות
-    this.dynamicBeams = [];
-    
-    for (let i = 0; i < numBeams; i++) {
-      // גרילה של אורך (20-100 ס"מ)
-      const length = Math.floor(Math.random() * 81) + 20; // 20-100
-      
-      // גרילה של כמות (1-3) - עיגול ל-1, 2, או 3
-      const quantity = Math.floor(Math.random() * 3) + 1; // 1-3
-      
-      // הוספת אותה קורה מספר פעמים לפי הכמות
-      for (let q = 0; q < quantity; q++) {
-        this.dynamicBeams.push({
-          length: length,
-          quantity: 1 // כל קורה בודדת היא כמות 1
-        });
-      }
-    }
-    
-    console.log('קורות דינמיות נוצרו:', this.dynamicBeams);
-  }
 
   private createDynamicBeams(beamWidthCm: number, beamHeightCm: number, beamDepthCm: number) {
     const beamSpacing = 10; // רווח של 10 ס"מ בין קורות
@@ -2777,34 +2479,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     console.log(`נוצרו ${this.meshes.length} קורות במיני-פרוויו`);
   }
 
-  // פונקציה לשינוי קורות דינמיות עבור beams
-  private changeRandomBeams() {
-    console.log('שינוי קורות דינמיות עבור beams...');
-    
-    // יצירת קורות חדשות עם פרמטרים רנדומליים
-    this.generateRandomBeams();
-    
-    // קבלת פרמטר beams מהמוצר
-    const beamsParam = this.product?.params?.find((p: any) => p.name === 'beams');
-    if (!beamsParam || !beamsParam.beams || beamsParam.beams.length === 0) {
-      console.log('לא נמצא פרמטר beams או קורות זמינות');
-      return;
-    }
-
-    // קבלת קורה ברירת מחדל
-    const defaultBeam = beamsParam.beams[0];
-    const defaultType = defaultBeam.types && defaultBeam.types.length > 0 ? defaultBeam.types[0] : defaultBeam;
-    
-    // מידות הקורה
-    const beamWidthCm = (defaultType.width || defaultBeam.width || 40) / 10; // המרה ממ"מ לס"מ
-    const beamHeightCm = (defaultType.height || defaultBeam.height || 15) / 10; // המרה ממ"מ לס"מ
-    const beamDepthCm = (defaultType.depth || defaultBeam.depth || 100) / 10; // המרה ממ"מ לס"מ
-
-    // יצירת הקורות החדשות
-    this.createDynamicBeams(beamWidthCm, beamHeightCm, beamDepthCm);
-    
-    console.log('קורות דינמיות עודכנו עבור beams');
-  }
 
   // יצירת מודל מיטה
   private createFutonModel() {
