@@ -328,16 +328,7 @@
     
     h6.zx-text-big {
         color: var(--zx-green) !important; // ירוק
-        
-        // הגדלת פונט במובייל
-        @media (max-width: 768px) {
-            font-size: calc(20px + 2px) !important; // 20px + 2px = 22px במובייל
-        }
-        
-        // הגדלת פונט בדסקטופ
-        @media (min-width: 769px) {
-            font-size: calc(20px + 4px) !important; // 20px + 4px = 24px בדסקטופ
-        }
+        font-size: calc(1.8rem - 4px) !important; // קטן ב-4px מהטקסט "מה בונים היום"
     }
 }
 
