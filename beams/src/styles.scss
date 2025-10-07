@@ -55,10 +55,10 @@ $dark-warn: mat.define-palette(palette.$dark-warn);
   }
 }
 
-// דריסה גלובלית ל-mat-toolbar שקוף
+// דריסה גלובלית ל-mat-toolbar שקוף - הוסר הרקע הלבן לבקשת המשתמש
 .mat-toolbar.mat-toolbar-single-row.transparent-toolbar {
-  background: rgba(255, 255, 255, 0.5) !important;
-  background-color: rgba(255, 255, 255, 0.5) !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 .continue-to-product-btn:hover {

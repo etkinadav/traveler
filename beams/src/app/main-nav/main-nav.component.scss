@@ -15,7 +15,7 @@
   left: 0 !important;
   right: 0 !important;
   z-index: 99999 !important;
-  box-shadow: 0 0 12px rgba(85, 85, 85, 0.2);
+  box-shadow: none !important;
   display: flex;
   max-height: 45px;
   min-height: 45px;
@@ -508,58 +508,58 @@ button.zx-bg-gray-light {
   z-index: 99999 !important;
 }
 
-// דריסת הרקע של mat-toolbar
+// דריסת הרקע של mat-toolbar - הוסר הרקע הלבן לבקשת המשתמש
 .mat-toolbar.transparent-toolbar {
-  background: rgba(255, 255, 255, 0.1) !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-// דריסה ספציפית לכל ה-mat-toolbar
+// דריסה ספציפית לכל ה-mat-toolbar - הוסר הרקע הלבן לבקשת המשתמש
 mat-toolbar.transparent-toolbar {
-  background: rgba(255, 255, 255, 0.1) !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-// דריסה גלובלית לכל ה-mat-toolbar עם הקלאס שקוף
+// דריסה גלובלית לכל ה-mat-toolbar עם הקלאס שקוף - הוסר הרקע הלבן לבקשת המשתמש
 ::ng-deep .mat-toolbar.transparent-toolbar {
-  background: rgba(255, 255, 255, 0.1) !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-// דריסה נוספת עם סלקטור יותר ספציפי
+// דריסה נוספת עם סלקטור יותר ספציפי - הוסר הרקע הלבן לבקשת המשתמש
 ::ng-deep mat-toolbar.mat-toolbar.transparent-toolbar {
-  background: rgba(255, 255, 255, 0.1) !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-// דריסה ספציפית ל-mat-toolbar-single-row
+// דריסה ספציפית ל-mat-toolbar-single-row - הוסר הרקע הלבן לבקשת המשתמש
 ::ng-deep mat-toolbar.mat-toolbar-single-row.transparent-toolbar {
-  background: #ffffffc9 !important;
-  background-color: #ffffffc9 !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-// דריסה נוספת עם סלקטור מלא
+// דריסה נוספת עם סלקטור מלא - הוסר הרקע הלבן לבקשת המשתמש
 ::ng-deep .mat-toolbar.mat-toolbar-single-row.transparent-toolbar {
-  background: #ffffffc9 !important;
-  background-color: #ffffffc9 !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-// דריסה עם סלקטור יותר ספציפי
+// דריסה עם סלקטור יותר ספציפי - הוסר הרקע הלבן לבקשת המשתמש
 ::ng-deep .mat-toolbar.mat-toolbar-single-row {
-  background: #ffffffc9 !important;
-  background-color: #ffffffc9 !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-// דריסה גלובלית לכל ה-mat-toolbar-single-row
+// דריסה גלובלית לכל ה-mat-toolbar-single-row - הוסר הרקע הלבן לבקשת המשתמש
 ::ng-deep mat-toolbar.mat-toolbar-single-row {
-  background: #ffffffc9 !important;
-  background-color: #ffffffc9 !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
-// דריסה עם סלקטור הכי ספציפי
+// דריסה עם סלקטור הכי ספציפי - הוסר הרקע הלבן לבקשת המשתמש
 ::ng-deep .mat-toolbar.mat-toolbar-single-row.mat-toolbar {
-  background: rgba(255, 255, 255, 0.5) !important;
-  background-color: rgba(255, 255, 255, 0.5) !important;
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 /* For Webkit browsers like Chrome, Safari */
