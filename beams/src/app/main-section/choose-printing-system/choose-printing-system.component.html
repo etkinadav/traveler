@@ -54,7 +54,7 @@
                                          <!-- מצב טעינה - 3 כרטיסי דמה -->
                                          <ng-container *ngIf="isLoading">
                                              <div *ngFor="let item of [1,2,3]; let i = index" 
-                                                 class="col-12 col-md-6 step-item-trans-product step-item shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                                 class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
                                                  [class.step-item-dark]="isDarkMode">
                                              <!-- כפתור המשך למוצר -->
                                              <button mat-stroked-button 
@@ -89,7 +89,7 @@
                                                  (mouseenter)="onHoverProduct(product)"
                                                  (mouseleave)="onHoverProduct(null)"
                                                  [class.zx-step-choosen]="selectedProduct?._id === product._id"
-                                                 class="col-12 col-md-6 step-item-trans-product step-item shadow-85 d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                                 class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
                                                  [class.step-item-dark]="isDarkMode">
                                         <!-- כפתור המשך למוצר -->
                                         <button mat-stroked-button 
@@ -168,7 +168,7 @@
              style="z-index: 10; padding-bottom: 80px;">
             <!-- טקסט קבוע מעל התמונה -->
             <div *ngFor="let key of [currentTransitionKey]; trackBy: trackByTransitionKey" 
-                 class="hero-text-block" 
+                 class="hero-text-block white-background-card" 
                  [@fadeInOut]="key"
                  style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);">
                 <!-- שכבת רקע כהה-שקופה -->

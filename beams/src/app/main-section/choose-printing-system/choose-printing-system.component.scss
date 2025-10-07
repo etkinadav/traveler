@@ -308,6 +308,16 @@
 
 // Gradient לכפתורי "המשך ל" - עבר ל-styles.scss גלובלי
 
+// קלאס חדש לרקע לבן אחיד ללא אפקטים
+.white-background-card {
+    background: white !important;
+    background-color: white !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    border: none !important;
+}
+
 .text-con-product {
     padding: 8px 5px 0 5px;
     min-width: unset;
