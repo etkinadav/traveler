@@ -1986,7 +1986,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       -totalLength / 2 + legDepth / 2,    // קדמית - צמודה לקצה לפי מידות הרגליים
       totalLength / 2 - legDepth / 2      // אחורית - צמודה לקצה לפי מידות הרגליים
     ]) {
-      const beamWidth = totalWidth - 2 * frameBeamWidth;
+      const beamWidth = totalWidth - 2 * legWidth;
       console.log('Creating horizontal frame beam:', {
         z: z,
         beamWidth: beamWidth,
