@@ -19,10 +19,9 @@
   min-width: 100vw !important; // וידוא שלא יהיה רוחב מינימלי
 }
 
-// תיקון ספציפי לאלמנט עם padding בצדדים
-.zx-settings-nav .px-3 {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+// תיקון רווח משמאל לכותרת "מה בונים היום" - מתואם עם הכרטיסיות
+.zx-settings-nav .zx-text-title-main {
+  margin-right: 30px !important; // רווח משמאל (RTL) - יותר רווח מהקצה
 }
 
 // תיקון לאלמנטים הפנימיים
@@ -31,6 +30,12 @@
   max-width: 100% !important;
   padding-left: 0 !important; // הסרת padding משמאל
   padding-right: 0 !important; // הסרת padding מימין
+}
+
+// אבל לא להסיר padding מה-div של הכותרת
+.zx-settings-nav article .px-3:first-child {
+  padding-left: 15px !important;
+  padding-right: 15px !important;
 }
 
 .zx-settings-nav .printing-service-btn-con-con {
