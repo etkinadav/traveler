@@ -287,7 +287,15 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   navigateToProduct(product: any) {
     if (product && product.name && product._id) {
       // ניווט לעמוד המוצר עם שם המוצר ו-ID
-      window.location.href = `/beams?product=${encodeURIComponent(product.name)}&productId=${product._id}`;
+      let url = `/beams?product=${encodeURIComponent(product.name)}&productId=${product._id}`;
+      
+      // אם זה תת-מוצר (יש configurationIndex), מוסיפים אותו ל-URL
+      if (product.configurationIndex !== undefined) {
+        url += `&configIndex=${product.configurationIndex}`;
+        console.log(`CHACK-BEAM-MINI: ניווט לתת-מוצר: ${product.translatedName} (configuration #${product.configurationIndex})`);
+      }
+      
+      window.location.href = url;
     } else {
       // אם אין שם מוצר, ניווט לעמוד הכללי
       window.location.href = '/beams';

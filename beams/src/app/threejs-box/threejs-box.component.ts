@@ -468,40 +468,55 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     'עדנית:',
                     this.isPlanter
                 );
-                // בדיקה אם זה מוצר שונה מהמוצר האחרון
+                // בדיקה אם זה מוצר שונה מהמוצר האחרון (כולל תת-מוצר)
                 const lastProductId = localStorage.getItem('lastSelectedProductId');
+                const lastConfigIndex = localStorage.getItem('lastConfigIndex');
                 const currentProductId = params['productId'] || this.selectedProductName;
+                const currentConfigIndex = params['configIndex'] !== undefined ? params['configIndex'] : undefined;
+                
+                // יצירת מזהה ייחודי שכולל גם את ה-configIndex
+                const lastFullId = lastConfigIndex !== null ? `${lastProductId}_config${lastConfigIndex}` : lastProductId;
+                const currentFullId = currentConfigIndex !== undefined ? `${currentProductId}_config${currentConfigIndex}` : currentProductId;
+                
                 console.log(
-                    'Last product ID from localStorage:',
-                    lastProductId,
-                    'Current product ID:',
-                    currentProductId
+                    'CHACK-BEAM-MINI: Last full ID from localStorage:',
+                    lastFullId,
+                    'Current full ID:',
+                    currentFullId
                 );
-                if (lastProductId && lastProductId !== currentProductId) {
+                
+                if (lastFullId && lastFullId !== currentFullId) {
                     console.log(
-                        'מוצר שונה נבחר, מנקה ערכים:',
-                        lastProductId,
+                        'CHACK-BEAM-MINI: תת-מוצר שונה נבחר, מנקה ערכים:',
+                        lastFullId,
                         '->',
-                        currentProductId
+                        currentFullId
                     );
                     this.clearUserConfiguration();
                 } else {
                     console.log(
-                        'Same product or first time, no need to clear configuration'
+                        'CHACK-BEAM-MINI: Same sub-product or first time, no need to clear configuration'
                     );
                 }
-                // שמירת המוצר הנוכחי כברמוצר האחרון
-                localStorage.setItem(
-                    'lastSelectedProductId',
-                    currentProductId
-                );
+                
+                // שמירת המוצר והתת-מוצר הנוכחיים
+                localStorage.setItem('lastSelectedProductId', currentProductId);
+                if (currentConfigIndex !== undefined) {
+                    localStorage.setItem('lastConfigIndex', currentConfigIndex.toString());
+                } else {
+                    localStorage.removeItem('lastConfigIndex');
+                }
+                
                 console.log(
-                    'Saved current product to localStorage:',
-                    this.selectedProductName
+                    'CHACK-BEAM-MINI: Saved to localStorage:',
+                    { productId: currentProductId, configIndex: currentConfigIndex }
                 );
+                
                 // טעינת המוצר הנכון לפי ID או שם
                 if (params['productId']) {
-                    this.getProductById(params['productId']);
+                    // בדיקה אם יש configIndex ב-URL
+                    const configIndex = params['configIndex'] !== undefined ? parseInt(params['configIndex']) : undefined;
+                    this.getProductById(params['productId'], configIndex);
                 } else {
                 this.getProductByName(this.selectedProductName);
                 }
@@ -531,6 +546,73 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.isUserAuthenticated = false;
         }
     }
+    
+    // פונקציה לעדכון פרמטרים לפי דגם משנה (configuration)
+    private updateParamsWithConfiguration(params: any[], configIndex: number, product: any): any[] {
+        console.log(`CHACK-BEAM-MINI: [threejs-box] === עדכון פרמטרים למוצר: ${product.translatedName} (configuration #${configIndex}) ===`);
+        
+        return params.map((param: any) => {
+            const updatedParam = { ...param };
+            
+            // עדכון default לפי configurations
+            if (param.configurations && param.configurations[configIndex] !== undefined) {
+                console.log(`CHACK-BEAM-MINI: [threejs-box] 📝 עדכון default עבור ${param.name}: ${param.default} -> ${param.configurations[configIndex]}`);
+                updatedParam.default = param.configurations[configIndex];
+            }
+            
+            // עדכון beamsConfigurations - מציאת הקורה לפי name
+            if (param.beamsConfigurations && param.beamsConfigurations[configIndex] && param.beams && param.beams.length > 0) {
+                const beamName = param.beamsConfigurations[configIndex];
+                
+                console.log(`CHACK-BEAM-MINI: [threejs-box] 🔍 מחפש קורה עבור פרמטר: ${param.name}`);
+                console.log(`CHACK-BEAM-MINI: [threejs-box]    📌 שם קורה מבוקש: "${beamName}"`);
+                console.log(`CHACK-BEAM-MINI: [threejs-box]    📌 defaultType לפני עדכון:`, param.defaultType);
+                
+                // חיפוש הקורה ברשימת beams
+                let foundBeamId: string | null = null;
+                
+                for (const beamRef of param.beams) {
+                    const beamId = beamRef.$oid || beamRef._id || beamRef;
+                    
+                    // בדיקה לפי name
+                    if (beamRef.name === beamName) {
+                        foundBeamId = beamId;
+                        console.log(`CHACK-BEAM-MINI: [threejs-box]    ✅ נמצאה קורה: ${beamRef.name} (ID: ${foundBeamId})`);
+                        break;
+                    }
+                }
+                
+                if (foundBeamId) {
+                    updatedParam.defaultType = { $oid: foundBeamId };
+                    console.log(`CHACK-BEAM-MINI: [threejs-box]    ✨ defaultType עודכן ל: { $oid: "${foundBeamId}" }`);
+                } else {
+                    console.log(`CHACK-BEAM-MINI: [threejs-box]    ❌ לא נמצאה קורה מתאימה - נשאר עם default`);
+                }
+            }
+            
+            return updatedParam;
+        });
+    }
+    
+    // פונקציה עזר לבחירת קורה לפי defaultType
+    private getBeamIndexByDefaultType(param: any): number {
+        let beamIndex = param.selectedBeamIndex || 0;
+        
+        // אם יש defaultType, מחפשים את הקורה המתאימה לפי ה-ID
+        if (param.defaultType && !param.selectedBeamIndex && param.beams && param.beams.length > 0) {
+            const defaultTypeId = param.defaultType.$oid || param.defaultType._id || param.defaultType;
+            const foundIndex = param.beams.findIndex((b: any) => {
+                const beamId = b._id || b.$oid;
+                return beamId === defaultTypeId;
+            });
+            if (foundIndex !== -1) {
+                beamIndex = foundIndex;
+                console.log(`CHACK-BEAM-MINI: 🎯 בחירת קורת ${param.name} לפי defaultType: ${defaultTypeId} -> index ${beamIndex}`);
+            }
+        }
+        
+        return beamIndex;
+    }
     // Clear user configuration when switching products
     private clearUserConfiguration() {
         // ניקוי כל ההגדרות הקשורות למוצר הקודם
@@ -556,11 +638,21 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // איפוס הפרמטרים לערכי ברירת המחדל
         this.resetParamsToDefaults();
     }
-    getProductById(id: string) {
+    getProductById(id: string, configIndex?: number) {
         this.http.get(`/api/products/${id}`).subscribe({
             next: (data) => {
                 this.product = data;
                 const prod: any = data;
+                
+                // אם זה תת-מוצר (יש configIndex), נעדכן את הפרמטרים לפי ה-configuration
+                if (configIndex !== undefined && prod.configurations && prod.configurations[configIndex]) {
+                    console.log(`CHACK-BEAM-MINI: טעינת תת-מוצר configuration #${configIndex}: ${prod.configurations[configIndex].translatedName}`);
+                    prod.params = this.updateParamsWithConfiguration(prod.params, configIndex, prod);
+                    prod.translatedName = prod.configurations[configIndex].translatedName;
+                    prod.configurationName = prod.configurations[configIndex].name;
+                    prod.configurationIndex = configIndex;
+                }
+                
                 this.params = (prod.params || []).map((param) => {
                     // Set default selected beam and type for shelfs and beamSingle
                     if (
@@ -643,11 +735,23 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const plataParam = this.params.find((p) => p.name === 'plata');
                 console.log('פרמטר height:', heightParam);
                 console.log('פרמטר plata:', plataParam);
-                // Load saved configuration after product is loaded (only if same product)
+                // Load saved configuration after product is loaded (only if same sub-product)
                 const lastProductId = localStorage.getItem('lastSelectedProductId');
+                const lastConfigIndex = localStorage.getItem('lastConfigIndex');
                 const currentProductId = this.product?._id || this.selectedProductName;
-                if (lastProductId === currentProductId) {
-                this.loadConfiguration();
+                const currentConfigIndex = configIndex !== undefined ? configIndex.toString() : null;
+                
+                // יצירת מזהה ייחודי שכולל גם את ה-configIndex
+                const lastFullId = lastConfigIndex !== null ? `${lastProductId}_config${lastConfigIndex}` : lastProductId;
+                const currentFullId = currentConfigIndex !== null ? `${currentProductId}_config${currentConfigIndex}` : currentProductId;
+                
+                console.log('CHACK-BEAM-MINI: [threejs-box] Checking if same sub-product:', { lastFullId, currentFullId });
+                
+                if (lastFullId === currentFullId) {
+                    console.log('CHACK-BEAM-MINI: [threejs-box] Same sub-product, loading saved configuration');
+                    this.loadConfiguration();
+                } else {
+                    console.log('CHACK-BEAM-MINI: [threejs-box] Different sub-product, not loading configuration');
                 }
                 this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
@@ -6001,42 +6105,38 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // Helper function to find default beam index based on defaultType
     findDefaultBeamIndex(beams: any[], defaultType?: any): number {
         if (!Array.isArray(beams) || beams.length === 0) {
-            console.log('No beams array or empty array, using index 0');
+            console.log('CHACK-BEAM-MINI: [threejs-box] No beams array or empty array, using index 0');
             return 0;
         }
         
-        console.log('Searching for default beam in beams array:', beams.length, 'beams');
-        console.log('Looking for defaultType:', defaultType);
+        console.log('CHACK-BEAM-MINI: [threejs-box] Searching for default beam in beams array:', beams.length, 'beams');
+        console.log('CHACK-BEAM-MINI: [threejs-box] Looking for defaultType:', defaultType);
         
         // אם אין defaultType, חזרה לאינדקס 0
         if (!defaultType) {
-            console.log('No defaultType provided, using index 0');
+            console.log('CHACK-BEAM-MINI: [threejs-box] No defaultType provided, using index 0');
             return 0;
         }
+        
+        // חילוץ ה-ID מה-defaultType (יכול להיות string או object)
+        const defaultTypeId = defaultType.$oid || defaultType._id || defaultType;
+        console.log('CHACK-BEAM-MINI: [threejs-box] Extracted defaultTypeId:', defaultTypeId);
         
         // חיפוש קורה שמתאימה ל-defaultType
         for (let i = 0; i < beams.length; i++) {
             const beam = beams[i];
-            console.log(`Beam ${i}:`, {
-                _id: beam._id,
-                name: beam.name,
-                translatedName: beam.translatedName
-            });
+            const beamId = beam._id || beam.$oid;
             
-            // השוואה בין ה-ID של הקורה ל-defaultType
-            const beamId = beam._id?.toString() || beam._id?.$oid?.toString();
-            const defaultTypeId = defaultType?.toString() || defaultType?.$oid?.toString();
-            
-            console.log(`Comparing beam ${i}: beamId="${beamId}" vs defaultTypeId="${defaultTypeId}"`);
+            console.log(`CHACK-BEAM-MINI: [threejs-box] Beam ${i}: name="${beam.name}", id="${beamId}"`);
             
             if (beamId && defaultTypeId && beamId === defaultTypeId) {
-                console.log(`Found matching beam at index ${i}:`, beamId, 'matches', defaultTypeId);
+                console.log(`CHACK-BEAM-MINI: [threejs-box] ✅ Found matching beam at index ${i}: ${beamId}`);
                 return i;
             }
         }
         
         // אם לא נמצאה התאמה, חזרה לאינדקס 0
-        console.log('No matching beam found for defaultType, using index 0');
+        console.log('CHACK-BEAM-MINI: [threejs-box] ❌ No matching beam found for defaultType, using index 0');
         return 0;
     }
 
@@ -6145,10 +6245,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             return 0;
         }
         
+        // חילוץ ה-ID מה-defaultType (יכול להיות string או object)
+        const defaultTypeId = defaultType.$oid || defaultType._id || defaultType;
+        
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
-            const typeId = type._id?.toString() || type._id?.$oid?.toString();
-            const defaultTypeId = defaultType?.toString() || defaultType?.$oid?.toString();
+            const typeId = type._id || type.$oid;
             
             if (typeId && defaultTypeId && typeId === defaultTypeId) {
                 return i;
@@ -6285,7 +6387,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         let plataBeam = null;
         let plataType = null;
         if (plataParam.beams && plataParam.beams.length > 0) {
-            plataBeam = plataParam.beams[plataParam.selectedBeamIndex || 0];
+            const plataBeamIndex = this.getBeamIndexByDefaultType(plataParam);
+            plataBeam = plataParam.beams[plataBeamIndex];
             plataType = plataBeam.types && plataBeam.types.length 
                 ? plataBeam.types[plataParam.selectedTypeIndex || 0] 
                 : null;
@@ -6295,7 +6398,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         let legBeam = null;
         let legType = null;
         if (legParam.beams && legParam.beams.length > 0) {
-            legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+            const legBeamIndex = this.getBeamIndexByDefaultType(legParam);
+            legBeam = legParam.beams[legBeamIndex];
             legType = legBeam.types && legBeam.types.length 
                 ? legBeam.types[legParam.selectedTypeIndex || 0] 
                 : null;
