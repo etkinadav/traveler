@@ -10,6 +10,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PricingService } from '../../../../src/app/services/pricing.service';
+import { DialogService } from '../dialog/dialog.service';
 import * as THREE from 'three';
 import { trigger, state, style, transition, animate, keyframes } from '@angular/animations';
 interface Shelf {
@@ -88,7 +89,23 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // עריכת מוצר
     editProduct() {
-        console.log('עריכת מוצר - פונקציה תפותח בהמשך');
+        const productName = this.product?.translatedName || '';
+        const modelName = this.product?.modelName || '';
+        const params = this.params || [];
+        
+        const dialogRef = this.dialogService.onOpenEditProductDialog(
+            productName,
+            modelName,
+            params,
+            this.product
+        );
+        
+        dialogRef.afterClosed().subscribe(result => {
+            if (result && result.modelName !== undefined) {
+                console.log('שם הדגם החדש:', result.modelName);
+                // כאן נוסיף בהמשך שמירה לשרת
+            }
+        });
     }
     
     // פתיחה/סגירה של תפריט אפשרויות נוספות
@@ -456,7 +473,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         private snackBar: MatSnackBar,
         private route: ActivatedRoute,
         private router: Router,
-        private pricingService: PricingService
+        private pricingService: PricingService,
+        private dialogService: DialogService
     ) {}
     ngOnInit() {
         // isLoading כבר מוגדר ל-true בברירת המחדל

@@ -17,6 +17,7 @@ import { CopyScanComponent } from './scan-copy/scan-copy.component';
 import { FixProductsComponent } from './fix-products/fix-products.component';
 import { PropertyExplainComponent } from './property-explain/property-explain.component';
 import { SuCloseBranchComponent } from './su-close-branch/su-close-branch.component';
+import { EditProductComponent } from './edit-product/edit-product.component';
 import { SuEditUserComponent } from './su-edit-user/su-edit-user.component';
 
 @Injectable({
@@ -41,6 +42,7 @@ export class DialogService {
   private dialogPropertyExplainRef: MatDialogRef<PropertyExplainComponent> | null = null;
   private dialogSuCloseBranchRef: MatDialogRef<SuCloseBranchComponent> | null = null;
   private dialogSuEditUserRef: MatDialogRef<SuEditUserComponent> | null = null;
+  private dialogEditProductRef: MatDialogRef<EditProductComponent> | null = null;
 
   constructor(
     private dialog: MatDialog,
@@ -371,6 +373,32 @@ export class DialogService {
 
   onCloseSuEditUserDialog(): void {
     this.dialogSuEditUserRef.close();
+  }
+
+  // Edit Product Dialog
+  onOpenEditProductDialog(
+    productName: string,
+    modelName: string,
+    params: any[],
+    product: any
+  ): MatDialogRef<EditProductComponent> {
+    this.dialogEditProductRef = this.dialog.open(EditProductComponent, {
+      panelClass: 'zx-edit-product-dialog',
+      hasBackdrop: false,
+      data: {
+        productName: productName,
+        modelName: modelName,
+        params: params,
+        product: product
+      }
+    });
+    return this.dialogEditProductRef;
+  }
+
+  onCloseEditProductDialog(): void {
+    if (this.dialogEditProductRef) {
+      this.dialogEditProductRef.close();
+    }
   }
 
   // =================

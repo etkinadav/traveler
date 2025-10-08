@@ -65,6 +65,7 @@ import { FileUploadModule } from 'ng2-file-upload';
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { ThreejsBoxComponent } from './threejs-box/threejs-box.component';
 import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
+import { EditProductComponent } from './dialog/edit-product/edit-product.component';
 
 @NgModule({
   declarations: [
@@ -104,7 +105,8 @@ import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
     CloseBranchComponent,
     PendingOrderComponent,
     PrinterComponent,
-    SuEditUserComponent
+    SuEditUserComponent,
+    EditProductComponent
   ],
   imports: [
     BrowserModule,

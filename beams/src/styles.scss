@@ -951,6 +951,7 @@ body[dir='rtl'] .custom-tooltip {
 .mat-mdc-dialog-surface {
     border-radius: 0 !important;
     display: flex !important;
+    z-index: 1004 !important;
 }
 
 .mat-mdc-dialog-surface {
@@ -982,6 +983,13 @@ body[dir='rtl'] .custom-tooltip {
     min-width: 100%;
     bottom: 0 !important;
     position: absolute !important;
+}
+
+.zx-edit-product-dialog {
+    min-width: 100%;
+    bottom: 0 !important;
+    position: absolute !important;
+    z-index: 1003 !important;
 }
 
 @media only screen and (min-width: 992px) {
@@ -1041,11 +1049,80 @@ body[dir='rtl'] .custom-tooltip {
         min-width: 800px;
         position: static !important;
     }
+
+    .zx-edit-product-dialog {
+        bottom: unset !important;
+        min-width: 550px;
+        max-width: 550px;
+        position: static !important;
+    }
 }
 
 .cdk-overlay-dark-backdrop {
     visibility: visible;
     background-color: var(--mat-sidenav-scrim-color);
+    z-index: 1000 !important;
+}
+
+.cdk-overlay-container {
+    z-index: 1001 !important;
+}
+
+.mat-mdc-dialog-container {
+    z-index: 1002 !important;
+}
+
+/* תיקון אגרסיבי ל-overlay */
+.cdk-overlay-backdrop,
+.cdk-overlay-backdrop.cdk-overlay-dark-backdrop,
+.cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+    z-index: 1000 !important;
+    position: fixed !important;
+}
+
+.cdk-overlay-container {
+    z-index: 1001 !important;
+    position: fixed !important;
+}
+
+.cdk-overlay-pane {
+    z-index: 1002 !important;
+    position: fixed !important;
+}
+
+.mat-mdc-dialog-container {
+    z-index: 1003 !important;
+    position: relative !important;
+}
+
+.mat-mdc-dialog-surface {
+    z-index: 1004 !important;
+    position: relative !important;
+}
+
+/* תיקון גלובלי חזק לכל הדיאלוגים */
+::ng-deep .cdk-overlay-backdrop {
+    z-index: 1000 !important;
+}
+
+::ng-deep .cdk-overlay-container {
+    z-index: 1001 !important;
+}
+
+::ng-deep .cdk-overlay-pane {
+    z-index: 1002 !important;
+}
+
+::ng-deep .mat-mdc-dialog-container {
+    z-index: 1003 !important;
+}
+
+::ng-deep .mat-mdc-dialog-surface {
+    z-index: 1004 !important;
+}
+
+::ng-deep .zx-edit-product-dialog {
+    z-index: 1005 !important;
 }
 
 h4 {

@@ -1,0 +1,44 @@
+<div class="edit-product-dialog">
+    <!-- כותרת -->
+    <div class="dialog-header">
+        <h2>{{ productName }}</h2>
+        <button class="close-btn" (click)="onClose()">
+            <svg width="24" height="24" viewBox="0 0 24 24">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- תוכן הדיאלוג -->
+    <div class="dialog-content">
+        <!-- שדה שם הדגם -->
+        <div class="model-name-section">
+            <label for="modelName">שם הדגם</label>
+            <input 
+                type="text" 
+                id="modelName" 
+                [(ngModel)]="modelName" 
+                placeholder="הכנס שם דגם..."
+                class="model-input"
+            />
+            <p class="no-model-message" *ngIf="!hasModel && !modelName">
+                עדיין לא קיימים דגמים למוצר זה
+            </p>
+        </div>
+
+        <!-- רשימת פרמטרים -->
+        <div class="params-list">
+            <h3>ערכים נוכחיים</h3>
+            <div class="param-item" *ngFor="let param of productParams">
+                <span class="param-name">{{ getParamDisplayName(param) }}</span>
+                <span class="param-value">{{ getParamDisplayValue(param) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- כפתורי פעולה -->
+    <div class="dialog-actions">
+        <button class="btn-cancel" (click)="onClose()">ביטול</button>
+        <button class="btn-save" (click)="onSave()">שמור</button>
+    </div>
+</div>
