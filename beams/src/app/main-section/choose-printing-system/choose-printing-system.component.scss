@@ -54,6 +54,20 @@
   padding-right: 15px !important; // רווח בין המוצרים
 }
 
+// עקיפת Bootstrap breakpoint של col-md-6 - דחיית ה-breakpoint ב-20px
+// Bootstrap משתמש ב-768px, אנחנו רוצים 788px
+@media only screen and (max-width: 787px) {
+  .zx-settings-nav .col-md-6 {
+    // במסכים קטנים - החזרת התנהגות col-12
+    flex: 0 0 auto !important;
+    width: 100% !important;
+  }
+  
+  .zx-settings-nav .d-md-block {
+    display: none !important;
+  }
+}
+
 // החלפת תמונות עם fade in/out - כיסוי מלא של המסך
 .image-film-container {
   position: fixed;
@@ -65,7 +79,7 @@
   z-index: 1;
   
   // תיקון נוסף למובייל - וידוא כיסוי מלא
-  @media only screen and (max-width: 768px) {
+  @media only screen and (max-width: 778px) {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -93,7 +107,7 @@
   /* כל תמונה מתחילה במיקום שונה בהתבסס על animation-delay */
   
   // תיקון למובייל - כיסוי מלא
-  @media only screen and (max-width: 768px) {
+  @media only screen and (max-width: 778px) {
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
@@ -300,7 +314,7 @@
   transform: scale(1.05);
 }
 
-@media only screen and (min-width: 1120px) {
+@media only screen and (min-width: 1130px) {
   .canvas-image {
     width: 240px !important;
     height: 168px !important;
@@ -371,7 +385,7 @@
     }
 }
 
-@media only screen and (min-width: 576px) {
+@media only screen and (min-width: 586px) {
     :host ::ng-deep img.zx-by-print-no-arrow {
         width: auto;
         height: 15px;
@@ -397,7 +411,7 @@
     min-height: 100%;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 778px) {
     .printing-service-btn-con {
         width: 100%;
     }
@@ -449,7 +463,7 @@
     background-color: transparent !important;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 778px) {
     .zx-about-con-up {
         height: unset;
         min-height: unset;
@@ -511,7 +525,7 @@
     margin-bottom: 17px;
 }
 
-@media only screen and (min-width: 1120px) {
+@media only screen and (min-width: 1130px) {
     .zx-system-empty-icon {
         width: 344px;
         height: 241px;
@@ -562,7 +576,7 @@
 }
 
 
-@media only screen and (min-width: 576px) {
+@media only screen and (min-width: 586px) {
     .mat-toolbar-height {
         max-height: 52px;
         min-height: 52px;
@@ -583,7 +597,7 @@
     font-size: 25px;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 778px) {
 
     .flex-grow-1-md-0 {
         flex-grow: 0;
@@ -830,7 +844,7 @@
 }
 
 // תיקון גלובלי למובייל - וידוא כיסוי מלא של המסך
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 778px) {
   :host {
     width: 100vw !important;
     height: 100vh !important;

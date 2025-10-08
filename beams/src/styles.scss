@@ -296,7 +296,7 @@ body {
     transition: 200ms;
 }
 
-@media only screen and (min-width: 576px) {
+@media only screen and (min-width: 586px) {
     .zx-fw-sm-not-bold {
         font-weight: unset;
     }
@@ -334,7 +334,7 @@ body[dir='rtl'] .custom-tooltip {
     direction: rtl;
 }
 
-@media only screen and (min-width: 992px) {
+@media only screen and (min-width: 1002px) {
     .zx-flex-grow-lg-1 {
         flex-grow: 1 !important;
     }
@@ -352,7 +352,7 @@ body[dir='rtl'] .custom-tooltip {
     line-height: 15px;
 }
 
-@media only screen and (min-width: 992px) {
+@media only screen and (min-width: 1002px) {
     .zx-lh-h3 {
         line-height: 44px;
     }
@@ -501,7 +501,7 @@ body[dir='rtl'] .custom-tooltip {
     border-top: 1px solid var(--zx-gray-25-pr);
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 778px) {
     .zx-border-gray-left-25-pr-md {
         border-left: 1px solid var(--zx-gray-25-pr);
     }
@@ -549,7 +549,7 @@ body[dir='rtl'] .custom-tooltip {
     width: 100%;
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 778px) {
     .zx-settings-nav {
         width: 100%; // תפיסת כל הרוחב
         min-width: 600px; // וידוא שלא יהיה צר יותר
@@ -576,7 +576,7 @@ body[dir='rtl'] .custom-tooltip {
     border: 1px solid var(--zx-gray-v-light-opacity);
     
     // בדסקטופ - התאמה לתצוגה אנכית
-    @media only screen and (min-width: 768px) {
+    @media only screen and (min-width: 778px) {
         padding: 20px !important;
         border-radius: 0 !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
@@ -622,7 +622,7 @@ body[dir='rtl'] .custom-tooltip {
     display: none; // מוסתר כברירת מחדל
 }
 
-@media only screen and (min-width: 950px) { // 950px ומעלה
+@media only screen and (min-width: 960px) { // 960px ומעלה
     .zx-canvas {
         display: flex; // מוצג מ-950px ומעלה
     }
@@ -778,7 +778,7 @@ body[dir='rtl'] .custom-tooltip {
     max-height: 9px;
 }
 
-@media only screen and (min-width: 992px) {
+@media only screen and (min-width: 1002px) {
     .zx-huge-icon-size-lg {
         width: 150px;
         height: 150px;
@@ -878,7 +878,7 @@ body[dir='rtl'] .custom-tooltip {
     font-size: 12px;
 }
 
-@media only screen and (min-width: 576px) {
+@media only screen and (min-width: 586px) {
     .zx-text-sm-tiny {
         font-size: 14px;
     }
@@ -992,7 +992,7 @@ body[dir='rtl'] .custom-tooltip {
     z-index: 1003 !important;
 }
 
-@media only screen and (min-width: 992px) {
+@media only screen and (min-width: 1002px) {
     .zx-login-dialog {
         min-width: 1015px;
         min-height: 490px;

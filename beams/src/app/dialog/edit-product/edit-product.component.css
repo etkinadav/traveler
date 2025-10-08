@@ -174,7 +174,7 @@
 }
 
 /* Responsive */
-@media (max-width: 576px) {
+@media (max-width: 586px) {
     .edit-product-dialog {
         width: 95vw;
     }
