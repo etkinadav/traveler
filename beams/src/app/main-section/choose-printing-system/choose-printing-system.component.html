@@ -48,11 +48,6 @@
                                              </div>
                                          </div>
                                          
-                                         <!-- כרטיסייה ריקה למלא את השורה בדסקטופ -->
-                                         <div class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative empty-card d-none d-md-block"
-                                              [class.step-item-dark]="isDarkMode">
-                                         </div>
-                                         
                                          <!-- מצב טעינה - 3 כרטיסי דמה -->
                                          <ng-container *ngIf="isLoading">
                                              <div *ngFor="let item of [1,2,3]; let i = index" 

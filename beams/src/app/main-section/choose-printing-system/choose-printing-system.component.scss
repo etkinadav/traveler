@@ -855,15 +855,6 @@
   isolation: isolate; // מבודד את ה-z-index של כל כרטיסית
 }
 
-// כרטיסייה ריקה - זהה לכרטיסיית הכותרת אבל שקופה
-.empty-card {
-  // שקיפות מלאה - לא נראית אבל תופסת מקום
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  pointer-events: none !important;
-}
-
 // אנימציית ripple
 @keyframes ripple {
   to {
