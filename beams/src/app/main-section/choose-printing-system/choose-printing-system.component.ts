@@ -75,6 +75,32 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   // מפה להצגת טקסט ההוראה בריחוף לכל מוצר
   showHintMap: { [key: string]: boolean } = {};
 
+  // משתנה לעקיבה אחרי כמות האלמנטים ברוחב המסך
+  elementsPerRow: number = 1; // ברירת מחדל - מובייל
+
+  // פונקציה לעדכון כמות האלמנטים ברוחב המסך
+  // מחשבת כמה כרטיסיות נכנסות בשורה לפי הרוחב הזמין
+  updateElementsPerRow(): void {
+    const windowWidth = window.innerWidth;
+    console.log('Window width:', windowWidth); // לצורך דיבוג
+    
+    // חישוב רוחב זמין (מינוס padding של ה-row)
+    const availableWidth = windowWidth - 30; // 15px padding מכל צד
+    
+    // רוחב כרטיסייה ממוצע (כולל gap)
+    const cardWidth = 280; // max-width של step-item-trans-product
+    const gap = 15; // gap בין כרטיסיות
+    
+    // חישוב כמה כרטיסיות נכנסות
+    let cardsPerRow = Math.floor((availableWidth + gap) / (cardWidth + gap));
+    
+    // הגבלות מינימליות ומקסימליות
+    cardsPerRow = Math.max(1, Math.min(4, cardsPerRow));
+    
+    this.elementsPerRow = cardsPerRow;
+    console.log('Available width:', availableWidth);
+    console.log('Elements per row:', this.elementsPerRow);
+  }
 
   
 
@@ -92,6 +118,9 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // עדכון כמות האלמנטים ברוחב המסך
+    this.updateElementsPerRow();
+    
     // הצגת טקסט ברירת מחדל מיד כדי למנוע כרטיסאי ריקה
     this.displayedTitle = this.defaultTitle;
     this.displayedText = this.defaultText;
@@ -121,6 +150,11 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.updateTextImmediately();
     }, 100);
+    
+    // listener לשינוי גודל החלון
+    window.addEventListener('resize', () => {
+      this.updateElementsPerRow();
+    });
 
     this.userId = this.authService.getUserId();
     this.userIsAuthenticated = this.authService.getIsAuth();
