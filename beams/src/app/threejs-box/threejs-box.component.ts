@@ -86,6 +86,29 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.router.navigate(['/main-section/choose-printing-system']);
     }
     
+    // עריכת מוצר
+    editProduct() {
+        console.log('עריכת מוצר - פונקציה תפותח בהמשך');
+    }
+    
+    // פתיחה/סגירה של תפריט אפשרויות נוספות
+    toggleOptionsMenu() {
+        this.isOptionsMenuOpen = !this.isOptionsMenuOpen;
+        // סגירת תפריט ניהול המערכת אם הוא פתוח
+        if (this.isOptionsMenuOpen) {
+            this.isSystemMenuOpen = false;
+        }
+    }
+    
+    // פתיחה/סגירה של תפריט ניהול המערכת
+    toggleSystemMenu() {
+        this.isSystemMenuOpen = !this.isSystemMenuOpen;
+        // סגירת תפריט האפשרויות אם הוא פתוח
+        if (this.isSystemMenuOpen) {
+            this.isOptionsMenuOpen = false;
+        }
+    }
+    
     // הפעלת קוביית ניווט במובייל
     toggleNavigationCube() {
         this.showNavigationCube = !this.showNavigationCube;
@@ -402,6 +425,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     showWireframe: boolean = false; // מצב ברירת מחדל: wireframe מוסתר
     isTransparentMode: boolean = false; // מצב שקוף
     isOptionsMenuOpen: boolean = false; // האם תפריט האפשרויות פתוח
+    isSystemMenuOpen: boolean = false; // האם תפריט ניהול המערכת פתוח
     showNavigationCube: boolean = false; // קוביית ניווט במובייל
     isPriceMinimized: boolean = false; // האם תפריט המחיר מצומצם
     product: any = null;

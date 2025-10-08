@@ -21,13 +21,28 @@
         <!-- כפתור תפריט אפשרויות נוספות -->
         <button class="options-menu-button" 
                 [class.active]="isOptionsMenuOpen"
-                (click)="isOptionsMenuOpen = !isOptionsMenuOpen"
+                (click)="toggleOptionsMenu()"
                 matTooltip="אפשרויות נוספות"
                 matTooltipPosition="below">
             <svg width="12" height="12" viewBox="0 0 12 12">
                 <circle cx="6" cy="2" r="1.2" fill="currentColor"/>
                 <circle cx="6" cy="6" r="1.2" fill="currentColor"/>
                 <circle cx="6" cy="10" r="1.2" fill="currentColor"/>
+            </svg>
+        </button>
+        
+        <!-- כפתור ניהול מערכת -->
+        <button class="system-management-button" 
+                [class.active]="isSystemMenuOpen"
+                (click)="toggleSystemMenu()"
+                matTooltip="ניהול מערכת"
+                matTooltipPosition="below">
+            <svg width="12" height="12" viewBox="0 0 12 12">
+                <!-- אייקון ניהול מערכת - גלגל שיניים עדין -->
+                <circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="0.8" fill="none"/>
+                <circle cx="6" cy="6" r="1.5" fill="currentColor"/>
+                <path d="M6 2L6 1M10 6L11 6M6 10L6 11M2 6L1 6" stroke="currentColor" stroke-width="0.6" stroke-linecap="round"/>
+                <path d="M8.5 3.5L9.5 2.5M8.5 8.5L9.5 9.5M3.5 8.5L2.5 9.5M3.5 3.5L2.5 2.5" stroke="currentColor" stroke-width="0.6" stroke-linecap="round"/>
             </svg>
         </button>
     </div>
@@ -114,6 +129,20 @@
             </svg>
             <span>{{ showCoordinateAxes ? ('hide_axes' | translate) : ('show_axes' | translate) }}</span>
         </button>
+    </div>
+    
+    <!-- תפריט ניהול מערכת -->
+    <div class="custom-menu" [class.open]="isSystemMenuOpen" *ngIf="isSystemMenuOpen">
+            <!-- אפשרות עריכת מוצר -->
+            <button class="menu-option" (click)="editProduct(); isSystemMenuOpen = false">
+                <svg width="18" height="18" viewBox="0 0 16 16" style="margin-left: 8px;">
+                    <!-- עיפרון פשוט -->
+                    <path d="M12.146 1.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1 0 .708l-9 9a.5.5 0 0 1-.168.11l-4 1.5a.5.5 0 0 1-.65-.65l1.5-4a.5.5 0 0 1 .11-.168l9-9z" 
+                          stroke="currentColor" stroke-width="0.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M11 2l3 3" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/>
+                </svg>
+                <span>{{ 'edit_product' | translate }}</span>
+            </button>
     </div>
     
     <!-- קוביית ניווט במובייל -->

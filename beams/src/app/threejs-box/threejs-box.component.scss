@@ -44,6 +44,42 @@
     }
 }
 
+/* System management button */
+.system-management-button {
+    min-width: auto;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: rgba(0, 102, 204, 0.1);
+    color: #0066cc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+        background: rgba(0, 102, 204, 0.2);
+        transform: scale(1.05);
+    }
+    
+    &.active {
+        background: #0066cc;
+        color: white;
+    }
+    
+    &:focus {
+        outline: none;
+    }
+    
+    svg {
+        display: block;
+    }
+}
+
 /* Wireframe toggle button */
 .wireframe-toggle {
     min-width: auto;
@@ -87,7 +123,7 @@
 /* Custom menu styling */
 .custom-menu {
     position: fixed;
-    top: 102px; // 74px + 28px (height of button)
+    top: 106px; // 74px + 28px (height of button) + 4px
     right: 19px;
     background: white;
     border-radius: 0;
