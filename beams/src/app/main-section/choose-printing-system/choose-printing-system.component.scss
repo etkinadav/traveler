@@ -889,13 +889,13 @@
   isolation: isolate; // מבודד את ה-z-index של כל כרטיסית
 }
 
-// כרטיסיית הכותרת הראשונה - רגילה עם רקע וצל
+// כרטיסיית הכותרת הראשונה - שקופה לחלוטין (ללא רקע)
 .title-card-first {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  background: rgba(255, 255, 255, 0.6) !important;
-  background-color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
   border-radius: 0 !important;
-  backdrop-filter: blur(4px) !important;
+  backdrop-filter: none !important;
   border: none !important;
 }
 

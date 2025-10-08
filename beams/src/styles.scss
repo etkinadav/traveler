@@ -778,6 +778,16 @@ body[dir='rtl'] .custom-tooltip {
 .title-card-first,
 .title-card-empty {
     background-color: transparent !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+// וידוא שגם step-item לא מוסיף רקע לכותרות
+.step-item.title-card-first,
+.step-item.title-card-empty {
+    background-color: transparent !important;
+    background: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
