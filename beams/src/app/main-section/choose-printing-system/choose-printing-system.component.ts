@@ -91,22 +91,22 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
   // פונקציה לעדכון כמות האלמנטים ברוחב המסך
   // נקודות קפיצה hardcoded - מסונכרן בדיוק עם ה-CSS:
-  // 0-629px: 1 בשורה
-  // 630-939px: 2 בשורה (564px נדרש)
-  // 940-1127px: 3 בשורה (846px נדרש)
-  // 1128px+: 4 בשורה (1128px נדרש)
+  // 0-499px: 1 בשורה
+  // 500-749px: 2 בשורה (500px = 250×2)
+  // 750-999px: 3 בשורה (750px = 250×3)
+  // 1000px+: 4 בשורה (1000px = 250×4)
   updateElementsPerRow(): void {
     const windowWidth = window.innerWidth;
     
     // Hardcoded breakpoints - בדיוק כמו ב-CSS
-    if (windowWidth >= 1128) {
-      this.elementsPerRow = 4; // 1128px ומעלה
-    } else if (windowWidth >= 940) {
-      this.elementsPerRow = 3; // 940-1127px
-    } else if (windowWidth >= 630) {
-      this.elementsPerRow = 2; // 630-939px
+    if (windowWidth >= 1000) {
+      this.elementsPerRow = 4; // 1000px ומעלה
+    } else if (windowWidth >= 750) {
+      this.elementsPerRow = 3; // 750-999px
+    } else if (windowWidth >= 500) {
+      this.elementsPerRow = 2; // 500-749px
     } else {
-      this.elementsPerRow = 1; // 0-629px
+      this.elementsPerRow = 1; // 0-499px
     }
     
     console.log('Window width:', windowWidth, 'px | Cards per row:', this.elementsPerRow);

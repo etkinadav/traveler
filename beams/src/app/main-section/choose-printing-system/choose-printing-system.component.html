@@ -39,44 +39,48 @@
                                      <div class="products-grid">
                                         <!-- כותרות "מה בונים היום" - כמות לפי האלמנטים בשורה -->
                                         <div *ngFor="let titleCard of getTitleCards(); let i = index" 
-                                             class="product-card-wrapper step-item-trans-product step-item d-flex p-1 align-items-center justify-content-center position-relative"
-                                             [class.step-item-dark]="isDarkMode"
-                                             [class.title-card-first]="i === 0"
-                                             [class.title-card-empty]="i > 0">
-                                             <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
-                                                 <h6 class="fw-bold zx-text-big text-center" 
-                                                     style="color: var(--zx-green) !important;">
-                                                     <ng-container *ngIf="i === 0">{{'choose-system.step-1' | translate}}</ng-container>
-                                                     <ng-container *ngIf="i > 0">-</ng-container>
-                                                 </h6>
+                                             class="product-card-wrapper">
+                                             <div class="step-item-trans-product step-item d-flex p-1 align-items-center justify-content-center position-relative"
+                                                  [class.step-item-dark]="isDarkMode"
+                                                  [class.title-card-first]="i === 0"
+                                                  [class.title-card-empty]="i > 0">
+                                                 <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
+                                                     <h6 class="fw-bold zx-text-big text-center" 
+                                                         style="color: var(--zx-green) !important;">
+                                                         <ng-container *ngIf="i === 0">{{'choose-system.step-1' | translate}}</ng-container>
+                                                         <ng-container *ngIf="i > 0">-</ng-container>
+                                                     </h6>
+                                                 </div>
                                              </div>
                                          </div>
                                          
                                         <!-- מצב טעינה - כרטיסי דמה בכמות של פעמיים ה"כמות אלמנטים בשורה" -->
                                         <ng-container *ngIf="isLoading">
                                             <div *ngFor="let item of getLoadingItems(); let i = index" 
-                                                class="product-card-wrapper step-item-trans-product step-item shadow-85 white-background-card d-flex p-1 align-items-center justify-content-center position-relative"
-                                                [class.step-item-dark]="isDarkMode">
-                                            <!-- כפתור המשך למוצר -->
-                                            <button mat-stroked-button 
-                                                    class="continue-to-product-btn opacity-75 loading-button-shine" 
-                                                    disabled>
-                                                <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center loading-dots-shine">&nbsp;</span>
-                                            </button>
-                                             
-                                             <div class="d-flex align-items-center gap-3">
-                                                 <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded loading-shimmer">
-                                                 </div>
-                                             </div>
-                                             
-                                            <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
-                                                <h6 class="fw-bold zx-text-big text-center text-muted opacity-75">
-                                                    &nbsp;
-                                                </h6>
-                                                <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center text-green">
-                                                    &nbsp;
-                                                </span>
-                                            </div>
+                                                class="product-card-wrapper">
+                                                <div class="step-item-trans-product step-item shadow-85 white-background-card d-flex p-1 align-items-center justify-content-center position-relative"
+                                                     [class.step-item-dark]="isDarkMode">
+                                                    <!-- כפתור המשך למוצר -->
+                                                    <button mat-stroked-button 
+                                                            class="continue-to-product-btn opacity-75 loading-button-shine" 
+                                                            disabled>
+                                                        <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center loading-dots-shine">&nbsp;</span>
+                                                    </button>
+                                                     
+                                                     <div class="d-flex align-items-center gap-3">
+                                                         <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded loading-shimmer">
+                                                         </div>
+                                                     </div>
+                                                     
+                                                    <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
+                                                        <h6 class="fw-bold zx-text-big text-center text-muted opacity-75">
+                                                            &nbsp;
+                                                        </h6>
+                                                        <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center text-green">
+                                                            &nbsp;
+                                                        </span>
+                                                    </div>
+                                                </div>
                                              </div>
                                          </ng-container>
                                          
@@ -85,44 +89,46 @@
                                             <div *ngFor="let product of products; let i = index" 
                                                 (mouseenter)="onHoverProduct(product)" 
                                                 (mouseleave)="onHoverProduct(null)" 
-                                                [class.zx-step-choosen]="selectedProduct?._id === product._id" 
-                                                class="product-card-wrapper step-item-trans-product step-item shadow-85 white-background-card d-flex p-1 align-items-center justify-content-center position-relative"
-                                                [class.step-item-dark]="isDarkMode">
-                                        <!-- כפתור המשך למוצר -->
-                                        <button mat-stroked-button 
-                                                class="continue-to-product-btn rounded-2" 
-                                                (click)="navigateToProduct(product); $event.stopPropagation()">
-                                            <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">{{product.model || product.translatedName || 'המוצר'}} במידות שלך</span>
-                                        </button>
-                                        
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded position-relative">
-                                                <app-product-mini-preview #miniPreview [product]="product" style="width: 100%; height: 100%;"></app-product-mini-preview>
-                                                <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
-                                                <div class="product-3d-overlay" 
-                                                     (click)="removeOverlay($event, miniPreview)"
-                                                     (mouseenter)="showHintForProduct(product._id + '_' + i)"
-                                                     (mouseleave)="hideHintForProduct(product._id + '_' + i)">
-                                                    <!-- טקסט הוראה בריחוף -->
-                                                    <div class="overlay-hint" 
-                                                         [class.show]="showHintMap[product._id + '_' + i]"
-                                                         [@fadeInOut]="showHintMap[product._id + '_' + i] ? 'in' : 'out'">
-                                                        לחץ לשינוי המבט
+                                                class="product-card-wrapper">
+                                                <div [class.zx-step-choosen]="selectedProduct?._id === product._id" 
+                                                     class="step-item-trans-product step-item shadow-85 white-background-card d-flex p-1 align-items-center justify-content-center position-relative"
+                                                     [class.step-item-dark]="isDarkMode">
+                                                    <!-- כפתור המשך למוצר -->
+                                                    <button mat-stroked-button 
+                                                            class="continue-to-product-btn rounded-2" 
+                                                            (click)="navigateToProduct(product); $event.stopPropagation()">
+                                                        <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">{{product.model || product.translatedName || 'המוצר'}} במידות שלך</span>
+                                                    </button>
+                                                    
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded position-relative">
+                                                            <app-product-mini-preview #miniPreview [product]="product" style="width: 100%; height: 100%;"></app-product-mini-preview>
+                                                            <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
+                                                            <div class="product-3d-overlay" 
+                                                                 (click)="removeOverlay($event, miniPreview)"
+                                                                 (mouseenter)="showHintForProduct(product._id + '_' + i)"
+                                                                 (mouseleave)="hideHintForProduct(product._id + '_' + i)">
+                                                                <!-- טקסט הוראה בריחוף -->
+                                                                <div class="overlay-hint" 
+                                                                     [class.show]="showHintMap[product._id + '_' + i]"
+                                                                     [@fadeInOut]="showHintMap[product._id + '_' + i] ? 'in' : 'out'">
+                                                                    לחץ לשינוי המבט
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
+                                                        <h6 class="fw-bold zx-text-big text-center">
+                                                            {{product.translatedName}}
+                                                        </h6>
+                                                        <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center text-green">
+                                                            דגם - {{product.model || product.name || 'מוצר מותאם אישית'}}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
-                                            <h6 class="fw-bold zx-text-big text-center">
-                                                {{product.translatedName}}
-                                            </h6>
-                                            <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center text-green">
-                                                דגם - {{product.model || product.name || 'מוצר מותאם אישית'}}
-                                            </span>
-                                        </div>
-                                        </div>
-                                        </ng-container>
+                                             </div>
+                                         </ng-container>
                                     </div>
                                 
                                 </article>
