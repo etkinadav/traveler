@@ -1290,8 +1290,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           this.dynamicParams.length,
           actualFrameWidth,
           actualFrameHeight,
-          actualFrameWidth, // legWidth
-          actualFrameHeight  // legDepth - עומק הרגל מקורת החיזוק
+          actualFrameHeight,  // legWidth - עומק הרגל אחרי החלפה
+          actualFrameWidth   // legDepth - רוחב הרגל אחרי החלפה
         );
         
         for (const beam of frameBeams) {
@@ -1351,6 +1351,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       legWidth = frameBeam.width ? frameBeam.width / 10 : actualFrameWidth; // רוחב הרגל מקורת החיזוק
       legDepth = frameBeam.height ? frameBeam.height / 10 : actualFrameHeight; // עומק הרגל מקורת החיזוק
       console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
+    } else if (!isTable) {
+      // עבור ארון - הפיכת הפרופיל של הרגליים (width ↔ height)
+      legWidth = actualFrameHeight;  // רוחב הרגל = גובה קורת החיזוק
+      legDepth = actualFrameWidth;  // עומק הרגל = רוחב קורת החיזוק
+      console.log('מידות רגליים מארון (פרופיל מוחלף):', { legWidth, legDepth, actualFrameWidth, actualFrameHeight });
     }
 
     // מיקום הרגליים - זהה לקובץ הראשי
@@ -1603,8 +1608,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           this.dynamicParams.length,
           actualFrameWidth,
           actualFrameHeight,
-          actualFrameWidth, // legWidth
-          actualFrameHeight  // legDepth - עומק הרגל מקורת החיזוק
+          actualFrameHeight,  // legWidth - עומק הרגל אחרי החלפה
+          actualFrameWidth   // legDepth - רוחב הרגל אחרי החלפה
         );
         
         for (const beam of frameBeams) {
@@ -1664,6 +1669,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       legWidth = frameBeam.width ? frameBeam.width / 10 : actualFrameWidth; // רוחב הרגל מקורת החיזוק
       legDepth = frameBeam.height ? frameBeam.height / 10 : actualFrameHeight; // עומק הרגל מקורת החיזוק
       console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
+    } else if (!isTable) {
+      // עבור ארון - הפיכת הפרופיל של הרגליים (width ↔ height)
+      legWidth = actualFrameHeight;  // רוחב הרגל = גובה קורת החיזוק
+      legDepth = actualFrameWidth;  // עומק הרגל = רוחב קורת החיזוק
+      console.log('מידות רגליים מארון (פרופיל מוחלף):', { legWidth, legDepth, actualFrameWidth, actualFrameHeight });
     }
 
     // מיקום הרגליים - זהה לקובץ הראשי
