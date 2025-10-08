@@ -59,41 +59,42 @@
 
 .products-grid .product-card-wrapper {
   flex: 0 0 auto;
-  padding: 5px; // רווח פנימי בין כרטיסיות
+  padding: 1px 1px 5px 1px; // רווח מינימלי מהצדדים, רגיל מלמטה
   box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: center;
   // ה-wrapper יהיה בדיוק בגודל הכרטיסיה + padding
-  width: 290px; // 280px כרטיסיה + 10px padding (5px מכל צד)
+  width: 282px; // 280px כרטיסיה + 2px padding (1px מכל צד)
 }
 
 // ברירת מחדל: 1 בשורה (0-629px)
 .products-grid .product-card-wrapper {
   width: 100% !important;
+  flex: 0 0 100% !important;
 }
 
-// 630-939px: 2 בשורה - wrapper בגודל קבוע
+// 630-939px: 2 בשורה - wrapper תופס חצי מסך
 @media only screen and (min-width: 630px) and (max-width: 939px) {
   .products-grid .product-card-wrapper {
-    width: 290px !important; // גודל קבוע: כרטיסיה + padding
-    flex: 0 0 290px !important;
+    width: 50% !important;
+    flex: 0 0 50% !important;
   }
 }
 
-// 940-1219px: 3 בשורה - wrapper בגודל קבוע
-@media only screen and (min-width: 940px) and (max-width: 1219px) {
+// 940-1127px: 3 בשורה - wrapper תופס שליש מסך
+@media only screen and (min-width: 940px) and (max-width: 1127px) {
   .products-grid .product-card-wrapper {
-    width: 290px !important; // גודל קבוע: כרטיסיה + padding
-    flex: 0 0 290px !important;
+    width: 33.333333% !important;
+    flex: 0 0 33.333333% !important;
   }
 }
 
-// 1220px ומעלה: 4 בשורה - wrapper בגודל קבוע
-@media only screen and (min-width: 1220px) {
+// 1128px ומעלה: 4 בשורה - wrapper תופס רבע מסך
+@media only screen and (min-width: 1128px) {
   .products-grid .product-card-wrapper {
-    width: 290px !important; // גודל קבוע: כרטיסיה + padding
-    flex: 0 0 290px !important;
+    width: 25% !important;
+    flex: 0 0 25% !important;
   }
 }
 
@@ -876,6 +877,16 @@
 
 // וידוא שכל כרטיסית מוצר היא בעלת stacking context עצמאי
 .step-item-trans-product {
+  flex-direction: column-reverse !important;
+  gap: 15px;
+  align-items: center;
+  text-align: center;
+  max-width: 280px; // רוחב מקסימלי קבוע
+  width: 280px !important; // רוחב קבוע
+  height: fit-content; // גובה מותאם לתוכן
+  margin: 0 auto 7px auto; // מירכוז אוטומטי + רווח תחתון
+  padding: 0; // ללא padding כלפי חוץ
+  box-sizing: border-box; // וידוא שה-width כולל padding
   position: relative;
   isolation: isolate; // מבודד את ה-z-index של כל כרטיסית
 }
