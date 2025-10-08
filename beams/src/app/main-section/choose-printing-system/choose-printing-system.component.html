@@ -163,42 +163,6 @@
         <!-- // CHOOSE PRINTING SYSTEM SIDE -->
          
 
-        <!-- הקונטיינר הראשי - צד שמאל של המסך -->
-        <div class="main-animation-container">
-            <!-- כרטיסיות עם אנימציה סינוסואידית -->
-            <div *ngFor="let card of animatedCards; let i = index; trackBy: trackByCardId" 
-                 class="floating-card white-background-card" 
-                 [style.animation-delay]="card.delay + 's'"
-                 [style.--sine-amplitude]="card.amplitude + 'px'"
-                 [style.--sine-frequency]="card.frequency"
-                 [style.--sine-phase]="card.phase + 'deg'"
-                 [style.--card-id]="card.id">
-                <!-- שכבת רקע -->
-                <div class="hero-text-bg-overlay"></div>
-                
-                <!-- תוכן הטקסטים -->
-                <div class="text-responsive">
-                    <!-- כותרת ראשית -->
-                    <h6 class="fw-bold zx-text-title-main mb-3" 
-                        style="color: var(--zx-green) !important; position: relative !important; z-index: 2 !important;">
-                        {{card.title}}
-                    </h6>
-                    
-                    <!-- טקסט הסבר -->
-                    <p class="mb-5 text-shadow opacity-90 text-hover-effect zx-text-big"
-                       style="line-height: 1.4; max-width: 800px; margin-left: auto;">
-                        {{card.text}}
-                    </p>
-                    
-                    <!-- סלוגן -->
-                    <p class="text-shadow opacity-80 text-hover-effect subtitle text-start"
-                       style="line-height: 1.3; max-width: 600px; margin-right: auto; letter-spacing: 0.02em; margin-bottom: 0.25rem;">
-                        {{card.subtitle}}
-                    </p>
-                </div>
-            </div>
-        </div>
-        <!-- // LEFT SIDE CONTAINER -->
 
     </div>
 </div>

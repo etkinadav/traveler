@@ -75,43 +75,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   // מפה להצגת טקסט ההוראה בריחוף לכל מוצר
   showHintMap: { [key: string]: boolean } = {};
 
-  // משתנים לאנימציה סינוסואידית
-  animatedCards: any[] = [];
-  cardCounter: number = 0;
-  
-  // רשימת הכרטיסיות
-  cardTemplates = [
-    {
-      title: "בונים יחד זיכרונות",
-      text: "מרכיבים רהיט עץ מלא והופכים זמן איכות עם האנשים שאתם אוהבים לחוויה שנשארת אתכם.",
-      subtitle: "חוויתי. יצירתי. משמעותי."
-    },
-    {
-      title: "ממחסן העצים – לרהיט שלך",
-      text: "אתם מקבלים את הקורות ישר ממחסן העצים והופכים אותן לרהיט מוגמר במינימום עלות.",
-      subtitle: "ישיר. פשוט. משתלם."
-    },
-    {
-      title: "רהיט עץ מלא, בדיוק במידות שלך",
-      text: "מקורות חתוכות לרהיט מותאם אישית בשניות, ובמחיר נמוך משל איקאה.",
-      subtitle: "מדויק. איכותי. משתלם."
-    },
-    {
-      title: "אותה מערכת – אין־סוף אפשרויות",
-      text: "אתם מחליטים איך זה ייראה. מרכיבים, משנים ומשדרגים – הכול בידיים שלכם.",
-      subtitle: "עיצוב. גמישות. חופש."
-    },
-    {
-      title: "בונים מקום – ביחד",
-      text: "שולחנות בר, ספסלים, בוטים ונדנדות – כל אחד יכול להרכיב לעצמו או כקבוצה. מתאים לפאבים, פופ-אפים, מסיבות גינה או מתחמי אירועים.",
-      subtitle: "יחד זה פשוט יותר."
-    },
-    {
-      title: "מתאים לכל פינה ולכל מטרה",
-      text: "בין אם זה בחצר, במשרד או בבית – הרהיט שלכם משתלב בכל מקום.",
-      subtitle: "חזק. איכותי. ורסטילי."
-    }
-  ];
 
   
 
@@ -150,8 +113,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     // משיכת כל הקורות (אם קיים endpoint) ואז המוצרים
     this.loadBeamsAndProducts();
     
-    // התחלת אנימציית הכרטיסיות
-    this.startCardAnimation();
 
     // התחלת החלפת התמונות
     this.startImageRotation();
@@ -516,61 +477,5 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
       return updatedParam;
     });
   }
-
-  // פונקציות לאנימציה סינוסואידית
-  trackByCardId(index: number, card: any): string {
-    return card.id;
-  }
-
-  startCardAnimation(): void {
-    // המתנה לטעינת התרגום
-    setTimeout(() => {
-      // התחלה עם הכרטיסיה הראשונה
-      this.animateNextCard(0);
-    }, 1000);
-  }
-
-  animateNextCard(cardIndex: number): void {
-    // אם סיימנו את כל הכרטיסיות - מתחילים מחדש
-    if (cardIndex >= this.cardTemplates.length) {
-      // מתחילים מחזור חדש מהכרטיסיה הראשונה
-      setTimeout(() => {
-        this.animateNextCard(0);
-      }, 10000); // המתנה של 10 שניות לפני תחילת מחזור חדש
-      return;
-    }
-
-    // הפעלת הכרטיסיה הנוכחית
-    this.animateSingleCard(cardIndex);
-    
-    // הפעלת הכרטיסיה הבאה אחרי שהנוכחית מסיימת את האנימציה המלא (10 שניות)
-    setTimeout(() => {
-      this.animateNextCard(cardIndex + 1);
-    }, 10000); // 10 שניות - זמן האנימציה המלא
-  }
-
-  animateSingleCard(cardIndex: number): void {
-    // יצירת כרטיסיה עם ערכים רנדומליים
-    const cardTemplate = this.cardTemplates[cardIndex];
-    const card = {
-      id: `card-${Date.now()}-${cardIndex}`,
-      title: cardTemplate.title,
-      text: cardTemplate.text,
-      subtitle: cardTemplate.subtitle,
-      delay: 0,
-      amplitude: 50 + Math.random() * 100, // רנדומלי 50-150px
-      frequency: 1.5 + Math.random() * 1.5, // רנדומלי 1.5-3
-      phase: Math.random() * 360 // רנדומלי 0-360 מעלות
-    };
-    
-    this.animatedCards.push(card);
-    
-    // הסרת כרטיסיה אחרי 10 שניות - זה הסוף
-    setTimeout(() => {
-      const index = this.animatedCards.findIndex(c => c.id === card.id);
-      if (index > -1) {
-        this.animatedCards.splice(index, 1);
-      }
-    }, 10000);
-  }
 }
+
