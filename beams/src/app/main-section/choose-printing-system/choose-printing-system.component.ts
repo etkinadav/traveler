@@ -440,15 +440,19 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   }
 
   animateNextCard(cardIndex: number): void {
-    // אם סיימנו את כל הכרטיסיות - זה הסוף
+    // אם סיימנו את כל הכרטיסיות - מתחילים מחדש
     if (cardIndex >= this.cardTemplates.length) {
+      // מתחילים מחזור חדש מהכרטיסיה הראשונה
+      setTimeout(() => {
+        this.animateNextCard(0);
+      }, 10000); // המתנה של 10 שניות לפני תחילת מחזור חדש
       return;
     }
 
     // הפעלת הכרטיסיה הנוכחית
     this.animateSingleCard(cardIndex);
     
-    // הפעלת הכרטיסיה הבאה אחרי שהנוכחית מסיימת את האנימציה (10 שניות)
+    // הפעלת הכרטיסיה הבאה אחרי שהנוכחית מסיימת את האנימציה המלא (10 שניות)
     setTimeout(() => {
       this.animateNextCard(cardIndex + 1);
     }, 10000); // 10 שניות - זמן האנימציה המלא
