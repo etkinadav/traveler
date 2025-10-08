@@ -37,24 +37,24 @@
                                 <article class="printing-service-btn-con d-flex flex-column gap-3">
                                      <!-- Products BTNs -->
                                      <div class="row g-3">
-                                         <!-- כותרת "מה בונים היום" - כרטיסייה ראשונה כמו מוצר רגיל -->
-                                         <div class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
-                                              [class.step-item-dark]="isDarkMode">
+                                         <!-- כותרות "מה בונים היום" - כמות לפי האלמנטים בשורה -->
+                                         <div *ngFor="let titleCard of getTitleCards(); let i = index" 
+                                              class="col-12 col-md-6 step-item-trans-product step-item d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                              [class.step-item-dark]="isDarkMode"
+                                              [class.title-card-first]="i === 0"
+                                              [class.title-card-empty]="i > 0">
                                              <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
                                                  <h6 class="fw-bold zx-text-big text-center" 
                                                      style="color: var(--zx-green) !important;">
-                                                     {{'choose-system.step-1' | translate}}
+                                                     <ng-container *ngIf="i === 0">{{'choose-system.step-1' | translate}}</ng-container>
+                                                     <ng-container *ngIf="i > 0">-</ng-container>
                                                  </h6>
-                                                 <!-- טקסט נוסף לצורך בדיקה -->
-                                                 <span class="zx-text-tiny text-center text-muted mt-2">
-                                                     כמות אלמנטים בשורה: {{elementsPerRow}}
-                                                 </span>
                                              </div>
                                          </div>
                                          
-                                         <!-- מצב טעינה - 3 כרטיסי דמה -->
+                                         <!-- מצב טעינה - כרטיסי דמה בכמות של פעמיים ה"כמות אלמנטים בשורה" -->
                                          <ng-container *ngIf="isLoading">
-                                             <div *ngFor="let item of [1,2,3]; let i = index" 
+                                             <div *ngFor="let item of getLoadingItems(); let i = index" 
                                                  class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
                                                  [class.step-item-dark]="isDarkMode">
                                             <!-- כפתור המשך למוצר -->
@@ -77,10 +77,6 @@
                                                     &nbsp;
                                                 </span>
                                             </div>
-                                             </div>
-                                             <!-- כרטיסייה דמה למספר אי-זוגי של מוצרים -->
-                                             <div class="col-12 col-md-6 step-item-trans-product d-none d-md-block"
-                                                 style="visibility: hidden; pointer-events: none;">
                                              </div>
                                          </ng-container>
                                          
@@ -127,12 +123,6 @@
                                         </div>
                                         </div>
                                         </ng-container>
-                                        
-                                         <!-- כרטיסייה דמה למספר אי-זוגי של מוצרים -->
-                                         <div *ngIf="!isLoading && products.length % 2 !== 0" 
-                                             class="col-12 col-md-6 step-item-trans-product d-none d-md-block"
-                                             style="visibility: hidden; pointer-events: none;">
-                                         </div>
                                     </div>
                                 
                                 </article>

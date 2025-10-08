@@ -78,6 +78,17 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   // משתנה לעקיבה אחרי כמות האלמנטים ברוחב המסך
   elementsPerRow: number = 1; // ברירת מחדל - מובייל
 
+  // פונקציה לקבלת כמות מוצרי הטעינה (פעמיים כמות האלמנטים בשורה)
+  getLoadingItems(): number[] {
+    const count = this.elementsPerRow * 2;
+    return Array(count).fill(0).map((_, index) => index + 1);
+  }
+
+  // פונקציה לקבלת כרטיסיות כותרת (כמות האלמנטים בשורה)
+  getTitleCards(): number[] {
+    return Array(this.elementsPerRow).fill(0).map((_, index) => index + 1);
+  }
+
   // פונקציה לעדכון כמות האלמנטים ברוחב המסך
   // מחשבת כמה כרטיסיות נכנסות בשורה לפי הרוחב הזמין
   updateElementsPerRow(): void {

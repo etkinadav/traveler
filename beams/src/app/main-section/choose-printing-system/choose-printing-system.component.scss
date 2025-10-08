@@ -855,7 +855,29 @@
   isolation: isolate; // מבודד את ה-z-index של כל כרטיסית
 }
 
-// אנימציית ripple
+// כרטיסיית הכותרת הראשונה - רגילה עם רקע וצל
+.title-card-first {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 0 !important;
+  backdrop-filter: blur(4px) !important;
+  border: none !important;
+}
+
+// כרטיסיות כותרת נוספות - שקופות לחלוטין
+.title-card-empty {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  pointer-events: none !important;
+  
+  h6 {
+    opacity: 0.1 !important; // שקיפות מירבית לטקסט "-"
+    color: var(--zx-green) !important;
+  }
+}
 @keyframes ripple {
   to {
     transform: scale(4);
