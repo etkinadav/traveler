@@ -23,20 +23,6 @@
 
                 <section class="d-flex flex-column w-100 vh-100-sm-none flex-shrink-0">
 
-                    <article class="w-100 d-flex flex-column gap-2">
-
-                        <div class="w-100 d-flex flex-column justify-content-between px-3 pt-4 pt-md-2 pb-4" style="padding-bottom: 1.8125rem !important;">
-
-                            <div class="w-100 d-flex justify-content-center justify-content-md-between align-items-center">
-                                <h6 class="mb-0 fw-bold zx-text-title-main" 
-                                    style="color: var(--zx-green) !important;">
-                                    {{'choose-system.step-1' | translate}}
-                                </h6>
-                            </div>
-
-                        </div>
-                    </article>
-
                     <article id="buttonElement"
                         class="zx-about-con-down w-100 d-flex flex-column gap-2 position-sticky top-0 flex-grow-1"
                         [class.zx-dark-gb]="isDarkMode">
@@ -51,6 +37,22 @@
                                 <article class="printing-service-btn-con d-flex flex-column gap-3">
                                      <!-- Products BTNs -->
                                      <div class="row g-3">
+                                         <!-- כותרת "מה בונים היום" - כרטיסייה ראשונה כמו מוצר רגיל -->
+                                         <div class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                              [class.step-item-dark]="isDarkMode">
+                                             <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
+                                                 <h6 class="fw-bold zx-text-big text-center" 
+                                                     style="color: var(--zx-green) !important;">
+                                                     {{'choose-system.step-1' | translate}}
+                                                 </h6>
+                                             </div>
+                                         </div>
+                                         
+                                         <!-- כרטיסייה ריקה למלא את השורה בדסקטופ -->
+                                         <div class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative empty-card d-none d-md-block"
+                                              [class.step-item-dark]="isDarkMode">
+                                         </div>
+                                         
                                          <!-- מצב טעינה - 3 כרטיסי דמה -->
                                          <ng-container *ngIf="isLoading">
                                              <div *ngFor="let item of [1,2,3]; let i = index" 
