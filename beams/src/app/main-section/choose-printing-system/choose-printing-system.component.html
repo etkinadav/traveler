@@ -37,12 +37,12 @@
                                 <article class="printing-service-btn-con d-flex flex-column gap-3">
                                      <!-- Products BTNs -->
                                      <div class="products-grid">
-                                         <!-- כותרות "מה בונים היום" - כמות לפי האלמנטים בשורה -->
-                                         <div *ngFor="let titleCard of getTitleCards(); let i = index" 
-                                              class="product-card-wrapper step-item-trans-product step-item d-flex p-2 align-items-center justify-content-center position-relative"
-                                              [class.step-item-dark]="isDarkMode"
-                                              [class.title-card-first]="i === 0"
-                                              [class.title-card-empty]="i > 0">
+                                        <!-- כותרות "מה בונים היום" - כמות לפי האלמנטים בשורה -->
+                                        <div *ngFor="let titleCard of getTitleCards(); let i = index" 
+                                             class="product-card-wrapper step-item-trans-product step-item d-flex p-1 align-items-center justify-content-center position-relative"
+                                             [class.step-item-dark]="isDarkMode"
+                                             [class.title-card-first]="i === 0"
+                                             [class.title-card-empty]="i > 0">
                                              <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
                                                  <h6 class="fw-bold zx-text-big text-center" 
                                                      style="color: var(--zx-green) !important;">
@@ -52,11 +52,11 @@
                                              </div>
                                          </div>
                                          
-                                         <!-- מצב טעינה - כרטיסי דמה בכמות של פעמיים ה"כמות אלמנטים בשורה" -->
-                                         <ng-container *ngIf="isLoading">
-                                             <div *ngFor="let item of getLoadingItems(); let i = index" 
-                                                 class="product-card-wrapper step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 align-items-center justify-content-center position-relative"
-                                                 [class.step-item-dark]="isDarkMode">
+                                        <!-- מצב טעינה - כרטיסי דמה בכמות של פעמיים ה"כמות אלמנטים בשורה" -->
+                                        <ng-container *ngIf="isLoading">
+                                            <div *ngFor="let item of getLoadingItems(); let i = index" 
+                                                class="product-card-wrapper step-item-trans-product step-item shadow-85 white-background-card d-flex p-1 align-items-center justify-content-center position-relative"
+                                                [class.step-item-dark]="isDarkMode">
                                             <!-- כפתור המשך למוצר -->
                                             <button mat-stroked-button 
                                                     class="continue-to-product-btn opacity-75 loading-button-shine" 
@@ -80,14 +80,14 @@
                                              </div>
                                          </ng-container>
                                          
-                                         <!-- מצב רגיל - מוצרים אמיתיים -->
-                                         <ng-container *ngIf="!isLoading">
-                                             <div *ngFor="let product of products; let i = index" 
-                                                 (mouseenter)="onHoverProduct(product)"
-                                                 (mouseleave)="onHoverProduct(null)"
-                                                 [class.zx-step-choosen]="selectedProduct?._id === product._id"
-                                                 class="product-card-wrapper step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 align-items-center justify-content-center position-relative"
-                                                 [class.step-item-dark]="isDarkMode">
+                                        <!-- מצב רגיל - מוצרים אמיתיים -->
+                                        <ng-container *ngIf="!isLoading">
+                                            <div *ngFor="let product of products; let i = index" 
+                                                (mouseenter)="onHoverProduct(product)" 
+                                                (mouseleave)="onHoverProduct(null)" 
+                                                [class.zx-step-choosen]="selectedProduct?._id === product._id" 
+                                                class="product-card-wrapper step-item-trans-product step-item shadow-85 white-background-card d-flex p-1 align-items-center justify-content-center position-relative"
+                                                [class.step-item-dark]="isDarkMode">
                                         <!-- כפתור המשך למוצר -->
                                         <button mat-stroked-button 
                                                 class="continue-to-product-btn rounded-2" 

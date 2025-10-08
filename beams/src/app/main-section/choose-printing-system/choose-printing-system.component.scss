@@ -514,12 +514,12 @@
 }
 
 .zx-big-icon-size-trans {
-    width: 250px;
-    height: 250px;
-    min-width: 250px;
-    min-height: 250px;
-    max-width: 250px;
-    max-height: 250px;
+    width: 220px;
+    height: 220px;
+    min-width: 220px;
+    min-height: 220px;
+    max-width: 220px;
+    max-height: 220px;
     transition: 800ms;
 }
 
@@ -885,7 +885,7 @@
   width: 280px !important; // רוחב קבוע
   height: fit-content; // גובה מותאם לתוכן
   margin: 0 auto 7px auto; // מירכוז אוטומטי + רווח תחתון
-  padding: 0; // ללא padding כלפי חוץ
+  padding: 4px !important; // padding מינימלי (זהה ל-p-1)
   box-sizing: border-box; // וידוא שה-width כולל padding
   position: relative;
   isolation: isolate; // מבודד את ה-z-index של כל כרטיסית
