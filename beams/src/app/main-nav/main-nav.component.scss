@@ -283,6 +283,22 @@ button.mat-icon-hanburger-con {
   object-fit: contain;
 }
 
+// לוגו קטן - רק במובייל
+.ondi-logo-small-mobile {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+// לוגו גדול - רק במסכים גדולים
+.ondi-logo-desktop {
+  display: none;
+  width: 130px;
+  height: 43px;
+  object-fit: contain;
+}
+
 @media only screen and (max-width: 768px) {
   .ondi-logo {
     width: 105px;
@@ -293,6 +309,36 @@ button.mat-icon-hanburger-con {
     width: 35px;
     height: 35px;
   }
+  
+  .ondi-logo-small-mobile {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+// במסכים מעל 576px - הצג רק לוגו גדול
+@media only screen and (min-width: 576px) {
+  .ondi-logo-small-mobile {
+    display: none !important;
+  }
+  
+  .ondi-logo-desktop {
+    display: flex !important;
+  }
+}
+
+// ברכת המשתמש - ממוקמת בצד של הלוגו
+.navbar-greeting {
+  left: 50%;
+  transform: translateX(80px); // מרחק מהלוגו
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.navbar-greeting-rtl {
+  left: auto;
+  right: 50%;
+  transform: translateX(-80px); // מרחק מהלוגו בכיוון RTL
 }
 
 // אנימציה להמבורגר - בוטלה
