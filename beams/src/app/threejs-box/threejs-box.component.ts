@@ -791,7 +791,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 
                 if (lastFullId === currentFullId) {
                     console.log('CHACK-BEAM-MINI: [threejs-box] Same sub-product, loading saved configuration');
-                    this.loadConfiguration();
+                this.loadConfiguration();
                 } else {
                     console.log('CHACK-BEAM-MINI: [threejs-box] Different sub-product, not loading configuration');
                 }

@@ -90,27 +90,26 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   }
 
   // פונקציה לעדכון כמות האלמנטים ברוחב המסך
-  // מחשבת כמה כרטיסיות נכנסות בשורה לפי הרוחב הזמין
+  // נקודות קפיצה hardcoded - מסונכרן בדיוק עם ה-CSS:
+  // 0-629px: 1 בשורה
+  // 630-939px: 2 בשורה
+  // 940-1219px: 3 בשורה
+  // 1220px+: 4 בשורה
   updateElementsPerRow(): void {
     const windowWidth = window.innerWidth;
-    console.log('Window width:', windowWidth); // לצורך דיבוג
     
-    // חישוב רוחב זמין (מינוס padding של ה-row)
-    const availableWidth = windowWidth - 30; // 15px padding מכל צד
+    // Hardcoded breakpoints - בדיוק כמו ב-CSS
+    if (windowWidth >= 1220) {
+      this.elementsPerRow = 4; // 1220px ומעלה
+    } else if (windowWidth >= 940) {
+      this.elementsPerRow = 3; // 940-1219px
+    } else if (windowWidth >= 630) {
+      this.elementsPerRow = 2; // 630-939px
+    } else {
+      this.elementsPerRow = 1; // 0-629px
+    }
     
-    // רוחב כרטיסייה ממוצע (כולל gap)
-    const cardWidth = 280; // max-width של step-item-trans-product
-    const gap = 15; // gap בין כרטיסיות
-    
-    // חישוב כמה כרטיסיות נכנסות
-    let cardsPerRow = Math.floor((availableWidth + gap) / (cardWidth + gap));
-    
-    // הגבלות מינימליות ומקסימליות
-    cardsPerRow = Math.max(1, Math.min(4, cardsPerRow));
-    
-    this.elementsPerRow = cardsPerRow;
-    console.log('Available width:', availableWidth);
-    console.log('Elements per row:', this.elementsPerRow);
+    console.log('Window width:', windowWidth, 'px | Cards per row:', this.elementsPerRow);
   }
 
   

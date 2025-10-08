@@ -43,33 +43,57 @@
   width: 100% !important;
 }
 
-// תיקון רווחים בין המוצרים להיות זהה לרווח מהצדדים
-.zx-settings-nav .row {
+// Grid מותאם אישית ללא Bootstrap - עם המידות המדויקות:
+// 0-629px: 1 בשורה
+// 630-939px: 2 בשורה
+// 940-1219px: 3 בשורה
+// 1220px+: 4 בשורה
+
+.products-grid {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.products-grid .product-card-wrapper {
+  flex: 0 0 auto;
+  padding: 5px; // רווח פנימי בין כרטיסיות
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  // ה-wrapper יהיה בדיוק בגודל הכרטיסיה + padding
+  width: 290px; // 280px כרטיסיה + 10px padding (5px מכל צד)
+}
+
+// ברירת מחדל: 1 בשורה (0-629px)
+.products-grid .product-card-wrapper {
   width: 100% !important;
-  max-width: 100% !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  padding-left: 15px !important; // רווח מהצדדים
-  padding-right: 15px !important; // רווח מהצדדים
 }
 
-.zx-settings-nav .col-12,
-.zx-settings-nav .col-md-6 {
-  padding-left: 15px !important; // רווח בין המוצרים
-  padding-right: 15px !important; // רווח בין המוצרים
-}
-
-// עקיפת Bootstrap breakpoint של col-md-6 - דחיית ה-breakpoint ב-20px
-// Bootstrap משתמש ב-768px, אנחנו רוצים 788px
-@media only screen and (max-width: 787px) {
-  .zx-settings-nav .col-md-6 {
-    // במסכים קטנים - החזרת התנהגות col-12
-    flex: 0 0 auto !important;
-    width: 100% !important;
+// 630-939px: 2 בשורה - wrapper בגודל קבוע
+@media only screen and (min-width: 630px) and (max-width: 939px) {
+  .products-grid .product-card-wrapper {
+    width: 290px !important; // גודל קבוע: כרטיסיה + padding
+    flex: 0 0 290px !important;
   }
-  
-  .zx-settings-nav .d-md-block {
-    display: none !important;
+}
+
+// 940-1219px: 3 בשורה - wrapper בגודל קבוע
+@media only screen and (min-width: 940px) and (max-width: 1219px) {
+  .products-grid .product-card-wrapper {
+    width: 290px !important; // גודל קבוע: כרטיסיה + padding
+    flex: 0 0 290px !important;
+  }
+}
+
+// 1220px ומעלה: 4 בשורה - wrapper בגודל קבוע
+@media only screen and (min-width: 1220px) {
+  .products-grid .product-card-wrapper {
+    width: 290px !important; // גודל קבוע: כרטיסיה + padding
+    flex: 0 0 290px !important;
   }
 }
 
@@ -357,11 +381,12 @@
   gap: 15px;
   align-items: center;
   text-align: center;
-  min-width: 250px; // רוחב מינימלי קטן יותר
-  max-width: 280px; // הגבלת רוחב מקסימלי קטן יותר
-  margin: 0 auto; // מירכוז הכרטיס
-  margin-top: 15px; // רווח עליון בין כרטיסיות - זהה לרווח מהצדדים
+  // רוחב קבוע לכרטיסיה - תמיד 280px
+  width: 280px !important; // רוחב קבוע
   height: fit-content; // גובה מותאם לתוכן
+  margin: 0 auto 7px auto; // מירכוז אוטומטי + רווח תחתון
+  padding: 0; // ללא padding כלפי חוץ
+  box-sizing: border-box; // וידוא שה-width כולל padding
 }
 
 // Gradient לכפתורי "המשך ל" - עבר ל-styles.scss גלובלי

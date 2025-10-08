@@ -27,7 +27,7 @@
                         class="zx-about-con-down w-100 d-flex flex-column gap-2 position-sticky top-0 flex-grow-1"
                         [class.zx-dark-gb]="isDarkMode">
                         <article
-                            class="w-100 d-flex flex-column gap-2 flex-grow-1 justify-content-end justify-content-md-start px-3 px-md-0 flex-grow-1">
+                            class="w-100 d-flex flex-column gap-2 flex-grow-1 justify-content-end justify-content-md-start flex-grow-1">
 
                             <!-- printingService BTNs and scroll container -->
                             <article
@@ -36,10 +36,10 @@
                                 <!-- printingService BTNs -->
                                 <article class="printing-service-btn-con d-flex flex-column gap-3">
                                      <!-- Products BTNs -->
-                                     <div class="row g-3">
+                                     <div class="products-grid">
                                          <!-- כותרות "מה בונים היום" - כמות לפי האלמנטים בשורה -->
                                          <div *ngFor="let titleCard of getTitleCards(); let i = index" 
-                                              class="col-12 col-md-6 step-item-trans-product step-item d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                              class="product-card-wrapper step-item-trans-product step-item d-flex p-2 align-items-center justify-content-center position-relative"
                                               [class.step-item-dark]="isDarkMode"
                                               [class.title-card-first]="i === 0"
                                               [class.title-card-empty]="i > 0">
@@ -55,7 +55,7 @@
                                          <!-- מצב טעינה - כרטיסי דמה בכמות של פעמיים ה"כמות אלמנטים בשורה" -->
                                          <ng-container *ngIf="isLoading">
                                              <div *ngFor="let item of getLoadingItems(); let i = index" 
-                                                 class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                                 class="product-card-wrapper step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 align-items-center justify-content-center position-relative"
                                                  [class.step-item-dark]="isDarkMode">
                                             <!-- כפתור המשך למוצר -->
                                             <button mat-stroked-button 
@@ -86,7 +86,7 @@
                                                  (mouseenter)="onHoverProduct(product)"
                                                  (mouseleave)="onHoverProduct(null)"
                                                  [class.zx-step-choosen]="selectedProduct?._id === product._id"
-                                                 class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
+                                                 class="product-card-wrapper step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 align-items-center justify-content-center position-relative"
                                                  [class.step-item-dark]="isDarkMode">
                                         <!-- כפתור המשך למוצר -->
                                         <button mat-stroked-button 
