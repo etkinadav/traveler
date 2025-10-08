@@ -70,6 +70,26 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     return this.textureLoader.load(texturePath);
   }
 
+  // פונקציה עזר לבחירת קורה לפי defaultType
+  private getBeamIndexByDefaultType(param: any): number {
+    let beamIndex = param.selectedBeamIndex || 0;
+    
+    // אם יש defaultType, מחפשים את הקורה המתאימה לפי ה-ID
+    if (param.defaultType && !param.selectedBeamIndex && param.beams && param.beams.length > 0) {
+      const defaultTypeId = param.defaultType.$oid || param.defaultType._id || param.defaultType;
+      const foundIndex = param.beams.findIndex((b: any) => {
+        const beamId = b._id || b.$oid;
+        return beamId === defaultTypeId;
+      });
+      if (foundIndex !== -1) {
+        beamIndex = foundIndex;
+        console.log(`CHACK-BEAM-MINI: 🎯 בחירת קורת ${param.name} לפי defaultType: ${defaultTypeId} -> index ${beamIndex}`);
+      }
+    }
+    
+    return beamIndex;
+  }
+
   private meshes: THREE.Mesh[] = [];
   private target = new THREE.Vector3(0, 0, 0);
   private spherical = new THREE.Spherical();
@@ -1039,7 +1059,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // בדיקה לפי סוג הפרמטר עבור קורות
       if (param.type === 'beamSingle') {
         if (param.beams && param.beams.length > 0) {
-          const beam = param.beams[param.selectedBeamIndex || 0];
+          const beamIndex = this.getBeamIndexByDefaultType(param);
+          const beam = param.beams[beamIndex];
           console.log('beamSingle beam:', beam);
           // החלפה: width של הפרמטר הופך ל-height של הקורה, height של הפרמטר הופך ל-width של הקורה
           const beamWidth = beam.width || 50; // ברירת מחדל 50 מ"מ
@@ -1050,7 +1071,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         }
       } else if (param.type === 'beamArray' && param.name === 'shelfs') {
         if (param.beams && param.beams.length > 0) {
-          const beam = param.beams[param.selectedBeamIndex || 0];
+          const beamIndex = this.getBeamIndexByDefaultType(param);
+          const beam = param.beams[beamIndex];
           console.log('shelfs beam:', beam);
           // המרה ממ"מ לס"מ כמו בקובץ הראשי
           const beamWidth = beam.width || 100; // ברירת מחדל 100 מ"מ
@@ -1070,7 +1092,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       } else if (isTable && param.type === 'beamSingle' && param.name === 'plata') {
         // שולחן - טיפול בפרמטר plata
         if (param.beams && param.beams.length > 0) {
-          const beam = param.beams[param.selectedBeamIndex || 0];
+          const beamIndex = this.getBeamIndexByDefaultType(param);
+          const beam = param.beams[beamIndex];
           console.log('plata beam:', beam);
           // המרה ממ"מ לס"מ כמו בקובץ הראשי
           const beamWidth = beam.width || 100; // ברירת מחדל 100 מ"מ
@@ -1090,7 +1113,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       } else if ((isPlanter || isBox) && param.name === 'beam') {
         // עדנית או קופסא - טיפול בפרמטר beam
         if (param.beams && param.beams.length > 0) {
-          const beam = param.beams[param.selectedBeamIndex || 0];
+          const beamIndex = this.getBeamIndexByDefaultType(param);
+          const beam = param.beams[beamIndex];
           console.log(isBox ? 'box beam:' : 'planter beam:', beam);
           // המרה ממ"מ לס"מ כמו בקובץ הראשי
           const beamWidth = beam.width || 50; // ברירת מחדל 50 מ"מ
@@ -1174,7 +1198,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
       console.log('selectedBeamIndex:', shelfsParam.selectedBeamIndex);
       console.log('selectedBeamTypeIndex:', shelfsParam.selectedBeamTypeIndex);
-      shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+      const shelfBeamIndex = this.getBeamIndexByDefaultType(shelfsParam);
+      shelfBeam = shelfsParam.beams[shelfBeamIndex];
       console.log('shelfBeam:', shelfBeam);
       console.log('shelfBeam.types:', shelfBeam ? shelfBeam.types : 'null');
       shelfType = shelfBeam.types && shelfBeam.types.length ? shelfBeam.types[shelfsParam.selectedBeamTypeIndex || 0] : null;
@@ -1193,7 +1218,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
       console.log('frameParam.selectedBeamIndex:', frameParam.selectedBeamIndex);
       console.log('frameParam.selectedBeamTypeIndex:', frameParam.selectedBeamTypeIndex);
-      frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
+      const frameBeamIndex = this.getBeamIndexByDefaultType(frameParam);
+      frameBeam = frameParam.beams[frameBeamIndex];
       console.log('frameBeam:', frameBeam);
       console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
       frameType = frameBeam.types && frameBeam.types.length ? frameBeam.types[frameParam.selectedBeamTypeIndex || 0] : null;
@@ -1485,7 +1511,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
       console.log('selectedBeamIndex:', shelfsParam.selectedBeamIndex);
       console.log('selectedBeamTypeIndex:', shelfsParam.selectedBeamTypeIndex);
-      shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+      const shelfBeamIndex = this.getBeamIndexByDefaultType(shelfsParam);
+      shelfBeam = shelfsParam.beams[shelfBeamIndex];
       console.log('shelfBeam:', shelfBeam);
       console.log('shelfBeam.types:', shelfBeam ? shelfBeam.types : 'null');
       shelfType = shelfBeam.types && shelfBeam.types.length ? shelfBeam.types[shelfsParam.selectedBeamTypeIndex || 0] : null;
@@ -1504,7 +1531,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
       console.log('frameParam.selectedBeamIndex:', frameParam.selectedBeamIndex);
       console.log('frameParam.selectedBeamTypeIndex:', frameParam.selectedBeamTypeIndex);
-      frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
+      const frameBeamIndex = this.getBeamIndexByDefaultType(frameParam);
+      frameBeam = frameParam.beams[frameBeamIndex];
       console.log('frameBeam:', frameBeam);
       console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
       frameType = frameBeam.types && frameBeam.types.length ? frameBeam.types[frameParam.selectedBeamTypeIndex || 0] : null;

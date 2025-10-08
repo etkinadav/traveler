@@ -429,6 +429,14 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
           // עדכון הפרמטרים לפי דגם המשנה
           clonedProduct.params = this.updateParamsWithConfiguration(clonedProduct.params, configIndex, product);
           
+          console.log(`CHACK-BEAM-MINI: ✅ מוצר שנוצר: ${clonedProduct.translatedName}`);
+          console.log(`CHACK-BEAM-MINI:    📋 פרמטרים מעודכנים:`, clonedProduct.params.map((p: any) => ({
+            name: p.name,
+            default: p.default,
+            defaultType: p.defaultType,
+            beamsConfigurations: p.beamsConfigurations
+          })));
+          
           processedProducts.push(clonedProduct);
         });
       } else {
@@ -442,40 +450,60 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   
   // פונקציה לעדכון פרמטרים לפי דגם משנה
   updateParamsWithConfiguration(params: any[], configIndex: number, product: any): any[] {
+    console.log(`CHACK-BEAM-MINI: === עדכון פרמטרים למוצר: ${product.translatedName} (configuration #${configIndex}) ===`);
+    
     return params.map((param: any) => {
       const updatedParam = { ...param };
       
       // עדכון default לפי configurations
       if (param.configurations && param.configurations[configIndex] !== undefined) {
+        console.log(`CHACK-BEAM-MINI: 📝 עדכון default עבור ${param.name}: ${param.default} -> ${param.configurations[configIndex]}`);
         updatedParam.default = param.configurations[configIndex];
       }
       
       // עדכון beamsConfigurations - מציאת הקורה לפי name מתוך רשימת beams של אותו אינפוט
-      if (param.beamsConfigurations && param.beamsConfigurations[configIndex] && param.beams && this.beamsLoaded) {
+      if (param.beamsConfigurations && param.beamsConfigurations[configIndex] && param.beams && param.beams.length > 0) {
         const beamName = param.beamsConfigurations[configIndex];
+        
+        console.log(`CHACK-BEAM-MINI: 🔍 מחפש קורה עבור פרמטר: ${param.name}`);
+        console.log(`CHACK-BEAM-MINI:    📌 שם קורה מבוקש: "${beamName}"`);
+        console.log(`CHACK-BEAM-MINI:    📌 defaultType לפני עדכון:`, param.defaultType);
+        console.log(`CHACK-BEAM-MINI:    📌 רשימת beams זמינות (${param.beams.length}):`, param.beams.map((b: any) => ({ id: b._id || b.$oid, name: b.name })));
         
         // חיפוש הקורה ברשימת beams של האינפוט
         let foundBeamId: string | null = null;
         
         for (const beamRef of param.beams) {
-          const beamId = beamRef.$oid || beamRef._id;
-          const beam = this.beamsMap.get(beamId);
+          // בדיקה אם beamRef הוא אובייקט מלא או רק ID
+          const beamId = beamRef.$oid || beamRef._id || beamRef;
           
-          if (beam && beam.name === beamName) {
+          // אופציה 1: ה-beamRef עצמו מכיל את כל המידע (כולל name)
+          if (beamRef.name === beamName) {
             foundBeamId = beamId;
+            console.log(`CHACK-BEAM-MINI:    ✅ נמצאה קורה ישירות: ${beamRef.name} (ID: ${foundBeamId})`);
             break;
+          }
+          
+          // אופציה 2: משתמשים ב-beamsMap אם קיים
+          if (this.beamsLoaded && this.beamsMap.size > 0) {
+            const beam = this.beamsMap.get(beamId);
+            if (beam && beam.name === beamName) {
+              foundBeamId = beamId;
+              console.log(`CHACK-BEAM-MINI:    ✅ נמצאה קורה דרך beamsMap: ${beam.name} (ID: ${foundBeamId})`);
+              break;
+            }
           }
         }
         
         if (foundBeamId) {
           // עדכון defaultType ל-ID של הקורה שנמצאה
           updatedParam.defaultType = { $oid: foundBeamId };
+          console.log(`CHACK-BEAM-MINI:    ✨ defaultType עודכן ל: { $oid: "${foundBeamId}" }`);
+          console.log(`CHACK-BEAM-MINI:    📊 updatedParam.defaultType:`, updatedParam.defaultType);
+        } else {
+          console.log(`CHACK-BEAM-MINI:    ❌ לא נמצאה קורה מתאימה - defaultType נשאר: `, updatedParam.defaultType);
         }
-        // אם לא נמצאה קורה ספציפית, updatedParam.defaultType יישאר כפי שהיה ב-param המקורי,
-        // וזה מתאים ל"שיטה הרגילה" של מוצר שאין לו את השדות החדשים.
       }
-      // אם אין param.beamsConfigurations או param.beams או this.beamsLoaded = false,
-      // אז updatedParam.defaultType יישאר כפי שהיה ב-param המקורי, וזה גם מתאים ל"שיטה הרגילה".
       
       return updatedParam;
     });
