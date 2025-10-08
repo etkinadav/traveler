@@ -56,26 +56,26 @@
                                              <div *ngFor="let item of [1,2,3]; let i = index" 
                                                  class="col-12 col-md-6 step-item-trans-product step-item shadow-85 white-background-card d-flex p-2 gap-md-3 align-items-center justify-content-center position-relative"
                                                  [class.step-item-dark]="isDarkMode">
-                                             <!-- כפתור המשך למוצר -->
-                                             <button mat-stroked-button 
-                                                     class="continue-to-product-btn opacity-75 loading-button-shine" 
-                                                     disabled>
-                                                 <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center loading-dots-shine">...</span>
-                                             </button>
+                                            <!-- כפתור המשך למוצר -->
+                                            <button mat-stroked-button 
+                                                    class="continue-to-product-btn opacity-75 loading-button-shine" 
+                                                    disabled>
+                                                <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center loading-dots-shine">&nbsp;</span>
+                                            </button>
                                              
                                              <div class="d-flex align-items-center gap-3">
                                                  <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded loading-shimmer">
                                                  </div>
                                              </div>
                                              
-                                             <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
-                                                 <h6 class="fw-bold zx-text-big text-center text-muted opacity-75">
-                                                     ...
-                                                 </h6>
-                                                 <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center text-green">
-                                                     ...
-                                                 </span>
-                                             </div>
+                                            <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
+                                                <h6 class="fw-bold zx-text-big text-center text-muted opacity-75">
+                                                    &nbsp;
+                                                </h6>
+                                                <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center text-green">
+                                                    &nbsp;
+                                                </span>
+                                            </div>
                                              </div>
                                              <!-- כרטיסייה דמה למספר אי-זוגי של מוצרים -->
                                              <div class="col-12 col-md-6 step-item-trans-product d-none d-md-block"
@@ -104,13 +104,13 @@
                                                 <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
                                                 <div class="product-3d-overlay" 
                                                      (click)="removeOverlay($event, miniPreview)"
-                                                     (mouseenter)="showHintForProduct(product._id)"
-                                                     (mouseleave)="hideHintForProduct(product._id)">
+                                                     (mouseenter)="showHintForProduct(product._id + '_' + i)"
+                                                     (mouseleave)="hideHintForProduct(product._id + '_' + i)">
                                                     <!-- טקסט הוראה בריחוף -->
                                                     <div class="overlay-hint" 
-                                                         [class.show]="showHintMap[product._id]"
-                                                         [@fadeInOut]="showHintMap[product._id] ? 'in' : 'out'">
-                                                        לחץ לשינוי זוית מבט
+                                                         [class.show]="showHintMap[product._id + '_' + i]"
+                                                         [@fadeInOut]="showHintMap[product._id + '_' + i] ? 'in' : 'out'">
+                                                        לחץ לשינוי המבט
                                                     </div>
                                                 </div>
                                             </div>

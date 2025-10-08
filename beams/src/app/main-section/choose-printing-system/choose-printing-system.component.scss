@@ -793,6 +793,12 @@
 
 
 
+// וידוא שה-product-icon הוא relative כדי שהכיסוי יהיה מוגבל אליו
+.product-icon {
+  position: relative !important;
+  isolation: isolate; // יוצר stacking context חדש
+}
+
 // כיסוי שקוף מעל המודלים התלת-ממדיים
 .product-3d-overlay {
   position: absolute;
@@ -805,6 +811,7 @@
   pointer-events: auto; // חוסם אינטראקציות עם המודל התלת-ממדי
   z-index: 10; // מעל המודל התלת-ממדי
   cursor: pointer; // עכבר לחיצה
+  isolation: isolate; // יוצר stacking context חדש - מבודד מהמוצרים האחרים
   
   // מניעת גלילה ומשיכה
   touch-action: none; // מונע משיכה במובייל
@@ -833,11 +840,19 @@
     pointer-events: none;
     white-space: nowrap;
     z-index: 11;
+    width: max-content; // רוחב מינימלי
+    max-width: 100%; // לא יוצא מהמסך
     
     &.show {
       opacity: 1;
     }
   }
+}
+
+// וידוא שכל כרטיסית מוצר היא בעלת stacking context עצמאי
+.step-item-trans-product {
+  position: relative;
+  isolation: isolate; // מבודד את ה-z-index של כל כרטיסית
 }
 
 // אנימציית ripple
