@@ -109,9 +109,9 @@
                                                                  (mouseenter)="showHintForProduct(product._id + '_' + i)"
                                                                  (mouseleave)="hideHintForProduct(product._id + '_' + i)">
                                                                 <!-- טקסט הוראה בריחוף -->
-                                                                <div class="overlay-hint" 
-                                                                     [class.show]="showHintMap[product._id + '_' + i]"
-                                                                     [@fadeInOut]="showHintMap[product._id + '_' + i] ? 'in' : 'out'">
+                                                                <div *ngIf="showHintMap[product._id + '_' + i]" 
+                                                                     class="overlay-hint show"
+                                                                     [@fadeInOut]>
                                                                     לחץ לשינוי המבט
                                                                 </div>
                                                             </div>

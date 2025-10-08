@@ -271,6 +271,13 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
       next: (data: any) => {
         // עיבוד המוצרים - שכפול לפי דגמי משנה
         this.products = this.processProductsWithConfigurations(data);
+        
+        // אתחול showHintMap לכל המוצרים כ-false
+        this.products.forEach((product, index) => {
+          const productKey = product._id + '_' + index;
+          this.showHintMap[productKey] = false;
+        });
+        
         this.isLoading = false;
       },
       error: (error) => {

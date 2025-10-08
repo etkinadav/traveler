@@ -774,6 +774,14 @@ body[dir='rtl'] .custom-tooltip {
     }
 }
 
+// כותרות "מה בונים היום" - ללא רקע
+.title-card-first,
+.title-card-empty {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 .step-item-no-height {
     background-color: white;
     border: 1px solid var(--zx-gray-v-light-opacity);
