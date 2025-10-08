@@ -51,6 +51,10 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   selectedProduct: any = null;
   hoveredProduct: any = null;
 
+  // מפה של קורות לפי ID
+  beamsMap: Map<string, any> = new Map();
+  beamsLoaded: boolean = false;
+
   // משתנים לתמונות מתחלפות
   imageKeys: string[] = ['kids', 'hangar', 'garden', 'flexable', 'beergarden', 'inside'];
   currentImageIndex: number = 0;
@@ -119,22 +123,16 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     private dialogService: DialogService,
     private translateService: TranslateService,
     private http: HttpClient) {
-    console.log('=== ChoosePrintingSystemComponent constructor התחיל ===');
-    console.log('HttpClient injected:', this.http);
     this.translateService.onLangChange.subscribe(() => {
       this.updatecontinueToServiceText();
     });
   }
 
   ngOnInit() {
-    console.log('=== ChoosePrintingSystemComponent ngOnInit התחיל ===');
-    
     // הצגת טקסט ברירת מחדל מיד כדי למנוע כרטיסאי ריקה
     this.displayedTitle = this.defaultTitle;
     this.displayedText = this.defaultText;
     this.displayedSubtitle = this.defaultSubtitle;
-    
-    console.log('טקסט ברירת מחדל:', { displayedTitle: this.displayedTitle, displayedText: this.displayedText, displayedSubtitle: this.displayedSubtitle });
     
     this.directionService.direction$.subscribe(direction => {
       this.isRTL = direction === 'rtl';
@@ -149,9 +147,8 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
       this.updatecontinueToServiceText();
     });
     
-    // משיכת כל המוצרים
-    console.log('קורא לפונקציה loadAllProducts');
-    this.loadAllProducts();
+    // משיכת כל הקורות (אם קיים endpoint) ואז המוצרים
+    this.loadBeamsAndProducts();
     
     // התחלת אנימציית הכרטיסיות
     this.startCardAnimation();
@@ -160,7 +157,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     this.startImageRotation();
     
     // עדכון טקסט ראשון - עם עיכוב קטן כדי לתת זמן לתרגום להיטען
-    console.log('מתחיל עדכון טקסט ראשון...');
     setTimeout(() => {
       this.updateTextImmediately();
     }, 100);
@@ -236,30 +232,41 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     }
   }
 
+  // פונקציה למשיכת קורות ואז מוצרים
+  loadBeamsAndProducts() {
+    // ניסיון למשוך קורות - אם נכשל, פשוט ממשיכים למוצרים
+    this.http.get('/api/beam').subscribe({
+      next: (data: any) => {
+        // יצירת מפה של קורות לפי ID
+        data.forEach((beam: any) => {
+          const beamId = beam._id || beam.$oid;
+          if (beamId) {
+            this.beamsMap.set(beamId, beam);
+          }
+        });
+        
+        this.beamsLoaded = true;
+        // טעינת מוצרים
+        this.loadAllProducts();
+      },
+      error: (error) => {
+        this.beamsLoaded = false;
+        // ממשיכים למוצרים גם בלי קורות
+        this.loadAllProducts();
+      }
+    });
+  }
+
   // פונקציה למשיכת כל המוצרים
   loadAllProducts() {
-    console.log('=== loadAllProducts התחיל ===');
     this.isLoading = true;
     this.error = null;
     
-    console.log('שולח בקשה ל-/api/products');
     this.http.get('/api/products').subscribe({
       next: (data: any) => {
-        this.products = data;
+        // עיבוד המוצרים - שכפול לפי דגמי משנה
+        this.products = this.processProductsWithConfigurations(data);
         this.isLoading = false;
-        console.log('=== כל המוצרים מהבקאנד ===');
-        console.log('כמות מוצרים:', data.length);
-        console.log('רשימת מוצרים:', data);
-        console.log('פירוט כל מוצר:');
-        data.forEach((product: any, index: number) => {
-          console.log(`מוצר ${index + 1}:`, {
-            id: product._id,
-            name: product.name,
-            params: product.params?.length || 0,
-            translatedName: product.translatedName || 'ללא שם'
-          });
-        });
-        console.log('=== סיום רשימת המוצרים ===');
       },
       error: (error) => {
         this.error = 'שגיאה בטעינת המוצרים';
@@ -291,7 +298,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   startImageRotation() {
     this.imageRotationInterval = setInterval(() => {
       this.currentImageIndex = (this.currentImageIndex + 1) % this.imageKeys.length;
-      console.log('תמונה וטקסט מתחלפים ל:', this.imageKeys[this.currentImageIndex]);
       
       // עדכון הטקסט עם התמונה
       this.updateTextImmediately();
@@ -322,10 +328,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     // הטקסט מתחלף עם התמונות
     const currentKey = this.imageKeys[this.currentImageIndex];
     
-    console.log('=== updateTextImmediately התחיל ===');
-    console.log('currentKey:', currentKey);
-    console.log('currentImageIndex:', this.currentImageIndex);
-    
     // עדכון מפתח האנימציה לחומר מעבר פשוט
     this.currentTransitionKey = 'card-' + currentKey + '-' + Date.now();
     
@@ -334,48 +336,29 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     const textKey = 'choose-system.empty-text-' + currentKey;
     const subtitleKey = 'choose-system.empty-subtitle-' + currentKey;
     
-    console.log('מפתחות תרגום:', { titleKey, textKey, subtitleKey });
-    
     const title = this.translateService.instant(titleKey);
     const text = this.translateService.instant(textKey);
     const subtitle = this.translateService.instant(subtitleKey);
     
-    console.log('תרגומים:', { title, text, subtitle, currentKey });
-    console.log('title.includes check:', title.includes('choose-system.empty-title-'));
-    
     // עדכון הטקסט
     if (!title.includes('choose-system.empty-title-')) {
       this.displayedTitle = title;
-      console.log('כותרת עודכנה ל:', this.displayedTitle);
-    } else {
-      console.log('כותרת לא עודכנה - תרגום לא מוכן');
     }
     
     if (!text.includes('choose-system.empty-text-')) {
       this.displayedText = text;
-      console.log('טקסט עודכן ל:', this.displayedText);
-    } else {
-      console.log('טקסט לא עודכן - תרגום לא מוכן');
     }
     
     if (!subtitle.includes('choose-system.empty-subtitle-')) {
       this.displayedSubtitle = subtitle;
-      console.log('סלוגן עודכן ל:', this.displayedSubtitle);
-    } else {
-      console.log('סלוגן לא עודכן - תרגום לא מוכן');
     }
-    
-    console.log('טקסט סופי:', { displayedTitle: this.displayedTitle, displayedText: this.displayedText, displayedSubtitle: this.displayedSubtitle });
     
     // אם התרגום עדיין לא עובד, retry אחרי זמן קצר
     if (title.includes('choose-system.empty-title-') || this.displayedTitle === '') {
-      console.log('מנסה שוב אחרי 500ms...');
       setTimeout(() => {
         this.updateTextImmediately();
       }, 500);
     }
-    
-    console.log('=== updateTextImmediately הסתיים ===');
   }
   
   // ==================
@@ -426,6 +409,78 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     }, 600);
   }
 
+  // פונקציה לעיבוד מוצרים עם דגמי משנה
+  processProductsWithConfigurations(products: any[]): any[] {
+    const processedProducts: any[] = [];
+    
+    products.forEach((product: any) => {
+      // בדיקה אם יש למוצר דגמי משנה (configurations ראשי)
+      if (product.configurations && product.configurations.length > 0) {
+        // שכפול המוצר לכל דגם משנה
+        product.configurations.forEach((config: any, configIndex: number) => {
+          // יצירת עותק עמוק של המוצר
+          const clonedProduct = JSON.parse(JSON.stringify(product));
+          
+          // שינוי שם המוצר לשם דגם המשנה
+          clonedProduct.translatedName = config.translatedName;
+          clonedProduct.configurationName = config.name;
+          clonedProduct.configurationIndex = configIndex;
+          
+          // עדכון הפרמטרים לפי דגם המשנה
+          clonedProduct.params = this.updateParamsWithConfiguration(clonedProduct.params, configIndex, product);
+          
+          processedProducts.push(clonedProduct);
+        });
+      } else {
+        // מוצר ללא דגמי משנה - מוסיף כמו שהוא
+        processedProducts.push(product);
+      }
+    });
+    
+    return processedProducts;
+  }
+  
+  // פונקציה לעדכון פרמטרים לפי דגם משנה
+  updateParamsWithConfiguration(params: any[], configIndex: number, product: any): any[] {
+    return params.map((param: any) => {
+      const updatedParam = { ...param };
+      
+      // עדכון default לפי configurations
+      if (param.configurations && param.configurations[configIndex] !== undefined) {
+        updatedParam.default = param.configurations[configIndex];
+      }
+      
+      // עדכון beamsConfigurations - מציאת הקורה לפי name מתוך רשימת beams של אותו אינפוט
+      if (param.beamsConfigurations && param.beamsConfigurations[configIndex] && param.beams && this.beamsLoaded) {
+        const beamName = param.beamsConfigurations[configIndex];
+        
+        // חיפוש הקורה ברשימת beams של האינפוט
+        let foundBeamId: string | null = null;
+        
+        for (const beamRef of param.beams) {
+          const beamId = beamRef.$oid || beamRef._id;
+          const beam = this.beamsMap.get(beamId);
+          
+          if (beam && beam.name === beamName) {
+            foundBeamId = beamId;
+            break;
+          }
+        }
+        
+        if (foundBeamId) {
+          // עדכון defaultType ל-ID של הקורה שנמצאה
+          updatedParam.defaultType = { $oid: foundBeamId };
+        }
+        // אם לא נמצאה קורה ספציפית, updatedParam.defaultType יישאר כפי שהיה ב-param המקורי,
+        // וזה מתאים ל"שיטה הרגילה" של מוצר שאין לו את השדות החדשים.
+      }
+      // אם אין param.beamsConfigurations או param.beams או this.beamsLoaded = false,
+      // אז updatedParam.defaultType יישאר כפי שהיה ב-param המקורי, וזה גם מתאים ל"שיטה הרגילה".
+      
+      return updatedParam;
+    });
+  }
+
   // פונקציות לאנימציה סינוסואידית
   trackByCardId(index: number, card: any): string {
     return card.id;
@@ -473,13 +528,11 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     };
     
     this.animatedCards.push(card);
-    console.log(`[${new Date().toLocaleTimeString()}] כרטיסיה ${cardIndex + 1} נוצרה:`, card.title);
     
     // הסרת כרטיסיה אחרי 10 שניות - זה הסוף
     setTimeout(() => {
       const index = this.animatedCards.findIndex(c => c.id === card.id);
       if (index > -1) {
-        console.log(`[${new Date().toLocaleTimeString()}] כרטיסיה ${cardIndex + 1} נמחקה:`, card.title);
         this.animatedCards.splice(index, 1);
       }
     }, 10000);
