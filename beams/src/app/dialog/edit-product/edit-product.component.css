@@ -50,6 +50,8 @@
     padding: 24px;
     max-height: 60vh;
     overflow-y: auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .model-name-section {
@@ -90,6 +92,8 @@
     margin-top: 24px;
     padding-top: 24px;
     border-top: 1px solid #e0e0e0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .params-list h3 {
@@ -107,6 +111,8 @@
     background: #f8f9fa;
     border-radius: 4px;
     margin-bottom: 8px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .param-item:last-child {
@@ -132,6 +138,8 @@
     padding: 16px 24px;
     border-top: 1px solid #e0e0e0;
     background: #f8f9fa;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .btn-cancel,
@@ -173,6 +181,8 @@
     
     .dialog-header {
         padding: 16px 20px;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .dialog-header h2 {
@@ -181,10 +191,14 @@
     
     .dialog-content {
         padding: 20px;
+        width: 100%;
+        box-sizing: border-box;
     }
     
     .dialog-actions {
         padding: 12px 20px;
+        width: 100%;
+        box-sizing: border-box;
     }
 }
 
