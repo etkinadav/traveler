@@ -2960,6 +2960,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     // פונקציה לחישוב חומרים (קורות) לחישוב מחיר
     async calculatePricing() {
+        // איפוס המחיר למצב "מחשב..." (0 מציג את הספינר)
+        this.calculatedPrice = 0;
+        
         await this.calculateBeamsData();
         
         // עבור מוצר קורות - אין ברגים, אבל עדיין צריך לקרוא ל-calculateForgingData
