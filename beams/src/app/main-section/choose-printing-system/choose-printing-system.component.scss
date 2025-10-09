@@ -72,16 +72,16 @@
   flex: 0 0 100% !important;
 }
 
-// 500-749px: 2 בשורה - wrapper תופס חצי מסך
-@media only screen and (min-width: 500px) and (max-width: 749px) {
+// 500-749.98px: 2 בשורה - wrapper תופס חצי מסך
+@media only screen and (min-width: 500px) and (max-width: 749.98px) {
   .products-grid .product-card-wrapper {
     width: calc(50% - 2.5px) !important; // 50% פחות חצי הpadding
     flex: 0 0 calc(50% - 2.5px) !important;
   }
 }
 
-// 750-999px: 3 בשורה - wrapper תופס שליש מסך
-@media only screen and (min-width: 750px) and (max-width: 999px) {
+// 750-999.98px: 3 בשורה - wrapper תופס שליש מסך
+@media only screen and (min-width: 750px) and (max-width: 999.98px) {
   .products-grid .product-card-wrapper {
     width: calc(33.333333% - 3.33px) !important; // שליש פחות חלק מהpadding
     flex: 0 0 calc(33.333333% - 3.33px) !important;

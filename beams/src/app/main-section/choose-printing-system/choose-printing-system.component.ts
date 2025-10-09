@@ -104,7 +104,8 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
   updateElementsPerRow(): void {
     const windowWidth = window.innerWidth;
     
-    // Hardcoded breakpoints - בדיוק כמו ב-CSS
+    // Breakpoints מותאמים בדיוק ל-CSS media queries
+    // שימוש ב->= כדי שיתאימו ל-min-width ב-CSS
     if (windowWidth >= 1000) {
       this.elementsPerRow = 4; // 1000px ומעלה
     } else if (windowWidth >= 750) {
@@ -114,7 +115,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
     } else {
       this.elementsPerRow = 1; // 0-499px
     }
-    
   }
 
   
