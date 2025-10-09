@@ -872,55 +872,67 @@
              *ngIf="isPriceManuOpen">
             <!-- כותרת דינמית -->
             <span class="thinking-text" *ngIf="!BeamsDataForPricing || BeamsDataForPricing.length === 0">{{ 'price-calculation.first-title' | translate }}...</span>
-            <span class="main-title" *ngIf="BeamsDataForPricing && BeamsDataForPricing.length > 0">חומרי גלם:</span>
             
-            <!-- סיכום קורות -->
-            <div class="materials-summary" *ngIf="BeamsDataForPricing && BeamsDataForPricing.length > 0">
-                <div class="sub-title">קורות:</div>
-                <div *ngFor="let beamData of BeamsDataForPricing" class="beam-name">
-                    <!-- כותרת סוג הקורה -->
-                    <div class="pricing-title">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type.translatedName }})</div>
-                    
-                    <!-- רשימת המידות -->
-                    <div *ngFor="let sizeData of beamData.totalSizes" class="size-item">
-                        <span class="size-value">{{ sizeData.length }} ס"מ</span>
-                        <span class="size-separator"></span>
-                        <span class="size-count">{{ sizeData.count }} {{ 'price-calculation.units' | translate }}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- סיכום ברגים -->
-            <div class="materials-summary" *ngIf="ForgingDataForPricing && ForgingDataForPricing.length > 0">
-                <div class="sub-title">ברגים:</div>
-                <div class="beam-type-section">
-                    <div *ngFor="let forgingData of ForgingDataForPricing" class="size-item">
-                        <span class="size-value">{{ forgingData.length }} ס"מ</span>
-                        <span class="size-separator"></span>
-                        <span class="size-count">{{ forgingData.count }} {{ 'price-calculation.units' | translate }}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- תוכנית חיתוך קורות -->
-            <div class="materials-summary" *ngIf="cuttingPlan && cuttingPlan.length > 0">
-                <div class="main-title">תוכנית חיתוך קורות:</div>
-                <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
-                    <!-- כותרת קורה -->
-                    <div class="beam-header">
-                        <div class="beam-number">{{ beam.beamNumber }}</div>
-                        <div class="beam-details-item">
-                            <span class="beam-text">{{ beam.beamType }} ({{ beam.beamWoodType }}) {{ beam.beamLength }} ס"מ</span>
-                            <span class="beam-separator" style="opacity: 0;"></span>
-                            <span class="beam-price">{{ beam.beamPrice }}₪</span>
+            <!-- קורות -->
+            <div class="beams-section" *ngIf="BeamsDataForPricing && BeamsDataForPricing.length > 0">
+                <div class="main-title">קורות</div>
+                
+                <!-- אורכים נדרשים -->
+                <div class="sub-title">אורכים נדרשים:</div>
+                <div class="materials-summary">
+                    <div *ngFor="let beamData of BeamsDataForPricing" class="beam-name">
+                        <!-- כותרת סוג הקורה -->
+                        <div class="pricing-title">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type.translatedName }})</div>
+                        
+                        <!-- רשימת המידות -->
+                        <div *ngFor="let sizeData of beamData.totalSizes" class="size-item">
+                            <span class="size-value">{{ sizeData.length }} ס"מ</span>
+                            <span class="size-separator"></span>
+                            <span class="size-count">{{ sizeData.count }} {{ 'price-calculation.units' | translate }}</span>
                         </div>
                     </div>
-                    
-                    <!-- רשימת החתיכות מקובצות לפי גודל -->
-                    <div *ngFor="let cutGroup of getCutGroups(beam.cuts)" class="size-item">
-                        <span class="size-value">{{ cutGroup.length }} ס"מ</span>
-                        <span class="size-separator"></span>
-                        <span class="size-count">{{ cutGroup.count }} {{ 'price-calculation.units' | translate }}</span>
+                </div>
+                
+                <!-- סידור אופטימלי לחיתוך -->
+                <div class="sub-title no-border">סידור אופטימלי לחיתוך:</div>
+                <div class="materials-summary" *ngIf="cuttingPlan && cuttingPlan.length > 0">
+                    <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
+                        <!-- כותרת קורה -->
+                        <div class="beam-header">
+                            <div class="beam-number">{{ beam.beamNumber }}</div>
+                            <div class="beam-details-item">
+                                <span class="beam-text">{{ beam.beamType }} ({{ beam.beamWoodType }}) {{ beam.beamLength }} ס"מ</span>
+                                <span class="beam-separator" style="opacity: 0;"></span>
+                                <span class="beam-price">{{ beam.beamPrice }}₪</span>
+                            </div>
+                        </div>
+                        
+                        <!-- רשימת החתיכות מקובצות לפי גודל -->
+                        <div *ngFor="let cutGroup of getCutGroups(beam.cuts)" class="size-item">
+                            <span class="size-value">{{ cutGroup.length }} ס"מ</span>
+                            <span class="size-separator"></span>
+                            <span class="size-count">{{ cutGroup.count }} {{ 'price-calculation.units' | translate }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="materials-summary" *ngIf="!cuttingPlan || cuttingPlan.length === 0">
+                    <div class="thinking-text">מחשב...</div>
+                </div>
+            </div>
+            
+            <!-- ברגים -->
+            <div class="screws-section" *ngIf="ForgingDataForPricing && ForgingDataForPricing.length > 0">
+                <div class="main-title">ברגים</div>
+                
+                <!-- אורכים נדרשים -->
+                <div class="sub-title">אורכים נדרשים:</div>
+                <div class="materials-summary">
+                    <div class="beam-type-section">
+                        <div *ngFor="let forgingData of ForgingDataForPricing" class="size-item">
+                            <span class="size-value">{{ forgingData.length }} ס"מ</span>
+                            <span class="size-separator"></span>
+                            <span class="size-count">{{ forgingData.count }} {{ 'price-calculation.units' | translate }}</span>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -3172,8 +3172,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             });
                         }
                         
-                        // הוספת קורות מכסה לקופסא בלבד
-                        if (this.isBox) {
+                        // הוספת קורות מכסה לקופסא בלבד - רק אם הפרמטר isCover מופעל
+                        const isCoverParam = this.getParam('isCover');
+                        const shouldAddCover = this.isBox && isCoverParam && isCoverParam.default === true;
+                        
+                        if (shouldAddCover) {
+                            console.log('מוסיף קורות מכסה לחישוב מחיר');
+                            
                             // קורות רצפת המכסה - כפילות של קורות הרצפה
                             for (let i = 0; i < beamsInDepth; i++) {
                                 allBeams.push({
@@ -3202,6 +3207,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                     beamWoodType: selectedType.translatedName,
                                 });
                             }
+                        } else if (this.isBox) {
+                            console.log('לא מוסיף קורות מכסה - המכסה מבוטל');
                         }
                 } else if (this.isFuton) {
                     // עבור בסיס מיטה - חישוב קורות הפלטה

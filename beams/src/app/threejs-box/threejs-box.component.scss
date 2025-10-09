@@ -1461,6 +1461,11 @@ mat-form-field {
     display: block;
 }
 
+// הסרת קו רץ מתחת לכותרת
+.sub-title.no-border {
+    border-bottom: none !important;
+}
+
 // קלאס כללי לטקסט רגיל
 .static-text {
     font-size: 12px;
@@ -1611,10 +1616,10 @@ mat-form-field {
     margin-bottom: 8px;
 }
 
-// הפרדה בין מקטע חומרי גלם לתוכנית חיתוך קורות
-.materials-summary:last-of-type {
+// הפרדה בין מקטע קורות לברגים - מעל הכותרת "ברגים"
+.beams-section + .screws-section .main-title {
     margin-top: 20px;
-    padding-top: 5px;
+    padding-top: 15px;
     border-top: 1px solid #e0e0e0;
 }
 
