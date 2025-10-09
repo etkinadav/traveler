@@ -128,11 +128,10 @@
                                                                 </div>
                                                             </ng-container>
                                                             
-                                                            <!-- רקע אדום עבור מוצרים שלא נראים במסך -->
+                                                            <!-- placeholder עבור מוצרים שלא נראים במסך - זהה לכרטיסיות דמה -->
                                                             <div 
                                                                 *ngIf="!isProductVisible(i)"
-                                                                style="width: 100%; height: 100%; background-color: #ff4444; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; text-align: center; padding: 10px;">
-                                                                <span>תצוגה מקדימה<br>לא זמינה</span>
+                                                                class="loading-shimmer">
                                                             </div>
                                                         </div>
                                                     </div>
