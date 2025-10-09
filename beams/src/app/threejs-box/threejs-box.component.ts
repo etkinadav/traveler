@@ -3273,65 +3273,77 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     });
                 } else {
                     // עבור ארון - קורות לכל מדף עם קיצור
-                    // חישוב קיצור קורות המדפים
                     const totalShelves = this.shelves.length;
-                    const shelvesWithoutTop = totalShelves - 1; // מדפים ללא המדף העליון
-                    const shortenedBeamsCount = shelvesWithoutTop * 2; // 2 קורות מקוצרות לכל מדף שאיננו עליון
+                    console.log('🔍 CABINET CALCULATION:', {
+                        totalShelves: totalShelves,
+                        surfaceWidth: this.surfaceWidth,
+                        surfaceLength: this.surfaceLength,
+                        beamWidth: beamWidth,
+                        beamHeight: beamHeight
+                    });
+                    
                     // מציאת קורת הרגל/החיזוק לחישוב הקיצור
                     const legParam = this.product?.params?.find(
                         (p: any) => p.type === 'beamSingle' && p.name === 'leg'
                     );
                     const legBeamSelected =
                         legParam?.beams?.[legParam.selectedBeamIndex || 0];
-                    const legBeamHeight = legBeamSelected?.height / 10 || 0;
-                    // קיצור קורות המדפים - פעם אחת גובה קורת הרגל/החיזוק
-                    const shorteningPerBeam = legBeamHeight * 2;
+                    const legBeamWidth = legBeamSelected?.width / 10 || 0; // רוחב קורת הרגל
+                    
+                    console.log('🔍 LEG BEAM:', {
+                        legBeamWidth: legBeamWidth,
+                        legBeamName: legBeamSelected?.name
+                    });
+                    
+                    // יצירת קורות מדף נפרדות לארון (6 קורות לכל מדף)
+                    const cabinetShelfBeams = this.createCabinetShelfBeams(
+                        this.surfaceLength, // אורך המדף
+                        beamWidth,
+                        beamHeight
+                    );
+                    
                     this.shelves.forEach((shelf, index) => {
                         const isTopShelf = index === totalShelves - 1; // המדף העליון
+                        console.log(`🔍 SHELF ${index + 1} (${isTopShelf ? 'TOP' : 'NORMAL'}):`);
 
-                        // חישוב רווח בין קורות (כמו ב-3D model)
-                        const totalBeamWidth = surfaceBeams.length * beamWidth;
-                        const remainingSpace =
-                            this.surfaceWidth - totalBeamWidth;
-                        const gapsCount = surfaceBeams.length - 1;
-                        const gapBetweenBeams =
-                            gapsCount > 0 ? remainingSpace / gapsCount : 0;
+                        cabinetShelfBeams.forEach((beam, beamIndex) => {
+                            let beamLength = beam.depth; // אורך מלא (50 ס"מ)
+                            let isShortened = false;
 
-                        // בדיקה אם להסתיר קורות (כמו ב-3D model)
-                        const beamAndGapWidth = beamWidth + gapBetweenBeams;
-                        const legBeamWidth = legBeamSelected?.width / 10 || 0;
-                        const shouldHideBeams =
-                            beamAndGapWidth < legBeamWidth && !isTopShelf;
-
-                        surfaceBeams.forEach((beam, beamIndex) => {
-                            let beamLength = beam.depth;
-
-                            // בדיקה אם הקורה הזאת צריכה להיות מוסתרת
-                            const shouldSkipThisBeam =
-                                shouldHideBeams &&
-                                (beamIndex === 1 ||
-                                    beamIndex === surfaceBeams.length - 2);
-                            if (shouldSkipThisBeam) {
-                                return; // מדלג על הקורה הזאת
+                            // קיצור קורות בקצוות (רק במדפים שאינם עליונים)
+                            if (!isTopShelf) {
+                                // קורות בקצוות (ראשונה ואחרונה) מקוצרות
+                                if (beamIndex === 0 || beamIndex === cabinetShelfBeams.length - 1) {
+                                    beamLength = beamLength - legBeamWidth; // מורידים רק רוחב קורת הרגל (5 ס"מ)
+                                    isShortened = true;
+                                }
                             }
+
+                            console.log(`  Beam ${beamIndex + 1}: ${beamLength}cm ${isShortened ? '(SHORTENED)' : '(FULL)'}`);
                             
-                            // קיצור רק 2 קורות ספציפיות מכל מדף שאיננו עליון
-                            // נניח שהקורות הראשונות הן אלה שצריכות להיות מקוצרות
-                            if (!isTopShelf && beamIndex < 2) {
-                                beamLength = beamLength - shorteningPerBeam;
-                            }
                             allBeams.push({
                                 type: selectedType,
                                 length: beamLength,
                                 width: beam.width,
                                 height: beam.height,
-                                name: `Shelf ${index + 1} Beam`,
+                                name: `Shelf ${index + 1} Beam ${beamIndex + 1}`,
                                 beamName: selectedBeam.name,
                                 beamTranslatedName: selectedBeam.translatedName,
                                 beamWoodType: selectedType.translatedName, // סוג העץ
                             });
                         });
                     });
+                    
+                    // סיכום החישוב
+                    const beamLengths = allBeams
+                        .filter(beam => beam.name.includes('Shelf'))
+                        .map(beam => beam.length);
+                    const lengthCounts = beamLengths.reduce((acc, length) => {
+                        acc[length] = (acc[length] || 0) + 1;
+                        return acc;
+                    }, {} as {[key: number]: number});
+                    
+                    console.log('🔍 FINAL CABINET BEAM COUNT:', lengthCounts);
                     }
                 }
             }
@@ -4617,6 +4629,30 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 depth: totalLength,
             });
         }
+        return beams;
+    }
+
+    // קורות מדף לארון - בדיוק 6 קורות
+    private createCabinetShelfBeams(
+        totalLength: number,
+        beamWidth: number,
+        beamHeight: number
+    ): { width: number; height: number; depth: number }[] {
+        // תמיד 6 קורות למדף בארון
+        const beams = [];
+        for (let i = 0; i < 6; i++) {
+            beams.push({
+                width: beamWidth,
+                height: beamHeight,
+                depth: totalLength, // אורך הקורה = אורך המדף
+            });
+        }
+        console.log('🔍 CABINET SHELF BEAMS:', {
+            count: beams.length,
+            length: totalLength,
+            beamWidth: beamWidth,
+            beamHeight: beamHeight
+        });
         return beams;
     }
     // קורות חיזוק
