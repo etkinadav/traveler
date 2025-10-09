@@ -106,15 +106,14 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private dynamicBeams: Array<{length: number, quantity: number}> = [];
 
   ngAfterViewInit() {
-    console.log('CHECK-THIN-CABINET: ngAfterViewInit started for product:', this.product?.translatedName || this.product?.name);
-    console.log('CHECK-THIN-CABINET: Configuration index:', this.configurationIndex);
-    console.log('CHECK-THIN-CABINET: Product configurations:', this.product?.configurations);
-    console.log('CHECK-THIN-CABINET: Current configuration:', this.product?.configurations?.[this.configurationIndex]);
-    
-    this.initThreeJS();
-    this.initializeParamsFromProduct();
-    this.createSimpleProduct();
-    this.animate();
+    try {
+      this.initThreeJS();
+      this.initializeParamsFromProduct();
+      this.createSimpleProduct();
+      this.animate();
+    } catch (error) {
+      console.error('Error initializing 3D preview:', error);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -1095,15 +1094,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           const configIndex = this.configurationIndex || 0;
           if (param.configurations[configIndex]) {
             this.shelfGaps = [...param.configurations[configIndex]];
-            console.log(`CHECK-THIN-CABINET: ShelfGaps loaded from configuration ${configIndex}:`, this.shelfGaps);
           } else {
             // fallback לקונפיגורציה הראשונה אם האינדקס לא קיים
             this.shelfGaps = [...param.configurations[0]];
-            console.log('CHECK-THIN-CABINET: ShelfGaps fallback to first configuration:', this.shelfGaps);
           }
         } else if (Array.isArray(param.default)) {
           this.shelfGaps = [...param.default]; // העתקת הגבהים מהמוצר
-          console.log('CHECK-THIN-CABINET: ShelfGaps loaded from default:', this.shelfGaps);
         }
       } else if (isTable && param.type === 'beamSingle' && param.name === 'plata') {
         // שולחן - טיפול בפרמטר plata
@@ -1155,6 +1151,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   }
 
   private createSimpleProduct() {
+    
     // בדיקות בטיחות למידות לפני יצירת המודל
     this.validateDynamicParams();
     

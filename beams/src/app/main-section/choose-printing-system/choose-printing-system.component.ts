@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, AfterViewInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -32,7 +32,7 @@ import { set } from 'lodash';
   ]
 })
 
-export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
+export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterViewInit {
   isRTL: boolean = true;
   isDarkMode: boolean = false;
   private directionSubscription: Subscription;
@@ -74,6 +74,12 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   
   // מפה להצגת טקסט ההוראה בריחוף לכל מוצר
   showHintMap: { [key: string]: boolean } = {};
+  
+  // Intersection Observer למעקב אחר מוצרים נראים
+  private intersectionObserver: IntersectionObserver | null = null;
+  visibleProductIndices: Set<number> = new Set();
+  
+  @ViewChildren('productCard', { read: ElementRef }) productCards!: QueryList<ElementRef>;
 
   // משתנה לעקיבה אחרי כמות האלמנטים ברוחב המסך
   elementsPerRow: number = 1; // ברירת מחדל - מובייל
@@ -109,7 +115,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
       this.elementsPerRow = 1; // 0-499px
     }
     
-    console.log('Window width:', windowWidth, 'px | Cards per row:', this.elementsPerRow);
   }
 
   
@@ -125,6 +130,20 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
     this.translateService.onLangChange.subscribe(() => {
       this.updatecontinueToServiceText();
     });
+  }
+
+  // פונקציה ללוגים מהתבנית
+  logProductCreation(product: any) {
+    // Log for debugging if needed
+  }
+  
+  // פונקציה לבדוק אם מוצר נראה במסך
+  isProductVisible(index: number): boolean {
+    // אם ה-Observer עדיין לא רץ, נניח שהמוצרים הראשונים נראים
+    if (this.visibleProductIndices.size === 0) {
+      return index < 5; // 5 מוצרים ראשונים כברירת מחדל
+    }
+    return this.visibleProductIndices.has(index);
   }
 
   ngOnInit() {
@@ -174,12 +193,79 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
         this.userIsAuthenticated = isAuthenticated;
         this.userId = this.authService.getUserId();
       });
+    
+    // אתחול Intersection Observer
+    this.initIntersectionObserver();
+  }
+  
+  private initIntersectionObserver() {
+    // יצירת observer שמזהה כשאלמנט נכנס או יוצא מהמסך
+    this.intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        let hasChanges = false;
+        entries.forEach((entry) => {
+          const index = parseInt(entry.target.getAttribute('data-product-index') || '-1');
+          if (index >= 0) {
+            if (entry.isIntersecting) {
+              // המוצר נראה במסך
+              if (!this.visibleProductIndices.has(index)) {
+                this.visibleProductIndices.add(index);
+                hasChanges = true;
+              }
+            } else {
+              // המוצר לא נראה במסך
+              if (this.visibleProductIndices.has(index)) {
+                this.visibleProductIndices.delete(index);
+                hasChanges = true;
+              }
+            }
+          }
+        });
+        
+        // אם יש שינויים, נעדכן את ה-UI
+        if (hasChanges) {
+          // Angular change detection יזהה את השינוי
+          this.visibleProductIndices = new Set(this.visibleProductIndices);
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: '50px', // מרחק נוסף כדי לטעון מעט לפני שהמוצר נכנס למסך
+        threshold: 0.1 // 10% מהאלמנט צריך להיות נראה
+      }
+    );
   }
 
+  ngAfterViewInit() {
+    // עקוב אחרי שינויים ב-productCards והרשם ל-Observer
+    this.productCards.changes.subscribe(() => {
+      this.observeProductCards();
+    });
+    
+    // רישום ראשוני - עם setTimeout כדי לתת ל-DOM להתעדכן
+    setTimeout(() => {
+      this.observeProductCards();
+    }, 0);
+  }
+  
+  private observeProductCards() {
+    if (!this.intersectionObserver) return;
+    
+    this.productCards.forEach((card: ElementRef) => {
+      this.intersectionObserver!.observe(card.nativeElement);
+    });
+  }
+  
   ngOnDestroy() {
     // this.authStatusSub.unsubscribe();
     // עצירת החלפת התמונות
     this.stopImageRotation();
+    
+    // ניקוי Intersection Observer
+    if (this.intersectionObserver) {
+      this.intersectionObserver.disconnect();
+      this.intersectionObserver = null;
+    }
   }
 
   onHoverPrintingService(value: string) {
@@ -216,7 +302,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
 
   // פונקציות למוצרים
   onChooseProduct(product: any) {
-    console.log('נבחר מוצר:', product);
     this.selectedProduct = product;
     // מעבר לעמוד המוצר ב-/beams
     this.router.navigate(['/beams'], { 
@@ -304,7 +389,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
       // אם זה תת-מוצר (יש configurationIndex), מוסיפים אותו ל-URL
       if (product.configurationIndex !== undefined) {
         url += `&configIndex=${product.configurationIndex}`;
-        console.log(`CHACK-BEAM-MINI: ניווט לתת-מוצר: ${product.translatedName} (configuration #${product.configurationIndex})`);
       }
       
       window.location.href = url;
@@ -449,14 +533,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
           // עדכון הפרמטרים לפי דגם המשנה
           clonedProduct.params = this.updateParamsWithConfiguration(clonedProduct.params, configIndex, product);
           
-          console.log(`CHACK-BEAM-MINI: ✅ מוצר שנוצר: ${clonedProduct.translatedName}`);
-          console.log(`CHACK-BEAM-MINI:    📋 פרמטרים מעודכנים:`, clonedProduct.params.map((p: any) => ({
-            name: p.name,
-            default: p.default,
-            defaultType: p.defaultType,
-            beamsConfigurations: p.beamsConfigurations
-          })));
-          
           processedProducts.push(clonedProduct);
         });
       } else {
@@ -470,25 +546,18 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
   
   // פונקציה לעדכון פרמטרים לפי דגם משנה
   updateParamsWithConfiguration(params: any[], configIndex: number, product: any): any[] {
-    console.log(`CHACK-BEAM-MINI: === עדכון פרמטרים למוצר: ${product.translatedName} (configuration #${configIndex}) ===`);
     
     return params.map((param: any) => {
       const updatedParam = { ...param };
       
       // עדכון default לפי configurations
       if (param.configurations && param.configurations[configIndex] !== undefined) {
-        console.log(`CHACK-BEAM-MINI: 📝 עדכון default עבור ${param.name}: ${param.default} -> ${param.configurations[configIndex]}`);
         updatedParam.default = param.configurations[configIndex];
       }
       
       // עדכון beamsConfigurations - מציאת הקורה לפי name מתוך רשימת beams של אותו אינפוט
       if (param.beamsConfigurations && param.beamsConfigurations[configIndex] && param.beams && param.beams.length > 0) {
         const beamName = param.beamsConfigurations[configIndex];
-        
-        console.log(`CHACK-BEAM-MINI: 🔍 מחפש קורה עבור פרמטר: ${param.name}`);
-        console.log(`CHACK-BEAM-MINI:    📌 שם קורה מבוקש: "${beamName}"`);
-        console.log(`CHACK-BEAM-MINI:    📌 defaultType לפני עדכון:`, param.defaultType);
-        console.log(`CHACK-BEAM-MINI:    📌 רשימת beams זמינות (${param.beams.length}):`, param.beams.map((b: any) => ({ id: b._id || b.$oid, name: b.name })));
         
         // חיפוש הקורה ברשימת beams של האינפוט
         let foundBeamId: string | null = null;
@@ -500,7 +569,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
           // אופציה 1: ה-beamRef עצמו מכיל את כל המידע (כולל name)
           if (beamRef.name === beamName) {
             foundBeamId = beamId;
-            console.log(`CHACK-BEAM-MINI:    ✅ נמצאה קורה ישירות: ${beamRef.name} (ID: ${foundBeamId})`);
             break;
           }
           
@@ -509,7 +577,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
             const beam = this.beamsMap.get(beamId);
             if (beam && beam.name === beamName) {
               foundBeamId = beamId;
-              console.log(`CHACK-BEAM-MINI:    ✅ נמצאה קורה דרך beamsMap: ${beam.name} (ID: ${foundBeamId})`);
               break;
             }
           }
@@ -518,10 +585,15 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy {
         if (foundBeamId) {
           // עדכון defaultType ל-ID של הקורה שנמצאה
           updatedParam.defaultType = { $oid: foundBeamId };
-          console.log(`CHACK-BEAM-MINI:    ✨ defaultType עודכן ל: { $oid: "${foundBeamId}" }`);
-          console.log(`CHACK-BEAM-MINI:    📊 updatedParam.defaultType:`, updatedParam.defaultType);
         } else {
-          console.log(`CHACK-BEAM-MINI:    ❌ לא נמצאה קורה מתאימה - defaultType נשאר: `, updatedParam.defaultType);
+          // פתרון גיבוי: אם לא נמצאה קורה לפי שם, נשתמש ב-configIndex כאינדקס ישיר
+          
+          if (param.beams[configIndex]) {
+            const fallbackBeamId = param.beams[configIndex].$oid || param.beams[configIndex]._id;
+            if (fallbackBeamId) {
+              updatedParam.defaultType = { $oid: fallbackBeamId };
+            }
+          }
         }
       }
       
