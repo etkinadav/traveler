@@ -8,6 +8,7 @@ import * as THREE from 'three';
 })
 export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() product: any;
+  @Input() configurationIndex: number = 0;
   @ViewChild('miniPreviewContainer', { static: true }) container!: ElementRef;
 
   private scene!: THREE.Scene;
@@ -105,6 +106,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private dynamicBeams: Array<{length: number, quantity: number}> = [];
 
   ngAfterViewInit() {
+    console.log('CHECK-THIN-CABINET: ngAfterViewInit started for product:', this.product?.translatedName || this.product?.name);
+    console.log('CHECK-THIN-CABINET: Configuration index:', this.configurationIndex);
+    console.log('CHECK-THIN-CABINET: Product configurations:', this.product?.configurations);
+    console.log('CHECK-THIN-CABINET: Current configuration:', this.product?.configurations?.[this.configurationIndex]);
+    
     this.initThreeJS();
     this.initializeParamsFromProduct();
     this.createSimpleProduct();
@@ -1084,10 +1090,20 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         // מספר מדפים
         this.dynamicParams.shelfCount = param.default || 3;
         
-        // טעינת גבהי המדפים
-        if (Array.isArray(param.default)) {
+        // טעינת גבהי המדפים מהקונפיגורציה הנכונה
+        if (param.configurations && param.configurations.length > 0) {
+          const configIndex = this.configurationIndex || 0;
+          if (param.configurations[configIndex]) {
+            this.shelfGaps = [...param.configurations[configIndex]];
+            console.log(`CHECK-THIN-CABINET: ShelfGaps loaded from configuration ${configIndex}:`, this.shelfGaps);
+          } else {
+            // fallback לקונפיגורציה הראשונה אם האינדקס לא קיים
+            this.shelfGaps = [...param.configurations[0]];
+            console.log('CHECK-THIN-CABINET: ShelfGaps fallback to first configuration:', this.shelfGaps);
+          }
+        } else if (Array.isArray(param.default)) {
           this.shelfGaps = [...param.default]; // העתקת הגבהים מהמוצר
-          console.log('גבהי מדפים נטענו:', this.shelfGaps);
+          console.log('CHECK-THIN-CABINET: ShelfGaps loaded from default:', this.shelfGaps);
         }
       } else if (isTable && param.type === 'beamSingle' && param.name === 'plata') {
         // שולחן - טיפול בפרמטר plata
