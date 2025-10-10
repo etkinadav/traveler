@@ -128,8 +128,8 @@
     var(--zx-green) 0px 10px,
     transparent 10px 20px
   );
-  background-size: 100% 3px;
-  background-position: top center;
+  background-size: 20px 3px; // 20px = 10px קו + 10px רווח
+  background-position: 0 0; // התחלה מהקצה השמאלי
   background-repeat: repeat-x;
 }
 
@@ -140,8 +140,8 @@
     var(--zx-green) 0px 10px,
     transparent 10px 20px
   );
-  background-size: 3px 100%;
-  background-position: center right;
+  background-size: 3px 20px; // 20px = 10px קו + 10px רווח
+  background-position: 0 0; // התחלה מהקצה העליון
   background-repeat: repeat-y;
 }
 
@@ -152,8 +152,8 @@
     var(--zx-green) 0px 10px,
     transparent 10px 20px
   );
-  background-size: 100% 3px;
-  background-position: bottom center;
+  background-size: 20px 3px; // 20px = 10px קו + 10px רווח
+  background-position: 0 0; // התחלה מהקצה השמאלי
   background-repeat: repeat-x;
 }
 
@@ -164,8 +164,8 @@
     var(--zx-green) 0px 10px,
     transparent 10px 20px
   );
-  background-size: 3px 100%;
-  background-position: center left;
+  background-size: 3px 20px; // 20px = 10px קו + 10px רווח
+  background-position: 0 0; // התחלה מהקצה העליון
   background-repeat: repeat-y;
 }
 
