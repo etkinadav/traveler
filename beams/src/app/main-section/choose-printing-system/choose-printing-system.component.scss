@@ -120,21 +120,21 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4) !important;
 }
 
-// מגה כרטיסיות - border מקווקוו עם קורולציה בין קווקווים סמוכים
+// מגה כרטיסיות - border פשוט במקומות הנכונים
 .product-card-wrapper.mega-card-border-top {
-  border-top: 3px dashed var(--zx-green) !important;
+  border-top: 3px solid var(--zx-green) !important;
 }
 
 .product-card-wrapper.mega-card-border-right {
-  border-right: 3px dashed var(--zx-green) !important;
+  border-right: 3px solid var(--zx-green) !important;
 }
 
 .product-card-wrapper.mega-card-border-bottom {
-  border-bottom: 3px dashed var(--zx-green) !important;
+  border-bottom: 3px solid var(--zx-green) !important;
 }
 
 .product-card-wrapper.mega-card-border-left {
-  border-left: 3px dashed var(--zx-green) !important;
+  border-left: 3px solid var(--zx-green) !important;
 }
 
 
