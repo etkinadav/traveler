@@ -96,6 +96,82 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
     return Array(this.elementsPerRow).fill(0).map((_, index) => index + 1);
   }
 
+  // פונקציות לקביעת border מקווקוו לפי הלוגיקה המורכבת
+  
+  // קווקוו עליון - שורה ראשונה של קבוצה (אבל לא הראשונה בכלל)
+  shouldShowTopBorder(groupIndex: number, productIndex: number): boolean {
+    const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
+    const r = (globalIndex % this.elementsPerRow) + 1;
+    
+    // לא בקבוצה הראשונה
+    if (groupIndex === 0) return false;
+    
+    // זה הפעם הראשונה שהמספר r מופיע באותה קבוצה
+    // נבדוק אם זה המוצר הראשון בקבוצה עם ערך r זה
+    const group = this.groupedProducts[groupIndex];
+    for (let i = 0; i < productIndex; i++) {
+      const prevGlobalIndex = this.getGlobalProductIndex(groupIndex, i);
+      const prevR = (prevGlobalIndex % this.elementsPerRow) + 1;
+      if (prevR === r) {
+        return false; // כבר היה מוצר עם ערך r זה בקבוצה
+      }
+    }
+    
+    return true; // זה המוצר הראשון בקבוצה עם ערך r זה
+  }
+
+  // קווקוו תחתון - שורה אחרונה של קבוצה (אבל לא האחרונה בכלל)
+  shouldShowBottomBorder(groupIndex: number, productIndex: number): boolean {
+    const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
+    const r = (globalIndex % this.elementsPerRow) + 1;
+    
+    // לא בקבוצה האחרונה
+    if (groupIndex === this.groupedProducts.length - 1) return false;
+    
+    // זה הפעם האחרונה שהמספר r מופיע באותה קבוצה
+    // נבדוק אם זה המוצר האחרון בקבוצה עם ערך r זה
+    const group = this.groupedProducts[groupIndex];
+    for (let i = productIndex + 1; i < group.items.length; i++) {
+      const nextGlobalIndex = this.getGlobalProductIndex(groupIndex, i);
+      const nextR = (nextGlobalIndex % this.elementsPerRow) + 1;
+      if (nextR === r) {
+        return false; // יש עוד מוצר עם ערך r זה בקבוצה
+      }
+    }
+    
+    return true; // זה המוצר האחרון בקבוצה עם ערך r זה
+  }
+
+  // קווקוו ימני - עמודה ראשונה של קבוצה (אבל לא בצד ימין החיצוני)
+  shouldShowRightBorder(groupIndex: number, productIndex: number): boolean {
+    const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
+    const r = (globalIndex % this.elementsPerRow) + 1;
+    
+    // לא עם ערך r ששווה ל-1 (כלומר r >= 2)
+    if (r === 1) return false;
+    
+    // ה-s של אותה מגה כרטיסיה הוא 1 (המגה כרטיסיה הראשונה בקבוצה)
+    // כלומר זה המוצר הראשון בקבוצה (productIndex === 0)
+    return productIndex === 0;
+  }
+
+  // קווקוו שמאלי - עמודה אחרונה של קבוצה (אבל לא בצד שמאל החיצוני)
+  shouldShowLeftBorder(groupIndex: number, productIndex: number): boolean {
+    const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
+    const r = (globalIndex % this.elementsPerRow) + 1;
+    
+    // לא בקבוצה האחרונה
+    if (groupIndex === this.groupedProducts.length - 1) return false;
+    
+    // לא עם ערך r ששווה ל-n (כלומר r < n)
+    if (r === this.elementsPerRow) return false;
+    
+    // ה-s של אותה מגה כרטיסיה הוא הכי גדול בקבוצה שלה
+    // כלומר זה המוצר האחרון בקבוצה
+    const lastInGroup = productIndex === this.groupedProducts[groupIndex].items.length - 1;
+    return lastInGroup;
+  }
+
   // פונקציה לעדכון כמות האלמנטים ברוחב המסך
   // נקודות קפיצה hardcoded - מסונכרן בדיוק עם ה-CSS:
   // 0-499px: 1 בשורה
