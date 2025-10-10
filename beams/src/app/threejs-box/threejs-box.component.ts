@@ -37,6 +37,24 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     getStep(type: number): number {
         return 1 / Math.pow(10, type);
     }
+
+    // פונקציה לבדיקת קיום ברגים פעילים (count > 0)
+    hasActiveScrews(): boolean {
+        if (!this.ForgingDataForPricing || this.ForgingDataForPricing.length === 0) {
+            return false;
+        }
+        
+        return this.ForgingDataForPricing.some(screw => screw.count > 0);
+    }
+
+    // פונקציה לקבלת ברגים פעילים בלבד (count > 0)
+    getActiveScrews(): any[] {
+        if (!this.ForgingDataForPricing || this.ForgingDataForPricing.length === 0) {
+            return [];
+        }
+        
+        return this.ForgingDataForPricing.filter(screw => screw.count > 0);
+    }
     // ...existing code...
     toggleDrawer() {
         this.drawerOpen = !this.drawerOpen;
@@ -1085,6 +1103,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     frameHeight: number = 5;
     beamHeight: number = 2;
     private beamMeshes: THREE.Mesh[] = [];
+    private screwGroups: THREE.Group[] = []; // מערך לשמירת הברגים
     private coordinateAxes: THREE.Group[] = []; // מערך לשמירת החצים
     public showCoordinateAxes: boolean = false; // משתנה לשליטה בהצגת החצים
     @ViewChild('rendererContainer', { static: true })
@@ -1643,6 +1662,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.hasNoMiddleBeams = false;
         // חישוב מחיר אחרי עדכון המודל
         this.calculatePricing();
+        // ניקוי קורות
         this.beamMeshes.forEach((mesh) => {
             this.scene.remove(mesh);
             // אם זה Group (ברגים), צריך לטפל בכל הילדים
@@ -1660,6 +1680,18 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
         });
         this.beamMeshes = [];
+        
+        // ניקוי ברגים
+        this.screwGroups.forEach((screwGroup) => {
+            this.scene.remove(screwGroup);
+            screwGroup.children.forEach((child) => {
+                if (child instanceof THREE.Mesh) {
+                    child.geometry.dispose();
+                    (child.material as THREE.Material).dispose();
+                }
+            });
+        });
+        this.screwGroups = [];
         // Defensive checks
         if (!this.isTable && !this.isPlanter && !this.isBox && !this.isBelams && !this.isFuton && (!this.shelves || !this.shelves.length)) {
             console.warn('No shelves found, cannot render model.');
@@ -3211,17 +3243,24 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                             console.log('לא מוסיף קורות מכסה - המכסה מבוטל');
                         }
                 } else if (this.isFuton) {
-                    // עבור בסיס מיטה - חישוב קורות הפלטה
+                    // עבור בסיס מיטה - חישוב קורות הפלטה (בדיוק כמו בתלת-מימד)
                     const widthParam = this.getParam('width');
                     const depthParam = this.getParam('depth');
                     const futonWidth = depthParam ? depthParam.default : 200;  // החלפה: width = depth
                     const futonDepth = widthParam ? widthParam.default : 120;   // החלפה: depth = width
                     
+                    // עבור מיטה: צריך להשתמש בממדים הנכונים (ללא היפוך)
+                    // selectedBeam.width = 40mm -> 4 ס"מ (זה הרוחב של הקורה)
+                    // selectedBeam.height = 15mm -> 1.5 ס"מ (זה הגובה של הקורה)
+                    const futonBeamWidth = selectedBeam.width / 10;   // רוחב הקורה (4 ס"מ)
+                    const futonBeamHeight = selectedBeam.height / 10; // גובה הקורה (1.5 ס"מ)
+                    
+                    // שימוש באותה פונקציה כמו בתלת-מימד
                     const surfaceBeams = this.createSurfaceBeams(
                         futonWidth,
                         futonDepth,
-                        beamWidth,
-                        beamHeight,
+                        futonBeamWidth,  // רוחב נכון!
+                        futonBeamHeight, // גובה נכון!
                         this.minGap
                     );
                     
@@ -3229,7 +3268,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     surfaceBeams.forEach((beam) => {
                         allBeams.push({
                             type: selectedType,
-                            length: beam.depth, // אורך הקורה
+                            length: beam.depth, // אורך הקורה מהחישוב
                             width: beam.width,
                             height: beam.height,
                             name: 'Futon Platform Beam',
@@ -3241,12 +3280,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     
                     console.log('קורות פלטת מיטה נוספו לחישוב מחיר:', {
                         beamsCount: surfaceBeams.length,
+                        beamLength: surfaceBeams[0]?.depth,
                         futonWidth,
                         futonDepth,
-                        beamWidth,
-                        beamHeight,
+                        futonBeamWidth,
+                        futonBeamHeight,
+                        minGap: this.minGap,
                         beamName: selectedBeam.name,
-                        woodType: selectedType.translatedName
+                        woodType: selectedType.translatedName,
+                        calculation: `floor((${futonWidth} + ${this.minGap}) / (${futonBeamWidth} + ${this.minGap})) = floor(${futonWidth + this.minGap} / ${futonBeamWidth + this.minGap}) = ${Math.floor((futonWidth + this.minGap) / (futonBeamWidth + this.minGap))}`
                     });
                 } else {
                 // חישוב קורות המשטח
@@ -3748,6 +3790,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 rawLength = dimension1 + 2; // dimension1 = beamHeight
                 break;
                 
+            case 'futon': // ברגי פלטת מיטה - height של קורת הפלטה + 3
+                rawLength = dimension1 + 3; // dimension1 = beamHeight
+                break;
+                
             case 'leg_width': // ברגי רגליים מבוססי רוחב - צריך 2 מידות!
                 // נבחר את המידה הגדולה יותר מבין dimension1 ו-dimension2
                 if (dimension2 !== undefined) {
@@ -3841,6 +3887,56 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     });
                     console.log(
                         `Table shelf screws: ${totalScrews} screws for ${totalBeams} beams (${screwsPerBeam} screws per beam)`
+                    );
+                }
+            }
+        } else if (this.isFuton) {
+            // עבור מיטה (futon) - ברגי פלטה לרגליים
+            const plataParam = this.params.find((p) => p.name === 'plata');
+            if (plataParam && plataParam.selectedBeamIndex !== undefined) {
+                const selectedBeam = plataParam.beams[plataParam.selectedBeamIndex];
+                const selectedType = selectedBeam?.types?.[plataParam.selectedTypeIndex || 0];
+                if (selectedBeam && selectedType) {
+                    // חישוב קורות הפלטה
+                    const beamWidth = selectedBeam.width / 10;
+                    const beamHeight = selectedBeam.height / 10;
+                    const minGap = 1;
+                    const widthParam = this.getParam('width');
+                    const depthParam = this.getParam('depth');
+                    const futonWidth = depthParam ? depthParam.default : 200;  // החלפה: width = depth
+                    const futonDepth = widthParam ? widthParam.default : 120;   // החלפה: depth = width
+                    
+                    const surfaceBeams = this.createSurfaceBeams(
+                        futonWidth,
+                        futonDepth,
+                        beamWidth,
+                        beamHeight,
+                        minGap
+                    );
+                    const totalBeams = surfaceBeams.length;
+                    
+                    // חישוב כמות הרגליים (4 רגליים במיטה)
+                    const legCount = 4;
+                    
+                    // 2 ברגים לכל מפגש של קורת פלטה עם רגל
+                    const screwsPerBeamPerLeg = 2;
+                    const totalScrews = totalBeams * legCount * screwsPerBeamPerLeg;
+                    
+                    // אורך הבורג = height של קורת הפלטה + 3
+                    const screwLength = this.calculateScrewLength('futon', beamHeight);
+                    
+                    shelfForgingData.push({
+                        type: 'Futon Platform Screws',
+                        beamName: selectedBeam.name,
+                        beamTranslatedName: selectedBeam.translatedName,
+                        material: selectedType.translatedName,
+                        count: totalScrews,
+                        length: screwLength,
+                        description: 'ברגי פלטת מיטה',
+                    });
+                    
+                    console.log(
+                        `Futon platform screws: ${totalScrews} screws for ${totalBeams} beams × ${legCount} legs (${screwsPerBeamPerLeg} screws per beam-leg intersection, ${screwLength}cm length)`
                     );
                 }
             }
@@ -6512,7 +6608,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             depth: futonDepth,
             platformHeight: platformHeight,
             plataBeam: { width: plataBeamWidth, height: plataBeamHeight },
-            legBeam: { width: legBeamWidth, height: legBeamHeight }
+            legBeam: { width: legBeamWidth, height: legBeamHeight },
+            minGap: this.minGap
         });
         
         // יצירת קורות הפלטה (דומה לשולחן)
@@ -6523,6 +6620,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             plataBeamHeight,
             this.minGap
         );
+        
+        console.log('🔍 FUTON 3D: surfaceBeams.length =', surfaceBeams.length, 'with params:', {
+            futonWidth,
+            futonDepth,
+            plataBeamWidth,
+            plataBeamHeight,
+            minGap: this.minGap
+        });
         
         for (let i = 0; i < surfaceBeams.length; i++) {
             const beam = { ...surfaceBeams[i] };
@@ -6558,6 +6663,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const availableLength = totalLength - 10; // 5 ס"מ מכל קצה
             const spacing = legCount > 1 ? availableLength / (legCount - 1) : 0;
             
+            // מערך לשמירת מיקומי הרגליים (Z positions)
+            const legPositions: number[] = [];
+            
             console.log('חישוב רווחי רגליים:', {
                 totalLength,
                 availableLength,
@@ -6581,6 +6689,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 // חישוב מיקום Z - מתחיל ב-5 ס"מ מהקצה
                 const zPosition = -totalLength / 2 + 5 + (i * spacing);
                 
+                // שמירת מיקום הרגל למערך
+                legPositions.push(zPosition);
+                
                 // מיקום הרגל - צמודה למטה (Y=0) + חצי גובה הקורה
                 mesh.position.set(0, legBeamHeight / 2, zPosition);
                 this.scene.add(mesh);
@@ -6590,6 +6701,47 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
             
             console.log(`${legCount} קורות רגליים נוצרו בהצלחה`);
+            
+            // יצירת ברגים - 2 ברגים בכל מפגש של קורת פלטה עם רגל
+            console.log(`יצירת ברגים למיטה: ${surfaceBeams.length} קורות פלטה × ${legCount} רגליים × 2 ברגים = ${surfaceBeams.length * legCount * 2} ברגים`);
+            
+            // אורך הבורג = גובה קורת הפלטה + 3
+            const screwLength = this.calculateScrewLength('futon', plataBeamHeight);
+            
+            // עבור כל קורת פלטה
+            for (let beamIndex = 0; beamIndex < surfaceBeams.length; beamIndex++) {
+                const beam = surfaceBeams[beamIndex];
+                
+                // עבור כל רגל
+                for (let legIndex = 0; legIndex < legPositions.length; legIndex++) {
+                    const legZ = legPositions[legIndex];
+                    
+                    // 2 ברגים לכל מפגש - מרווחים ב-25% מההתחלה והסוף
+                    const offset = legBeamWidth * 0.25; // 25% מרוחב הרגל
+                    const screwOffsets = [-offset, offset];
+                    
+                    for (let screwIndex = 0; screwIndex < 2; screwIndex++) {
+                        const screwZ = legZ + screwOffsets[screwIndex];
+                        
+                        // יצירת הבורג
+                        const screwGroup = this.createScrewGeometry(screwLength);
+                        
+                        // מיקום הבורג: X = מיקום הקורה, Y = מעל הפלטה, Z = על הרגל
+                        const screwX = beam.x;
+                        const screwY = platformHeight + plataBeamHeight; // מעל קורת הפלטה
+                        
+                        screwGroup.position.set(screwX, screwY, screwZ);
+                        
+                        // סיבוב הבורג כך שיכוון מלמעלה למטה (ציר Y)
+                        // ברורג מצביע כלפי מטה אז אין צורך בסיבוב נוסף
+                        
+                        this.scene.add(screwGroup);
+                        this.screwGroups.push(screwGroup); // שמירת הבורג למחיקה מאוחר יותר
+                    }
+                }
+            }
+            
+            console.log('ברגי מיטה נוצרו בהצלחה');
         } else {
             console.log('לא נמצא פרמטר extraBeam או ערך 0 - לא נוצרות רגליים');
         }

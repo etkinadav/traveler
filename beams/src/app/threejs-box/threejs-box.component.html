@@ -921,14 +921,14 @@
             </div>
             
             <!-- ברגים -->
-            <div class="screws-section" *ngIf="ForgingDataForPricing && ForgingDataForPricing.length > 0">
+            <div class="screws-section" *ngIf="ForgingDataForPricing && ForgingDataForPricing.length > 0 && hasActiveScrews()">
                 <div class="main-title">ברגים</div>
                 
                 <!-- אורכים נדרשים -->
                 <div class="sub-title">אורכים נדרשים:</div>
                 <div class="materials-summary">
                     <div class="beam-type-section">
-                        <div *ngFor="let forgingData of ForgingDataForPricing" class="size-item">
+                        <div *ngFor="let forgingData of getActiveScrews()" class="size-item">
                             <span class="size-value">{{ forgingData.length }} ס"מ</span>
                             <span class="size-separator"></span>
                             <span class="size-count">{{ forgingData.count }} {{ 'price-calculation.units' | translate }}</span>
