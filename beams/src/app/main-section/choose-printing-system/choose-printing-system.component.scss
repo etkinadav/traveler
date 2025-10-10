@@ -137,28 +137,6 @@
   border-left: 3px dashed var(--zx-green) !important;
 }
 
-// מספר סידורי למגה כרטיסיות
-.mega-card-number {
-  position: absolute;
-  top: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #0066CC !important; // צבע ירוק קבוע במקום var
-  color: white !important;
-  min-width: 120px;
-  height: 30px;
-  border-radius: 15px;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 12px;
-  z-index: 999 !important; // z-index גבוה יותר
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-  border: 2px solid white; // מסגרת לבנה לקונטרסט
-  padding: 0 8px;
-  white-space: nowrap;
-}
 
 // Responsive grid columns
 // ברירת מחדל: 1 בשורה (0-499px)
