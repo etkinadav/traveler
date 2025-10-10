@@ -120,21 +120,53 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4) !important;
 }
 
-// מגה כרטיסיות - border פשוט במקומות הנכונים
+// מגה כרטיסיות - border מקווקוו עם gradient ללא השפעה על מיקום
 .product-card-wrapper.mega-card-border-top {
-  border-top: 3px solid var(--zx-green) !important;
+  border-top: 3px solid transparent !important;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--zx-green) 0px 10px,
+    transparent 10px 20px
+  );
+  background-size: 100% 3px;
+  background-position: top center;
+  background-repeat: repeat-x;
 }
 
 .product-card-wrapper.mega-card-border-right {
-  border-right: 3px solid var(--zx-green) !important;
+  border-right: 3px solid transparent !important;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--zx-green) 0px 10px,
+    transparent 10px 20px
+  );
+  background-size: 3px 100%;
+  background-position: center right;
+  background-repeat: repeat-y;
 }
 
 .product-card-wrapper.mega-card-border-bottom {
-  border-bottom: 3px solid var(--zx-green) !important;
+  border-bottom: 3px solid transparent !important;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--zx-green) 0px 10px,
+    transparent 10px 20px
+  );
+  background-size: 100% 3px;
+  background-position: bottom center;
+  background-repeat: repeat-x;
 }
 
 .product-card-wrapper.mega-card-border-left {
-  border-left: 3px solid var(--zx-green) !important;
+  border-left: 3px solid transparent !important;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--zx-green) 0px 10px,
+    transparent 10px 20px
+  );
+  background-size: 3px 100%;
+  background-position: center left;
+  background-repeat: repeat-y;
 }
 
 
