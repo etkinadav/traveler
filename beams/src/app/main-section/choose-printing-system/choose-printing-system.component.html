@@ -47,7 +47,7 @@
                                                  <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
                                                      <h6 class="fw-bold zx-text-big text-center" 
                                                          style="color: var(--zx-green) !important;">
-                                                         <ng-container *ngIf="i === 0">{{'choose-system.step-1' | translate}}</ng-container>
+                                                         <ng-container *ngIf="i === 0">{{'choose-system.step-1' | translate}} ({{elementsPerRow}})</ng-container>
                                                          <ng-container *ngIf="i > 0">-</ng-container>
                                                      </h6>
                                                  </div>
@@ -96,10 +96,15 @@
                                                     class="product-card-wrapper"
                                                     [class.mega-card-border-top]="shouldShowTopBorder(groupIndex, i)"
                                                     [class.mega-card-border-right]="shouldShowRightBorder(groupIndex, i)"
+                                                    [style.border-right]="shouldShowRightBorder(groupIndex, i) ? '3px solid red' : 'none'"
                                                     [class.mega-card-border-bottom]="shouldShowBottomBorder(groupIndex, i)"
                                                     [class.mega-card-border-left]="shouldShowLeftBorder(groupIndex, i)"
                                                     [attr.data-product-index]="getGlobalProductIndex(groupIndex, i)">
                                                     
+                                                    <!-- מספר סידורי למגה כרטיסיות -->
+                                                    <div class="mega-card-number">
+                                                        s: {{getGlobalProductIndex(groupIndex, i) + 1}}, r: {{(getGlobalProductIndex(groupIndex, i) % elementsPerRow) + 1}}
+                                                    </div>
                                                 <div [class.zx-step-choosen]="selectedProduct?._id === product._id" 
                                                      class="step-item-trans-product step-item position-relative"
                                                      [class.step-item-dark]="isDarkMode">

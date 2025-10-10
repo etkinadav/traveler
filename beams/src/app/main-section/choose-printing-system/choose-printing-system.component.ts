@@ -96,6 +96,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
     return Array(this.elementsPerRow).fill(0).map((_, index) => index + 1);
   }
 
+
   // פונקציות לקביעת border מקווקוו לפי הלוגיקה המורכבת
   
   // קווקוו עליון - שורה ראשונה של קבוצה (אבל לא הראשונה בכלל)
@@ -159,9 +160,6 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
   shouldShowLeftBorder(groupIndex: number, productIndex: number): boolean {
     const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
     const r = (globalIndex % this.elementsPerRow) + 1;
-    
-    // לא בקבוצה האחרונה
-    if (groupIndex === this.groupedProducts.length - 1) return false;
     
     // לא עם ערך r ששווה ל-n (כלומר r < n)
     if (r === this.elementsPerRow) return false;
