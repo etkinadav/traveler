@@ -97,7 +97,9 @@
                                                     [attr.data-product-index]="getGlobalProductIndex(groupIndex, i)">
                                                     
                                                     <!-- מספר סידורי למגה כרטיסיות -->
-                                                    <div class="mega-card-number">{{getGlobalProductIndex(groupIndex, i) + 1}}</div>
+                                                    <div class="mega-card-number">
+                                                        סדורי: {{getGlobalProductIndex(groupIndex, i) + 1}}, מימין: {{(getGlobalProductIndex(groupIndex, i) % elementsPerRow) + 1}}
+                                                    </div>
                                                 <div [class.zx-step-choosen]="selectedProduct?._id === product._id" 
                                                      class="step-item-trans-product step-item position-relative"
                                                      [class.step-item-dark]="isDarkMode">
