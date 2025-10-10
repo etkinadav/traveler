@@ -6716,19 +6716,20 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 for (let legIndex = 0; legIndex < legPositions.length; legIndex++) {
                     const legZ = legPositions[legIndex];
                     
-                    // 2 ברגים לכל מפגש - מרווחים ב-25% מההתחלה והסוף
-                    const offset = legBeamWidth * 0.25; // 25% מרוחב הרגל
+                    // 2 ברגים לכל מפגש - מרווחים ב-25% מרוחב קורת הפלטה (ציר X)
+                    const offset = plataBeamWidth * 0.25; // 25% מרוחב קורת הפלטה
                     const screwOffsets = [-offset, offset];
                     
                     for (let screwIndex = 0; screwIndex < 2; screwIndex++) {
-                        const screwZ = legZ + screwOffsets[screwIndex];
+                        const screwXOffset = screwOffsets[screwIndex];
                         
                         // יצירת הבורג
                         const screwGroup = this.createScrewGeometry(screwLength);
                         
-                        // מיקום הבורג: X = מיקום הקורה, Y = מעל הפלטה, Z = על הרגל
-                        const screwX = beam.x;
+                        // מיקום הבורג: X = מיקום הקורה ± offset, Y = מעל הפלטה, Z = על הרגל
+                        const screwX = beam.x + screwXOffset;
                         const screwY = platformHeight + plataBeamHeight; // מעל קורת הפלטה
+                        const screwZ = legZ;
                         
                         screwGroup.position.set(screwX, screwY, screwZ);
                         
