@@ -47,7 +47,7 @@
                                                  <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
                                                      <h6 class="fw-bold zx-text-big text-center" 
                                                          style="color: var(--zx-green) !important;">
-                                                         <ng-container *ngIf="i === 0">{{'choose-system.step-1' | translate}}</ng-container>
+                                                         <ng-container *ngIf="i === 0">{{'choose-system.step-1' | translate}} ({{elementsPerRow}})</ng-container>
                                                          <ng-container *ngIf="i > 0">-</ng-container>
                                                      </h6>
                                                  </div>
@@ -88,37 +88,31 @@
                                         <ng-container *ngIf="!isLoading">
                                             <!-- לולאה על כל קבוצת מוצרים -->
                                             <ng-container *ngFor="let group of groupedProducts; let groupIndex = index">
-                                                <!-- כותרת קבוצה - כרטיסייה רגילה -->
-                                                <div class="product-card-wrapper">
-                                                     <div class="step-item-trans-product step-item d-flex p-1 align-items-center justify-content-center position-relative title-card-first"
-                                                          [class.step-item-dark]="isDarkMode">
-                                                         <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
-                                                             <h6 class="fw-bold zx-text-big text-center" 
-                                                                 style="color: var(--zx-green) !important;">
-                                                                 {{ group.productTypeName }}
-                                                             </h6>
-                                                         </div>
-                                                     </div>
-                                                 </div>
-                                                
                                                 <!-- מוצרים בקבוצה -->
                                                 <div *ngFor="let product of group.items; let i = index" 
                                                     #productCard
                                                     (mouseenter)="onHoverProduct(product)" 
                                                     (mouseleave)="onHoverProduct(null)" 
-                                                    class="product-card-wrapper"
+                                                    class="product-card-wrapper mega-card-border-top mega-card-border-right mega-card-border-bottom mega-card-border-left"
                                                     [attr.data-product-index]="getGlobalProductIndex(groupIndex, i)">
-                                                <div [class.zx-step-choosen]="selectedProduct?._id === product._id" 
-                                                     class="step-item-trans-product step-item shadow-85 white-background-card d-flex p-1 align-items-center justify-content-center position-relative"
-                                                     [class.step-item-dark]="isDarkMode">
-                                                    <!-- כפתור המשך למוצר -->
-                                                    <button mat-stroked-button 
-                                                            class="continue-to-product-btn rounded-2" 
-                                                            (click)="navigateToProduct(product); $event.stopPropagation()">
-                                                        <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">{{product.model || product.translatedName || 'המוצר'}} במידות שלך</span>
-                                                    </button>
                                                     
-                                                    <div class="d-flex align-items-center gap-3">
+                                                    <!-- מספר סידורי למגה כרטיסיות -->
+                                                    <div class="mega-card-number">{{getGlobalProductIndex(groupIndex, i) + 1}}</div>
+                                                <div [class.zx-step-choosen]="selectedProduct?._id === product._id" 
+                                                     class="step-item-trans-product step-item position-relative"
+                                                     [class.step-item-dark]="isDarkMode">
+                                                    
+                                                    <!-- כותרת קטגוריה - רק בכרטיסייה הראשונה -->
+                                                    <div *ngIf="i === 0" class="category-title-container">
+                                                        <h6 class="fw-bold zx-text-big text-center" 
+                                                            style="color: var(--zx-green) !important; margin: 0;">
+                                                            {{ group.productTypeName }}
+                                                        </h6>
+                                                    </div>
+                                                    
+                                                    <!-- תוכן הכרטיסייה עם רקע לבן -->
+                                                    <div class="white-background-card shadow-85 p-1 flex-grow-1">
+                                                    <div class="d-flex flex-column align-items-center gap-3 h-100">
                                                         <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded position-relative">
                                                             <!-- רנדור 3D רק למוצרים שנראים במסך -->
                                                             <ng-container *ngIf="isProductVisible(getGlobalProductIndex(groupIndex, i))">
@@ -160,7 +154,17 @@
                                                             דגם - {{product.model || product.name || 'מוצר מותאם אישית'}}
                                                         </span>
                                                     </div>
-                                                </div>
+                                                    
+                                                    <!-- כפתור המשך למוצר -->
+                                                    <button mat-stroked-button 
+                                                            class="continue-to-product-btn rounded-2" 
+                                                            (click)="navigateToProduct(product); $event.stopPropagation()">
+                                                        <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">{{product.model || product.translatedName || 'המוצר'}} במידות שלך</span>
+                                                    </button>
+                                                    </div>
+                                                    <!-- סגירת flex-column -->
+                                                    </div>
+                                                    <!-- סגירת white-background-card -->
                                              </div>
                                             </ng-container>
                                          </ng-container>

@@ -63,7 +63,99 @@
   box-sizing: border-box;
   display: flex;
   justify-content: center;
+  align-items: flex-start; // התוכן יהיה צמוד למעלה
+  position: relative; // עבור המספר הסידורי
+}
+
+// כרטיסייה עם כותרת קטגוריה - צריכה להיות flex-column ללא רקע
+.step-item-trans-product {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; // gap-2 equivalent
+  background: transparent !important; // ללא רקע לקונטיינר החיצוני
+  box-shadow: none !important; // ללא צל לקונטיינר החיצוני
+  border: none !important; // ללא border לקונטיינר החיצוני
+  align-items: stretch; // התוכן יתפוס את כל הרוחב
+  justify-content: flex-start; // התוכן יהיה צמוד למעלה
+}
+
+// עקיפת הכלל הגלובלי של .step-item
+.step-item-trans-product.step-item {
+  border: none !important; // עקיפת הכלל הגלובלי
+  background-color: transparent !important; // עקיפת הכלל הגלובלי
+}
+
+
+// תוכן הכרטיסייה עם רקע לבן - צריך להיות אנכי
+.white-background-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-grow: 1;
+}
+
+// כותרת קטגוריה - זהה לכרטיסיות הרגילות
+.category-title-container {
+  background: rgba(255, 255, 255, 0.6) !important; // זהה לכרטיסיות הרגילות
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 0 !important; // זהה לכרטיסיות הרגילות
+  padding: 8px 12px;
+  border: none !important; // זהה לכרטיסיות הרגילות
+  min-height: 40px;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0; // לא יתכווץ
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25) !important; // זהה לכרטיסיות הרגילות
+  backdrop-filter: blur(4px) !important; // זהה לכרטיסיות הרגילות
+  width: 100%;
+  max-width: 100%;
+}
+
+// כותרת קטגוריה במצב כהה
+.step-item-dark .category-title-container {
+  background: rgba(45, 45, 45, 0.6) !important;
+  background-color: rgba(45, 45, 45, 0.8) !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+// מגה כרטיסיות - border מקווקוו לכל הצדדים על הקונטיינר החיצוני
+.product-card-wrapper.mega-card-border-top {
+  border-top: 3px dashed var(--zx-green) !important;
+}
+
+.product-card-wrapper.mega-card-border-right {
+  border-right: 3px dashed var(--zx-green) !important;
+}
+
+.product-card-wrapper.mega-card-border-bottom {
+  border-bottom: 3px dashed var(--zx-green) !important;
+}
+
+.product-card-wrapper.mega-card-border-left {
+  border-left: 3px dashed var(--zx-green) !important;
+}
+
+// מספר סידורי למגה כרטיסיות
+.mega-card-number {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0066CC !important; // צבע ירוק קבוע במקום var
+  color: white !important;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  z-index: 999 !important; // z-index גבוה יותר
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid white; // מסגרת לבנה לקונטרסט
 }
 
 // Responsive grid columns
@@ -375,7 +467,7 @@
 // Responsive flex direction for product items
 .step-item-trans-product {
   // במובייל ובדסקטופ - תצוגה אנכית ממורכזת
-  flex-direction: column-reverse !important;
+  flex-direction: column; // הסרת reverse כדי שהכותרת תהיה למעלה
   gap: 7px;
   align-items: center;
   text-align: center;
@@ -876,9 +968,9 @@
 
 // וידוא שכל כרטיסית מוצר היא בעלת stacking context עצמאי
 .step-item-trans-product {
-  flex-direction: column-reverse !important;
+  flex-direction: column !important; // תיקון: הסרת reverse כדי שהכותרת תהיה למעלה
   gap: 7px;
-  align-items: center;
+  align-items: stretch; // התוכן יתפוס את כל הרוחב
   text-align: center;
   max-width: 240px; // רוחב מקסימלי קבוע
   width: 240px !important; // רוחב קבוע
