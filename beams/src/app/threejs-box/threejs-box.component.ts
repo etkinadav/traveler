@@ -3897,10 +3897,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 const selectedBeam = plataParam.beams[plataParam.selectedBeamIndex];
                 const selectedType = selectedBeam?.types?.[plataParam.selectedTypeIndex || 0];
                 if (selectedBeam && selectedType) {
-                    // חישוב קורות הפלטה
-                    const beamWidth = selectedBeam.width / 10;
-                    const beamHeight = selectedBeam.height / 10;
-                    const minGap = 1;
+                    // חישוב קורות הפלטה - צריך להשתמש בממדים הנכונים!
+                    const futonBeamWidth = selectedBeam.width / 10;   // רוחב נכון
+                    const futonBeamHeight = selectedBeam.height / 10; // גובה נכון
                     const widthParam = this.getParam('width');
                     const depthParam = this.getParam('depth');
                     const futonWidth = depthParam ? depthParam.default : 200;  // החלפה: width = depth
@@ -3909,21 +3908,22 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     const surfaceBeams = this.createSurfaceBeams(
                         futonWidth,
                         futonDepth,
-                        beamWidth,
-                        beamHeight,
-                        minGap
+                        futonBeamWidth,  // רוחב נכון!
+                        futonBeamHeight, // גובה נכון!
+                        this.minGap      // minGap נכון מהפרמטר
                     );
                     const totalBeams = surfaceBeams.length;
                     
-                    // חישוב כמות הרגליים (4 רגליים במיטה)
-                    const legCount = 4;
+                    // חישוב כמות הרגליים - לפי הפרמטר extraBeam
+                    const extraBeamParam = this.getParam('extraBeam');
+                    const legCount = extraBeamParam ? extraBeamParam.default : 3; // ברירת מחדל 3
                     
                     // 2 ברגים לכל מפגש של קורת פלטה עם רגל
                     const screwsPerBeamPerLeg = 2;
                     const totalScrews = totalBeams * legCount * screwsPerBeamPerLeg;
                     
                     // אורך הבורג = height של קורת הפלטה + 3
-                    const screwLength = this.calculateScrewLength('futon', beamHeight);
+                    const screwLength = this.calculateScrewLength('futon', futonBeamHeight);
                     
                     shelfForgingData.push({
                         type: 'Futon Platform Screws',
@@ -3936,7 +3936,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     });
                     
                     console.log(
-                        `Futon platform screws: ${totalScrews} screws for ${totalBeams} beams × ${legCount} legs (${screwsPerBeamPerLeg} screws per beam-leg intersection, ${screwLength}cm length)`
+                        `Futon platform screws: ${totalScrews} screws for ${totalBeams} beams × ${legCount} legs (${screwsPerBeamPerLeg} screws per beam-leg intersection, ${screwLength}cm length)`,
+                        `Calculation: ${totalBeams} × ${legCount} × ${screwsPerBeamPerLeg} = ${totalScrews}`
                     );
                 }
             }
