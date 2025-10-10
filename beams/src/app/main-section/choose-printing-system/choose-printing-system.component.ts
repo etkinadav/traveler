@@ -46,6 +46,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
   
   // משתנים למוצרים
   products: any[] = [];
+  groupedProducts: { productType: string; productTypeName: string; items: any[] }[] = []; // מוצרים מקובצים לפי product
   isLoading: boolean = true; // מתחיל ב-true כדי להציג מצב טעינה
   error: string | null = null;
   selectedProduct: any = null;
@@ -144,6 +145,21 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
       return index < 5; // 5 מוצרים ראשונים כברירת מחדל
     }
     return this.visibleProductIndices.has(index);
+  }
+
+  // פונקציה לחישוב אינדקס גלובלי של מוצר בקבוצה
+  getGlobalProductIndex(groupIndex: number, itemIndex: number): number {
+    let globalIndex = 0;
+    
+    // סכימת כל המוצרים בקבוצות הקודמות
+    for (let i = 0; i < groupIndex; i++) {
+      globalIndex += this.groupedProducts[i].items.length;
+    }
+    
+    // הוספת האינדקס בקבוצה הנוכחית
+    globalIndex += itemIndex;
+    
+    return globalIndex;
   }
 
   ngOnInit() {
@@ -356,6 +372,9 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
       next: (data: any) => {
         // עיבוד המוצרים - שכפול לפי דגמי משנה
         this.products = this.processProductsWithConfigurations(data);
+        
+        // קיבוץ המוצרים לפי product type
+        this.groupedProducts = this.groupProductsByType(this.products, data);
         
         // אתחול showHintMap לכל המוצרים כ-false
         this.products.forEach((product, index) => {
@@ -599,6 +618,38 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
       
       return updatedParam;
     });
+  }
+
+  // פונקציה לקיבוץ מוצרים לפי product type
+  groupProductsByType(processedProducts: any[], originalProducts: any[]): { productType: string; productTypeName: string; items: any[] }[] {
+    const groups: { [key: string]: { productType: string; productTypeName: string; items: any[] } } = {};
+    
+    processedProducts.forEach((product: any) => {
+      // מציאת המוצר המקורי כדי לקבל את names
+      const originalProduct = originalProducts.find((p: any) => p._id === product._id || p._id?.$oid === product._id);
+      
+      // קבלת ה-product type מה-configuration (אם קיים)
+      const config = product.configurations?.[product.configurationIndex];
+      const productType = config?.product || product.name; // אם אין product בconfig, נשתמש ב-name
+      
+      // קבלת השם המתורגם של ה-product type מ-names
+      const productTypeName = originalProduct?.names?.[productType] || productType;
+      
+      // אם עדיין לא קיימת קבוצה לסוג הזה, ניצור אותה
+      if (!groups[productType]) {
+        groups[productType] = {
+          productType: productType,
+          productTypeName: productTypeName,
+          items: []
+        };
+      }
+      
+      // הוספת המוצר לקבוצה
+      groups[productType].items.push(product);
+    });
+    
+    // המרה למערך
+    return Object.values(groups);
   }
 }
 

@@ -16,6 +16,10 @@ const productsSchema = new Schema({
         type: String,
         required: true
     },
+    names: {
+        type: Object,
+        required: false
+    },
     model: {
         type: String,
         required: false
@@ -28,6 +32,10 @@ const productsSchema = new Schema({
     restrictions: {
         type: Array,
         required: true
+    },
+    configurations: {
+        type: Array,
+        required: false
     }
 });
 

@@ -50,49 +50,48 @@
 // 1220px+: 4 בשורה
 
 .products-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   width: 100%;
   margin: 0;
   padding: 0;
+  gap: 0; // אין gap בין הכרטיסיות - הpadding מטופל בפנים
 }
 
 .products-grid .product-card-wrapper {
-  flex: 0 0 auto;
-  padding: 0 5px 18px 5px; // 5px מהצדדים, 12px מלמטה (הוגדל ב-5px)
+  padding: 0 5px 18px 5px; // 5px מהצדדים, 18px מלמטה
   box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+// Responsive grid columns
 // ברירת מחדל: 1 בשורה (0-499px)
-.products-grid .product-card-wrapper {
-  width: 100% !important;
-  flex: 0 0 100% !important;
+@media only screen and (max-width: 499px) {
+  .products-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }
 
-// 500-749.98px: 2 בשורה - wrapper תופס חצי מסך
+// 500-749px: 2 בשורה
 @media only screen and (min-width: 500px) and (max-width: 749.98px) {
-  .products-grid .product-card-wrapper {
-    width: calc(50% - 2.5px) !important; // 50% פחות חצי הpadding
-    flex: 0 0 calc(50% - 2.5px) !important;
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-// 750-999.98px: 3 בשורה - wrapper תופס שליש מסך
+// 750-999px: 3 בשורה
 @media only screen and (min-width: 750px) and (max-width: 999.98px) {
-  .products-grid .product-card-wrapper {
-    width: calc(33.333333% - 3.33px) !important; // שליש פחות חלק מהpadding
-    flex: 0 0 calc(33.333333% - 3.33px) !important;
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-// 1000px ומעלה: 4 בשורה - wrapper תופס רבע מסך
+// 1000px ומעלה: 4 בשורה
 @media only screen and (min-width: 1000px) {
-  .products-grid .product-card-wrapper {
-    width: calc(25% - 3.75px) !important; // רבע פחות חלק מהpadding
-    flex: 0 0 calc(25% - 3.75px) !important;
+  .products-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 

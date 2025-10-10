@@ -84,14 +84,30 @@
                                              </div>
                                          </ng-container>
                                          
-                                        <!-- מצב רגיל - מוצרים אמיתיים -->
+                                        <!-- מצב רגיל - מוצרים אמיתיים מקובצים לפי סוג -->
                                         <ng-container *ngIf="!isLoading">
-                                            <div *ngFor="let product of products; let i = index" 
-                                                #productCard
-                                                (mouseenter)="onHoverProduct(product)" 
-                                                (mouseleave)="onHoverProduct(null)" 
-                                                class="product-card-wrapper"
-                                                [attr.data-product-index]="i">
+                                            <!-- לולאה על כל קבוצת מוצרים -->
+                                            <ng-container *ngFor="let group of groupedProducts; let groupIndex = index">
+                                                <!-- כותרת קבוצה - כרטיסייה רגילה -->
+                                                <div class="product-card-wrapper">
+                                                     <div class="step-item-trans-product step-item d-flex p-1 align-items-center justify-content-center position-relative title-card-first"
+                                                          [class.step-item-dark]="isDarkMode">
+                                                         <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
+                                                             <h6 class="fw-bold zx-text-big text-center" 
+                                                                 style="color: var(--zx-green) !important;">
+                                                                 {{ group.productTypeName }}
+                                                             </h6>
+                                                         </div>
+                                                     </div>
+                                                 </div>
+                                                
+                                                <!-- מוצרים בקבוצה -->
+                                                <div *ngFor="let product of group.items; let i = index" 
+                                                    #productCard
+                                                    (mouseenter)="onHoverProduct(product)" 
+                                                    (mouseleave)="onHoverProduct(null)" 
+                                                    class="product-card-wrapper"
+                                                    [attr.data-product-index]="getGlobalProductIndex(groupIndex, i)">
                                                 <div [class.zx-step-choosen]="selectedProduct?._id === product._id" 
                                                      class="step-item-trans-product step-item shadow-85 white-background-card d-flex p-1 align-items-center justify-content-center position-relative"
                                                      [class.step-item-dark]="isDarkMode">
@@ -105,7 +121,7 @@
                                                     <div class="d-flex align-items-center gap-3">
                                                         <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded position-relative">
                                                             <!-- רנדור 3D רק למוצרים שנראים במסך -->
-                                                            <ng-container *ngIf="isProductVisible(i)">
+                                                            <ng-container *ngIf="isProductVisible(getGlobalProductIndex(groupIndex, i))">
                                                                 <app-product-mini-preview 
                                                                     #miniPreview 
                                                                     [product]="product" 
@@ -130,7 +146,7 @@
                                                             
                                                             <!-- placeholder עבור מוצרים שלא נראים במסך - זהה לכרטיסיות דמה -->
                                                             <div 
-                                                                *ngIf="!isProductVisible(i)"
+                                                                *ngIf="!isProductVisible(getGlobalProductIndex(groupIndex, i))"
                                                                 class="loading-shimmer">
                                                             </div>
                                                         </div>
@@ -146,6 +162,7 @@
                                                     </div>
                                                 </div>
                                              </div>
+                                            </ng-container>
                                          </ng-container>
                                     </div>
                                 
