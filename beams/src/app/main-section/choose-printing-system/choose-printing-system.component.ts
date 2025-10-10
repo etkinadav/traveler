@@ -99,75 +99,56 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
 
   // פונקציות לקביעת border מקווקוו לפי הלוגיקה המורכבת
   
-  // קווקוו עליון - שורה ראשונה של קבוצה (אבל לא הראשונה בכלל)
+  // קווקוו עליון
   shouldShowTopBorder(groupIndex: number, productIndex: number): boolean {
-    const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
-    const r = (globalIndex % this.elementsPerRow) + 1;
+    // כרגע תמיד false
+    return false;
     
-    // לא בקבוצה הראשונה
-    if (groupIndex === 0) return false;
+    // const x = groupIndex + 1; // מספר קבוצה
+    // const y = productIndex + 1; // מספר סידורי בקבוצה
+    // const n = this.elementsPerRow; // כמות בשורה
+    // const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
+    // const r = (globalIndex % n) + 1; // מיקום מימין
     
-    // זה הפעם הראשונה שהמספר r מופיע באותה קבוצה
-    // נבדוק אם זה המוצר הראשון בקבוצה עם ערך r זה
-    const group = this.groupedProducts[groupIndex];
-    for (let i = 0; i < productIndex; i++) {
-      const prevGlobalIndex = this.getGlobalProductIndex(groupIndex, i);
-      const prevR = (prevGlobalIndex % this.elementsPerRow) + 1;
-      if (prevR === r) {
-        return false; // כבר היה מוצר עם ערך r זה בקבוצה
-      }
-    }
-    
-    return true; // זה המוצר הראשון בקבוצה עם ערך r זה
+    // תנאי: x > 1 וגם y <= (n + 1 - r)
+    // return x > 1 && y <= (n + 1 - r);
   }
 
-  // קווקוו תחתון - שורה אחרונה של קבוצה (אבל לא האחרונה בכלל)
+  // קווקוו תחתון
   shouldShowBottomBorder(groupIndex: number, productIndex: number): boolean {
-    const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
-    const r = (globalIndex % this.elementsPerRow) + 1;
-    
-    // לא בקבוצה האחרונה
-    if (groupIndex === this.groupedProducts.length - 1) return false;
-    
-    // זה הפעם האחרונה שהמספר r מופיע באותה קבוצה
-    // נבדוק אם זה המוצר האחרון בקבוצה עם ערך r זה
+    const x = groupIndex + 1; // מספר קבוצה
+    const y = productIndex + 1; // מספר סידורי בקבוצה
+    const totalGroups = this.groupedProducts.length; // כמות קבוצות כוללת
     const group = this.groupedProducts[groupIndex];
-    for (let i = productIndex + 1; i < group.items.length; i++) {
-      const nextGlobalIndex = this.getGlobalProductIndex(groupIndex, i);
-      const nextR = (nextGlobalIndex % this.elementsPerRow) + 1;
-      if (nextR === r) {
-        return false; // יש עוד מוצר עם ערך r זה בקבוצה
-      }
-    }
+    const totalInGroup = group.items.length; // כמות כרטיסיות בקבוצה
+    const n = this.elementsPerRow; // כמות בשורה
+    const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
+    const r = (globalIndex % n) + 1; // מיקום מימין
     
-    return true; // זה המוצר האחרון בקבוצה עם ערך r זה
+    // תנאי: x != totalGroups וגם (totalInGroup - y) <= r
+    return x !== totalGroups && (totalInGroup - y) <= r;
   }
 
-  // קווקוו ימני - עמודה ראשונה של קבוצה (אבל לא בצד ימין החיצוני)
+  // קווקוו ימני
   shouldShowRightBorder(groupIndex: number, productIndex: number): boolean {
-    const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
-    const r = (globalIndex % this.elementsPerRow) + 1;
-    
-    // לא עם ערך r ששווה ל-1 (כלומר r >= 2)
-    if (r === 1) return false;
-    
-    // ה-s של אותה מגה כרטיסיה הוא 1 (המגה כרטיסיה הראשונה בקבוצה)
-    // כלומר זה המוצר הראשון בקבוצה (productIndex === 0)
-    return productIndex === 0;
+    // כרגע תמיד false
+    return false;
   }
 
-  // קווקוו שמאלי - עמודה אחרונה של קבוצה (אבל לא בצד שמאל החיצוני)
+  // קווקוו שמאלי
   shouldShowLeftBorder(groupIndex: number, productIndex: number): boolean {
+    const y = productIndex + 1; // מספר סידורי בקבוצה
+    const n = this.elementsPerRow; // כמות בשורה
     const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
-    const r = (globalIndex % this.elementsPerRow) + 1;
+    const r = (globalIndex % n) + 1; // מיקום מימין
+    const group = this.groupedProducts[groupIndex];
+    const totalInGroup = group.items.length; // כמות כרטיסיות בקבוצה
     
-    // לא עם ערך r ששווה ל-n (כלומר r < n)
-    if (r === this.elementsPerRow) return false;
+    // תנאי 1: r != n (לא האחרונה בשורה)
+    if (r === n) return false;
     
-    // ה-s של אותה מגה כרטיסיה הוא הכי גדול בקבוצה שלה
-    // כלומר זה המוצר האחרון בקבוצה
-    const lastInGroup = productIndex === this.groupedProducts[groupIndex].items.length - 1;
-    return lastInGroup;
+    // תנאי 2: y == totalInGroup (האחרונה בקבוצה)
+    return y === totalInGroup;
   }
 
   // פונקציה לעדכון כמות האלמנטים ברוחב המסך
@@ -286,6 +267,36 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
     
     // אתחול Intersection Observer
     this.initIntersectionObserver();
+    
+    // לוג מפורט של כל ה-borders אחרי 3 שניות
+    setTimeout(() => {
+      console.log('=== BORDER DEBUG LOG ===');
+      console.log(`n (elementsPerRow) = ${this.elementsPerRow}`);
+      this.groupedProducts.forEach((group, groupIndex) => {
+        console.log(`\n📦 Group ${groupIndex + 1}: ${group.productTypeName}`);
+        group.items.forEach((product, productIndex) => {
+          const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
+          const s = globalIndex + 1;
+          const r = (globalIndex % this.elementsPerRow) + 1;
+          const x = groupIndex + 1; // מספר קבוצה
+          
+          const hasTop = this.shouldShowTopBorder(groupIndex, productIndex);
+          const hasRight = this.shouldShowRightBorder(groupIndex, productIndex);
+          const hasBottom = this.shouldShowBottomBorder(groupIndex, productIndex);
+          const hasLeft = this.shouldShowLeftBorder(groupIndex, productIndex);
+          
+          const borders = [];
+          if (hasTop) borders.push('top');
+          if (hasRight) borders.push('right');
+          if (hasBottom) borders.push('bottom');
+          if (hasLeft) borders.push('left');
+          
+          const borderStr = borders.length > 0 ? borders.join('-') : 'none';
+          console.log(`  x-${x}-r-${r}-s-${s}-${borderStr} | ${product.translatedName}`);
+        });
+      });
+      console.log('\n=== END BORDER LOG ===');
+    }, 3000);
   }
   
   private initIntersectionObserver() {

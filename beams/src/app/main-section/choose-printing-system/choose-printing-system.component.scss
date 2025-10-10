@@ -143,7 +143,7 @@
   border-top: 3px solid transparent !important;
   background-image: repeating-linear-gradient(
     to right,
-    var(--zx-green) 0px 10px,
+    blue 0px 10px,
     transparent 10px 20px
   );
   background-size: 20px 3px; // 20px = 10px קו + 10px רווח
@@ -155,7 +155,7 @@
   border-right: 3px solid transparent !important;
   background-image: repeating-linear-gradient(
     to bottom,
-    var(--zx-green) 0px 10px,
+    red 0px 10px,
     transparent 10px 20px
   );
   background-size: 3px 20px; // 20px = 10px קו + 10px רווח
@@ -167,11 +167,11 @@
   border-bottom: 3px solid transparent !important;
   background-image: repeating-linear-gradient(
     to right,
-    var(--zx-green) 0px 10px,
+    red 0px 10px,
     transparent 10px 20px
   );
   background-size: 20px 3px; // 20px = 10px קו + 10px רווח
-  background-position: 0 0; // התחלה מהקצה השמאלי
+  background-position: 0 100%; // התחלה מהקצה התחתון
   background-repeat: repeat-x;
 }
 
@@ -179,7 +179,7 @@
   border-left: 3px solid transparent !important;
   background-image: repeating-linear-gradient(
     to bottom,
-    var(--zx-green) 0px 10px,
+    blue 0px 10px,
     transparent 10px 20px
   );
   background-size: 3px 20px; // 20px = 10px קו + 10px רווח

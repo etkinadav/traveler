@@ -112,9 +112,9 @@
                                                         </h6>
                                                     </div>
                                                     
-                                                    <!-- מספור מעל כל אלמנט - עם ערכי r ו s -->
+                                                    <!-- מספור מעל כל אלמנט - עם ערכי x, y, r ו s -->
                                                     <div class="mega-card-number">
-                                                        s: {{getGlobalProductIndex(groupIndex, i) + 1}}, r: {{(getGlobalProductIndex(groupIndex, i) % elementsPerRow) + 1}}
+                                                        x: {{groupIndex + 1}}, y: {{i + 1}}, r: {{(getGlobalProductIndex(groupIndex, i) % elementsPerRow) + 1}}, s: {{getGlobalProductIndex(groupIndex, i) + 1}}
                                                     </div>
                                                     
                                                     <!-- תוכן הכרטיסייה עם רקע לבן -->
