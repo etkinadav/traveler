@@ -112,6 +112,11 @@
                                                         </h6>
                                                     </div>
                                                     
+                                                    <!-- מספור מעל כל אלמנט - עם ערכי r ו s -->
+                                                    <div class="mega-card-number">
+                                                        s: {{getGlobalProductIndex(groupIndex, i) + 1}}, r: {{(getGlobalProductIndex(groupIndex, i) % elementsPerRow) + 1}}
+                                                    </div>
+                                                    
                                                     <!-- תוכן הכרטיסייה עם רקע לבן -->
                                                     <div class="white-background-card shadow-85 p-1 flex-grow-1">
                                                     <div class="d-flex flex-column align-items-center gap-3 h-100">

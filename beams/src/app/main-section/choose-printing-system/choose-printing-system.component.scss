@@ -120,6 +120,24 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4) !important;
 }
 
+// מספור מגה כרטיסיות
+.mega-card-number {
+  position: absolute;
+  top: -20px;
+  right: -10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 100;
+  border: 2px solid white;
+  min-width: 50px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 // מגה כרטיסיות - border מקווקוו עם gradient ללא השפעה על מיקום
 .product-card-wrapper.mega-card-border-top {
   border-top: 3px solid transparent !important;
