@@ -495,7 +495,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     isOptionsMenuOpen: boolean = false; // האם תפריט האפשרויות פתוח
     isSystemMenuOpen: boolean = false; // האם תפריט ניהול המערכת פתוח
     showNavigationCube: boolean = false; // קוביית ניווט במובייל
-    isPriceMinimized: boolean = false; // האם תפריט המחיר מצומצם
+    isPriceMinimized: boolean = true; // האם תפריט המחיר מצומצם
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
@@ -1660,8 +1660,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         // איפוס קוביית הניווט במובייל בשינוי גודל
         this.showNavigationCube = false;
-        // איפוס צמצום תפריט המחיר
-        this.isPriceMinimized = false;
     }
     
     private onResizeWithoutReset() {

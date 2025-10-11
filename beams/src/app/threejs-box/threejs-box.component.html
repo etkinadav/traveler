@@ -643,7 +643,8 @@
                 matTooltipPosition="above"
                 (click)="togglePriceMinimize()"
                 [class.expanded-mode]="isPriceMinimized"
-                aria-label="צמצם/הרחב">
+                aria-label="צמצם/הרחב"
+                *ngIf="calculatedPrice > 0">
             <mat-icon>{{ isPriceMinimized ? 'unfold_more' : 'close' }}</mat-icon>
         </button>
         
