@@ -1,15 +1,14 @@
     <div class="w-100 d-flex position-relative" [class.flex-row-reverse]="isRTL">
 
+    <!-- Close button positioned at top-left of entire dialog -->
+    <button type="button" mat-icon-button aria-label="Close dialog" (click)="closeLoginDialog()"
+        class="zx-close-btn position-absolute zx-z-index-2">
+        <mat-icon>close</mat-icon>
+    </button>
+
     <!-- Logo positioned at top-right of entire dialog -->
     <img *ngIf="!isIphone()" src="../../../assets/images/logo/ondi-logo-small.png" alt="OnDi Logo"
         class="zx-logo-small svg position-absolute zx-z-index-2" [class.zx-logo-small-rtl]="isRTL">
-
-    <div class="position-absolute w-100 d-flex zx-z-index-2" [class.justify-content-end]="isRTL">
-        <button type="button" mat-icon-button aria-label="Toggle sidenav" (click)="closeLoginDialog()"
-            class="close-icon d-flex align-items-center justify-content-center" [class.text-white]="isDarkMode">
-            <mat-icon>close</mat-icon>
-        </button>
-    </div>
 
     <!-- rotating images -->
     <div *ngIf="!isIphone()" class="zx-login-images-container position-relative overflow-hidden">

@@ -186,21 +186,26 @@ button.mat-stroked-button-dark-mode:hover {
     transition: 300ms;
 }
 
-.close-icon {
-    opacity: 50%;
+/* Close button */
+.zx-close-btn {
+    position: absolute !important;
+    top: 3px !important;
+    left: 12px !important;
+    opacity: 1 !important;
     outline: none;
+    z-index: 1000 !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    color: var(--zx-green) !important;
+    width: 40px !important;
+    height: 40px !important;
 }
 
-@media only screen and (min-width: 992px) {
-    .close-icon {
-        background-color: var(--zx-white-50-pr);
-        z-index: 1;
-        margin: 15px;
-    }
+.zx-close-btn:hover {
+    background-color: rgba(255, 255, 255, 1) !important;
 }
 
 /* make btn not auto focused */
-.close-icon.mat-mdc-icon-button ::ng-deep .mat-mdc-button-persistent-ripple {
+.zx-close-btn.mat-mdc-icon-button ::ng-deep .mat-mdc-button-persistent-ripple {
     display: none;
 }
 
