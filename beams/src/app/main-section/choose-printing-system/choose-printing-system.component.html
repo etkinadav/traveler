@@ -45,11 +45,12 @@
                                                   [class.title-card-first]="i === 0"
                                                   [class.title-card-empty]="i > 0">
                                                  <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-center align-items-center">
-                                                     <h6 class="fw-bold zx-text-big text-center" 
-                                                         style="color: var(--zx-green) !important;">
-                                                         <ng-container *ngIf="i === 0">{{'choose-system.step-1' | translate}} ({{elementsPerRow}})</ng-container>
-                                                         <ng-container *ngIf="i > 0">-</ng-container>
-                                                     </h6>
+                                                <h6 class="fw-bold zx-text-big text-center" 
+                                                        style="color: var(--zx-green) !important;">
+                                                        <ng-container *ngIf="i === 0">{{'choose-system.step-1' | translate}}</ng-container>
+                                                        <!-- ערכי כרטיסיות - comment out: ({{elementsPerRow}}) -->
+                                                        <ng-container *ngIf="i > 0">-</ng-container>
+                                                    </h6>
                                                  </div>
                                              </div>
                                          </div>
@@ -104,10 +105,11 @@
                                                 <ng-container *ngIf="product.isEmpty">
                                                     <div class="step-item-trans-product step-item position-relative empty-card"
                                                          [class.step-item-dark]="isDarkMode">
-                                                        <!-- מספור מעל כל אלמנט - עם ערכי x, y, r ו s -->
+                                                        <!-- ערכי כרטיסיות - comment out
                                                         <div class="mega-card-number">
                                                             x: {{groupIndex + 1}}, y: {{i + 1}}, r: {{(getGlobalProductIndex(groupIndex, i) % elementsPerRow) + 1}}, s: {{getGlobalProductIndex(groupIndex, i) + 1}}
                                                         </div>
+                                                        -->
                                                         <!-- תוכן ריק -->
                                                         <div class="white-background-card shadow-85 p-1 flex-grow-1">
                                                         </div>
@@ -128,10 +130,11 @@
                                                         </h6>
                                                     </div>
                                                     
-                                                    <!-- מספור מעל כל אלמנט - עם ערכי x, y, r ו s -->
+                                                    <!-- ערכי כרטיסיות - comment out
                                                     <div class="mega-card-number">
                                                         x: {{groupIndex + 1}}, y: {{i + 1}}, r: {{(getGlobalProductIndex(groupIndex, i) % elementsPerRow) + 1}}, s: {{getGlobalProductIndex(groupIndex, i) + 1}}
                                                     </div>
+                                                    -->
                                                     
                                                     <!-- תוכן הכרטיסייה עם רקע לבן -->
                                                     <div class="white-background-card shadow-85 p-1 flex-grow-1">
