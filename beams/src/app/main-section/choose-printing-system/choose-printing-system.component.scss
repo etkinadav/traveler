@@ -552,6 +552,17 @@
   box-sizing: border-box; // וידוא שה-width כולל padding
 }
 
+// לוגיקה דינמית של align-items לפי מיקום בקבוצה על product-card-wrapper
+// מיקום זוגי (0, 2, 4, 6...): align-items: end
+.product-card-wrapper.align-end {
+  align-items: flex-end !important;
+}
+
+// מיקום אי-זוגי (1, 3, 5, 7...): align-items: center  
+.product-card-wrapper.align-center {
+  align-items: center !important;
+}
+
 // Gradient לכפתורי "המשך ל" - עבר ל-styles.scss גלובלי
 
 // קלאס חדש לרקע לבן אחיד ללא אפקטים

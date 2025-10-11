@@ -273,6 +273,13 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
     return globalIndex;
   }
 
+  // פונקציה לקבלת קלאס align-items לפי מיקום בקבוצה
+  getAlignItemsClass(groupIndex: number, itemIndex: number): string {
+    // מיקום זוגי (0, 2, 4, 6...): align-end
+    // מיקום אי-זוגי (1, 3, 5, 7...): align-center
+    return itemIndex % 2 === 0 ? 'align-end' : 'align-center';
+  }
+
   ngOnInit() {
     // עדכון כמות האלמנטים ברוחב המסך
     this.updateElementsPerRow();
