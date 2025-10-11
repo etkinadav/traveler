@@ -25,12 +25,38 @@
 }
 
 // כותרת "מה בונים היום" - זהה לכותרות הקבוצות
-.product-card-wrapper.title-card-first .step-item-trans-product.step-item .text-con-product h6.zx-text-big {
+.product-card-wrapper:has(.title-card-first) .step-item-trans-product.title-card-first {
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  padding: 8px 12px !important; // אותו padding כמו category-title-container
+}
+
+.product-card-wrapper:has(.title-card-first) .step-item-trans-product.title-card-first .text-con-product {
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  text-align: right !important;
+}
+
+.product-card-wrapper:has(.title-card-first) .step-item-trans-product.title-card-first .text-con-product h6.zx-text-big {
   font-size: 24px !important;
   text-align: right !important;
   width: 100% !important;
   color: var(--zx-green) !important;
   margin: 0 !important;
+}
+
+// ביטול כל ה-Bootstrap classes שמרכזים את הטקסט
+.step-item-trans-product.title-card-first.d-flex.align-items-center.justify-content-center {
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+}
+
+.step-item-trans-product.title-card-first .text-con-product.d-flex.align-items-center {
+  align-items: flex-start !important;
+}
+
+.step-item-trans-product.title-card-first .text-con-product h6.text-center {
+  text-align: right !important;
 }
 
 // ביטול padding bottom עבור "מה בונים היום" (כל הרזולוציות)
