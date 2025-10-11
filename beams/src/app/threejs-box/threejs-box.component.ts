@@ -4912,11 +4912,21 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     private centerCameraOnWireframe() {
         // קבועים
         const ROTATION_ANGLE = 30; // 30 מעלות סיבוב כלפי מטה (קבוע)
-        const FIXED_DISTANCE = 200; // מרחק רחוק מהמרכז (היה 100, עכשיו 200)
         
-        // מיקום המצלמה במרחק רחוק מהמרכז
-        this.camera.position.set(0, FIXED_DISTANCE, 400);
+        // חישוב מיקום אופטימלי לפי מידות המוצר
+        const dimensions = this.getProductDimensionsRaw();
+        const optimalPosition = this.calculateOptimalCameraPosition(dimensions);
         
+        console.log('ZOOM-3-D 📐 Product Dimensions:', {
+            width: dimensions.width,
+            length: dimensions.length,
+            height: dimensions.height,
+            cameraPosition: optimalPosition
+        });
+        
+        // מיקום המצלמה במיקום האופטימלי
+        this.camera.position.set(optimalPosition.x, optimalPosition.y, optimalPosition.z);
+
         // מרכוז על מרכז העולם (0,0,0)
         this.camera.lookAt(0, 0, 0);
 
@@ -4927,25 +4937,19 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.camera.position.setFromSpherical(spherical);
         this.camera.lookAt(0, 0, 0);
         
+        // הדפסת מידות המוצר אחרי שזוית המצלמה נקבעת
+      
+        
         // ללא זום אאוט - המצלמה תישאר במרחק המקורי
         // הזום אין ב-performAutoZoomIn() יטפל בזה
         
         // pan למעלה במצב הפתיחה
-        const screenHeight = window.innerHeight;
-        const panAmount = screenHeight / 2; // חצי מגובה המסך
-        const cam = this.camera;
-        const pan = new THREE.Vector3();
-        pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), panAmount * 0.2); // חיובי = למעלה
-        cam.position.add(pan);
-        this.scene.position.add(pan);
+        this.applyCameraPan();
         
-        // המתנה של שנייה כדי שהמודל יסיים לעלות, ואז זום אין אוטומטי
-        setTimeout(() => {
-            this.performAutoZoomIn();
-        }, 1000);
+        // הדפסת מידות וזימון אנימציה
+        this.finalizeCamera();
         
         this.debugLog('מצלמה מורכזת על מרכז העולם:', {
-            fixedDistance: FIXED_DISTANCE,
             rotationAngle: ROTATION_ANGLE,
             cameraPosition: this.camera.position,
             lookAt: new THREE.Vector3(0, 0, 0)
@@ -4975,6 +4979,113 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         });
     }
     
+    // חישוב מיקום המצלמה האופטימלי לפי מידות המוצר
+    private calculateOptimalCameraPosition(dimensions: { width: number; length: number; height: number }): { x: number; y: number; z: number } {
+        const { width, length, height } = dimensions;
+        
+        // דוגמאות מהקוד (מתוקן):
+        // 300W 50D 230H → camera(200, 600, 700)
+        // 220W 43D 45H → camera(100, 400, 450) - מוצר קטן ונמוך!
+        // 600W 70D 180H → camera(70, 250, 550) - מוצר רחב!
+        
+        // ניתוח מעמיק של הדפוסים:
+        // X: ככל שהמוצר רחב יותר, צריך להיות קרוב יותר לצד (X קטן) כדי לראות את כל הרוחב
+        // Y: ככל שהמוצר גבוה יותר, צריך להיות גבוה יותר, אבל עם offset בסיסי
+        // Z: המרחק הכללי - מוצרים קטנים צריכים להיות יחסית קרובים
+        
+        // **חישוב X: יחס הפוך לרוחב**
+        // הרעיון: המצלמה צריכה להיות בצד כך שתראה את כל הרוחב
+        // ניתוח: X ≈ k / (width + offset)
+        // 220W → X=100: 100 = k/(220+c) → k = 100*(220+c)
+        // 300W → X=200: 200 = k/(300+c) → k = 200*(300+c)
+        // 600W → X=70: 70 = k/(600+c) → k = 70*(600+c)
+        // פתרון: c≈50, k≈50000
+        const x = Math.max(50, 50000 / (width * 2.5 + 50));
+        // בדיקה: 220→50000/600≈83, 300→50000/800≈63, 600→50000/1550≈32 (לא מדויק אבל כיוון נכון)
+        
+        // ננסה power function: X = a * width^b
+        // log(X) = log(a) + b*log(width)
+        // (220,100): log(100) = log(a) + b*log(220) → 2 = log(a) + b*2.34
+        // (600,70): log(70) = log(a) + b*log(600) → 1.85 = log(a) + b*2.78
+        // b = (1.85-2)/(2.78-2.34) = -0.15/0.44 = -0.34
+        // log(a) = 2 - (-0.34)*2.34 = 2.8 → a = 630
+        const xPower = 630 * Math.pow(width, -0.34);
+        // 220 → 630*220^-0.34 ≈ 630*0.158 ≈ 99 ✓
+        // 300 → 630*300^-0.34 ≈ 630*0.135 ≈ 85 (צריך 200, לא טוב)
+        
+        // ננסה משהו פשוט יותר: X = base - width/factor
+        const xSimple = 250 - width * 0.3;
+        // 220 → 250-66 = 184 (צריך 100)
+        // 300 → 250-90 = 160 (צריך 200)
+        // לא עובד
+        
+        // הפתרון: נשתמש בשילוב של שני גורמים
+        const xFinal = 50 + 30000 / (width + 100);
+        // 220 → 50 + 30000/320 = 50 + 93.75 = 143 (קרוב יותר ל-100)
+        // 300 → 50 + 30000/400 = 50 + 75 = 125 (רחוק מ-200)
+        // 600 → 50 + 30000/700 = 50 + 42.86 = 93 (קרוב ל-70)
+        
+        // **חישוב Y: תלוי בגובה + offset**
+        // הרעיון: המצלמה צריכה להיות גבוהה מספיק כדי לראות את המוצר מלמעלה
+        // מוצרים נמוכים: Y גבוה יחסית (כדי לראות מלמעלה)
+        // מוצרים גבוהים: Y גבוה מאוד (כדי לראות את הכל)
+        // 45H → 400Y: Y/H = 8.9
+        // 180H → 250Y: Y/H = 1.4
+        // 230H → 600Y: Y/H = 2.6
+        // נראה שיש שיא אי שם באמצע (180H הכי נמוך)
+        const yBase = height < 150 ? height * 3.5 + 150 : height * 2.5 + 50;
+        // 45 → 157.5+150 = 307.5 (צריך 400)
+        // 180 → 450+50 = 500 (צריך 250)
+        // 230 → 575+50 = 625 (קרוב ל-600) ✓
+        
+        // תיקון: הורדת Y באופן אחיד לכל המוצרים
+        const yFinal = height < 150 ? height * 1.5 + 150 : height * 2 + 50;
+        // 45 → 67.5+150 = 217.5 (נמוך הרבה יותר!)
+        // 180 → 360+50 = 410
+        // 230 → 460+50 = 510 (נמוך יותר מ-600)
+        
+        // **חישוב Z: המרחק הכללי**
+        // הרעיון: מוצרים גדולים צריכים מרחק קטן יחסית, מוצרים קטנים צריכים מרחק גדול יחסית
+        const maxDim = Math.max(width, height);
+        // 220 → 450: Z/max = 2.05
+        // 230 → 700: Z/max = 3.04
+        // 300 → 700: Z/max = 2.33
+        // 600 → 550: Z/max = 0.92
+        const zFinal = maxDim < 300 ? maxDim * 2.5 + 50 : maxDim * 1.2 + 340;
+        // 220 → 550+50 = 600 (צריך 450)
+        // 230 → 575+50 = 625 (קרוב ל-700) ✓
+        // 300 → 360+340 = 700 ✓
+        // 600 → 720+340 = 1060 (רחוק מ-550)
+        
+        // תיקון: מוצרים קטנים צריכים Z קטן יותר (קרוב יותר!)
+        const zCorrected = maxDim < 300 ? maxDim * 1.8 + 50 : (maxDim < 400 ? maxDim * 2 + 100 : maxDim * 0.85 + 40);
+        // 220 → 396+50 = 446 (קרוב ל-450) ✓ וקרוב יותר!
+        // 230 → 414+50 = 464 (קרוב ל-700 אבל עדיין רחוק...)
+        // 300 → 600+100 = 700 ✓
+        // 600 → 510+40 = 550 ✓
+        
+        return { x: xFinal, y: yFinal, z: zCorrected };
+    }
+    
+    // פונקציה משותפת לזימון אנימציה
+    private finalizeCamera() {
+        // המתנה של שנייה כדי שהמודל יסיים לעלות, ואז זום אין אוטומטי
+        setTimeout(() => {
+            this.performAutoZoomIn();
+        }, 1000);
+    }
+    
+    // פונקציה משותפת ל-pan למעלה
+    private applyCameraPan() {
+        const screenHeight = window.innerHeight;
+        const panAmount = screenHeight / 2; // חצי מגובה המסך
+        const cam = this.camera;
+        const pan = new THREE.Vector3();
+        pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), panAmount * 0.2); // חיובי = למעלה
+        cam.position.add(pan);
+        this.scene.position.add(pan);
+    }
+    
     // מרכוז המצלמה עבור מוצר beams עם מידות קבועות
     private centerCameraOnBeams() {
         // קבועים עבור beams - מידות קבועות של 50x50x50 ס"מ
@@ -4998,25 +5109,24 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.camera.position.setFromSpherical(spherical);
         this.camera.lookAt(0, 0, 0);
         
-        // pan למעלה במצב הפתיחה - זהה לחלוטין לרגיל
-        const screenHeight = window.innerHeight;
-        const panAmount = screenHeight / 2; // חצי מגובה המסך
-        const cam = this.camera;
-        const pan = new THREE.Vector3();
-        pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), panAmount * 0.2); // חיובי = למעלה
-        cam.position.add(pan);
-        this.scene.position.add(pan);
+        // הדפסת מידות המוצר אחרי שזוית המצלמה נקבעת
+        const dimensions = this.getProductDimensionsRaw();
+        console.log('ZOOM-3-D 📐 Product Dimensions:', {
+            width: dimensions.width,
+            length: dimensions.length,
+            height: dimensions.height
+        });
         
-        // המתנה של שנייה כדי שהמודל יסיים לעלות, ואז זום אין אוטומטי
-        setTimeout(() => {
-            this.performAutoZoomIn();
-        }, 1000);
+        // pan למעלה במצב הפתיחה - זהה לחלוטין לרגיל
+        this.applyCameraPan();
+        
+        // הדפסת מידות וזימון אנימציה
+        this.finalizeCamera();
         
         this.debugLog('מצלמה מורכזת על beams עם מידות קבועות 50x50x50:', {
             rotationAngle: ROTATION_ANGLE,
             beamsBoxSize: BEAMS_BOX_SIZE,
             fixedDistance: FIXED_DISTANCE,
-            panAmount: panAmount,
             cameraPosition: this.camera.position.clone(),
             scenePosition: this.scene.position.clone()
         });
