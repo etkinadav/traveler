@@ -183,15 +183,22 @@
                                                                 *ngIf="!isProductVisible(getGlobalProductIndex(groupIndex, i))"
                                                                 class="loading-shimmer">
                                                             </div>
+                                                            
+                                                            <!-- כפתור בחירה מרחף מעל התלת מימד -->
+                                                            <button mat-stroked-button 
+                                                                    class="floating-select-btn" 
+                                                                    (click)="navigateToProduct(product); $event.stopPropagation()">
+                                                                <div class="btn-content">
+                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                    </svg>
+                                                                    <span>התאם מידות</span>
+                                                                </div>
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    
-                                                    <!-- כפתור המשך למוצר -->
-                                                    <button mat-stroked-button 
-                                                            class="continue-to-product-btn rounded-2" 
-                                                            (click)="navigateToProduct(product); $event.stopPropagation()">
-                                                        <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">{{product.model || product.translatedName || 'המוצר'}} במידות שלך</span>
-                                                    </button>
                                                 </div>
                                                     <!-- סגירת white-background-card -->
                                              </div>

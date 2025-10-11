@@ -778,35 +778,99 @@
     padding-top: 18px;
 }
 
-// כפתור המשך למוצר
-.continue-to-product-btn {
-    position: relative;
-    bottom: unset;
-    left: unset;
-    border-radius: 0 !important; // ללא רדיוס
-    border: none !important; // הסרת border
-    background: var(--zx-green) !important; // רקע כחול
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; // צללה עדינה
-    padding: 6px 16px !important;
+// כפתור בחירה מרחף מעל התלת מימד
+::ng-deep .floating-select-btn,
+::ng-deep .floating-select-btn.mat-mdc-button,
+::ng-deep .floating-select-btn.mdc-button {
+    position: absolute !important;
+    bottom: 8px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important; // ממורכז
+    border-radius: 0px !important; // פינות מרובעות לגמרי
+    border: none !important;
+    background: var(--zx-green) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    padding: 5px 10px !important; // הגדלת padding: 3+2=5 למעלה/למטה, 6+4=10 לימין/שמאל
     min-height: unset !important;
-    z-index: 10;
-    transition: all 0.2s ease;
-    margin-top: 10px;
-    align-self: center;
+    height: auto !important;
+    z-index: 11 !important; // מעל הכיסוי השקוף
+    transition: all 0.3s ease !important;
+    opacity: 0.9 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important; // קטן יותר
+    width: auto !important;
+    max-width: none !important;
 }
 
-.continue-to-product-btn:hover {
-    background: var(--zx-green-dark) !important; // כחול כהה יותר ב-hover
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
-    transform: scale(1.02);
+// התוכן הפנימי של הכפתור
+::ng-deep .floating-select-btn .btn-content,
+::ng-deep .floating-select-btn.mat-mdc-button .btn-content,
+::ng-deep .floating-select-btn.mdc-button .btn-content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important; // רווח בין אייקון לטקסט
+    width: 100% !important;
+    height: 100% !important;
 }
 
-.continue-to-product-btn span {
-    color: white !important; // טקסט לבן
-    font-weight: 700 !important; // bold יותר חזק
+::ng-deep .floating-select-btn:hover,
+::ng-deep .floating-select-btn.mat-mdc-button:hover,
+::ng-deep .floating-select-btn.mdc-button:hover {
+    background: var(--zx-green-dark) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    transform: translateX(-50%) translateY(-2px) !important; // שומר על מיקום ממורכז
+    opacity: 1 !important;
+    border-radius: 0px !important; // וידוא שהפינות נשארות מרובעות גם ב-hover
+}
+
+::ng-deep .floating-select-btn .btn-content svg,
+::ng-deep .floating-select-btn.mat-mdc-button .btn-content svg,
+::ng-deep .floating-select-btn.mdc-button .btn-content svg {
+    flex-shrink: 0 !important;
+    color: white !important;
+    width: 16px !important; // אייקון גדול יותר
+    height: 16px !important;
+    margin: 0 !important;
+}
+
+::ng-deep .floating-select-btn .btn-content span,
+::ng-deep .floating-select-btn.mat-mdc-button .btn-content span,
+::ng-deep .floating-select-btn.mdc-button .btn-content span,
+::ng-deep .floating-select-btn .btn-content .mdc-button__label {
+    color: white !important;
+    font-weight: 500 !important; // פחות בולט
     text-shadow: none !important;
-    font-size: 16px !important;
-    white-space: nowrap;
+    font-size: 10px !important; // עוד יותר קטן
+    white-space: nowrap !important;
+    line-height: 1 !important; // גובה שורה קטן
+    margin: 0 !important;
+    padding-top: 2px !important; // הוספת padding top
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+// עוד סטיילים ספציפיים ל-Material Design
+::ng-deep .floating-select-btn .mat-mdc-button-touch-target,
+::ng-deep .floating-select-btn .mdc-button__touch-target {
+    display: none !important;
+}
+
+::ng-deep .floating-select-btn .mat-mdc-focus-indicator,
+::ng-deep .floating-select-btn .mdc-button__ripple {
+    border-radius: 0px !important;
+}
+
+// וידוא שהכפתור לא מקבל סטיילים מ-Material
+::ng-deep .floating-select-btn.mat-mdc-outlined-button {
+    border: none !important;
+}
+
+::ng-deep .floating-select-btn.mat-unthemed {
+    border: none !important;
 }
 
 // אפקט ברק לכרטיסי דמה
@@ -982,14 +1046,14 @@
   // טקסט הוראה בריחוף
   .overlay-hint {
     position: absolute;
-    bottom: 8px;
+    top: 8px; // למעלה במקום למטה
     left: 50%;
     transform: translateX(-50%);
     background: none;
     color: var(--zx-green);
     padding: 0;
-    font-size: 16px; // זהה לגודל כותרת h6
-    font-weight: 400;
+    font-size: 13px; // קצת יותר קטן
+    font-weight: 500;
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
     pointer-events: none;
