@@ -138,8 +138,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-// מגה כרטיסיות - border מקווקוו עם gradient - תמיכה במספר borders
-// כל קלאס מוסיף את ה-background שלו לרשימה הקיימת
+// מגה כרטיסיות - border מקווקוו עם gradient - רק bottom ו-left
 
 .product-card-wrapper {
   // ברירת מחדל - אין background
@@ -149,23 +148,11 @@
   background-repeat: no-repeat;
 }
 
-// Top border
-.product-card-wrapper.mega-card-border-top {
-  background-image: repeating-linear-gradient(
-    to right,
-    blue 0px, blue 10px,
-    transparent 10px, transparent 20px
-  );
-  background-size: 100% 3px;
-  background-position: 0 0;
-  background-repeat: no-repeat;
-}
-
 // Bottom border
 .product-card-wrapper.mega-card-border-bottom {
   background-image: repeating-linear-gradient(
     to right,
-    red 0px, red 10px,
+    var(--zx-green) 0px, var(--zx-green) 10px,
     transparent 10px, transparent 20px
   );
   background-size: 100% 3px;
@@ -177,7 +164,7 @@
 .product-card-wrapper.mega-card-border-left {
   background-image: repeating-linear-gradient(
     to bottom,
-    blue 0px, blue 10px,
+    var(--zx-green) 0px, var(--zx-green) 10px,
     transparent 10px, transparent 20px
   );
   background-size: 3px 100%;
@@ -185,106 +172,14 @@
   background-repeat: no-repeat;
 }
 
-// Right border
-.product-card-wrapper.mega-card-border-right {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    red 0px, red 10px,
-    transparent 10px, transparent 20px
-  );
-  background-size: 3px 100%;
-  background-position: 100% 0;
-  background-repeat: no-repeat;
-}
-
-// שילובים של 2 borders
-.product-card-wrapper.mega-card-border-top.mega-card-border-left {
-  background-image: 
-    repeating-linear-gradient(to right, blue 0px, blue 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, blue 0px, blue 10px, transparent 10px, transparent 20px);
-  background-size: 100% 3px, 3px 100%;
-  background-position: 0 0, 0 0;
-  background-repeat: no-repeat, no-repeat;
-}
-
-.product-card-wrapper.mega-card-border-top.mega-card-border-right {
-  background-image: 
-    repeating-linear-gradient(to right, blue 0px, blue 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, red 0px, red 10px, transparent 10px, transparent 20px);
-  background-size: 100% 3px, 3px 100%;
-  background-position: 0 0, 100% 0;
-  background-repeat: no-repeat, no-repeat;
-}
-
+// שילוב של bottom + left
 .product-card-wrapper.mega-card-border-bottom.mega-card-border-left {
   background-image: 
-    repeating-linear-gradient(to right, red 0px, red 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, blue 0px, blue 10px, transparent 10px, transparent 20px);
+    repeating-linear-gradient(to right, var(--zx-green) 0px, var(--zx-green) 10px, transparent 10px, transparent 20px),
+    repeating-linear-gradient(to bottom, var(--zx-green) 0px, var(--zx-green) 10px, transparent 10px, transparent 20px);
   background-size: 100% 3px, 3px 100%;
   background-position: 0 100%, 0 0;
   background-repeat: no-repeat, no-repeat;
-}
-
-.product-card-wrapper.mega-card-border-bottom.mega-card-border-right {
-  background-image: 
-    repeating-linear-gradient(to right, red 0px, red 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, red 0px, red 10px, transparent 10px, transparent 20px);
-  background-size: 100% 3px, 3px 100%;
-  background-position: 0 100%, 100% 0;
-  background-repeat: no-repeat, no-repeat;
-}
-
-// שילובים של 3 borders
-.product-card-wrapper.mega-card-border-top.mega-card-border-bottom.mega-card-border-left {
-  background-image: 
-    repeating-linear-gradient(to right, blue 0px, blue 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to right, red 0px, red 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, blue 0px, blue 10px, transparent 10px, transparent 20px);
-  background-size: 100% 3px, 100% 3px, 3px 100%;
-  background-position: 0 0, 0 100%, 0 0;
-  background-repeat: no-repeat, no-repeat, no-repeat;
-}
-
-.product-card-wrapper.mega-card-border-top.mega-card-border-bottom.mega-card-border-right {
-  background-image: 
-    repeating-linear-gradient(to right, blue 0px, blue 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to right, red 0px, red 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, red 0px, red 10px, transparent 10px, transparent 20px);
-  background-size: 100% 3px, 100% 3px, 3px 100%;
-  background-position: 0 0, 0 100%, 100% 0;
-  background-repeat: no-repeat, no-repeat, no-repeat;
-}
-
-.product-card-wrapper.mega-card-border-top.mega-card-border-left.mega-card-border-right {
-  background-image: 
-    repeating-linear-gradient(to right, blue 0px, blue 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, blue 0px, blue 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, red 0px, red 10px, transparent 10px, transparent 20px);
-  background-size: 100% 3px, 3px 100%, 3px 100%;
-  background-position: 0 0, 0 0, 100% 0;
-  background-repeat: no-repeat, no-repeat, no-repeat;
-}
-
-.product-card-wrapper.mega-card-border-bottom.mega-card-border-left.mega-card-border-right {
-  background-image: 
-    repeating-linear-gradient(to right, red 0px, red 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, blue 0px, blue 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, red 0px, red 10px, transparent 10px, transparent 20px);
-  background-size: 100% 3px, 3px 100%, 3px 100%;
-  background-position: 0 100%, 0 0, 100% 0;
-  background-repeat: no-repeat, no-repeat, no-repeat;
-}
-
-// שילוב של כל 4 borders
-.product-card-wrapper.mega-card-border-top.mega-card-border-bottom.mega-card-border-left.mega-card-border-right {
-  background-image: 
-    repeating-linear-gradient(to right, blue 0px, blue 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to right, red 0px, red 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, blue 0px, blue 10px, transparent 10px, transparent 20px),
-    repeating-linear-gradient(to bottom, red 0px, red 10px, transparent 10px, transparent 20px);
-  background-size: 100% 3px, 100% 3px, 3px 100%, 3px 100%;
-  background-position: 0 0, 0 100%, 0 0, 100% 0;
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
 }
 
 
