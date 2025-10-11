@@ -111,6 +111,11 @@
   backdrop-filter: blur(4px) !important; // זהה לכרטיסיות הרגילות
   width: 100%;
   max-width: 100%;
+  
+  // גודל פונט של הכותרת
+  h6 {
+    font-size: 24px !important;
+  }
 }
 
 // כותרת קטגוריה במצב כהה
