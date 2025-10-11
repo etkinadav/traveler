@@ -1210,7 +1210,7 @@ body[dir='rtl'] .custom-tooltip {
         min-height: 490px;
         max-height: 490px;
         position: absolute !important;
-        top: 50% !important;
+        top: calc(50% + 26px) !important;
         bottom: auto !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
