@@ -94,9 +94,19 @@
       box-shadow: 0 9px 24px rgba(0, 0, 0, 0.25) !important; // הצל עולה גם הוא
       transform: translateY(-3px); // הכרטיסייה עולה
       
-      // אנימציה לחץ בכפתור בריחוף
-      .continue-button .continue-arrow {
-        animation: arrowSlide 1s ease-in-out;
+      // אפקט לכפתור "המשך" בריחוף
+      .continue-button {
+        // אפקט הזוהר מתחיל
+        &::before {
+          width: 300px;
+          height: 300px;
+        }
+        
+        // החץ זז
+        .continue-arrow {
+          animation: arrowSlide 1s ease-in-out;
+          transform: translateX(-3px);
+        }
       }
     }
   }
