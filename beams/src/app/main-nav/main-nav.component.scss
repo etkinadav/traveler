@@ -14,7 +14,7 @@
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  z-index: 99999 !important;
+  z-index: 1000 !important;
   box-shadow: none !important;
   display: flex;
   max-height: 45px;
@@ -67,7 +67,7 @@
   border-radius: 4px;
   transition: all 0.3s ease;
   position: relative !important;
-  z-index: 100000 !important; // מעל הnavbar ומעל הoverlay
+  z-index: 1001 !important; // מעל הnavbar אבל מתחת לדיאלוגים
   
   &:hover {
     background-color: rgba(0, 0, 0, 0.04) !important;
@@ -566,7 +566,7 @@ button.zx-bg-gray-light {
   background: rgba(255, 255, 255, 0.1) !important;
   backdrop-filter: blur(8px) !important;
   box-shadow: none !important;
-  z-index: 99999 !important;
+  z-index: 1000 !important;
 }
 
 // דריסת הרקע של mat-toolbar - הוסר הרקע הלבן לבקשת המשתמש

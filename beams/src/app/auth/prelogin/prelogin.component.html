@@ -1,4 +1,8 @@
-<div class="w-100 d-flex" [class.flex-row-reverse]="isRTL">
+    <div class="w-100 d-flex position-relative" [class.flex-row-reverse]="isRTL">
+
+    <!-- Logo positioned at top-right of entire dialog -->
+    <img *ngIf="!isIphone()" src="../../../assets/images/logo/ondi-logo-small.png" alt="OnDi Logo"
+        class="zx-logo-small svg position-absolute zx-z-index-2" [class.zx-logo-small-rtl]="isRTL">
 
     <div class="position-absolute w-100 d-flex zx-z-index-2" [class.justify-content-end]="isRTL">
         <button type="button" mat-icon-button aria-label="Toggle sidenav" (click)="closeLoginDialog()"
@@ -9,8 +13,6 @@
 
     <!-- rotating images -->
     <div *ngIf="!isIphone()" class="zx-login-images-container position-relative overflow-hidden">
-        <img src="../../../assets/images/logo/ondi-logo-white.png" alt="OnDi Logo"
-            class="zx-logo-white svg position-absolute zx-z-index-2" [class.zx-logo-white-rtl]="isRTL">
         
         <!-- Rotating images with fade effect -->
         <div class="rotating-images-container">
@@ -24,18 +26,6 @@
         
         <!-- Fade overlay for smooth transition -->
         <div class="zx-image-fade-overlay"></div>
-    </div>
-
-    <!-- Mobile rotating images -->
-    <div class="zx-mobile-images-container">
-        <div class="rotating-images-container">
-            <img *ngFor="let image of rotatingImages; let i = index" 
-                 [src]="image" 
-                 alt="OnDi Example" 
-                 class="rotating-image"
-                 [class.active]="currentImageIndex === i"
-                 [@fadeInOut]>
-        </div>
     </div>
 
     <!-- login signup -->
