@@ -722,8 +722,7 @@
                         (click)="togglePriceMinimize()"
                         *ngIf="isPriceMinimized && calculatedPrice > 0"
                         [@fadeInScale]>
-                    <span class="minimized-text">{{ getPricingOptionShortName() }}</span>
-                    <span class="minimized-price">({{ getFinalPrice() }}₪)</span>
+                    <span class="minimized-price">{{ getFinalPrice() }}₪</span>
                     <svg class="minimized-arrow" width="14" height="14" viewBox="0 0 14 14">
                         <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
