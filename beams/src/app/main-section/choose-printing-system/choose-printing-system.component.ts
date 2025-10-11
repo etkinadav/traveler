@@ -189,28 +189,32 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
       // הסרת כל הכרטיסיות הריקות הקיימות
       group.items = group.items.filter(item => !item.isEmpty);
       
-      // קביעת כמות כרטיסיות ריקות חדשה
-      group.emptyCardsCount = 0;
+      const n = this.elementsPerRow; // כמות בשורה
       
-      const currentGroupSize = group.items.length;
-      
-      // חישוב r של הכרטיסייה הראשונה בקבוצה
+      // 1. חישוב r של הכרטיסייה הראשונה בקבוצה (אינדקס מ-0)
       const firstProductGlobalIndex = this.getGlobalProductIndex(groupIndex, 0);
-      const firstProductR = (firstProductGlobalIndex % this.elementsPerRow) + 1;
+      const firstProductRIndex = firstProductGlobalIndex % n; // אינדקס מ-0 (הימנית = 0)
       
-      console.log(`📋 Group ${groupIndex + 1} (${group.productTypeName}): size=${currentGroupSize}, n=${this.elementsPerRow}, firstR=${firstProductR}`);
+      // 2. אורך הקבוצה
+      const groupLength = group.items.length;
       
-      // לוגיקה: תוסיף כרטיסייה ריקה רק אם:
-      // 1. n > 1 (לא מובייל)
-      // 2. אורך הקבוצה = n בדיוק
-      // 3. r של הכרטיסייה הראשונה != 1 (לא מתחיל מהימין)
-      if (this.elementsPerRow > 1 && 
-          currentGroupSize === this.elementsPerRow && 
-          firstProductR !== 1) {
-        group.emptyCardsCount = 1;
-        console.log(`   ✅ Adding empty card to group ${groupIndex + 1}`);
+      // 3. חיבור של סעיפים 1 ו-2
+      const sum = firstProductRIndex + groupLength;
+      
+      // 4. חיסור n מהתוצאה
+      const result = sum - n;
+      
+      console.log(`📋 Group ${groupIndex + 1} (${group.productTypeName}): firstRIndex=${firstProductRIndex}, groupLength=${groupLength}, sum=${sum}, n=${n}, result=${result}`);
+      
+      // קביעת כמות כרטיסיות ריקות לפי הלוגיקה החדשה
+      if (result <= 0 || result >= n) {
+        // אם הערך שווה ל-0 או שלילי, או גדול/שווה ל-n - לא יהיו כרטיסיות ריקות
+        group.emptyCardsCount = 0;
+        console.log(`   ❌ No empty cards: result=${result}`);
       } else {
-        console.log(`   ❌ No empty card: n=${this.elementsPerRow > 1}, size=${currentGroupSize === this.elementsPerRow}, r=${firstProductR !== 1}`);
+        // אם הערך חיובי וקטן מ-n - נחזיר את n פחות הערך ככמות הכרטיסיות הריקות
+        group.emptyCardsCount = n - result;
+        console.log(`   ✅ Adding ${n - result} empty cards to group ${groupIndex + 1} (n=${n} - result=${result})`);
       }
       
       // הוספת כרטיסיות ריקות חדשות
