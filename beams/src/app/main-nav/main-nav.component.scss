@@ -19,6 +19,14 @@
   display: flex;
   max-height: 45px;
   min-height: 45px;
+  background: rgb(255, 255, 255) !important;
+  background-color: rgb(255, 255, 255) !important;
+}
+
+// דריסה ספציפית לכל ה-mat-toolbar - וידוא רקע לבן
+::ng-deep .mat-toolbar.mat-toolbar-single-row.mat-toolbar {
+  background: rgb(255, 255, 255) !important;
+  background-color: rgb(255, 255, 255) !important;
 }
 
 @media only screen and (min-width: 576px) {
@@ -598,22 +606,22 @@ mat-toolbar.transparent-toolbar {
 }
 
 // דריסה עם סלקטור יותר ספציפי - הוסר הרקע הלבן לבקשת המשתמש
-::ng-deep .mat-toolbar.mat-toolbar-single-row {
-  background: transparent !important;
-  background-color: transparent !important;
-}
+// ::ng-deep .mat-toolbar.mat-toolbar-single-row {
+//   background: transparent !important;
+//   background-color: transparent !important;
+// }
 
 // דריסה גלובלית לכל ה-mat-toolbar-single-row - הוסר הרקע הלבן לבקשת המשתמש
-::ng-deep mat-toolbar.mat-toolbar-single-row {
-  background: transparent !important;
-  background-color: transparent !important;
-}
+// ::ng-deep mat-toolbar.mat-toolbar-single-row {
+//   background: transparent !important;
+//   background-color: transparent !important;
+// }
 
 // דריסה עם סלקטור הכי ספציפי - הוסר הרקע הלבן לבקשת המשתמש
-::ng-deep .mat-toolbar.mat-toolbar-single-row.mat-toolbar {
-  background: transparent !important;
-  background-color: transparent !important;
-}
+// ::ng-deep .mat-toolbar.mat-toolbar-single-row.mat-toolbar {
+//   background: transparent !important;
+//   background-color: transparent !important;
+// }
 
 /* For Webkit browsers like Chrome, Safari */
 .zx-no-scroller::-webkit-scrollbar {
