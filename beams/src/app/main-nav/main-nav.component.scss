@@ -645,3 +645,19 @@ mat-toolbar.transparent-toolbar {
 .zx-no-scroller {
   overflow-y: scroll;
 }
+
+// תיקון מיקום אנכי של mat-list-item בתפריט הצדדי
+::ng-deep .sidenav .mat-list-item {
+  display: flex !important;
+  align-items: center !important;
+  height: 48px !important;
+  min-height: 48px !important;
+}
+
+// תיקון ספציפי לכפתורי "שאלות ותשובות" ו"צור קשר"
+::ng-deep .sidenav .mat-list-item .mat-list-item-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  height: 100% !important;
+}
