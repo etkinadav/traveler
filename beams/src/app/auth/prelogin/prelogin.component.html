@@ -26,6 +26,18 @@
         <div class="zx-image-fade-overlay"></div>
     </div>
 
+    <!-- Mobile rotating images -->
+    <div class="zx-mobile-images-container">
+        <div class="rotating-images-container">
+            <img *ngFor="let image of rotatingImages; let i = index" 
+                 [src]="image" 
+                 alt="OnDi Example" 
+                 class="rotating-image"
+                 [class.active]="currentImageIndex === i"
+                 [@fadeInOut]>
+        </div>
+    </div>
+
     <!-- login signup -->
     <div *ngIf="loginStage === 0"
         class="zx-login-content-container d-flex flex-grow-1 h-100 flex-column align-items-center px-3 py-4 px-md-4 py-md-5 gap-3">
