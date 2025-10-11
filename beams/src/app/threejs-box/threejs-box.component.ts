@@ -3050,7 +3050,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             }
         });
         this.updateBeams();
-        this.calculatePricing(); // הוספת חישוב מחיר בכל עדכון
     }
     // פונקציה לחישוב חומרים (קורות) לחישוב מחיר
     async calculatePricing() {
@@ -3075,8 +3074,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             );
             this.debugLog('=== FINAL CALCULATED PRICE FOR BEAMS ===', this.calculatedPrice);
             this.debugLog('=== CUTTING PLAN FOR BEAMS ===', this.cuttingPlan);
-        } else {
-            await this.calculateForgingData();
         }
     }
     // חישוב נתוני הקורות לחישוב מחיר
