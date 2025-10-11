@@ -117,16 +117,17 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
   // קווקוו תחתון
   shouldShowBottomBorder(groupIndex: number, productIndex: number): boolean {
     const x = groupIndex + 1; // מספר קבוצה
-    const y = productIndex + 1; // מספר סידורי בקבוצה
     const totalGroups = this.groupedProducts.length; // כמות קבוצות כוללת
     const group = this.groupedProducts[groupIndex];
     const totalInGroup = group.items.length; // כמות כרטיסיות בקבוצה
     const n = this.elementsPerRow; // כמות בשורה
-    const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
-    const r = (globalIndex % n) + 1; // מיקום מימין
     
-    // תנאי: x != totalGroups וגם (totalInGroup - y) <= r
-    return x !== totalGroups && (totalInGroup - y) <= r;
+    // תנאי 1: x != totalGroups (לא קבוצה אחרונה)
+    if (x === totalGroups) return false;
+    
+    // תנאי 2: ה-n האחרונים בקבוצה מקבלים bottom border
+    const lastNStartIndex = Math.max(0, totalInGroup - n); // תחילת ה-n האחרונים
+    return productIndex >= lastNStartIndex;
   }
 
   // קווקוו ימני
