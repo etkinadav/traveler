@@ -76,7 +76,7 @@
 .step-item-trans-product {
   display: flex;
   flex-direction: column;
-  gap: 8px; // gap-2 equivalent
+  gap: 16px; // פי 2 מהמקורי (8px * 2 = 16px)
   background: transparent !important; // ללא רקע לקונטיינר החיצוני
   box-shadow: none !important; // ללא צל לקונטיינר החיצוני
   border: none !important; // ללא border לקונטיינר החיצוני
@@ -128,21 +128,20 @@
   flex-grow: 1;
 }
 
-// כותרת קטגוריה - זהה לכרטיסיות הרגילות
+// כותרת קטגוריה - שקופה לגמרי ללא רקע וצל
 .category-title-container {
   transition: transform 0.3s ease; // אנימציה חלקה
-  background: rgba(255, 255, 255, 0.6) !important; // זהה לכרטיסיות הרגילות
-  background-color: rgba(255, 255, 255, 0.8) !important;
-  border-radius: 0 !important; // זהה לכרטיסיות הרגילות
+  background: transparent !important; // שקוף לגמרי
+  background-color: transparent !important; // שקוף לגמרי
+  border-radius: 0 !important;
   padding: 8px 12px;
-  border: none !important; // זהה לכרטיסיות הרגילות
+  border: none !important;
+  box-shadow: none !important; // ללא צל
   min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0; // לא יתכווץ
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25) !important; // זהה לכרטיסיות הרגילות
-  backdrop-filter: blur(4px) !important; // זהה לכרטיסיות הרגילות
   width: 100%;
   max-width: 100%;
   
@@ -152,11 +151,11 @@
   }
 }
 
-// כותרת קטגוריה במצב כהה
+// כותרת קטגוריה במצב כהה - גם שקופה
 .step-item-dark .category-title-container {
-  background: rgba(45, 45, 45, 0.6) !important;
-  background-color: rgba(45, 45, 45, 0.8) !important;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 // מספור מגה כרטיסיות
