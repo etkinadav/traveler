@@ -194,13 +194,18 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // סגירת תפריט האפשרויות
         this.isOptionsMenuOpen = false;
         
-        // איפוס המצלמה למצב ההתחלתי המדויק כמו ב-initThree()
-        // זה המצב שלפני הקריאה ל-centerCameraOnWireframe() או centerCameraOnBeams()
-        this.camera.position.set(0, 200, 400);
-        this.camera.lookAt(0, 0, 0);
+        // איפוס מוחלט של מיקום הסצנה לפני הכל
+        this.scene.position.set(0, -120, 0);
         
-        // הגדרת מיקום הסצנה כמו בטעינה ראשונית
-        this.scene.position.y = -120;
+        // קבלת מידות המוצר לחישוב מיקום אופטימלי
+        const dimensions = this.getProductDimensionsRaw();
+        
+        // חישוב מיקום מצלמה אופטימלי על בסיס המידות
+        const optimalPosition = this.calculateOptimalCameraPosition(dimensions);
+        
+        // איפוס המצלמה למיקום האופטימלי
+        this.camera.position.set(optimalPosition.x, optimalPosition.y, optimalPosition.z);
+        this.camera.lookAt(0, 0, 0);
         
         // המתנה של 100 מילישניות ואז הפעלת האנימציה בדיוק כמו בפתיחה
         setTimeout(() => {
