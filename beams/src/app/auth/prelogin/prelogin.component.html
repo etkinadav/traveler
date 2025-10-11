@@ -7,16 +7,19 @@
         </button>
     </div>
 
-    <!-- video -->
-    <div *ngIf="!isIphone()" class="zx-login-video-container position-relative overflow-hidden">
+    <!-- rotating images -->
+    <div *ngIf="!isIphone()" class="zx-login-images-container position-relative overflow-hidden">
         <img src="../../../assets/images/logo/ondi-logo-white.png" alt="OnDi Logo"
             class="zx-logo-white svg position-absolute zx-z-index-2" [class.zx-logo-white-rtl]="isRTL">
-        <video alt="Plotter Video" class="object-fit-contain zx-z-index-1" muted autoplay loop>
-            <source src="../../../assets/videos/login-video.mp4" type="video/mp4">
-        </video>
-        <div class="position-absolute w-100 h-100">
-            <img src="/assets/images/login-video-first-frame.jpg" class="w-100 h-100 object-fit-contain"
-                alt="Plotter Image">
+        
+        <!-- Rotating images with fade effect -->
+        <div class="rotating-images-container">
+            <img *ngFor="let image of rotatingImages; let i = index" 
+                 [src]="image" 
+                 alt="OnDi Example" 
+                 class="rotating-image"
+                 [class.active]="currentImageIndex === i"
+                 [@fadeInOut]>
         </div>
     </div>
 

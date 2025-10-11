@@ -3,6 +3,7 @@ import { DirectionService } from '../../direction.service';
 import { Subscription } from 'rxjs';
 import { DialogService } from 'src/app/dialog/dialog.service';
 import { Router } from '@angular/router';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 import { NgForm } from "@angular/forms";
 import { FacebookLoginProvider, GoogleLoginProvider } from "@abacritt/angularx-social-login";
@@ -16,7 +17,18 @@ import { set } from 'lodash';
   styleUrls: ['./prelogin.component.css'],
   host: {
     class: 'fill-screen-modal'
-  }
+  },
+  animations: [
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('800ms ease-in', style({ opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('800ms ease-out', style({ opacity: 0 }))
+      ])
+    ])
+  ]
 })
 
 export class PreloginComponent implements OnInit, OnDestroy {
@@ -47,6 +59,18 @@ export class PreloginComponent implements OnInit, OnDestroy {
   provider: string = '';
   hasPassword: boolean = false;
 
+  // משתנים לתמונות מתחלפות
+  rotatingImages: string[] = [
+    '../../../assets/images/ondi-example/ondi-example-beergarden.png',
+    '../../../assets/images/ondi-example/ondi-example-flexable.png',
+    '../../../assets/images/ondi-example/ondi-example-garden.png',
+    '../../../assets/images/ondi-example/ondi-example-hangar.png',
+    '../../../assets/images/ondi-example/ondi-example-inside.png',
+    '../../../assets/images/ondi-example/ondi-example-kids.png'
+  ];
+  currentImageIndex: number = 0;
+  private imageRotationInterval: any;
+
   constructor(
     private directionService: DirectionService,
     private dialogService: DialogService,
@@ -72,11 +96,15 @@ export class PreloginComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     );
+
+    // התחלת סיבוב התמונות
+    this.startImageRotation();
   }
 
   ngOnDestroy() {
     this.directionSubscription.unsubscribe();
     this.authStatusSub.unsubscribe();
+    this.stopImageRotation();
   }
 
   closeLoginDialog() {
@@ -227,6 +255,20 @@ export class PreloginComponent implements OnInit, OnDestroy {
 
   isIphone(): boolean {
     return /iPhone/.test(navigator.userAgent);
+  }
+
+  // פונקציות לסיבוב התמונות
+  startImageRotation(): void {
+    this.imageRotationInterval = setInterval(() => {
+      this.currentImageIndex = (this.currentImageIndex + 1) % this.rotatingImages.length;
+    }, 4000); // החלפה כל 4 שניות
+  }
+
+  stopImageRotation(): void {
+    if (this.imageRotationInterval) {
+      clearInterval(this.imageRotationInterval);
+      this.imageRotationInterval = null;
+    }
   }
 
   // ==============

@@ -1119,8 +1119,10 @@ body[dir='rtl'] .custom-tooltip {
 .zx-login-dialog {
     min-width: 100%;
     min-height: 80vh;
-    bottom: 0 !important;
     position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
 }
 
 .zx-rightplace-dialog {
@@ -1207,7 +1209,10 @@ body[dir='rtl'] .custom-tooltip {
         min-width: 1015px;
         min-height: 490px;
         max-height: 490px;
-        position: static !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
     }
 
     .mat-mdc-dialog-surface {
