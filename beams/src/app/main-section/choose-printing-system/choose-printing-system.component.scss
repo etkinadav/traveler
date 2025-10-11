@@ -71,6 +71,15 @@
   padding-bottom: 0 !important;
 }
 
+// במצב טעינה בלבד - רווח של 70px למטה מכותרת "מה בונים היום"
+.products-grid.is-loading .product-card-wrapper:has(.title-card-first) {
+  padding-bottom: 70px !important;
+}
+
+.products-grid.is-loading .product-card-wrapper:has(.title-card-empty) {
+  padding-bottom: 70px !important;
+}
+
 // הגדלת padding top במובייל עבור "מה בונים היום"
 @media (max-width: 767px) {
   .product-card-wrapper:has(.title-card-first) .step-item-trans-product.title-card-first {

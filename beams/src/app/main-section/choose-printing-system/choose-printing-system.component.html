@@ -27,7 +27,7 @@
                                 <!-- printingService BTNs -->
                                 <article class="printing-service-btn-con d-flex flex-column gap-3">
                                      <!-- Products BTNs -->
-                                     <div class="products-grid">
+                                     <div class="products-grid" [class.is-loading]="isLoading">
                                         <!-- כותרות "מה בונים היום" - כמות לפי האלמנטים בשורה -->
                                         <div *ngFor="let titleCard of getTitleCards(); let i = index" 
                                              class="product-card-wrapper">
