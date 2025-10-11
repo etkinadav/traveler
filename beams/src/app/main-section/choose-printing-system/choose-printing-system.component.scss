@@ -778,99 +778,111 @@
     padding-top: 18px;
 }
 
-// כפתור בחירה מרחף מעל התלת מימד
-::ng-deep .floating-select-btn,
-::ng-deep .floating-select-btn.mat-mdc-button,
-::ng-deep .floating-select-btn.mdc-button {
-    position: absolute !important;
-    bottom: 8px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important; // ממורכז
-    border-radius: 0px !important; // פינות מרובעות לגמרי
-    border: none !important;
-    background: var(--zx-green) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-    padding: 5px 10px !important; // הגדלת padding: 3+2=5 למעלה/למטה, 6+4=10 לימין/שמאל
-    min-height: unset !important;
-    height: auto !important;
-    z-index: 11 !important; // מעל הכיסוי השקוף
-    transition: all 0.3s ease !important;
-    opacity: 0.9 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 11px !important; // קטן יותר
-    width: auto !important;
-    max-width: none !important;
+// קונטיינר לכפתור - תופס את כל רוחב הכרטיסיה
+.button-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 11;
+    pointer-events: none; // מאפשר לקליק לעבור דרך הקונטיינר
+    
+    // הכפתור עצמו יקבל pointer-events
+    .continue-button {
+        pointer-events: all;
+    }
 }
 
-// התוכן הפנימי של הכפתור
-::ng-deep .floating-select-btn .btn-content,
-::ng-deep .floating-select-btn.mat-mdc-button .btn-content,
-::ng-deep .floating-select-btn.mdc-button .btn-content {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important; // רווח בין אייקון לטקסט
-    width: 100% !important;
-    height: 100% !important;
-}
-
-::ng-deep .floating-select-btn:hover,
-::ng-deep .floating-select-btn.mat-mdc-button:hover,
-::ng-deep .floating-select-btn.mdc-button:hover {
-    background: var(--zx-green-dark) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-    transform: translateX(-50%) translateY(-2px) !important; // שומר על מיקום ממורכז
-    opacity: 1 !important;
-    border-radius: 0px !important; // וידוא שהפינות נשארות מרובעות גם ב-hover
-}
-
-::ng-deep .floating-select-btn .btn-content svg,
-::ng-deep .floating-select-btn.mat-mdc-button .btn-content svg,
-::ng-deep .floating-select-btn.mdc-button .btn-content svg {
-    flex-shrink: 0 !important;
-    color: white !important;
-    width: 16px !important; // אייקון גדול יותר
-    height: 16px !important;
-    margin: 0 !important;
-}
-
-::ng-deep .floating-select-btn .btn-content span,
-::ng-deep .floating-select-btn.mat-mdc-button .btn-content span,
-::ng-deep .floating-select-btn.mdc-button .btn-content span,
-::ng-deep .floating-select-btn .btn-content .mdc-button__label {
-    color: white !important;
-    font-weight: 500 !important; // פחות בולט
-    text-shadow: none !important;
-    font-size: 10px !important; // עוד יותר קטן
-    white-space: nowrap !important;
-    line-height: 1 !important; // גובה שורה קטן
-    margin: 0 !important;
-    padding-top: 2px !important; // הוספת padding top
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    padding-bottom: 0 !important;
-}
-
-// עוד סטיילים ספציפיים ל-Material Design
-::ng-deep .floating-select-btn .mat-mdc-button-touch-target,
-::ng-deep .floating-select-btn .mdc-button__touch-target {
-    display: none !important;
-}
-
-::ng-deep .floating-select-btn .mat-mdc-focus-indicator,
-::ng-deep .floating-select-btn .mdc-button__ripple {
-    border-radius: 0px !important;
-}
-
-// וידוא שהכפתור לא מקבל סטיילים מ-Material
-::ng-deep .floating-select-btn.mat-mdc-outlined-button {
-    border: none !important;
-}
-
-::ng-deep .floating-select-btn.mat-unthemed {
-    border: none !important;
+// כפתור בחירה מרחף מעל התלת מימד - העתקה מדויקת של הכפתור "המשך"
+.continue-button {
+    position: relative; // לא absolute יותר, הקונטיינר מטפל במיקום
+    bottom: 8px;
+    z-index: 11;
+    
+    // העתקה מדויקת מהכפתור המקורי
+    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+    border: none;
+    border-radius: 0;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    
+    // אפקט "זוהר" מאחורי הכפתור
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    &:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 102, 204, 0.5);
+        
+        &::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .continue-arrow {
+            transform: translateX(-3px);
+        }
+    }
+    
+    &:active {
+        transform: translateY(0) scale(1);
+    }
+    
+    .continue-text {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .continue-arrow {
+        position: relative;
+        z-index: 1;
+        transition: transform 0.3s ease;
+    }
+    
+    // האנימציה תרוץ רק בפעם הראשונה
+    &:not(:hover) .continue-arrow {
+        animation: arrowSlide 2s ease-in-out;
+    }
+    
+    // אנימציה פשוטה - החץ זז משמאל לימין
+    @keyframes arrowSlide {
+        0% {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        50% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
 }
 
 // אפקט ברק לכרטיסי דמה
