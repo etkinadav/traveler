@@ -6239,6 +6239,20 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         }
     }
     
+    // קבלת שם קצר לאופציה הנבחרת למצב מצומצם
+    getPricingOptionShortName(): string {
+        switch (this.selectedPricingOption) {
+            case 'cut':
+                return 'קורות חתוכות';
+            case 'full':
+                return 'קורות והוראות';
+            case 'plan':
+                return 'הוראות בלבד';
+            default:
+                return 'קורות חתוכות'; // ברירת מחדל
+        }
+    }
+    
     // חישוב מחיר קורות (ללא חיתוך)
     getBeamsOnlyPrice(): number {
         const price = this.cuttingPlan.reduce((sum, beam) => sum + beam.beamPrice, 0);
