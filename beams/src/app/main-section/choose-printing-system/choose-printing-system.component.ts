@@ -56,10 +56,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
   beamsMap: Map<string, any> = new Map();
   beamsLoaded: boolean = false;
 
-  // משתנים לתמונות מתחלפות
-  imageKeys: string[] = ['kids', 'hangar', 'garden', 'flexable', 'beergarden', 'inside'];
-  currentImageIndex: number = 0;
-  imageRotationInterval: any;
+  // הוסר - מערכת התמונות המתחלפות נמחקה
   
   // משתנים לאפקט slide
   displayedTitle: string = '';
@@ -292,14 +289,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
     // משיכת כל הקורות (אם קיים endpoint) ואז המוצרים
     this.loadBeamsAndProducts();
     
-
-    // התחלת החלפת התמונות
-    this.startImageRotation();
-    
-    // עדכון טקסט ראשון - עם עיכוב קטן כדי לתת זמן לתרגום להיטען
-    setTimeout(() => {
-      this.updateTextImmediately();
-    }, 100);
+    // הוסר - החלפת תמונות נמחקה
     
     // listener לשינוי גודל החלון
     window.addEventListener('resize', () => {
@@ -409,8 +399,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
   
   ngOnDestroy() {
     // this.authStatusSub.unsubscribe();
-    // עצירת החלפת התמונות
-    this.stopImageRotation();
+    // הוסר - עצירת החלפת התמונות נמחקה
     
     // ניקוי Intersection Observer
     if (this.intersectionObserver) {
@@ -555,72 +544,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  // פונקציות להחלפת תמונות
-  startImageRotation() {
-    this.imageRotationInterval = setInterval(() => {
-      this.currentImageIndex = (this.currentImageIndex + 1) % this.imageKeys.length;
-      
-      // עדכון הטקסט עם התמונה
-      this.updateTextImmediately();
-    }, 10000); // החלפה כל 10 שניות - מסונכרן עם התמונות
-  }
-
-  stopImageRotation() {
-    if (this.imageRotationInterval) {
-      clearInterval(this.imageRotationInterval);
-    }
-  }
-
-  getCurrentImagePath(): string {
-    const currentKey = this.imageKeys[this.currentImageIndex];
-    return `../../../assets/images/ondi-example/ondi-example-${currentKey}.png`;
-  }
-
-  // פונקציה לקבלת כל נתיבי התמונות לסרט
-  getAllImagePaths(): string[] {
-    return this.imageKeys.map(key => `../../../assets/images/ondi-example/ondi-example-${key}.png`);
-  }
-  
-  trackByTransitionKey(index: number, key: string): string {
-    return key;
-  }
-
-  updateTextImmediately() {
-    // הטקסט מתחלף עם התמונות
-    const currentKey = this.imageKeys[this.currentImageIndex];
-    
-    // עדכון מפתח האנימציה לחומר מעבר פשוט
-    this.currentTransitionKey = 'card-' + currentKey + '-' + Date.now();
-    
-    // קבלת הטקסטים מתורגמים
-    const titleKey = 'choose-system.empty-title-' + currentKey;
-    const textKey = 'choose-system.empty-text-' + currentKey;
-    const subtitleKey = 'choose-system.empty-subtitle-' + currentKey;
-    
-    const title = this.translateService.instant(titleKey);
-    const text = this.translateService.instant(textKey);
-    const subtitle = this.translateService.instant(subtitleKey);
-    
-    // עדכון הטקסט
-    if (!title.includes('choose-system.empty-title-')) {
-      this.displayedTitle = title;
-    }
-    
-    if (!text.includes('choose-system.empty-text-')) {
-      this.displayedText = text;
-    }
-    
-    if (!subtitle.includes('choose-system.empty-subtitle-')) {
-      this.displayedSubtitle = subtitle;
-    }
-    
-    // אם התרגום עדיין לא עובד, retry אחרי זמן קצר
-    if (title.includes('choose-system.empty-title-') || this.displayedTitle === '') {
-      setTimeout(() => {
-        this.updateTextImmediately();
-      }, 500);
-    }
-  }
+  // הוסר - כל מערכת התמונות המתחלפות והטקסטים נמחקה
   
   // ==================
   

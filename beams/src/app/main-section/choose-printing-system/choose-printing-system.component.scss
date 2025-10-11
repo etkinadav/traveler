@@ -24,6 +24,11 @@
   margin-right: 30px !important; // רווח משמאל (RTL) - יותר רווח מהקצה
 }
 
+// כותרת "מה בונים היום" - תמיד 24px (עוקף את text-con-product)
+.title-card-first .text-con-product h6.zx-text-big {
+  font-size: 24px !important;
+}
+
 // תיקון לאלמנטים הפנימיים
 .zx-settings-nav article {
   width: 100% !important;
@@ -59,7 +64,7 @@
 }
 
 .products-grid .product-card-wrapper {
-  padding: 15px 5px 18px 5px; // 15px מלמעלה, 5px מהצדדים, 18px מלמטה
+  padding: 17px 5px 18px 5px; // 17px מלמעלה, 5px מהצדדים, 18px מלמטה
   box-sizing: border-box;
   display: flex;
   justify-content: center;
@@ -77,21 +82,22 @@
   border: none !important; // ללא border לקונטיינר החיצוני
   align-items: stretch; // התוכן יתפוס את כל הרוחב
   justify-content: flex-start; // התוכן יהיה צמוד למעלה
-  cursor: pointer; // סמן יד בריחוף
   transition: transform 0.3s ease; // אנימציה חלקה
   
-  // אפקט hover - לא על כרטיסיות ריקות
-  &:not(.empty-card):hover {
-    transform: translateY(-3px); // עולה 3px למעלה - עדין יותר
+  // אפקט hover רק על הכרטיסייה הלבנה עצמה (לא על הכותרת)
+  .white-background-card {
+    cursor: pointer; // סמן יד בריחוף
+    transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease !important;
     
-    .white-background-card {
+    &:hover {
       background: rgba(255, 255, 255, 0.95) !important; // יותר אטום
-      box-shadow: 0 9px 24px rgba(0, 0, 0, 0.25) !important; // הצל עולה גם הוא (9px במקום 12px)
-    }
-    
-    // הכותרת לא תזוז - רק הכרטיסיה הפנימית
-    .category-title-container {
-      transform: translateY(3px); // מבטל את התזוזה של האב
+      box-shadow: 0 9px 24px rgba(0, 0, 0, 0.25) !important; // הצל עולה גם הוא
+      transform: translateY(-3px); // הכרטיסייה עולה
+      
+      // אנימציה לחץ בכפתור בריחוף
+      .continue-button .continue-arrow {
+        animation: arrowSlide 1s ease-in-out;
+      }
     }
   }
 }
@@ -243,61 +249,7 @@
   }
 }
 
-// החלפת תמונות עם fade in/out - כיסוי מלא של המסך
-.image-film-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  z-index: 1;
-  
-  // תיקון נוסף למובייל - וידוא כיסוי מלא
-  @media only screen and (max-width: 778px) {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    min-width: 100vw !important;
-    min-height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    overflow: hidden !important;
-    z-index: 1 !important;
-  }
-}
-
-.image-film-item {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
-  opacity: 0;
-  animation: fadeInOut 60s linear infinite;
-  /* כל תמונה מתחילה במיקום שונה בהתבסס על animation-delay */
-  
-  // תיקון למובייל - כיסוי מלא
-  @media only screen and (max-width: 778px) {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    min-width: 100vw !important;
-    min-height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    object-fit: cover !important;
-    object-position: top !important;
-    z-index: 1 !important;
-    z-index: 1 !important;
-  }
-}
+// הוסר - מערכת התמונות המתחלפות נמחקה
 
 // שכבה לבנה עם שקיפות מעל התמונות - הוסרה לבקשת המשתמש
 // .image-overlay-white {
@@ -368,23 +320,7 @@
   //   z-index: 2 !important;
   // }
 
-@keyframes fadeInOut {
-  0% {
-    opacity: 0;
-  }
-  2% {
-    opacity: 1;
-  }
-  15% {
-    opacity: 1;
-  }
-  18% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
+// הוסר - אנימציית fadeInOut למחקה
 
 // אנימציה לשכבה הלבנה - הוסרה לבקשת המשתמש
 // @keyframes opacityPulse {
@@ -545,7 +481,7 @@
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important; // צל רחב יותר, בהיר יותר
     backdrop-filter: blur(4px) !important; // blur פחות מוגזם
     border: none !important;
-    transition: background 0.3s ease, box-shadow 0.3s ease !important; // אנימציה חלקה לרקע ולצל
+    // transition מוגדר ב-step-item-trans-product
 }
 
 .text-con-product {
@@ -1342,19 +1278,15 @@
   // }
 }
 
-// שכבה לבנה אטומה מעל התמונות - מסתירה אותן לגמרי
-.image-overlay-white {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  min-width: 100vw !important;
-  min-height: 100vh !important;
-  max-width: 100vw !important;
-  max-height: 100vh !important;
-  background-color: rgb(255, 255, 255) !important; // לבן אטום לגמרי
-  z-index: 2 !important;
-  pointer-events: none; // לא לחסום קליקים
+// רקע לבן אטום פשוט
+.white-solid-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(255, 255, 255);
+  z-index: 1;
+  pointer-events: none;
 }
 

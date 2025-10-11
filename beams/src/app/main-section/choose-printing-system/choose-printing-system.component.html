@@ -1,15 +1,6 @@
 <div class="full-screen overflow-hidden position-relative">
-    <!-- סרט תמונות רציף - מאחורי הכל כולל navBar -->
-    <div class="image-film-container">
-        <img *ngFor="let imagePath of getAllImagePaths(); let i = index" 
-             [src]="imagePath" 
-             [alt]="'Background image ' + (i + 1)"
-             class="image-film-item"
-             [style.animation-delay]="i * 10 + 's'">
-        
-        <!-- שכבה לבנה אטומה מעל התמונות -->
-        <div class="image-overlay-white"></div>
-    </div>
+    <!-- רקע לבן אטום -->
+    <div class="white-solid-background"></div>
     
     <div class="d-flex flex-grow-1 position-relative" style="z-index: 10;">
 
