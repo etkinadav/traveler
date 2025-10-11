@@ -1120,9 +1120,9 @@ body[dir='rtl'] .custom-tooltip {
     min-width: 100%;
     min-height: 80vh;
     position: absolute !important;
-    top: 50% !important;
+    bottom: 0 !important;
     left: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    transform: translateX(-50%) !important;
 }
 
 .zx-rightplace-dialog {
@@ -1204,13 +1204,14 @@ body[dir='rtl'] .custom-tooltip {
     z-index: 1003 !important;
 }
 
-@media only screen and (min-width: 1002px) {
+@media only screen and (min-width: 992px) {
     .zx-login-dialog {
         min-width: 1015px;
         min-height: 490px;
         max-height: 490px;
         position: absolute !important;
         top: 50% !important;
+        bottom: auto !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
     }
