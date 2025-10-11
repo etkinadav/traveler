@@ -124,10 +124,15 @@
                                                     
                                                     <!-- כותרת קטגוריה - רק בכרטיסייה הראשונה -->
                                                     <div *ngIf="i === 0" class="category-title-container">
-                                                        <h6 class="fw-bold zx-text-big text-center" 
-                                                            style="color: var(--zx-green) !important; margin: 0;">
-                                                            {{ group.productTypeName }}
-                                                        </h6>
+                                                        <div class="d-flex flex-column align-items-center">
+                                                            <h6 class="fw-bold zx-text-big text-center" 
+                                                                style="color: var(--zx-green) !important; margin: 0;">
+                                                                {{ group.productTypeName }}
+                                                            </h6>
+                                                            <span class="opacity-75 text-center text-green" style="margin-top: 4px; font-size: 18px;">
+                                                                דגם - {{product.model || product.name || 'מוצר מותאם אישית'}}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                     
                                                     <!-- ערכי כרטיסיות - comment out
@@ -139,6 +144,15 @@
                                                     <!-- תוכן הכרטיסייה עם רקע לבן -->
                                                     <div class="white-background-card shadow-85 p-1 flex-grow-1">
                                                     <div class="d-flex flex-column align-items-center gap-3 h-100">
+                                                        
+                                                        <!-- שם המוצר - למעלה -->
+                                                        <div class="text-con-product d-flex flex-column justify-content-center">
+                                                            <h6 class="fw-bold zx-text-big text-center">
+                                                                {{product.translatedName}}
+                                                            </h6>
+                                                        </div>
+                                                        
+                                                        <!-- תלת מימד - למטה -->
                                                         <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded position-relative">
                                                             <!-- רנדור 3D רק למוצרים שנראים במסך -->
                                                             <ng-container *ngIf="isProductVisible(getGlobalProductIndex(groupIndex, i))">
@@ -170,15 +184,6 @@
                                                                 class="loading-shimmer">
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    
-                                                    <div class="text-con-product d-flex flex-column flex-grow-1 justify-content-between">
-                                                        <h6 class="fw-bold zx-text-big text-center">
-                                                            {{product.translatedName}}
-                                                        </h6>
-                                                        <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center text-green">
-                                                            דגם - {{product.model || product.name || 'מוצר מותאם אישית'}}
-                                                        </span>
                                                     </div>
                                                     
                                                     <!-- כפתור המשך למוצר -->
