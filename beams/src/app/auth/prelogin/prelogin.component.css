@@ -122,6 +122,34 @@
     left: unset;
 }
 
+/* Mobile logo - only visible on mobile */
+.zx-logo-mobile {
+    display: block;
+    top: 15px;
+    right: 15px;
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+    z-index: 100;
+}
+
+@media only screen and (min-width: 992px) {
+    .zx-logo-mobile {
+        display: none;
+    }
+}
+
+/* Hide desktop logo on mobile */
+.zx-logo-desktop {
+    display: none;
+}
+
+@media only screen and (min-width: 992px) {
+    .zx-logo-desktop {
+        display: block;
+    }
+}
+
 button.mat-stroked-button {
     min-height: 48px;
     border: 1px solid var(--zx-green);

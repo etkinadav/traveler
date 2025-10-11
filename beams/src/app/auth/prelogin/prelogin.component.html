@@ -6,9 +6,9 @@
         <mat-icon>close</mat-icon>
     </button>
 
-    <!-- Logo positioned at top-right of entire dialog -->
+    <!-- Logo for desktop -->
     <img *ngIf="!isIphone()" src="../../../assets/images/logo/ondi-logo-small.png" alt="OnDi Logo"
-        class="zx-logo-small svg position-absolute zx-z-index-2" [class.zx-logo-small-rtl]="isRTL">
+        class="zx-logo-small zx-logo-desktop svg position-absolute zx-z-index-2" [class.zx-logo-small-rtl]="isRTL">
 
     <!-- rotating images -->
     <div *ngIf="!isIphone()" class="zx-login-images-container position-relative overflow-hidden">
@@ -29,7 +29,12 @@
 
     <!-- login signup -->
     <div *ngIf="loginStage === 0"
-        class="zx-login-content-container d-flex flex-grow-1 h-100 flex-column align-items-center px-3 py-4 px-md-4 py-md-5 gap-3">
+        class="zx-login-content-container d-flex flex-grow-1 h-100 flex-column align-items-center px-3 py-4 px-md-4 py-md-5 gap-3 position-relative">
+        
+        <!-- Logo for mobile only -->
+        <img src="../../../assets/images/logo/ondi-logo-small.png" alt="OnDi Logo"
+            class="zx-logo-mobile position-absolute">
+        
         <h4 class="text-center fw-bold m-0" [class.text-white]="isDarkMode">
             {{ "log-in-dialog-prelogin-title" | translate }}
         </h4>
