@@ -77,6 +77,23 @@
   border: none !important; // ללא border לקונטיינר החיצוני
   align-items: stretch; // התוכן יתפוס את כל הרוחב
   justify-content: flex-start; // התוכן יהיה צמוד למעלה
+  cursor: pointer; // סמן יד בריחוף
+  transition: transform 0.3s ease; // אנימציה חלקה
+  
+  // אפקט hover - לא על כרטיסיות ריקות
+  &:not(.empty-card):hover {
+    transform: translateY(-3px); // עולה 3px למעלה - עדין יותר
+    
+    .white-background-card {
+      background: rgba(255, 255, 255, 0.95) !important; // יותר אטום
+      box-shadow: 0 9px 24px rgba(0, 0, 0, 0.25) !important; // הצל עולה גם הוא (9px במקום 12px)
+    }
+    
+    // הכותרת לא תזוז - רק הכרטיסיה הפנימית
+    .category-title-container {
+      transform: translateY(3px); // מבטל את התזוזה של האב
+    }
+  }
 }
 
 // עקיפת הכלל הגלובלי של .step-item
@@ -97,6 +114,7 @@
 
 // כותרת קטגוריה - זהה לכרטיסיות הרגילות
 .category-title-container {
+  transition: transform 0.3s ease; // אנימציה חלקה
   background: rgba(255, 255, 255, 0.6) !important; // זהה לכרטיסיות הרגילות
   background-color: rgba(255, 255, 255, 0.8) !important;
   border-radius: 0 !important; // זהה לכרטיסיות הרגילות
@@ -527,6 +545,7 @@
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important; // צל רחב יותר, בהיר יותר
     backdrop-filter: blur(4px) !important; // blur פחות מוגזם
     border: none !important;
+    transition: background 0.3s ease, box-shadow 0.3s ease !important; // אנימציה חלקה לרקע ולצל
 }
 
 .text-con-product {
