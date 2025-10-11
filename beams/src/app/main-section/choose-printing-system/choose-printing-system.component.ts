@@ -135,12 +135,17 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
 
   // קווקוו שמאלי
   shouldShowLeftBorder(groupIndex: number, productIndex: number): boolean {
+    const x = groupIndex + 1; // מספר קבוצה
+    const totalGroups = this.groupedProducts.length; // כמות קבוצות כוללת
     const y = productIndex + 1; // מספר סידורי בקבוצה
     const n = this.elementsPerRow; // כמות בשורה
     const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
     const r = (globalIndex % n) + 1; // מיקום מימין
     const group = this.groupedProducts[groupIndex];
     const totalInGroup = group.items.length; // כמות כרטיסיות בקבוצה
+    
+    // תנאי חדש: אם זו הקבוצה האחרונה ביותר - לא יהיה border-left
+    if (x === totalGroups) return false;
     
     // תנאי 1: r != n (לא האחרונה בשורה)
     if (r === n) return false;
