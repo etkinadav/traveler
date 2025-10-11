@@ -521,10 +521,10 @@
 
 // קלאס חדש לרקע לבן אחיד ללא אפקטים
 .white-background-card {
-    background: rgba(255, 255, 255, 0.6) !important; // 60% שקיפות - יותר לבן
-    background-color: rgba(255, 255, 255, 0.8) !important; // 60% שקיפות - יותר לבן
+    background: rgba(255, 255, 255, 0.85) !important; // 85% שקיפות - פחות שקוף
+    background-color: rgba(255, 255, 255, 0.85) !important; // 85% שקיפות - פחות שקוף
     border-radius: 0 !important;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25) !important; // צל יותר חזק וגדול
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important; // צל רחב יותר, בהיר יותר
     backdrop-filter: blur(4px) !important; // blur פחות מוגזם
     border: none !important;
 }
@@ -1228,10 +1228,10 @@
   
   // וידוא שהקלאס החדש עובד גם במובייל
   .white-background-card {
-    background: rgba(255, 255, 255, 0.6) !important; // 60% שקיפות - יותר לבן
-    background-color: rgba(255, 255, 255, 0.6) !important; // 60% שקיפות - יותר לבן
+    background: rgba(255, 255, 255, 0.85) !important; // 85% שקיפות - פחות שקוף
+    background-color: rgba(255, 255, 255, 0.85) !important; // 85% שקיפות - פחות שקוף
     border-radius: 0 !important;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25) !important; // צל יותר חזק וגדול
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important; // צל רחב יותר, בהיר יותר
     backdrop-filter: blur(4px) !important; // blur פחות מוגזם
     border: none !important;
   }
@@ -1323,7 +1323,7 @@
   // }
 }
 
-// שכבה לבנה עם אנימציה של שקיפות מעל התמונות
+// שכבה לבנה אטומה מעל התמונות - מסתירה אותן לגמרי
 .image-overlay-white {
   position: absolute !important;
   top: 0 !important;
@@ -1334,22 +1334,8 @@
   min-height: 100vh !important;
   max-width: 100vw !important;
   max-height: 100vh !important;
-  background-color: rgba(255, 255, 255, 0.3); // התחלה ב-30% שקיפות
+  background-color: rgb(255, 255, 255) !important; // לבן אטום לגמרי
   z-index: 2 !important;
-  animation: opacityPulse 4s ease-in-out infinite; // 2 שניות למעלה + 2 שניות למטה = 4 שניות בלופ
   pointer-events: none; // לא לחסום קליקים
-}
-
-// אנימציה של שקיפות - 30% -> 40% -> 30%
-@keyframes opacityPulse {
-  0% {
-    background-color: rgba(255, 255, 255, 0.3); // 30% שקיפות
-  }
-  50% {
-    background-color: rgba(255, 255, 255, 0.4); // 40% שקיפות
-  }
-  100% {
-    background-color: rgba(255, 255, 255, 0.3); // חזרה ל-30% שקיפות
-  }
 }
 
