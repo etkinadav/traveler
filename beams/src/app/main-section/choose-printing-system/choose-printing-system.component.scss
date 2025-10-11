@@ -24,9 +24,24 @@
   margin-right: 30px !important; // רווח משמאל (RTL) - יותר רווח מהקצה
 }
 
-// כותרת "מה בונים היום" - תמיד 24px (עוקף את text-con-product)
-.title-card-first .text-con-product h6.zx-text-big {
+// כותרת "מה בונים היום" - זהה לכותרות הקבוצות
+.product-card-wrapper.title-card-first .step-item-trans-product.step-item .text-con-product h6.zx-text-big {
   font-size: 24px !important;
+  text-align: right !important;
+  width: 100% !important;
+  color: var(--zx-green) !important;
+  margin: 0 !important;
+}
+
+// ביטול padding bottom עבור "מה בונים היום" (כל הרזולוציות)
+// הכרטיסייה החיצונית
+.product-card-wrapper:has(.title-card-first) {
+  padding-bottom: 0 !important;
+}
+
+// האלמנט הפנימי עם ה-class
+.step-item-trans-product.title-card-first {
+  padding-bottom: 0 !important;
 }
 
 // תיקון לאלמנטים הפנימיים
@@ -35,6 +50,7 @@
   max-width: 100% !important;
   padding-left: 0 !important; // הסרת padding משמאל
   padding-right: 0 !important; // הסרת padding מימין
+  padding-top: 0 !important; // הסרת padding מלמעלה
 }
 
 // אבל לא להסיר padding מה-div של הכותרת
@@ -139,15 +155,27 @@
   box-shadow: none !important; // ללא צל
   min-height: 40px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start; // מוצמד לימין (שמאל ב-RTL)
+  justify-content: flex-start; // מוצמד לימין
   flex-shrink: 0; // לא יתכווץ
   width: 100%;
   max-width: 100%;
   
+  // מוצמד ימינה
+  > div {
+    align-items: flex-start !important;
+    text-align: right !important;
+  }
+  
   // גודל פונט של הכותרת
   h6 {
     font-size: 24px !important;
+    text-align: right !important;
+  }
+  
+  // הדגם
+  span {
+    text-align: right !important;
   }
 }
 
