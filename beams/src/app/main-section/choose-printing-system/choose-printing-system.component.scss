@@ -63,7 +63,7 @@
   box-sizing: border-box;
   display: flex;
   justify-content: center;
-  align-items: flex-start; // התוכן יהיה צמוד למעלה
+  align-items: flex-end; // התוכן יהיה צמוד למטה
   position: relative; // עבור המספר הסידורי
 }
 
