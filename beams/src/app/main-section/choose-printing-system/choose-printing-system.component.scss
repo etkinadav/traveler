@@ -28,7 +28,8 @@
 .product-card-wrapper:has(.title-card-first) .step-item-trans-product.title-card-first {
   align-items: flex-start !important;
   justify-content: flex-start !important;
-  padding: 8px 12px !important; // אותו padding כמו category-title-container
+  padding-left: 12px !important; // אותו padding כמו category-title-container
+  padding-right: 12px !important;
 }
 
 .product-card-wrapper:has(.title-card-first) .step-item-trans-product.title-card-first .text-con-product {
@@ -68,6 +69,13 @@
 // האלמנט הפנימי עם ה-class
 .step-item-trans-product.title-card-first {
   padding-bottom: 0 !important;
+}
+
+// הגדלת padding top במובייל עבור "מה בונים היום"
+@media (max-width: 767px) {
+  .product-card-wrapper:has(.title-card-first) .step-item-trans-product.title-card-first {
+    padding-top: 20px !important;
+  }
 }
 
 // תיקון לאלמנטים הפנימיים
