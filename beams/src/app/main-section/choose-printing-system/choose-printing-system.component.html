@@ -91,8 +91,8 @@
                                                 <!-- מוצרים בקבוצה -->
                                                 <div *ngFor="let product of group.items; let i = index" 
                                                     #productCard
-                                                    (mouseenter)="onHoverProduct(product)" 
-                                                    (mouseleave)="onHoverProduct(null)" 
+                                                    (mouseenter)="!product.isEmpty && onHoverProduct(product)" 
+                                                    (mouseleave)="!product.isEmpty && onHoverProduct(null)" 
                                                     class="product-card-wrapper"
                                                     [class.mega-card-border-top]="shouldShowTopBorder(groupIndex, i)"
                                                     [class.mega-card-border-right]="shouldShowRightBorder(groupIndex, i)"
@@ -100,6 +100,22 @@
                                                     [class.mega-card-border-left]="shouldShowLeftBorder(groupIndex, i)"
                                                     [attr.data-product-index]="getGlobalProductIndex(groupIndex, i)">
                                                     
+                                                <!-- כרטיסיה ריקה -->
+                                                <ng-container *ngIf="product.isEmpty">
+                                                    <div class="step-item-trans-product step-item position-relative empty-card"
+                                                         [class.step-item-dark]="isDarkMode">
+                                                        <!-- מספור מעל כל אלמנט - עם ערכי x, y, r ו s -->
+                                                        <div class="mega-card-number">
+                                                            x: {{groupIndex + 1}}, y: {{i + 1}}, r: {{(getGlobalProductIndex(groupIndex, i) % elementsPerRow) + 1}}, s: {{getGlobalProductIndex(groupIndex, i) + 1}}
+                                                        </div>
+                                                        <!-- תוכן ריק -->
+                                                        <div class="white-background-card shadow-85 p-1 flex-grow-1">
+                                                        </div>
+                                                    </div>
+                                                </ng-container>
+                                                
+                                                <!-- כרטיסיה רגילה -->
+                                                <ng-container *ngIf="!product.isEmpty">
                                                 <div [class.zx-step-choosen]="selectedProduct?._id === product._id" 
                                                      class="step-item-trans-product step-item position-relative"
                                                      [class.step-item-dark]="isDarkMode">
@@ -131,17 +147,17 @@
                                                                     (ngOnInit)="logProductCreation(product)">
                                                                 </app-product-mini-preview>
                                                                 
-                                                                <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
-                                                                <div class="product-3d-overlay" 
-                                                                     (click)="removeOverlay($event, miniPreview)"
-                                                                     (mouseenter)="showHintForProduct(product._id + '_' + i)"
-                                                                     (mouseleave)="hideHintForProduct(product._id + '_' + i)">
-                                                                    <!-- טקסט הוראה בריחוף -->
-                                                                    <div *ngIf="showHintMap[product._id + '_' + i]" 
-                                                                         class="overlay-hint show"
-                                                                         [@fadeInOut]>
-                                                                        לחץ לשינוי המבט
-                                                                    </div>
+                                                            <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
+                                                            <div class="product-3d-overlay" 
+                                                                 (click)="removeOverlay($event, miniPreview)"
+                                                                 (mouseenter)="showHintForProduct(product._id + '_' + i)"
+                                                                 (mouseleave)="hideHintForProduct(product._id + '_' + i)">
+                                                                <!-- טקסט הוראה בריחוף -->
+                                                                <div *ngIf="showHintMap[product._id + '_' + i]" 
+                                                                     class="overlay-hint show"
+                                                                     [@fadeInOut]>
+                                                                    לחץ לשינוי המבט
+                                                                </div>
                                                                 </div>
                                                             </ng-container>
                                                             
@@ -168,13 +184,18 @@
                                                             (click)="navigateToProduct(product); $event.stopPropagation()">
                                                         <span class="opacity-75 zx-text-tiny zx-text-sm-small text-center">{{product.model || product.translatedName || 'המוצר'}} במידות שלך</span>
                                                     </button>
-                                                    </div>
-                                                    <!-- סגירת flex-column -->
-                                                    </div>
+                                                </div>
                                                     <!-- סגירת white-background-card -->
                                              </div>
+                                             <!-- סגירת step-item-trans-product -->
+                                             </ng-container>
+                                             <!-- סגירת כרטיסיה רגילה -->
+                                            </div>
+                                            <!-- סגירת product-card-wrapper -->
                                             </ng-container>
+                                            <!-- סגירת קבוצה -->
                                          </ng-container>
+                                         <!-- סגירת מצב רגיל -->
                                     </div>
                                 
                                 </article>

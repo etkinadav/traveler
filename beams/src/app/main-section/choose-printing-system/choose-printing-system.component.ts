@@ -46,7 +46,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
   
   // משתנים למוצרים
   products: any[] = [];
-  groupedProducts: { productType: string; productTypeName: string; items: any[] }[] = []; // מוצרים מקובצים לפי product
+  groupedProducts: { productType: string; productTypeName: string; items: any[]; emptyCardsCount: number }[] = []; // מוצרים מקובצים לפי product
   isLoading: boolean = true; // מתחיל ב-true כדי להציג מצב טעינה
   error: string | null = null;
   selectedProduct: any = null;
@@ -172,6 +172,55 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
     } else {
       this.elementsPerRow = 1; // 0-499px
     }
+    
+    // עדכון כרטיסיות ריקות לפי n החדש
+    this.updateEmptyCards();
+  }
+  
+  // פונקציה לעדכון כרטיסיות ריקות בקבוצות
+  updateEmptyCards(): void {
+    if (!this.groupedProducts || this.groupedProducts.length === 0) {
+      return;
+    }
+    
+    this.groupedProducts.forEach((group, groupIndex) => {
+      // הסרת כל הכרטיסיות הריקות הקיימות
+      group.items = group.items.filter(item => !item.isEmpty);
+      
+      // קביעת כמות כרטיסיות ריקות חדשה
+      group.emptyCardsCount = 0;
+      
+      const currentGroupSize = group.items.length;
+      
+      // חישוב r של הכרטיסייה הראשונה בקבוצה
+      const firstProductGlobalIndex = this.getGlobalProductIndex(groupIndex, 0);
+      const firstProductR = (firstProductGlobalIndex % this.elementsPerRow) + 1;
+      
+      console.log(`📋 Group ${groupIndex + 1} (${group.productTypeName}): size=${currentGroupSize}, n=${this.elementsPerRow}, firstR=${firstProductR}`);
+      
+      // לוגיקה: תוסיף כרטיסייה ריקה רק אם:
+      // 1. n > 1 (לא מובייל)
+      // 2. אורך הקבוצה = n בדיוק
+      // 3. r של הכרטיסייה הראשונה != 1 (לא מתחיל מהימין)
+      if (this.elementsPerRow > 1 && 
+          currentGroupSize === this.elementsPerRow && 
+          firstProductR !== 1) {
+        group.emptyCardsCount = 1;
+        console.log(`   ✅ Adding empty card to group ${groupIndex + 1}`);
+      } else {
+        console.log(`   ❌ No empty card: n=${this.elementsPerRow > 1}, size=${currentGroupSize === this.elementsPerRow}, r=${firstProductR !== 1}`);
+      }
+      
+      // הוספת כרטיסיות ריקות חדשות
+      for (let i = 0; i < group.emptyCardsCount; i++) {
+        group.items.push({
+          isEmpty: true,
+          _id: `empty-${group.productType}-${i}`,
+          name: '',
+          translatedName: ''
+        });
+      }
+    });
   }
 
   
@@ -462,6 +511,9 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
         // קיבוץ המוצרים לפי product type
         this.groupedProducts = this.groupProductsByType(this.products, data);
         
+        // עדכון כרטיסיות ריקות
+        this.updateEmptyCards();
+        
         // אתחול showHintMap לכל המוצרים כ-false
         this.products.forEach((product, index) => {
           const productKey = product._id + '_' + index;
@@ -707,8 +759,8 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
   }
 
   // פונקציה לקיבוץ מוצרים לפי product type
-  groupProductsByType(processedProducts: any[], originalProducts: any[]): { productType: string; productTypeName: string; items: any[] }[] {
-    const groups: { [key: string]: { productType: string; productTypeName: string; items: any[] } } = {};
+  groupProductsByType(processedProducts: any[], originalProducts: any[]): { productType: string; productTypeName: string; items: any[]; emptyCardsCount: number }[] {
+    const groups: { [key: string]: { productType: string; productTypeName: string; items: any[]; emptyCardsCount: number } } = {};
     
     processedProducts.forEach((product: any) => {
       // מציאת המוצר המקורי כדי לקבל את names
@@ -726,7 +778,8 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
         groups[productType] = {
           productType: productType,
           productTypeName: productTypeName,
-          items: []
+          items: [],
+          emptyCardsCount: 0 // ברירת מחדל - אין כרטיסיות ריקות
         };
       }
       
@@ -735,6 +788,7 @@ export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterVi
     });
     
     // המרה למערך
+    // הכרטיסיות הריקות יתווספו אוטומטית ב-updateEmptyCards שנקראת לאחר מכן
     return Object.values(groups);
   }
 }

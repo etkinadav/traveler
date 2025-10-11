@@ -148,6 +148,13 @@
   background-repeat: no-repeat;
 }
 
+// כרטיסייה ריקה - לא נראית אבל תופסת מקום ומשפיעה על borders
+.product-card-wrapper .empty-card {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
 // Bottom border
 .product-card-wrapper.mega-card-border-bottom {
   background-image: repeating-linear-gradient(
