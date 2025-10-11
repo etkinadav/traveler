@@ -1693,10 +1693,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.hiddenBeamsCount = 0;
         this.hasNoMiddleBeams = false;
         
-        this.startTimer('Calculate Pricing');
-        // חישוב מחיר אחרי עדכון המודל
-        this.calculatePricing();
-        this.endTimer('Calculate Pricing');
+        // חישוב מחיר יבוצע ברקע אחרי הרינדור
         
         this.startTimer('Clear Old Meshes');
         // ניקוי קורות
@@ -2764,6 +2761,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         this.endTimer('TOTAL_UPDATE_BEAMS');
         console.log('DEBUG-THE-CABINET ✅ UpdateBeams completed');
+        
+        // חישוב מחיר ברקע אחרי הרינדור
+        setTimeout(() => {
+            this.calculatePricing();
+        }, 0);
     }
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
     private addWireframeCube() {

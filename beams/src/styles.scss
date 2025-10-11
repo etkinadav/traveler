@@ -1362,14 +1362,13 @@ h4 {
     font-style: normal;
 }
 
-/* ====== ספינר מרובע מותאם אישית - 4 variants ====== */
+/* ====== ספינרים - מרובעים אפורים + עגולים כחולים ====== */
 
-/* Base spinner styles */
+/* ספינרים מרובעים אפורים - לעמוד בחר מוצר */
 .square-spinner {
   position: absolute;
 }
 
-/* גודל קטן (31x31) - אפור */
 .square-spinner-small-gray {
   width: 31px;
   height: 31px;
@@ -1382,20 +1381,6 @@ h4 {
   }
 }
 
-/* גודל קטן (31x31) - כחול */
-.square-spinner-small-blue {
-  width: 31px;
-  height: 31px;
-  
-  .spinner-path {
-    stroke: var(--zx-green);
-    stroke-dasharray: 81 35;
-    stroke-dashoffset: 0;
-    animation: square-loader-small 0.8s ease-in-out infinite;
-  }
-}
-
-/* גודל גדול (40x40) - אפור */
 .square-spinner-large-gray {
   width: 40px;
   height: 40px;
@@ -1408,33 +1393,6 @@ h4 {
   }
 }
 
-/* גודל גדול (40x40) - כחול */
-.square-spinner-large-blue {
-  width: 40px;
-  height: 40px;
-  
-  .spinner-path {
-    stroke: var(--zx-green);
-    stroke-dasharray: 104 44;
-    stroke-dashoffset: 0;
-    animation: square-loader-large 0.8s ease-in-out infinite;
-  }
-}
-
-/* גודל גדול במיוחד (50x50) - כחול */
-.square-spinner-xlarge-blue {
-  width: 50px;
-  height: 50px;
-  
-  .spinner-path {
-    stroke: var(--zx-green);
-    stroke-dasharray: 130 56;
-    stroke-dashoffset: 0;
-    animation: square-loader-xlarge 0.8s ease-in-out infinite;
-  }
-}
-
-/* Animation keyframes for small spinner */
 @keyframes square-loader-small {
   0% {
     stroke-dashoffset: 0;
@@ -1450,7 +1408,6 @@ h4 {
   }
 }
 
-/* Animation keyframes for large spinner */
 @keyframes square-loader-large {
   0% {
     stroke-dashoffset: 0;
@@ -1466,18 +1423,26 @@ h4 {
   }
 }
 
-/* Animation keyframes for xlarge spinner */
-@keyframes square-loader-xlarge {
-  0% {
-    stroke-dashoffset: 0;
-    stroke-dasharray: 130 56;
-  }
-  50% {
-    stroke-dashoffset: -93;
-    stroke-dasharray: 56 130;
-  }
-  100% {
-    stroke-dashoffset: -186;
-    stroke-dasharray: 130 56;
-  }
+/* ספינרים עגולים כחולים - לקומפוננטת התלת מימד */
+.spinner-small {
+  width: 31px;
+  height: 31px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--zx-green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-large {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--zx-green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
