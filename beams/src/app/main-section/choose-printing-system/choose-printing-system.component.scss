@@ -132,6 +132,11 @@
   position: relative; // עבור המספר הסידורי
 }
 
+// כרטיסיות דמה בעמדה זוגית (2, 4, 6...) יוזזו למעלה
+.products-grid .product-card-wrapper.even-position-card {
+  transform: translateY(-50px);
+}
+
 // כרטיסייה עם כותרת קטגוריה - צריכה להיות flex-column ללא רקע
 .step-item-trans-product {
   display: flex;

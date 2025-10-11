@@ -49,7 +49,8 @@
                                         <!-- מצב טעינה - כרטיסי דמה בכמות של פעמיים ה"כמות אלמנטים בשורה" -->
                                         <ng-container *ngIf="isLoading">
                                             <div *ngFor="let item of getLoadingItems(); let i = index" 
-                                                class="product-card-wrapper">
+                                                class="product-card-wrapper"
+                                                [class.even-position-card]="((i % elementsPerRow) + 1) % 2 === 0">
                                                 <div class="step-item-trans-product step-item position-relative"
                                                      [class.step-item-dark]="isDarkMode">
                                                     <div class="white-background-card shadow-85 p-1 flex-grow-1">
