@@ -71,14 +71,14 @@
   padding-bottom: 0 !important;
 }
 
-// במצב טעינה בלבד - רווח של 70px למטה מכותרת "מה בונים היום"
+// במצב טעינה בלבד - רווח של 88px למטה מכותרת "מה בונים היום"
 // משתמשים ב-margin bottom על האלמנט הפנימי במקום padding bottom על ה-wrapper
 .products-grid.is-loading .step-item-trans-product.title-card-first {
-  margin-bottom: 70px !important;
+  margin-bottom: 88px !important;
 }
 
 .products-grid.is-loading .step-item-trans-product.title-card-empty {
-  margin-bottom: 70px !important;
+  margin-bottom: 88px !important;
 }
 
 // הגדלת padding top במובייל עבור "מה בונים היום"
