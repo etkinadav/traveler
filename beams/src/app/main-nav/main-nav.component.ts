@@ -250,6 +250,12 @@ export class MainNavComponent implements OnInit, OnDestroy {
     this.isHamburgerOpen = false;
   }
 
+  onDrawerClosed() {
+    // פונקציה זו נקראת כאשר ה-drawer נסגר (כולל כשלוחצים על ה-backdrop)
+    this.isHamburgerOpen = false;
+    this.isDrawerOpen = false;
+  }
+
   // Profile Manu
   toggleProfileManu() {
     this.isProManuOpen = !this.isProManuOpen;

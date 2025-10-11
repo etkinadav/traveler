@@ -264,18 +264,18 @@ button.mat-icon-hanburger-con {
 .whatsup-logo {
   width: 100%;
   height: 100%;
-  padding: 6px;
+  padding: 4px;
 }
 
 .whatsup-logo-container {
-  background-color: var(--ez-whatsup-bg);
+  background-color: var(--zx-green);
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
 }
 
 .whatsup-logo-container:hover {
-  background-color: var(--ez-whatsup-bg-hover);
+  background-color: #004499;
   transition: 150ms;
 }
 
@@ -660,4 +660,38 @@ mat-toolbar.transparent-toolbar {
   align-items: center !important;
   justify-content: flex-start !important;
   height: 100% !important;
+}
+
+// שינוי צבע הטקסטים בתפריט הצדדי לכחול שלנו
+::ng-deep .sidenav .mat-list-item {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-list-item .mat-list-item-small {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-list-item span {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-list-item mat-icon {
+  color: var(--zx-green) !important;
+}
+
+// סלקטורים יותר ספציפיים לדריסת הגדרות Angular Material
+::ng-deep .sidenav .mat-mdc-list-item .mdc-list-item__primary-text {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-mdc-list-item .mat-mdc-list-item-unscoped-content {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-mdc-list-item .mat-mdc-list-item-unscoped-content span {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-mdc-list-item .mat-mdc-list-item-unscoped-content mat-icon {
+  color: var(--zx-green) !important;
 }
