@@ -1,11 +1,6 @@
 <div class="threejs-box-wrapper">
     <!-- הודעת validation הוסרה - משתמשים ב-SnackBar -->
     
-    <!-- Spinner מעל התלת מימד - מוצג בזמן טעינה -->
-    <div class="model-loading-spinner" *ngIf="isLoading && isModelLoading">
-        <div class="spinner-large"></div>
-    </div>
-    
     <!-- קונטיינר לכפתורי תצוגה -->
     <div class="view-controls-container">
         <!-- כפתור להצגת wireframe - מוסתר במובייל ובמוצר קורות -->
@@ -633,7 +628,7 @@
         <div #rendererContainer class="renderer-container" [class.expanded]="!drawerOpen">
             <!-- Spinner במרכז התצוגה התלת-מימדית -->
             <div class="model-loading-spinner" *ngIf="isModelLoading">
-                <div class="spinner"></div>
+                <div class="spinner-large"></div>
             </div>
             
             <!-- כפתור ניווט -->
