@@ -1394,3 +1394,31 @@
   pointer-events: none;
 }
 
+// ספינר מרובע לכרטיסיות דמה - SVG
+.square-spinner {
+  position: absolute;
+  width: 31px;
+  height: 31px;
+  
+  .spinner-path {
+    stroke-dasharray: 116; // היקף המלבן: (29+29)*2 = 116
+    stroke-dashoffset: 0;
+    animation: square-loader 0.8s ease-in-out infinite;
+  }
+}
+
+@keyframes square-loader {
+  0% {
+    stroke-dashoffset: 0;
+    stroke-dasharray: 81 35; // 70% מלא (116*0.7=81), 30% ריק
+  }
+  50% {
+    stroke-dashoffset: -58; // חצי מהיקף
+    stroke-dasharray: 35 81; // 30% מלא, 70% ריק
+  }
+  100% {
+    stroke-dashoffset: -116; // היקף מלא
+    stroke-dasharray: 81 35; // חזרה ל-70% מלא
+  }
+}
+
