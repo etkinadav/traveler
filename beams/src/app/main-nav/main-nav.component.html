@@ -36,11 +36,11 @@
 
     <span class="spacer"></span>
 
-    <span *ngIf="userName !== ''" class="zx-text-tiny text-green position-absolute navbar-greeting d-none d-lg-block" [class.zx-rtl]="isRTL" [class.navbar-greeting-rtl]="isRTL">
+    <span *ngIf="userName !== ''" class="zx-text-tiny text-green position-absolute navbar-greeting d-none d-md-block" [class.zx-rtl]="isRTL" [class.navbar-greeting-rtl]="isRTL">
       <span>{{ 'main-nav.greeting.' + greeting | translate }}, </span>
-      <span class="d-lg-none">
-          {{ userName| slice:0:8 }}
-        <span *ngIf="userName.length > 8">
+      <span>
+          {{ userName| slice:0:30 }}
+        <span *ngIf="userName.length > 30">
           ...
         </span>
       </span>

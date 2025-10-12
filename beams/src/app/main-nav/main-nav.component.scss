@@ -417,16 +417,16 @@ button.zx-bg-gray-light {
   padding: 4px 0 !important; // רווח מלמעלה ולמטה
 }
 
-// CSS ספציפי לתמונת הפרופיל - ריבוע מדויק
+// CSS ספציפי לתמונת הפרופיל - ריבוע מדויק (מוקטן ב-20%)
 .zx-profile-default,
 img.zx-profile-default,
 .profile-image-container img {
-  height: 36px !important;
-  width: 36px !important; // ריבוע מדויק
-  min-width: 36px !important; // וידוא מינימום רוחב
-  min-height: 36px !important; // וידוא מינימום גובה
-  max-width: 36px !important; // וידוא מקסימום רוחב
-  max-height: 36px !important; // וידוא מקסימום גובה
+  height: 29px !important; // 36px - 20% = 28.8px ≈ 29px
+  width: 29px !important; // ריבוע מדויק
+  min-width: 29px !important; // וידוא מינימום רוחב
+  min-height: 29px !important; // וידוא מינימום גובה
+  max-width: 29px !important; // וידוא מקסימום רוחב
+  max-height: 29px !important; // וידוא מקסימום גובה
   border-radius: 0 !important; // הסרת העיגול
   object-fit: cover !important; // כיסוי מלא של הריבוע
   object-position: center !important; // מיקום מרכז התמונה
@@ -443,12 +443,12 @@ img.zx-profile-default,
   .zx-profile-default,
   img.zx-profile-default,
   .profile-image-container img {
-    height: 43px !important;
-    width: 43px !important; // ריבוע מדויק
-    min-width: 43px !important; // וידוא מינימום רוחב
-    min-height: 43px !important; // וידוא מינימום גובה
-    max-width: 43px !important; // וידוא מקסימום רוחב
-    max-height: 43px !important; // וידוא מקסימום גובה
+    height: 34px !important; // 43px - 20% = 34.4px ≈ 34px
+    width: 34px !important; // ריבוע מדויק
+    min-width: 34px !important; // וידוא מינימום רוחב
+    min-height: 34px !important; // וידוא מינימום גובה
+    max-width: 34px !important; // וידוא מקסימום רוחב
+    max-height: 34px !important; // וידוא מקסימום גובה
     aspect-ratio: 1 / 1 !important; // וידוא יחס ריבוע
   }
 }
@@ -470,7 +470,7 @@ img.zx-profile-default,
 .arrow-line {
   position: absolute;
   width: 8px;
-  height: 2px;
+  height: 1px; // 2px - 50% = 1px (דק יותר)
   background-color: #0066cc;
   border-radius: 1px;
   transition: all 0.3s ease;
@@ -480,20 +480,20 @@ img.zx-profile-default,
 }
 
 .arrow-line:first-child {
-  transform: translate(-50%, -50%) rotate(45deg) translateX(-1px);
+  transform: translate(-50%, -50%) rotate(45deg) translateX(-2px); // שמאלה ב-1px נוסף
 }
 
 .arrow-line:last-child {
-  transform: translate(-50%, -50%) rotate(-45deg) translateX(1px);
+  transform: translate(-50%, -50%) rotate(-45deg) translateX(2px); // ימינה ב-1px נוסף
 }
 
 // מצב פתוח - החץ מתהפך למעלה
 .custom-arrow.open .arrow-line:first-child {
-  transform: translate(-50%, -50%) rotate(-45deg) translateX(-1px);
+  transform: translate(-50%, -50%) rotate(-45deg) translateX(-2px); // שמאלה ב-1px נוסף
 }
 
 .custom-arrow.open .arrow-line:last-child {
-  transform: translate(-50%, -50%) rotate(45deg) translateX(1px);
+  transform: translate(-50%, -50%) rotate(45deg) translateX(2px); // ימינה ב-1px נוסף
 }
 
 
@@ -521,6 +521,17 @@ img.zx-profile-default,
 .zx-profile-manu hr {
   margin-top: 7px !important;
   margin-bottom: 4px !important;
+}
+
+// הסתרת הטקסט "בוקר טוב" במסכים קטנים
+.navbar-greeting {
+  display: none !important;
+}
+
+@media only screen and (min-width: 768px) {
+  .navbar-greeting {
+    display: block !important;
+  }
 }
 
 // Overlay למניעת קליקים על הrקע
