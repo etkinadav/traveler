@@ -131,6 +131,7 @@
                 <span class="spacer"></span>
                 <div class="d-flex justify-content-center w-100 pt-3">
                     <button mat-raised-button color="primary" type="submit"
+                        [disabled]="emailInput.invalid"
                         class="text-white rounded-pill zx-btn-single">
                         {{ "choose-system.continue" | translate }}
                     </button>
