@@ -713,10 +713,10 @@
                 </button>
                 
                 <!-- תצוגת טעינה -->
-                <div class="price-loader" *ngIf="calculatedPrice === 0">
-                    <mat-spinner diameter="20"></mat-spinner>
-                    <span class="calculating-text">מחשב מחיר...</span>
-                </div>
+        <div class="price-loader" *ngIf="calculatedPrice === 0">
+            <div class="spinner-small"></div>
+            <span class="calculating-text">מחשב מחיר...</span>
+        </div>
                 
                 <!-- כפתור המשך מצומצם -->
                 <button class="minimized-continue-button" 

@@ -1449,6 +1449,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         let lastTouchAngle = 0;
         let lastTouchX = 0;
         let lastTouchY = 0;
+        let lastTouchCenterX = 0; // מרכז 2 אצבעות - X
+        let lastTouchCenterY = 0; // מרכז 2 אצבעות - Y
         let isTouchRotating = false;
         let isTouchZooming = false;
         let isTouchPanning = false;
@@ -1463,12 +1465,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 lastTouchY = event.touches[0].clientY;
             } else if (event.touches.length === 2) {
                 isTouchZooming = true;
+                isTouchPanning = true; // הפעלת pan עם 2 אצבעות
                     const dx =
                         event.touches[0].clientX - event.touches[1].clientX;
                     const dy =
                         event.touches[0].clientY - event.touches[1].clientY;
                 lastTouchDist = Math.sqrt(dx * dx + dy * dy);
                 lastTouchAngle = Math.atan2(dy, dx);
+                // שמירת מרכז 2 האצבעות
+                lastTouchCenterX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
+                lastTouchCenterY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
             }
             },
             { passive: false }
@@ -1501,6 +1507,25 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                         event.touches[0].clientY - event.touches[1].clientY;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 const angle = Math.atan2(dy, dx);
+                
+                // Pan עם 2 אצבעות (כמו במובייל רגיל)
+                if (isTouchPanning) {
+                    const centerX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
+                    const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+                    const deltaCenterX = centerX - lastTouchCenterX;
+                    const deltaCenterY = centerY - lastTouchCenterY;
+                    
+                    // Pan התמונה (הזזת הסצנה)
+                    const cam = this.camera;
+                    const pan = new THREE.Vector3();
+                    pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0), -deltaCenterX * 0.2);
+                    pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), deltaCenterY * 0.2);
+                    this.scene.position.add(pan);
+                    
+                    lastTouchCenterX = centerX;
+                    lastTouchCenterY = centerY;
+                }
+                
                 // Pinch zoom
                 const deltaDist = dist - lastTouchDist;
                 const direction = this.camera.position.clone().normalize();
@@ -1681,6 +1706,9 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     }
     updateBeams(isInitialLoad: boolean = false) {
         this.startTimer('TOTAL_UPDATE_BEAMS');
+        
+        // איפוס מחיר להצגת "מחשב מחיר..."
+        this.calculatedPrice = 0;
         
         // הפעלת loading
         this.isLoading = true;
@@ -4929,7 +4957,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         // מיקום המצלמה במיקום האופטימלי
         this.camera.position.set(optimalPosition.x, optimalPosition.y, optimalPosition.z);
-
+        
         // מרכוז על מרכז העולם (0,0,0)
         this.camera.lookAt(0, 0, 0);
 
@@ -6220,7 +6248,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.debugLog('Continue order clicked!');
         this.debugLog('Selected pricing option:', this.selectedPricingOption);
         this.debugLog('Final price:', this.getFinalPrice());
+        
+        // בדיקה אם המשתמש מחובר
+        if (!this.isUserAuthenticated) {
+            // פתיחת חלונית לוגין
+            this.dialogService.onOpenLoginDialog();
+            return;
+        }
+        
         // כאן תוכל להוסיף ניווט לעמוד הזמנה או פתיחת דיאלוג
+        // לדוגמה: this.router.navigate(['/order-summary']);
     }
     
     // קבלת שם האופציה הנבחרת
@@ -6250,6 +6287,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 return 'קורות חתוכות'; // ברירת מחדל
         }
     }
+
     
     // חישוב מחיר קורות (ללא חיתוך)
     getBeamsOnlyPrice(): number {
