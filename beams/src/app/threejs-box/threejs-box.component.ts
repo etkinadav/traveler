@@ -1267,7 +1267,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             timestamp: new Date().toISOString(),
         };
         // Always save to localStorage to avoid server issues
-        this.saveConfigurationToLocalStorage(config);
+            this.saveConfigurationToLocalStorage(config);
         
         // Server saving disabled to avoid CORS and authentication errors
         // TODO: Re-enable when backend is properly configured
@@ -1304,7 +1304,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     // Load saved configuration (always use localStorage for now)
     private loadConfiguration() {
         // Always use localStorage to avoid authentication issues
-        this.loadConfigurationFromLocalStorage();
+            this.loadConfigurationFromLocalStorage();
         
         // Server configuration loading disabled to avoid CORS and authentication errors
         // TODO: Re-enable when backend is properly configured
@@ -5214,7 +5214,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         // בדיקת 3 מידות המוצר וזום דינמי
         const dimensions = this.getProductDimensionsRaw();
-        const maxDimension = Math.max(dimensions.width, dimensions.length, dimensions.height);
+        const rawMaxDimension = Math.max(dimensions.width, dimensions.length, dimensions.height);
+        const maxDimension = Math.max(rawMaxDimension, 80); // מינימום 80 ס"מ למוצרים קטנים
         const zoomRatio = maxDimension / 200; // המידה הגדולה ביותר מחולקת ב-200
         
         // ככל שהיחס יותר קטן, הזום אין יהיה גדול יותר
@@ -5225,6 +5226,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         console.log('🎯 DYNAMIC ZOOM CALCULATION:', {
             dimensions: { width: dimensions.width, length: dimensions.length, height: dimensions.height },
+            rawMaxDimension: rawMaxDimension,
             maxDimension: maxDimension,
             zoomRatio: zoomRatio,
             dynamicZoomMultiplier: dynamicZoomMultiplier,
@@ -5234,11 +5236,27 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         const targetDistance = currentDistance + zoomAmount;
         
-        // פרמטרים של rotate + pan שביקשת
-        const rotatePixels = 30; // גרירה של 30 פיקסלים למטה (rotate)
-        const panPixels = 60; // גרירה של 60 פיקסלים למטה (pan) - פי 2 יותר
-        const rotateAngle = rotatePixels * 0.01; // זהה ללוגיקה בשורה 938
-        const panAmount = panPixels * 0.2; // זהה ללוגיקה בשורה 926
+        // פרמטרים של rotate + pan משופרים
+        const rotatePixels = 12.5; // 25% מ-50 (rotate מופחת)
+        const panPixels = 20; // 25% מ-80 (pan מופחת)
+        const rotateAngle = rotatePixels * 0.015; // rotate מופחת ל-25%
+        const panAmount = panPixels * 0.075; // pan מופחת ל-25%
+        
+        // חישוב pan נוסף למוצרים נמוכים (גובה < 200)
+        const productHeight = dimensions.height;
+        const heightBasedPanAmount = productHeight < 200 
+            ? ((200 - productHeight) / 200) * 25 // מקסימום 25 פיקסלים למוצרים נמוכים
+            : 0;
+            
+        // חישוב rotate נוסף לכל המוצרים
+        const heightBasedRotateAmount = -10 * Math.PI / 180; // 10 מעלות למטה ברדיאנים לכל המוצרים
+        
+        console.log('📏 HEIGHT-BASED PAN & ROTATE:', {
+            productHeight: productHeight,
+            heightBasedPanAmount: heightBasedPanAmount,
+            heightBasedRotateAmount: heightBasedRotateAmount,
+            totalPanAmount: panAmount + heightBasedPanAmount
+        });
         
         // חישוב מרכז קוביית ה-wireframe לסיבוב - תמיד מרכז העולם
         const wireframeCenter = new THREE.Vector3(0, 0, 0);
@@ -5260,10 +5278,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             let newDistance = THREE.MathUtils.lerp(currentDistance, targetDistance, easeProgress);
             if (newDistance < 1) newDistance = 1; // הגנה מפני מרחק קטן מדי
             
-            // 2. Rotate - סיבוב מתקדם (גרירה של 30 פיקסלים למטה עם לחצן שמאלי)
+            // 2. Rotate - סיבוב מתקדם (גרירה של 12.5 פיקסלים למעלה עם לחצן שמאלי + rotate נוסף למוצרים נמוכים)
             const currentRotateAngle = THREE.MathUtils.lerp(0, rotateAngle, easeProgress);
+            const currentHeightBasedRotate = THREE.MathUtils.lerp(0, heightBasedRotateAmount, easeProgress);
+            const totalCurrentRotate = currentRotateAngle + currentHeightBasedRotate;
             const currentSpherical = startSpherical.clone();
-            currentSpherical.phi -= currentRotateAngle; // סיבוב למטה
+            currentSpherical.phi += totalCurrentRotate; // סיבוב למעלה (הפוך) + rotate נוסף למוצרים נמוכים
             currentSpherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, currentSpherical.phi));
             currentSpherical.radius = newDistance; // עדכון המרחק
             
@@ -5271,11 +5291,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const newOffset = new THREE.Vector3().setFromSpherical(currentSpherical);
             this.camera.position.copy(wireframeCenter.clone().add(newOffset));
             
-            // 3. Pan - הזזה מתקדמת (גרירה של 60 פיקסלים למטה עם גלגלת)
+            // 3. Pan - הזזה מתקדמת (גרירה של 60 פיקסלים למטה עם גלגלת + pan נוסף למוצרים נמוכים)
             const currentPanAmount = THREE.MathUtils.lerp(0, panAmount, easeProgress);
+            const currentHeightBasedPan = THREE.MathUtils.lerp(0, heightBasedPanAmount, easeProgress);
+            const totalCurrentPan = currentPanAmount + currentHeightBasedPan;
             const cam = this.camera;
             const pan = new THREE.Vector3();
-            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), -currentPanAmount); // שלילי = למטה
+            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), totalCurrentPan); // חיובי = למעלה (הפוך)
             this.scene.position.copy(startScenePosition.clone().add(pan));
 
             if (progress < 1) {
