@@ -136,6 +136,7 @@
     .menu-option {
         display: flex;
         align-items: center;
+        justify-content: center; // מרכוז הטקסט והאייקון יחד
         width: 100%;
         padding: 8px 12px;
         border: none;
@@ -147,6 +148,7 @@
         color: #0066cc;
         transition: all 0.2s ease;
         margin: 2px 0;
+        gap: 8px; // רווח קבוע בין הטקסט לאייקון
         
         &:hover:not([disabled]) {
             background: rgba(0, 102, 204, 0.1);
@@ -160,12 +162,12 @@
         }
         
         svg {
-            margin-right: 8px;
             flex-shrink: 0;
+            margin: 0; // הסרת margin-right
         }
         
         span {
-            flex: 1;
+            flex-shrink: 0; // מניעת התכווצות הטקסט
         }
     }
 }
