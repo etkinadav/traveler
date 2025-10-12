@@ -5222,7 +5222,16 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // היחס הקטן ביותר יהיה בערך 0.1 (עבור מוצר קטן), הגדול ביותר 3+ (עבור מוצר גדול)
         const baseZoomAmount = -150; // זום בסיסי
         const dynamicZoomMultiplier = Math.max(0.3, 1 / zoomRatio); // מינימום 0.3, מקסימום ללא הגבלה
-        const zoomAmount = (baseZoomAmount * dynamicZoomMultiplier) / 1.7; // זום דינמי מופחת פי 1.7
+        let zoomAmount = (baseZoomAmount * dynamicZoomMultiplier) / 1.7; // זום דינמי מופחת פי 1.7
+        
+        // עבור מוצרים גבוהים (מעל 180 ס"מ) - זום אין נוסף
+        const productHeight = dimensions.height;
+        if (productHeight > 180) {
+            // ב-280 ס"מ נוסיף זום אין משמעותי, פרופורציונלי לגובה
+            const heightRatio = Math.min((productHeight - 180) / 100, 1); // 0 ב-180, 1 ב-280+
+            const tallProductZoomBonus = heightRatio * -100; // עד -100 זום אין נוסף
+            zoomAmount += tallProductZoomBonus;
+        }
         
         console.log('🎯 DYNAMIC ZOOM CALCULATION:', {
             dimensions: { width: dimensions.width, length: dimensions.length, height: dimensions.height },
@@ -5242,31 +5251,92 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const rotateAngle = rotatePixels * 0.015; // rotate מופחת ל-25%
         const panAmount = panPixels * 0.075; // pan מופחת ל-25%
         
-        // חישוב pan נוסף למוצרים נמוכים (גובה < 200)
-        const productHeight = dimensions.height;
-        const heightBasedPanAmount = productHeight < 200 
-            ? ((200 - productHeight) / 200) * 25 // מקסימום 25 פיקסלים למוצרים נמוכים
+        // חישוב pan נוסף למוצרים נמוכים (גובה < 200) - למעלה
+        let heightBasedPanAmount = productHeight < 200 
+            ? ((200 - productHeight) / 200) * 25 // מקסימום 25 פיקסלים למעלה למוצרים נמוכים
             : 0;
-            
-        // חישוב rotate נוסף לכל המוצרים
-        const heightBasedRotateAmount = -10 * Math.PI / 180; // 10 מעלות למטה ברדיאנים לכל המוצרים
         
-        // סיבוב azimuthal (ימין-שמאל) - 22.5 מעלות ימינה (פי 1.5 מ-15)
-        const azimuthalRotateAmount = 22.5 * Math.PI / 180; // 22.5 מעלות ימינה ברדיאנים
+        // חישוב pan נוסף למוצרים גבוהים (גובה > 180) - למטה
+        if (productHeight > 180) {
+            const tallHeightRatio = Math.min((productHeight - 180) / 100, 1); // 0 ב-180, 1 ב-280+
+            const tallProductPanDown = tallHeightRatio * -40; // עד -40 פיקסלים למטה ב-280 ס"מ
+            heightBasedPanAmount += tallProductPanDown;
+        }
+            
+        // חישוב rotate נוסף - 10 מעלות למטה בסיסי לכל המוצרים
+        let heightBasedRotateAmount = -10 * Math.PI / 180; // 10 מעלות למטה ברדיאנים לכל המוצרים
+        
+        // עבור מוצרים נמוכים (מתחת ל-150 ס"מ) - rotate נוסף כלפי מעלה (תצוגה מלמעלה)
+        if (productHeight < 150) {
+            // ב-50 ס"מ: 10 מעלות נוספות, ב-100 ס"מ: 5 מעלות, ב-150: 0 מעלות
+            const shortHeightRatio = (150 - productHeight) / 100; // 1 ב-50, 0.5 ב-100, 0 ב-150
+            const shortProductRotateBonus = shortHeightRatio * -10 * Math.PI / 180; // עד -10 מעלות מלמעלה
+            heightBasedRotateAmount += shortProductRotateBonus;
+        }
+        
+        // עבור מוצרים גבוהים (מעל 180 ס"מ) - rotate נוסף כלפי מעלה (תצוגה מלמעלה)
+        if (productHeight > 180) {
+            // ב-280 ס"מ נסובב הרבה יותר למעלה - 50 מעלות נוספות (סה"כ 40 מעלות למעלה!)
+            const tallHeightRatio = Math.min((productHeight - 180) / 100, 1); // 0 ב-180, 1 ב-280+
+            const tallProductRotateBonus = tallHeightRatio * -50 * Math.PI / 180; // עד -50 מעלות = הרבה יותר מלמעלה!
+            heightBasedRotateAmount += tallProductRotateBonus;
+        }
+        
+        // סיבוב azimuthal (ימין-שמאל) - 22.5 מעלות ימינה בסיסי
+        let azimuthalRotateAmount = 22.5 * Math.PI / 180; // 22.5 מעלות ימינה ברדיאנים
+        
+        // עבור מוצרים גבוהים (מעל 150 ס"מ) - הפחתת סיבוב azimuthal
+        if (productHeight > 150) {
+            // ככל שהמוצר יותר גבוה, נפחית את הסיבוב
+            const tallHeightRatio = Math.min((productHeight - 150) / 150, 1); // 0 ב-150, 1 ב-300+
+            const tallProductAzimuthalReduction = tallHeightRatio * -15 * Math.PI / 180; // עד -15 מעלות הפחתה
+            azimuthalRotateAmount += tallProductAzimuthalReduction;
+        }
+        
+        // עבור מוצרים רחבים/ארוכים - סיבוב azimuthal נוסף
+        const totalHorizontalSize = dimensions.width + dimensions.length;
+        if (totalHorizontalSize > 0) {
+            // ב-200 ס"מ (סכום רוחב+אורך) נוסיף 10 מעלות
+            const wideAzimuthalBonus = (totalHorizontalSize / 200) * 10 * Math.PI / 180;
+            azimuthalRotateAmount += wideAzimuthalBonus;
+        }
         
         // חישוב pan אופקי (שמאלה) כדי למרכז את האלמנט אחרי הסיבוב
-        // מבוסס על (רוחב + אורך) / 8, מוגזם פי 16.5 (15 × 1.1)
-        const horizontalPanPixels = ((dimensions.width + dimensions.length) / 8) * 16.5;
+        // מבוסס על המידה הכי גדולה מה-3 (כדי לא להגזים באלמנטים רחבים)
+        const maxDimensionForPan = Math.max(dimensions.width, dimensions.length, dimensions.height);
+        let horizontalPanPixels = (maxDimensionForPan / 8) * 30;
+        
+        // עבור מוצרים עם רוחב או אורך גדולים - תיקון PAN ימינה
+        const maxHorizontalDimension = Math.max(dimensions.width, dimensions.length);
+        if (maxHorizontalDimension > dimensions.height) {
+            // ככל שהרוחב/אורך יותר גדולים מהגובה, צריך יותר pan ימינה (שלילי)
+            const horizontalDominance = (maxHorizontalDimension - dimensions.height) / maxHorizontalDimension;
+            const widePanCorrection = horizontalDominance * maxHorizontalDimension * 5; // תיקון ימינה פי 2.5 (2 × 2.5)
+            horizontalPanPixels -= widePanCorrection; // פחות שמאלה = יותר ימינה
+        }
+        
+        // עבור מוצרים גבוהים (מעל 180 ס"מ) - PAN ימינה נוסף
+        let tallProductRightPan = 0;
+        if (productHeight > 180) {
+            const tallHeightRatio = Math.min((productHeight - 180) / 100, 1); // 0 ב-180, 1 ב-280+
+            const tallPanRightCorrection = tallHeightRatio * productHeight * 3.2; // pan ימינה פרופורציונלי לגובה (פי 4)
+            horizontalPanPixels -= tallPanRightCorrection; // פחות שמאלה = יותר ימינה
+            // נוסיף עוד pan ימינה נפרד שיופעל בנפרד
+            tallProductRightPan = tallHeightRatio * 150; // עד 150 פיקסלים ימינה נוספים
+        }
+        
         const horizontalPanAmount = horizontalPanPixels * 0.075; // אותו מקדם כמו pan רגיל
         
         console.log('📏 HEIGHT-BASED PAN & ROTATE:', {
             productHeight: productHeight,
+            isTallProduct: productHeight > 180,
             heightBasedPanAmount: heightBasedPanAmount,
             heightBasedRotateAmount: heightBasedRotateAmount,
             azimuthalRotateAmount: azimuthalRotateAmount,
             horizontalPanPixels: horizontalPanPixels,
             horizontalPanAmount: horizontalPanAmount,
-            totalPanAmount: panAmount + heightBasedPanAmount
+            totalPanAmount: panAmount + heightBasedPanAmount,
+            zoomAmount: zoomAmount
         });
         
         // חישוב מרכז קוביית ה-wireframe לסיבוב - תמיד מרכז העולם
@@ -5313,13 +5383,23 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const currentHeightBasedPan = THREE.MathUtils.lerp(0, heightBasedPanAmount, easeProgress);
             const totalCurrentPan = currentPanAmount + currentHeightBasedPan;
             
-            // Pan אופקי (שמאלה) - מתחיל עם הסיבוב האזימוטלי
+            // Pan אופקי - מתחיל עם הסיבוב האזימוטלי
             const currentHorizontalPan = THREE.MathUtils.lerp(0, horizontalPanAmount, azimuthalProgress);
+            
+            // עבור מוצרים גבוהים - pan ימינה נוסף (ערך קבוע ונפרד!)
+            let tallProductRightPanCurrent = 0;
+            if (productHeight > 180) {
+                const tallHeightRatio = Math.min((productHeight - 180) / 100, 1);
+                const tallRightPanAmount = tallHeightRatio * 30; // עד 30 יחידות ימינה
+                tallProductRightPanCurrent = THREE.MathUtils.lerp(0, tallRightPanAmount, azimuthalProgress);
+            }
             
             const cam = this.camera;
             const pan = new THREE.Vector3();
             pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), totalCurrentPan); // חיובי = למעלה (אנכי)
-            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0), -currentHorizontalPan); // שלילי = שמאלה (אופקי)
+            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0), -currentHorizontalPan); // שלילי = שמאלה
+            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0), tallProductRightPanCurrent); // חיובי = ימינה למוצרים גבוהים
+            
             this.scene.position.copy(startScenePosition.clone().add(pan));
 
             if (progress < 1) {
