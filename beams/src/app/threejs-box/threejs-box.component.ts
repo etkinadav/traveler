@@ -5224,8 +5224,24 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const dynamicZoomMultiplier = Math.max(0.3, 1 / zoomRatio); // מינימום 0.3, מקסימום ללא הגבלה
         let zoomAmount = (baseZoomAmount * dynamicZoomMultiplier) / 1.7; // זום דינמי מופחת פי 1.7
         
-        // עבור מוצרים גבוהים (מעל 180 ס"מ) - זום אין נוסף
+        // התאמות זום לפי גובה המוצר
         const productHeight = dimensions.height;
+        
+        // עבור מוצרים קטנים (מידה מקסימלית < 80) - הפחתת זום אין
+        if (rawMaxDimension < 80) {
+            const smallRatio = (80 - rawMaxDimension) / 80; // ככל שיותר קטן, יותר הפחתה
+            const smallProductZoomReduction = smallRatio * 240; // עד +240 (פחות זום אין = יותר רחוק) - פי 6
+            zoomAmount += smallProductZoomReduction;
+        }
+        
+        // עבור מוצרים נמוכים (גובה < 70) - הפחתת זום אין נוספת
+        if (productHeight < 70) {
+            const shortRatio = (70 - productHeight) / 70; // ככל שיותר נמוך, יותר הפחתה
+            const shortProductZoomReduction = shortRatio * 100; // עד +100 (פחות זום אין = יותר רחוק) - פי 2
+            zoomAmount += shortProductZoomReduction;
+        }
+        
+        // עבור מוצרים גבוהים (מעל 180 ס"מ) - זום אין נוסף
         if (productHeight > 180) {
             // ב-280 ס"מ נוסיף זום אין משמעותי, פרופורציונלי לגובה
             const heightRatio = Math.min((productHeight - 180) / 100, 1); // 0 ב-180, 1 ב-280+
