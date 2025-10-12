@@ -459,7 +459,7 @@ img.zx-profile-default,
   height: 12px;
   position: relative;
   margin-left: 10px; // 8px + 2px = 10px (רחוק יותר מהתמונה)
-  margin-top: 2px; // למטה במצב סגור
+  margin-top: 7px; // למטה במצב סגור (3px + 4px = 7px)
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -470,7 +470,7 @@ img.zx-profile-default,
 
 // במצב פתוח - החץ עולה למעלה
 .custom-arrow.open {
-  margin-top: -2px; // למעלה במצב פתוח (2px מהמצב הרגיל)
+  margin-top: -3px; // למעלה במצב פתוח (3px מהמצב הרגיל)
 }
 
 .arrow-line {
@@ -509,7 +509,7 @@ img.zx-profile-default,
   left: -174px;
   width: 240px;
   box-shadow: 0 0 15px var(--zx-gray-85);
-  z-index: 1;
+  z-index: 99999 !important; // מעל ה-overlay
 }
 
 // כל הטקסטים בתפריט הפרופיל יהיו כחולים ו-bold
@@ -548,7 +548,7 @@ img.zx-profile-default,
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 99998 !important; // מתחת לnavbar שהוא 99999
+  z-index: 99998 !important; // מתחת לתפריט הפרופיל
   cursor: pointer;
 }
 
@@ -661,16 +661,6 @@ img.zx-profile-default,
   color: var(--zx-pink);
 }
 
-.overlay-manu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: transparent;
-  z-index: 1;
-  /* Adjust this value to ensure the overlay is behind the menu but above other elements */
-}
 
 // HOME PAGE
 
