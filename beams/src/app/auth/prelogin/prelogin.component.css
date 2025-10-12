@@ -266,6 +266,12 @@ input:-webkit-autofill {
     text-align: center !important;
 }
 
+@media only screen and (min-width: 992px) {
+    .zx-login-content-container p {
+        font-size: 18px !important;
+    }
+}
+
 
 @media only screen and (max-width: 991px) {
     .zx-login-content-container {
@@ -305,11 +311,36 @@ div.zx-rtl-container input {
 
 .zx-btn-single {
     width: 100%;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    border-radius: 0 !important;
 }
 
 @media only screen and (min-width: 992px) {
     .zx-btn-single {
         width: 270px;
+        font-size: 20px !important;
+    }
+}
+
+/* ביטול rounded-pill בכל הכפתורים בדיאלוג */
+.zx-login-content-container button.rounded-pill,
+.zx-login-content-container .rounded-pill {
+    border-radius: 0 !important;
+}
+
+/* כל כפתורי mat-raised-button בדיאלוג - פונט גדול ו-bold */
+.zx-login-content-container button[mat-raised-button],
+.zx-login-content-container button.mat-mdc-raised-button {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    border-radius: 0 !important;
+}
+
+@media only screen and (min-width: 992px) {
+    .zx-login-content-container button[mat-raised-button],
+    .zx-login-content-container button.mat-mdc-raised-button {
+        font-size: 20px !important;
     }
 }
 
