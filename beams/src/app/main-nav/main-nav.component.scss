@@ -65,20 +65,31 @@
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease; // רק לתנועה, לא לרקע
   position: relative !important;
   z-index: 1001 !important; // מעל הnavbar אבל מתחת לדיאלוגים
   
   &:hover {
-    background-color: rgba(0, 0, 0, 0.04) !important;
-    background: rgba(0, 0, 0, 0.04) !important;
+    background-color: rgba(0, 102, 204, 0.08) !important; // כחול בהיר כמו התחברות
+    background: rgba(0, 102, 204, 0.08) !important;
   }
+}
+
+// תנועה פשוטה של ההמבורגר במצב פתוח
+.custom-hamburger-btn.open {
+  transform: translateX(6px) translateY(-2px);
+}
+
+// אין רקע ב-hover במצב פתוח
+.custom-hamburger-btn.open:hover {
+  background-color: transparent !important;
+  background: transparent !important;
 }
 
 // הגדרה נוספת לוודא שהגוון יחל
 .custom-hamburger-btn:hover {
-  background-color: rgba(0, 0, 0, 0.04) !important;
-  background: rgba(0, 0, 0, 0.04) !important;
+  background-color: rgba(0, 102, 204, 0.08) !important; // כחול בהיר כמו התחברות
+  background: rgba(0, 102, 204, 0.08) !important;
 }
 
 .hamburger-lines {
@@ -406,17 +417,22 @@ button.zx-bg-gray-light {
   padding: 4px 0 !important; // רווח מלמעלה ולמטה
 }
 
-// CSS ספציפי לתמונת הפרופיל - ריבוע
+// CSS ספציפי לתמונת הפרופיל - ריבוע מדויק
 .zx-profile-default,
 img.zx-profile-default,
 .profile-image-container img {
   height: 36px !important;
-  width: 36px !important; // ריבוע במקום auto
+  width: 36px !important; // ריבוע מדויק
+  min-width: 36px !important; // וידוא מינימום רוחב
+  min-height: 36px !important; // וידוא מינימום גובה
+  max-width: 36px !important; // וידוא מקסימום רוחב
+  max-height: 36px !important; // וידוא מקסימום גובה
   border-radius: 0 !important; // הסרת העיגול
-  object-fit: cover !important; // וידוא שהתמונה מתאימה לריבוע
+  object-fit: cover !important; // כיסוי מלא של הריבוע
+  object-position: center !important; // מיקום מרכז התמונה
   display: block !important;
-  max-width: 36px !important;
-  max-height: 36px !important;
+  flex-shrink: 0 !important; // מניעת התכווצות
+  aspect-ratio: 1 / 1 !important; // וידוא יחס ריבוע
 }
 
 @media only screen and (min-width: 576px) {
@@ -428,17 +444,56 @@ img.zx-profile-default,
   img.zx-profile-default,
   .profile-image-container img {
     height: 43px !important;
-    width: 43px !important; // ריבוע במקום auto
-    max-width: 43px !important;
-    max-height: 43px !important;
+    width: 43px !important; // ריבוע מדויק
+    min-width: 43px !important; // וידוא מינימום רוחב
+    min-height: 43px !important; // וידוא מינימום גובה
+    max-width: 43px !important; // וידוא מקסימום רוחב
+    max-height: 43px !important; // וידוא מקסימום גובה
+    aspect-ratio: 1 / 1 !important; // וידוא יחס ריבוע
   }
 }
 
-.zx-tiny-arrow-size {
-  font-size: 24px !important; // גדול יותר
-  color: #0066cc !important; // כחול
-  font-weight: 300 !important; // קווי (לא מלא)
-  line-height: 1 !important;
+// חץ מותאם אישית - שני קווים
+.custom-arrow {
+  width: 12px;
+  height: 12px;
+  position: relative;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.custom-arrow:hover {
+  transform: translateY(1px); // תנועה למטה ב-hover
+}
+
+.arrow-line {
+  position: absolute;
+  width: 8px;
+  height: 2px;
+  background-color: #0066cc;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+}
+
+.arrow-line:first-child {
+  transform: translate(-50%, -50%) rotate(45deg) translateX(-1px);
+}
+
+.arrow-line:last-child {
+  transform: translate(-50%, -50%) rotate(-45deg) translateX(1px);
+}
+
+// מצב פתוח - החץ מתהפך למעלה
+.custom-arrow.open .arrow-line:first-child {
+  transform: translate(-50%, -50%) rotate(-45deg) translateX(-1px);
+}
+
+.custom-arrow.open .arrow-line:last-child {
+  transform: translate(-50%, -50%) rotate(45deg) translateX(1px);
 }
 
 
@@ -449,6 +504,23 @@ img.zx-profile-default,
   width: 240px;
   box-shadow: 0 0 15px var(--zx-gray-85);
   z-index: 1;
+}
+
+// כל הטקסטים בתפריט הפרופיל יהיו כחולים ו-bold
+.zx-profile-manu .mat-list-item-small {
+  color: #0066cc !important;
+  font-weight: 700 !important; // bold
+}
+
+// יוצא מהכלל - כפתור היציאה יישאר אדום
+.zx-profile-manu .zx-text-warn {
+  color: #f44336 !important;
+}
+
+// רווח לקו האופקי בתפריט
+.zx-profile-manu hr {
+  margin-top: 7px !important;
+  margin-bottom: 4px !important;
 }
 
 // Overlay למניעת קליקים על הrקע

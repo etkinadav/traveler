@@ -3,7 +3,7 @@
              style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 1000 !important;"
              [class.zx-100-opp]="isRootScreen">
 
-    <button class="custom-hamburger-btn" type="button" aria-label="Toggle sidenav"
+    <button class="custom-hamburger-btn" [class.open]="isHamburgerOpen" type="button" aria-label="Toggle sidenav"
       (click)="toggleDrawer()" 
       (mouseenter)="onHamburgerHover()" 
       (mouseleave)="onHamburgerLeave()">
@@ -36,12 +36,10 @@
 
     <span class="spacer"></span>
 
-    <span *ngIf="userName !== ''" class="zx-text-tiny text-green position-absolute navbar-greeting" [class.zx-rtl]="isRTL" [class.navbar-greeting-rtl]="isRTL">
+    <span *ngIf="userName !== ''" class="zx-text-tiny text-green position-absolute navbar-greeting d-none d-lg-block" [class.zx-rtl]="isRTL" [class.navbar-greeting-rtl]="isRTL">
       <span>{{ 'main-nav.greeting.' + greeting | translate }}, </span>
       <span class="d-lg-none">
-        <b>
           {{ userName| slice:0:8 }}
-        </b>
         <span *ngIf="userName.length > 8">
           ...
         </span>
@@ -50,19 +48,6 @@
 
     <div class="d-flex align-items-center gap-2 h-100">
 
-      <button *ngIf="userIsAuthenticated" class="d-none d-sm-flex zx-text-tiny zx-bg-gray-light" mat-flat-button
-        (click)="goToMyOrders()" [class.num-pending-btn]="userIsAuthenticated && numOfPendingOrders > 0">
-        <div class="position-relative" [class.fw-bold]="userIsAuthenticated && numOfPendingOrders > 0">
-          <span [class.num-pending-text]="userIsAuthenticated && numOfPendingOrders > 0 && !isDarkMode">
-            {{'main-nav.my-orders' | translate }}
-          </span>
-          <span class="num-pending-con position-absolute" [class.num-pending-con-not-rtl]="!isRTL"
-            *ngIf="userIsAuthenticated && numOfPendingOrders > 0">
-            <span class="num-pending">
-              {{ numOfPendingOrders < 9 ? numOfPendingOrders : '9+' }} </span>
-            </span>
-        </div>
-      </button>
 
 
       <div class="h-100 d-flex align-items-center">
@@ -74,8 +59,11 @@
 
         <div *ngIf="userName !== ''" class="h-100 d-flex align-items-center c-pointer">
           <div class="h-100 d-flex align-items-center c-pointer" (click)="toggleProfileManu()">
-            <mat-icon *ngIf="!isProManuOpen" class="zx-tiny-arrow-size">arrow_drop_down</mat-icon>
-            <mat-icon *ngIf="isProManuOpen" class="zx-tiny-arrow-size">arrow_drop_up</mat-icon>
+            <!-- חץ מותאם אישית -->
+            <div class="custom-arrow" [class.open]="isProManuOpen">
+              <div class="arrow-line"></div>
+              <div class="arrow-line"></div>
+            </div>
             <a type="button" color="primary" class="profile-image-container">
               <img class="svg zx-profile-default" [src]="getUserProfileImg(user)"
                 alt="Default Profile Image">
