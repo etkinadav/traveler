@@ -2337,14 +2337,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 // הוספת קורות תמיכה למכסה (בציר X, מתחת למכסה)
                 this.debugLog('יצירת קורות תמיכה למכסה...');
                 const supportBeamY = coverY - beamHeight - 0.05; // מתחת למכסה בגובה של קורה + רווח קטן
-                const supportBeamLength = planterWidth - (4 * beamHeight) - 0.4; // קיצור נוסף של 0.2 ס"מ מכל צד
+                const supportBeamLength = planterWidth - (4 * beamHeight) - 0.6; // קיצור נוסף של 0.3 ס"מ מכל צד (0.2 + 0.1)
                 
                 // שתי קורות תמיכה - אחת מכל צד
                 for (let i = 0; i < 2; i++) {
                     const geometry = new THREE.BoxGeometry(
                         adjustedBeamWidth,    // רוחב קורה (בציר X)
                         beamHeight,           // גובה הקורה
-                        supportBeamLength     // אורך הקורה (בציר Z) - מקוצר עם רווח
+                        supportBeamLength     // אורך הקורה (בציר Z) - מקוצר עם רווח נוסף
                     );
                     const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
                     const mesh = new THREE.Mesh(geometry, material);
@@ -2352,10 +2352,10 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     mesh.receiveShadow = true;
                     this.addWireframeToBeam(mesh);
                     
-                    // מיקום - אחת בקצה שמאלי ואחת בקצה ימני (ציר X), מוזזות פנימה בציר Z ב-0.2 ס"מ נוסף
+                    // מיקום - אחת בקצה שמאלי ואחת בקצה ימני (ציר X), מקורבות למרכז ב-1 מ"מ (0.1 ס"מ)
                     const xPosition = i === 0 
-                        ? -planterDepth / 2 + adjustedBeamWidth / 2 + beamHeight + 0.2
-                        : planterDepth / 2 - adjustedBeamWidth / 2 - beamHeight - 0.2;
+                        ? -planterDepth / 2 + adjustedBeamWidth / 2 + beamHeight + 0.2 + 0.1  // קורה שמאלית: +0.1 ס"מ ימינה
+                        : planterDepth / 2 - adjustedBeamWidth / 2 - beamHeight - 0.2 - 0.1;  // קורה ימנית: -0.1 ס"מ שמאלה
                     mesh.position.set(xPosition, supportBeamY, 0);
                     
                     this.scene.add(mesh);
@@ -3360,8 +3360,8 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                                 });
                             }
                             
-                            // קורות חיזוק המכסה - 2 קורות
-                            const coverSupportLength = planterWidth - (beamWidth * 4);
+                            // קורות חיזוק המכסה - 2 קורות (מקוצרות ב-0.2 ס"מ = 2 מ"מ נוספים)
+                            const coverSupportLength = planterWidth - (beamWidth * 4) - 0.2;
                             for (let i = 0; i < 2; i++) {
                                 allBeams.push({
                                     type: selectedType,
