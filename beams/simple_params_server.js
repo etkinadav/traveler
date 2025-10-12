@@ -10,7 +10,7 @@ const PARAMS_FILE = path.join(__dirname, 'blender_params.json');
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:4200',
+    origin: 'http://localhost:4800',
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type']
 }));

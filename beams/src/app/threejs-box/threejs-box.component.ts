@@ -5211,7 +5211,27 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         const startPosition = this.camera.position.clone();
         const startScenePosition = this.scene.position.clone();
         const currentDistance = startPosition.distanceTo(new THREE.Vector3(0, 0, 0));
-        const zoomAmount = -150; // זום אין מוגבר (ערך שלילי כמו בגלגלת)
+        
+        // בדיקת 3 מידות המוצר וזום דינמי
+        const dimensions = this.getProductDimensionsRaw();
+        const maxDimension = Math.max(dimensions.width, dimensions.length, dimensions.height);
+        const zoomRatio = maxDimension / 200; // המידה הגדולה ביותר מחולקת ב-200
+        
+        // ככל שהיחס יותר קטן, הזום אין יהיה גדול יותר
+        // היחס הקטן ביותר יהיה בערך 0.1 (עבור מוצר קטן), הגדול ביותר 3+ (עבור מוצר גדול)
+        const baseZoomAmount = -150; // זום בסיסי
+        const dynamicZoomMultiplier = Math.max(0.3, 1 / zoomRatio); // מינימום 0.3, מקסימום ללא הגבלה
+        const zoomAmount = (baseZoomAmount * dynamicZoomMultiplier) / 1.7; // זום דינמי מופחת פי 1.7
+        
+        console.log('🎯 DYNAMIC ZOOM CALCULATION:', {
+            dimensions: { width: dimensions.width, length: dimensions.length, height: dimensions.height },
+            maxDimension: maxDimension,
+            zoomRatio: zoomRatio,
+            dynamicZoomMultiplier: dynamicZoomMultiplier,
+            baseZoomAmount: baseZoomAmount,
+            finalZoomAmount: zoomAmount
+        });
+        
         const targetDistance = currentDistance + zoomAmount;
         
         // פרמטרים של rotate + pan שביקשת
