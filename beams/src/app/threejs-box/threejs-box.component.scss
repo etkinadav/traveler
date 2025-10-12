@@ -1780,13 +1780,13 @@ mat-form-field {
         }
         
         .capsule-label {
-            font-size: 10px;
+            font-size: 14px; // 10px + 4px בדסקטופ
             color: #666;
             font-weight: 600;
             margin-bottom: 0px;
             
             @media (max-width: 576px) {
-                font-size: 9px;
+                font-size: 12px; // 10px + 2px במובייל
             }
         }
         
@@ -1798,9 +1798,7 @@ mat-form-field {
     }
     
     .currency-symbol {
-        @media (max-width: 576px) {
-            display: none;
-        }
+        // סימן ₪ יוצג תמיד, גם במובייל
     }
     
     .price-display {
@@ -2241,10 +2239,14 @@ mat-form-field {
             min-width: 50px;
             
             .menu-capsule-label {
-                font-size: 10px;
+                font-size: 14px; // 10px + 4px בדסקטופ
                 color: #666;
                 font-weight: 600;
                 margin-bottom: 0px;
+                
+                @media (max-width: 576px) {
+                    font-size: 12px; // 10px + 2px במובייל
+                }
             }
             
             .menu-capsule-value {

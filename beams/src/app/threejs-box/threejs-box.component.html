@@ -678,15 +678,15 @@
                     <div class="price-capsules">
                         <div class="price-capsule">
                             <div class="capsule-label">שרטוט</div>
-                            <div class="capsule-value"><span class="currency-symbol">₪</span>{{ drawingPrice }}</div>
+                            <div class="capsule-value">{{ drawingPrice }} <span class="currency-symbol">₪</span></div>
                         </div>
                         <div class="price-capsule" *ngIf="selectedPricingOption === 'cut' || selectedPricingOption === 'full'">
                             <div class="capsule-label">קורות</div>
-                            <div class="capsule-value"><span class="currency-symbol">₪</span>{{ getBeamsOnlyPrice() }}</div>
+                            <div class="capsule-value">{{ getBeamsOnlyPrice() }} <span class="currency-symbol">₪</span></div>
                         </div>
                         <div class="price-capsule" *ngIf="selectedPricingOption === 'cut'">
                             <div class="capsule-label">חיתוך</div>
-                            <div class="capsule-value"><span class="currency-symbol">₪</span>{{ getCuttingPrice() }}</div>
+                            <div class="capsule-value">{{ getCuttingPrice() }} <span class="currency-symbol">₪</span></div>
                         </div>
                     </div>
                     
@@ -723,10 +723,7 @@
                         (click)="togglePriceMinimize()"
                         *ngIf="isPriceMinimized && calculatedPrice > 0"
                         [@fadeInScale]>
-                    <span class="minimized-price">{{ getFinalPrice() }}₪</span>
-                    <svg class="minimized-arrow" width="14" height="14" viewBox="0 0 14 14">
-                        <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <span class="minimized-price">{{ getFinalPrice() }} ₪</span>
                 </button>
             </div>
         </div>
@@ -767,18 +764,18 @@
                     <div class="menu-capsules">
                         <div class="menu-capsule">
                             <div class="menu-capsule-label">שרטוט</div>
-                            <div class="menu-capsule-value">₪{{ drawingPrice }}</div>
+                            <div class="menu-capsule-value">{{ drawingPrice }} ₪</div>
                         </div>
                         <div class="menu-capsule">
                             <div class="menu-capsule-label">קורות</div>
-                            <div class="menu-capsule-value">₪{{ getBeamsOnlyPrice() }}</div>
+                            <div class="menu-capsule-value">{{ getBeamsOnlyPrice() }} ₪</div>
                         </div>
                         <div class="menu-capsule">
                             <div class="menu-capsule-label">חיתוך</div>
-                            <div class="menu-capsule-value">₪{{ getCuttingPrice() }}</div>
+                            <div class="menu-capsule-value">{{ getCuttingPrice() }} ₪</div>
                         </div>
                     </div>
-                    <div class="option-total">סה"כ: {{ getBeamsOnlyPrice() + getCuttingPrice() + drawingPrice }}₪</div>
+                    <div class="option-total">סה"כ: {{ getBeamsOnlyPrice() + getCuttingPrice() + drawingPrice }} ₪</div>
                 </div>
             </button>
             
@@ -797,14 +794,14 @@
                     <div class="menu-capsules">
                         <div class="menu-capsule">
                             <div class="menu-capsule-label">שרטוט</div>
-                            <div class="menu-capsule-value">₪{{ drawingPrice }}</div>
+                            <div class="menu-capsule-value">{{ drawingPrice }} ₪</div>
                         </div>
                         <div class="menu-capsule">
                             <div class="menu-capsule-label">קורות</div>
-                            <div class="menu-capsule-value">₪{{ getBeamsOnlyPrice() }}</div>
+                            <div class="menu-capsule-value">{{ getBeamsOnlyPrice() }} ₪</div>
                         </div>
                     </div>
-                    <div class="option-total">סה"כ: {{ getBeamsOnlyPrice() + drawingPrice }}₪</div>
+                    <div class="option-total">סה"כ: {{ getBeamsOnlyPrice() + drawingPrice }} ₪</div>
                 </div>
             </button>
             
@@ -823,10 +820,10 @@
                     <div class="menu-capsules">
                         <div class="menu-capsule">
                             <div class="menu-capsule-label">שרטוט</div>
-                            <div class="menu-capsule-value">₪{{ drawingPrice }}</div>
+                            <div class="menu-capsule-value">{{ drawingPrice }} ₪</div>
                         </div>
                     </div>
-                    <div class="option-total">סה"כ: {{ drawingPrice }}₪</div>
+                    <div class="option-total">סה"כ: {{ drawingPrice }} ₪</div>
                 </div>
             </button>
         </mat-menu>
