@@ -1,8 +1,8 @@
 /* View controls container */
 .view-controls-container {
-    position: absolute !important;
+    position: fixed !important;
     top: 74px !important;
-    left: 10px !important; // 10 פיקסל מהצד השמאלי
+    right: 19px !important; // חזרה לצד הימני
     display: flex;
     gap: 6px; // רווח מינימלי בין הכפתורים
     z-index: 1000 !important;
