@@ -348,10 +348,12 @@ div.zx-rtl-container input {
     position: absolute;
     right: -10px;
     top: 5px;
+    color: #0066cc !important;
 }
 
 .zx-eye-icon-rtl {
     position: absolute;
     left: -10px;
     top: 5px;
+    color: #0066cc !important;
 }
