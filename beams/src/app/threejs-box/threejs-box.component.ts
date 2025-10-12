@@ -1266,11 +1266,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             })),
             timestamp: new Date().toISOString(),
         };
-        if (this.isUserAuthenticated && this.authToken) {
-            this.saveConfigurationToServer(config);
-        } else {
-            this.saveConfigurationToLocalStorage(config);
-        }
+        // Always save to localStorage to avoid server issues
+        this.saveConfigurationToLocalStorage(config);
+        
+        // Server saving disabled to avoid CORS and authentication errors
+        // TODO: Re-enable when backend is properly configured
     }
     // Save configuration to server (for authenticated users)
     private saveConfigurationToServer(config: any) {
@@ -1301,13 +1301,13 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     private saveConfigurationToLocalStorage(config: any) {
         localStorage.setItem('beam-configuration', JSON.stringify(config));
     }
-    // Load saved configuration (user-specific or localStorage)
+    // Load saved configuration (always use localStorage for now)
     private loadConfiguration() {
-        if (this.isUserAuthenticated && this.authToken) {
-            this.loadConfigurationFromServer();
-        } else {
-            this.loadConfigurationFromLocalStorage();
-        }
+        // Always use localStorage to avoid authentication issues
+        this.loadConfigurationFromLocalStorage();
+        
+        // Server configuration loading disabled to avoid CORS and authentication errors
+        // TODO: Re-enable when backend is properly configured
     }
     // Load configuration from server (for authenticated users)
     private loadConfigurationFromServer() {
@@ -1335,6 +1335,32 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             },
             });
     }
+    
+    // Load configuration from server silently (background, non-blocking)
+    private loadConfigurationFromServerSilently() {
+        const headers = new HttpHeaders({
+            Authorization: `Bearer ${this.authToken}`,
+        });
+        this.http.get('/api/user/beam-configuration', { headers }).subscribe({
+                next: (response: any) => {
+                if (
+                    response.configuration &&
+                    Object.keys(response.configuration).length > 0
+                ) {
+                        // Only apply server config if it's different from localStorage
+                        const localConfig = localStorage.getItem('beam-configuration');
+                        if (!localConfig || JSON.stringify(response.configuration) !== localConfig) {
+                            this.applyConfiguration(response.configuration);
+                        }
+                    }
+                },
+                error: (error) => {
+                    // Silently ignore server errors - localStorage is already loaded
+                    console.log('Server configuration not available, using localStorage');
+                }
+            });
+    }
+    
     // Load configuration from localStorage (fallback)
     private loadConfigurationFromLocalStorage() {
         const savedConfig = localStorage.getItem('beam-configuration');
