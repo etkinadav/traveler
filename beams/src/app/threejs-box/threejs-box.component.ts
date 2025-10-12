@@ -3033,21 +3033,37 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const direction = new THREE.Vector3()
                 .subVectors(edge.end, edge.start)
                 .normalize();
-            // Adjust position - raise by 2cm for length and width edges, keep height edges as is
+            // Adjust position - move outward by 3cm for all edges
             let textPosition = middle.clone();
             if (Math.abs(direction.z) > 0.9) {
-                // Front/back edges (length)
-                textPosition.y += 2; // Raise by 2cm
+                // Front/back edges (length) - move outward in X direction by 3cm
+                if (textPosition.x > 0) {
+                    textPosition.x += 3; // Move right
+                } else {
+                    textPosition.x -= 3; // Move left
+                }
+                // Move up by 1.5cm only for bottom edges (Y < 0)
+                if (textPosition.y < 0) {
+                    textPosition.y += 1.5; // Move up (only bottom edges)
+                }
                 textPosition = createTextSprite(edge.value, textPosition);
                 textPosition.rotation.z = 0;
             } else if (Math.abs(direction.x) > 0.9) {
-                // Left/right edges (width)
-                textPosition.y += 2; // Raise by 2cm
+                // Left/right edges (width) - move outward in Z direction by 3cm
+                if (textPosition.z > 0) {
+                    textPosition.z += 3; // Move forward
+                } else {
+                    textPosition.z -= 3; // Move backward
+                }
+                // Move up by 1.5cm only for bottom edges (Y < 0)
+                if (textPosition.y < 0) {
+                    textPosition.y += 1.5; // Move up (only bottom edges)
+                }
                 textPosition = createTextSprite(edge.value, textPosition);
                 textPosition.rotation.z = Math.PI / 2;
             } else {
                 // Vertical edges (height) - move outward by 3cm
-                // Move outward in X and Y directions by 3cm
+                // Move outward in X and Z directions by 3cm
                 if (textPosition.x > 0) {
                     textPosition.x += 3; // Move right
                 } else {
