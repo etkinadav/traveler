@@ -458,7 +458,8 @@ img.zx-profile-default,
   width: 12px;
   height: 12px;
   position: relative;
-  margin-left: 8px;
+  margin-left: 10px; // 8px + 2px = 10px (רחוק יותר מהתמונה)
+  margin-top: 2px; // למטה במצב סגור
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -467,10 +468,15 @@ img.zx-profile-default,
   transform: translateY(1px); // תנועה למטה ב-hover
 }
 
+// במצב פתוח - החץ עולה למעלה
+.custom-arrow.open {
+  margin-top: -2px; // למעלה במצב פתוח (2px מהמצב הרגיל)
+}
+
 .arrow-line {
   position: absolute;
   width: 8px;
-  height: 1px; // 2px - 50% = 1px (דק יותר)
+  height: 1.5px; // עבה קצת יותר
   background-color: #0066cc;
   border-radius: 1px;
   transition: all 0.3s ease;
@@ -480,20 +486,20 @@ img.zx-profile-default,
 }
 
 .arrow-line:first-child {
-  transform: translate(-50%, -50%) rotate(45deg) translateX(-2px); // שמאלה ב-1px נוסף
+  transform: translate(-50%, -50%) rotate(45deg) translateX(-4px); // שמאלה ב-2px נוספים
 }
 
 .arrow-line:last-child {
-  transform: translate(-50%, -50%) rotate(-45deg) translateX(2px); // ימינה ב-1px נוסף
+  transform: translate(-50%, -50%) rotate(-45deg) translateX(4px); // ימינה ב-2px נוספים
 }
 
 // מצב פתוח - החץ מתהפך למעלה
 .custom-arrow.open .arrow-line:first-child {
-  transform: translate(-50%, -50%) rotate(-45deg) translateX(-2px); // שמאלה ב-1px נוסף
+  transform: translate(-50%, -50%) rotate(-45deg) translateX(-4px); // שמאלה ב-2px נוספים
 }
 
 .custom-arrow.open .arrow-line:last-child {
-  transform: translate(-50%, -50%) rotate(45deg) translateX(2px); // ימינה ב-1px נוסף
+  transform: translate(-50%, -50%) rotate(45deg) translateX(4px); // ימינה ב-2px נוספים
 }
 
 
