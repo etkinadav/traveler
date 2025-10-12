@@ -639,7 +639,7 @@
     <div class="price-calculation-area" [class.minimized]="isPriceMinimized">
         <!-- כפתור צמצום/הרחב -->
         <button class="minimize-btn" mat-icon-button 
-                [matTooltip]="isPriceMinimized ? 'הרחב' : 'צמצם'"
+                [matTooltip]="isPriceMinimized ? 'הצג אפשרויות נוספות' : 'צמצם'"
                 matTooltipPosition="above"
                 (click)="togglePriceMinimize()"
                 [class.expanded-mode]="isPriceMinimized"

@@ -1162,7 +1162,7 @@ mat-form-field {
     
     // כפתור צמצום במצב מצומצם
     &.minimized .minimize-btn {
-        left: -19px;
+        left: -13px; // הזזה ימינה ב-6 פיקסל (היה -19px)
         top: 15px;
         transition: left 300ms ease, top 300ms ease;
         
@@ -1170,6 +1170,7 @@ mat-form-field {
         background: white !important;
         color: #0066cc !important;
         border: none !important; // הסרת גבול כחול
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25) !important; // צל חזק יותר במצב מצומצם
         width: 15px !important; // הקטנת רוחב מ-18px ל-15px
         height: 15px !important; // הקטנת גובה מ-18px ל-15px
         min-width: 15px !important; // הקטנת min-width
