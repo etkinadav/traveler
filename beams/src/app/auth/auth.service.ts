@@ -156,7 +156,13 @@ export class AuthService {
 
     checkEmail(email: string): Observable<any> {
         const enteredEmail = email;
-        return this.http.post<boolean>(BACKEND_URL + "/checkemail", { email: enteredEmail });
+        const url = BACKEND_URL + "checkemail";
+        console.log('DEBUG-LOGIN 🔵 AuthService.checkEmail called');
+        console.log('DEBUG-LOGIN 📧 Email to check:', enteredEmail);
+        console.log('DEBUG-LOGIN 🌐 Full Request URL:', url);
+        console.log('DEBUG-LOGIN 📦 Request body:', { email: enteredEmail });
+        console.log('DEBUG-LOGIN 🔍 BACKEND_URL constant:', BACKEND_URL);
+        return this.http.post<boolean>(url, { email: enteredEmail });
     }
 
     facebookLogin() {

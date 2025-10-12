@@ -135,39 +135,55 @@ export class PreloginComponent implements OnInit, OnDestroy {
   }
 
   onEnterMail(form: NgForm) {
+    console.log('DEBUG-LOGIN 🔵 onEnterMail called');
     if (form.invalid) {
+      console.log('DEBUG-LOGIN ❌ Form invalid');
       return;
     }
+    console.log('DEBUG-LOGIN ✅ Form valid, email:', form.value.email);
     this.isLoading = true;
     this.email = form.value.email;
+    
+    console.log('DEBUG-LOGIN 🌐 Calling authService.checkEmail...');
     this.emailCheckSubscription = this.authService.checkEmail(form.value.email)
       .subscribe(
         (response: any) => {
+          console.log('DEBUG-LOGIN ✅ checkEmail response:', response);
           this.isEmailExists = response.exists;
           this.isLoading = false;
+          
           if (this.isEmailExists) {
+            console.log('DEBUG-LOGIN 📧 Email exists, provider:', response.provider, 'hasPassword:', response.hasPassword);
             this.provider = response.provider;
             this.hasPassword = response.hasPassword;
             if (this.provider === 'local' || this.hasPassword) {
-              console.log("Local login");
+              console.log('DEBUG-LOGIN 🔑 Local login - moving to stage 2 (enter password)');
               this.loginStage = 2;
             } else if (this.provider === 'facebook') {
-              console.log("Facebook login");
+              console.log('DEBUG-LOGIN 📘 Facebook login');
               this.signInWithFB();
               this.closeLoginDialog();
             } else if (this.provider === 'google') {
-              console.log("Google login");
+              console.log('DEBUG-LOGIN 🔴 Google login');
               this.closeLoginDialog();
             } else {
-              console.log("Other login");
+              console.log('DEBUG-LOGIN ⚠️ Other login');
               this.closeLoginDialog();
             }
           } else {
+            console.log('DEBUG-LOGIN 🆕 Email does not exist - moving to stage 3 (signup)');
             this.loginStage = 3;
           }
         },
         (error) => {
-          console.log("Error checking email:", error);
+          console.log('DEBUG-LOGIN ❌ Error checking email:', error);
+          console.log('DEBUG-LOGIN ❌ Error details:', {
+            status: error.status,
+            statusText: error.statusText,
+            message: error.message,
+            url: error.url
+          });
+          this.isLoading = false; // חשוב! לכבות את ה-loading
         }
       );
   }

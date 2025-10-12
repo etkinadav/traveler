@@ -8,23 +8,26 @@ const { disconnect } = require("mongoose");
 
 exports.userCheckEmail = (req, res, next) => {
   const emailToCheck = req.body.email;
-  // console.log("emailToCheck is:");
-  // console.log(emailToCheck);
+  console.log("DEBUG-LOGIN 🔵 Backend userCheckEmail called");
+  console.log("DEBUG-LOGIN 📧 Email to check:", emailToCheck);
+  
   User.findOne({ email: emailToCheck })
     .then(user => {
-      // console.log("user is:");
-      // console.log(user);
+      console.log("DEBUG-LOGIN 🔍 User search result:", user ? 'Found' : 'Not found');
       if (user) {
-        res.status(200).json({ exists: true, provider: user.provider, hasPassword: user.password !== '' });
-        // console.log("user exists!!!");
+        const responseData = { exists: true, provider: user.provider, hasPassword: user.password !== '' };
+        console.log("DEBUG-LOGIN ✅ User exists! Response:", responseData);
+        res.status(200).json(responseData);
       } else {
+        console.log("DEBUG-LOGIN 🆕 User does not exist! Response: { exists: false }");
         res.status(200).json({ exists: false });
-        // console.log("user not exists!!!");
       }
     })
     .catch(err => {
+      console.log("DEBUG-LOGIN ❌ Database error:", err);
       res.status(500).json({
         message: 'Create_user_faild-checking-email-existence',
+        error: err.message
       });
     });
 };
