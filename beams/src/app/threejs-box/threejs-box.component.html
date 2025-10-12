@@ -215,7 +215,7 @@
                 <!-- כל התוכן הרגיל - מוצג תמיד -->
                 <div>
                 <!-- כותרת מוצר -->
-                <div class="product-header" *ngIf="selectedProductName" style="margin-bottom: 20px;">
+                <div class="product-header" *ngIf="selectedProductName && (!isLoading || !isModelLoading)" style="margin-bottom: 20px;">
                     <h3 style="margin: 0; padding: 10px; text-align: center;">
                         {{product?.translatedName || selectedProductName}}<br>
                             <span style="margin-top: 8px; font-weight: normal; font-size: 0.8em; display: block; color: #0066cc;">דגם: {{product?.model || product?.name || selectedProductName}}</span>
@@ -561,7 +561,7 @@
                 </div>
                 
                 <!-- שדה כמות יחידות -->
-                <div class="quantity-selector">
+                <div class="quantity-selector" *ngIf="!isLoading || !isModelLoading">
                     <label class="quantity-label">כמות יחידות:</label>
                     <div class="quantity-control">
                         <button class="quantity-btn minus" (click)="decreaseQuantity()" [disabled]="quantity <= 1">
