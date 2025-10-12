@@ -50,7 +50,7 @@ export class MainNavComponent implements OnInit, OnDestroy {
   user: any = {};
   userProfileImg: string;
   isRootScreen = false;
-  private defaultProfileUrl = "../../assets/images/profile-default.svg";
+  private defaultProfileUrl = "../../assets/images/profile-default.png";
   isLoggedOutLoading: boolean = false;
   
   // משתנים להמבורגר מותאם אישית

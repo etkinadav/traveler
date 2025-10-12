@@ -64,10 +64,6 @@
         </div>
       </button>
 
-      <button *ngIf="userIsAuthenticated" class="d-none d-sm-flex zx-text-tiny zx-bg-gray-light" mat-flat-button
-        (click)="goToNewOrder()">
-        {{'main-nav.new-order' | translate }}
-      </button>
 
       <div class="h-100 d-flex align-items-center">
 
@@ -80,8 +76,8 @@
           <div class="h-100 d-flex align-items-center c-pointer" (click)="toggleProfileManu()">
             <mat-icon *ngIf="!isProManuOpen" class="zx-tiny-arrow-size">arrow_drop_down</mat-icon>
             <mat-icon *ngIf="isProManuOpen" class="zx-tiny-arrow-size">arrow_drop_up</mat-icon>
-            <a type="button" color="primary">
-              <img class="rounded-circle svg zx-profile-default" [src]="getUserProfileImg(user)"
+            <a type="button" color="primary" class="profile-image-container">
+              <img class="svg zx-profile-default" [src]="getUserProfileImg(user)"
                 alt="Default Profile Image">
             </a>
           </div>
@@ -91,11 +87,6 @@
               <div class="zx-profile-manu rounded-3 step-item" [class.zx-profile-manu-rtl]="isRTL"
                 [class.zx-profile-manu-dark]="isDarkMode">
 
-                <button class="justify-content-start d-sm-none rounded-top-3" mat-menu-item (click)="goToNewOrder()">
-                  <span class="mat-list-item-small text-green fw-bold">
-                    {{'main-nav.new-order' | translate}}
-                  </span>
-                </button>
 
                 <button *ngIf="userIsAuthenticated" class="justify-content-start d-sm-none" mat-menu-item
                   (click)="goToMyOrders()">
@@ -146,11 +137,6 @@
 
     <mat-nav-list class="d-flex flex-column vh-100 pb-5">
 
-      <a class="d-sm-none" mat-list-item (click)="goToNewOrder()">
-        <span class="mat-list-item-small text-green fw-bold">
-          {{ 'main-nav.new-order' | translate }}
-        </span>
-      </a>
 
       <div class="d-sm-none w-100 zx-border-gray-top-v-v-light my-1" [class.zx-low-opp]="isDarkMode"></div>
 

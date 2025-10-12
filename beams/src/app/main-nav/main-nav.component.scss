@@ -402,20 +402,43 @@ button.zx-bg-gray-light {
   background-color: transparent;
 }
 
-.zx-profile-default {
-  height: 36px;
-  width: auto;
+.profile-image-container {
+  padding: 4px 0 !important; // רווח מלמעלה ולמטה
+}
+
+// CSS ספציפי לתמונת הפרופיל - ריבוע
+.zx-profile-default,
+img.zx-profile-default,
+.profile-image-container img {
+  height: 36px !important;
+  width: 36px !important; // ריבוע במקום auto
+  border-radius: 0 !important; // הסרת העיגול
+  object-fit: cover !important; // וידוא שהתמונה מתאימה לריבוע
+  display: block !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
 }
 
 @media only screen and (min-width: 576px) {
-  .zx-profile-default {
-    height: 43px;
-    width: auto;
+  .profile-image-container {
+    padding: 4px 0 !important; // רווח מלמעלה ולמטה
+  }
+  
+  .zx-profile-default,
+  img.zx-profile-default,
+  .profile-image-container img {
+    height: 43px !important;
+    width: 43px !important; // ריבוע במקום auto
+    max-width: 43px !important;
+    max-height: 43px !important;
   }
 }
 
 .zx-tiny-arrow-size {
-  font-size: 18px !important;
+  font-size: 24px !important; // גדול יותר
+  color: #0066cc !important; // כחול
+  font-weight: 300 !important; // קווי (לא מלא)
+  line-height: 1 !important;
 }
 
 
