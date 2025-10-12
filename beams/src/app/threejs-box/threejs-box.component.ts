@@ -5251,10 +5251,21 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // חישוב rotate נוסף לכל המוצרים
         const heightBasedRotateAmount = -10 * Math.PI / 180; // 10 מעלות למטה ברדיאנים לכל המוצרים
         
+        // סיבוב azimuthal (ימין-שמאל) - 22.5 מעלות ימינה (פי 1.5 מ-15)
+        const azimuthalRotateAmount = 22.5 * Math.PI / 180; // 22.5 מעלות ימינה ברדיאנים
+        
+        // חישוב pan אופקי (שמאלה) כדי למרכז את האלמנט אחרי הסיבוב
+        // מבוסס על (רוחב + אורך) / 8, מוגזם פי 16.5 (15 × 1.1)
+        const horizontalPanPixels = ((dimensions.width + dimensions.length) / 8) * 16.5;
+        const horizontalPanAmount = horizontalPanPixels * 0.075; // אותו מקדם כמו pan רגיל
+        
         console.log('📏 HEIGHT-BASED PAN & ROTATE:', {
             productHeight: productHeight,
             heightBasedPanAmount: heightBasedPanAmount,
             heightBasedRotateAmount: heightBasedRotateAmount,
+            azimuthalRotateAmount: azimuthalRotateAmount,
+            horizontalPanPixels: horizontalPanPixels,
+            horizontalPanAmount: horizontalPanAmount,
             totalPanAmount: panAmount + heightBasedPanAmount
         });
         
@@ -5282,9 +5293,15 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const currentRotateAngle = THREE.MathUtils.lerp(0, rotateAngle, easeProgress);
             const currentHeightBasedRotate = THREE.MathUtils.lerp(0, heightBasedRotateAmount, easeProgress);
             const totalCurrentRotate = currentRotateAngle + currentHeightBasedRotate;
+            
+            // סיבוב azimuthal (ימין-שמאל) - מתחיל ב-20% ונמשך עד הסוף (יותר זמן)
+            const azimuthalProgress = Math.max(0, (progress - 0.2) / 0.8); // מתחיל ב-20%, מסתיים ב-100%
+            const currentAzimuthalRotate = THREE.MathUtils.lerp(0, azimuthalRotateAmount, azimuthalProgress);
+            
             const currentSpherical = startSpherical.clone();
             currentSpherical.phi += totalCurrentRotate; // סיבוב למעלה (הפוך) + rotate נוסף למוצרים נמוכים
             currentSpherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, currentSpherical.phi));
+            currentSpherical.theta += currentAzimuthalRotate; // סיבוב ימין-שמאל
             currentSpherical.radius = newDistance; // עדכון המרחק
             
             // עדכון מיקום המצלמה
@@ -5295,9 +5312,14 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             const currentPanAmount = THREE.MathUtils.lerp(0, panAmount, easeProgress);
             const currentHeightBasedPan = THREE.MathUtils.lerp(0, heightBasedPanAmount, easeProgress);
             const totalCurrentPan = currentPanAmount + currentHeightBasedPan;
+            
+            // Pan אופקי (שמאלה) - מתחיל עם הסיבוב האזימוטלי
+            const currentHorizontalPan = THREE.MathUtils.lerp(0, horizontalPanAmount, azimuthalProgress);
+            
             const cam = this.camera;
             const pan = new THREE.Vector3();
-            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), totalCurrentPan); // חיובי = למעלה (הפוך)
+            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), totalCurrentPan); // חיובי = למעלה (אנכי)
+            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0), -currentHorizontalPan); // שלילי = שמאלה (אופקי)
             this.scene.position.copy(startScenePosition.clone().add(pan));
 
             if (progress < 1) {
@@ -5309,6 +5331,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                     finalDistance: this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0)),
                     rotateAngle: rotateAngle,
                     panAmount: panAmount,
+                    azimuthalRotateAmount: azimuthalRotateAmount,
                     duration: elapsed
                 });
             }
