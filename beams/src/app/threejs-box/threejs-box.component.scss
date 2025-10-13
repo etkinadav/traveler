@@ -3429,7 +3429,19 @@ mat-form-field {
             pointer-events: none;
         }
         
-        &:not(.always-visible):not(.mandatory):hover {
+        &.disabled-icon {
+            cursor: not-allowed;
+            pointer-events: none;
+            opacity: 0.7;
+            filter: grayscale(0.3);
+            
+            &:hover {
+                opacity: 0.7;
+                transform: none;
+            }
+        }
+        
+        &:not(.always-visible):not(.mandatory):not(.disabled-icon):hover {
             opacity: 0.8;
         }
         
