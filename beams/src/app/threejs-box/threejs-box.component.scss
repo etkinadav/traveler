@@ -2920,6 +2920,20 @@ mat-form-field {
         width: 20px;
         height: 20px;
         border-width: 2px;
+        
+        // גדול יותר בדסקטופ
+        @media (min-width: 768px) {
+            width: 30px;
+            height: 30px;
+            border-width: 3px;
+        }
+    }
+    
+    &.always-tiny {
+        width: 20px;
+        height: 20px;
+        border-width: 2px;
+        // תמיד קטן - ללא media query
     }
 }
 

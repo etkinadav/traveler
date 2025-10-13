@@ -7,6 +7,7 @@ const fs = require("fs");
 const userRoutes = require("./routes/user");
 const productsRoutes = require("./routes/products");
 const screwsRoutes = require("./routes/screws");
+const ordersRoutes = require("./routes/orders");
 
 require('dotenv').config();
 
@@ -44,6 +45,7 @@ app.use((req, res, next) => {
 app.use("/api/user", userRoutes);
 app.use("/api/products", productsRoutes);
 app.use("/api/screws", screwsRoutes);
+app.use("/api/orders", ordersRoutes);
 
 // Blender parameters endpoint
 const PARAMS_FILE = path.join(__dirname, '..', 'blender_params.json');

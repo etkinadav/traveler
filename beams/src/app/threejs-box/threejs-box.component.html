@@ -209,7 +209,7 @@
             <ng-container *ngIf="drawerOpen">
                 <!-- Spinner Loading - מוצג רק בטעינה הראשונית -->
                 <div class="loading-spinner" *ngIf="isLoading && isModelLoading">
-                    <div class="simple-spinner"></div>
+                    <div class="simple-spinner tiny"></div>
                 </div>
                 
                 <!-- כל התוכן הרגיל - מוצג תמיד -->
@@ -628,7 +628,7 @@
         <div #rendererContainer class="renderer-container" [class.expanded]="!drawerOpen">
             <!-- Spinner במרכז התצוגה התלת-מימדית -->
             <div class="model-loading-spinner" *ngIf="isModelLoading">
-                <div class="simple-spinner small"></div>
+                <div class="simple-spinner tiny"></div>
             </div>
             
         </div>
@@ -714,7 +714,7 @@
                 
                 <!-- תצוגת טעינה -->
         <div class="price-loader" *ngIf="calculatedPrice === 0">
-            <div class="simple-spinner tiny"></div>
+            <div class="simple-spinner always-tiny"></div>
             <span class="calculating-text">מחשב מחיר...</span>
         </div>
                 

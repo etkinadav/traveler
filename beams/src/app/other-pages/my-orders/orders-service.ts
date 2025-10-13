@@ -48,7 +48,7 @@ export class OrdersService {
       return;
     }
     this.http
-      .get<{ message: string; numOfPendingOrders: number }>(`${BACKEND_URL}/numofpendingorders/${userId}`)
+      .get<{ message: string; numOfPendingOrders: number }>(`${BACKEND_URL}numofpendingorders/${userId}`)
       .subscribe(orderData => {
         if (!orderData.numOfPendingOrders) {
           return;
