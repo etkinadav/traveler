@@ -2129,11 +2129,21 @@ mat-form-field {
 }
 
 // תפריט אופציות תמחור
-::ng-deep .pricing-options-menu {
+::ng-deep .pricing-options-menu {    
     .mat-mdc-menu-panel {
         min-width: 280px !important;
+        max-width: 280px !important; // מניעת overflow
+        width: 280px !important; // רוחב קבוע
         border: none !important; // הסרת border מהתפריט
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; // shadow עדין במקום border
+        overflow-x: hidden !important; // מניעת overflow אופקי
+        overflow-y: auto !important; // גלילה אנכית אם צריך
+    }
+    
+    .mat-mdc-menu-content {
+        overflow-x: hidden !important; // מניעת overflow אופקי בתוכן
+        max-width: 100% !important;
+        width: 100% !important;
     }
     
     // עיצוב הכפתורים בתוך התפריט
@@ -2234,11 +2244,13 @@ mat-form-field {
         }
     }
     
-    .pricing-menu-item {
+        .pricing-menu-item {
         display: flex;
         flex-direction: column;
         gap: 6px;
         width: 100%;
+        max-width: 100%;
+        overflow: hidden; // מניעת overflow
         
         .option-title-row {
             display: flex;
@@ -2266,6 +2278,10 @@ mat-form-field {
             font-size: 14px;
             font-weight: 500;
             color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
         
         .menu-capsules {
