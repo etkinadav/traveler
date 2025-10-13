@@ -645,20 +645,28 @@ export class PricingService {
    * @returns רשימת קופסאות ברגים מפורטת
    */
   getScrewsPackagingPlan(forgingData: any[]): any[] {
-    const packagingPlan: any[] = [];
+    if (!this.screwsData || this.screwsData.length === 0) {
+      return [];
+    }
 
-    forgingData.forEach((forgingItem, index) => {
+    // שלב 1: מציאת הבורג המתאים לכל דרישה ואיחוד ברגים זהים
+    const screwRequirements = new Map<string, { screw: any, totalAmount: number, originalRequirements: any[] }>();
+
+    forgingData.forEach((forgingItem) => {
       const length = forgingItem.length;
       const count = forgingItem.count;
 
       // מציאת הבורג המתאים
-      if (!this.screwsData || this.screwsData.length === 0) {
-        return;
-      }
-
       const closestScrew = this.screwsData.reduce((closest, current) => {
         const currentDiff = Math.abs(current.length - length);
         const closestDiff = Math.abs(closest.length - length);
+        
+        // אם המרחקים שווים, בחר את הגדול יותר
+        if (currentDiff === closestDiff) {
+          return current.length > closest.length ? current : closest;
+        }
+        
+        // אחרת בחר את הקרוב יותר
         return currentDiff < closestDiff ? current : closest;
       });
 
@@ -666,20 +674,61 @@ export class PricingService {
         return;
       }
 
-      // חישוב הקופסאות האופטימליות
-      const result = this.calculateOptimalPackages(closestScrew, count);
+      const screwKey = closestScrew._id;
+      
+      if (screwRequirements.has(screwKey)) {
+        // איחוד עם בורג קיים
+        const existing = screwRequirements.get(screwKey)!;
+        existing.totalAmount += count;
+        existing.originalRequirements.push(forgingItem);
+      } else {
+        // בורג חדש
+        screwRequirements.set(screwKey, {
+          screw: closestScrew,
+          totalAmount: count,
+          originalRequirements: [forgingItem]
+        });
+      }
+    });
 
-      packagingPlan.push({
-        screwTypeName: closestScrew.name,
-        screwTranslatedName: closestScrew.translatedName,
-        screwLength: closestScrew.length,
-        screwWidth: closestScrew.width,
-        requiredAmount: count,
-        optimalPackage: result.packages[0], // הקופסא האופטימלית
-        numPackages: result.packages[0].quantity,
-        totalAmount: result.totalAmount,
-        totalPrice: result.totalPrice
-      });
+    // שלב 2: חישוב הקופסאות האופטימליות לכל בורג
+    const packagingPlan: any[] = [];
+
+    screwRequirements.forEach((requirement) => {
+      const result = this.calculateOptimalPackages(requirement.screw, requirement.totalAmount);
+
+      // בדיקה שיש קופסאות
+      if (result.packages && result.packages.length > 0) {
+        // תיקון קידוד - החלפת הטקסט השגוי בטקסט נכון
+        const fixedPackage = { ...result.packages[0].package };
+        
+        // תיקון translatedName של הקופסא
+        if (fixedPackage.translatedName && (fixedPackage.translatedName.includes('?') || fixedPackage.translatedName.includes('׳'))) {
+          const amount = fixedPackage.amount;
+          fixedPackage.translatedName = `קופסת ${amount} יח'`;
+        }
+        
+        // תיקון translatedName של הבורג
+        let fixedScrewTranslatedName = requirement.screw.translatedName;
+        if (fixedScrewTranslatedName && (fixedScrewTranslatedName.includes('?') || fixedScrewTranslatedName.includes('׳'))) {
+          const length = requirement.screw.length;
+          const width = requirement.screw.width;
+          fixedScrewTranslatedName = `ברגי ${width} על ${length}`;
+        }
+        
+        packagingPlan.push({
+          screwTypeName: requirement.screw.name,
+          screwTranslatedName: fixedScrewTranslatedName,
+          screwLength: requirement.screw.length,
+          screwWidth: requirement.screw.width,
+          requiredAmount: requirement.totalAmount,
+          optimalPackage: fixedPackage, // הקופסא האופטימלית עם תיקון קידוד
+          numPackages: result.packages[0].quantity,
+          totalAmount: result.totalAmount,
+          totalPrice: result.totalPrice,
+          originalRequirements: requirement.originalRequirements
+        });
+      }
     });
 
     return packagingPlan;

@@ -209,7 +209,7 @@
             <ng-container *ngIf="drawerOpen">
                 <!-- Spinner Loading - מוצג רק בטעינה הראשונית -->
                 <div class="loading-spinner" *ngIf="isLoading && isModelLoading">
-                    <mat-spinner diameter="40"></mat-spinner>
+                    <div class="simple-spinner"></div>
                 </div>
                 
                 <!-- כל התוכן הרגיל - מוצג תמיד -->
@@ -628,7 +628,7 @@
         <div #rendererContainer class="renderer-container" [class.expanded]="!drawerOpen">
             <!-- Spinner במרכז התצוגה התלת-מימדית -->
             <div class="model-loading-spinner" *ngIf="isModelLoading">
-                <mat-spinner diameter="60"></mat-spinner>
+                <div class="simple-spinner small"></div>
             </div>
             
         </div>
@@ -714,7 +714,7 @@
                 
                 <!-- תצוגת טעינה -->
         <div class="price-loader" *ngIf="calculatedPrice === 0">
-            <mat-spinner diameter="24"></mat-spinner>
+            <div class="simple-spinner tiny"></div>
             <span class="calculating-text">מחשב מחיר...</span>
         </div>
                 
@@ -915,35 +915,22 @@
                 <!-- קופסאות ברגים מומלצות -->
                 <div class="sub-title" *ngIf="screwsPackagingPlan && screwsPackagingPlan.length > 0">קופסאות ברגים מומלצות:</div>
                 <div class="materials-summary" *ngIf="screwsPackagingPlan && screwsPackagingPlan.length > 0">
-                    <div *ngFor="let package of screwsPackagingPlan" class="beam-type-section">
-                        <!-- כותרת סוג הבורג -->
-                        <div class="screw-type-header">
-                            <div class="screw-type-name">{{ package.screwTypeName }} - {{ package.screwTranslatedName }}</div>
-                        </div>
-                        
-                        <!-- כותרת קופסא -->
+                    <div *ngFor="let package of screwsPackagingPlan; let i = index" class="beam-type-section">
+                        <!-- כותרת קופסא עם מספר -->
                         <div class="beam-header">
+                            <div class="beam-number">{{ i + 1 }}</div>
                             <div class="beam-details-item">
-                                <span class="beam-text">{{ package.optimalPackage.translatedName }}</span>
+                                <span class="beam-text">{{ package.screwTranslatedName }} - {{ package.optimalPackage.translatedName }}</span>
                                 <span class="beam-separator" style="opacity: 0;"></span>
-                                <span class="beam-price">{{ package.totalPrice }}₪</span>
+                                <span class="beam-price">{{ package.totalPrice }} ₪</span>
                             </div>
                         </div>
                         
                         <!-- פרטי הקופסא -->
-                        <div class="screw-package-details">
-                            <div class="screw-detail-row">
-                                <span class="screw-detail-label">יחידות</span>
-                                <span class="screw-detail-value">{{ package.optimalPackage.amount * package.numPackages }} יחידות</span>
-                            </div>
-                            <div class="screw-detail-row">
-                                <span class="screw-detail-label">קופסאות</span>
-                                <span class="screw-detail-value">{{ package.numPackages }} {{ package.optimalPackage.translatedName }}</span>
-                            </div>
-                            <div class="screw-detail-row">
-                                <span class="screw-detail-label">מחיר ליחידה</span>
-                                <span class="screw-detail-value">{{ (package.optimalPackage.price / package.optimalPackage.amount).toFixed(2) }}₪</span>
-                            </div>
+                        <div class="size-item">
+                            <span class="size-value">{{ package.optimalPackage.price }} ₪ × {{ package.numPackages }} יח'</span>
+                            <span class="size-separator"></span>
+                            <span class="size-count">{{ package.totalPrice }} ₪</span>
                         </div>
                     </div>
                 </div>

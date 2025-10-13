@@ -76,13 +76,30 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         return this.ForgingDataForPricing.some(screw => screw.count > 0);
     }
 
-    // פונקציה לקבלת ברגים פעילים בלבד (count > 0)
+    // פונקציה לקבלת ברגים פעילים בלבד (count > 0) עם איחוד כפילויות
     getActiveScrews(): any[] {
         if (!this.ForgingDataForPricing || this.ForgingDataForPricing.length === 0) {
             return [];
         }
         
-        return this.ForgingDataForPricing.filter(screw => screw.count > 0);
+        const activeScrews = this.ForgingDataForPricing.filter(screw => screw.count > 0);
+        
+        // איחוד כפילויות - ברגים עם אותו אורך
+        const mergedScrews = new Map<number, any>();
+        
+        activeScrews.forEach(screw => {
+            const length = screw.length;
+            if (mergedScrews.has(length)) {
+                // איחוד עם בורג קיים
+                const existing = mergedScrews.get(length)!;
+                existing.count += screw.count;
+            } else {
+                // בורג חדש
+                mergedScrews.set(length, { ...screw });
+            }
+        });
+        
+        return Array.from(mergedScrews.values());
     }
     // ...existing code...
     toggleDrawer() {
