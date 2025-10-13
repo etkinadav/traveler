@@ -1824,6 +1824,45 @@ mat-form-field {
     }
 }
 
+// קונטיינר מצב מצומצם - שורת מחיר + כפתור
+.minimized-price-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+// שורת המחיר במצב מצומצם - כפתור שמרחיב
+.minimized-price-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    
+    &:hover {
+        background: rgba(0, 102, 204, 0.08);
+    }
+    
+    .price-option-name {
+        font-size: 13px;
+        color: #0066cc;
+        font-weight: 600;
+    }
+    
+    .price-value-inline {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0066cc;
+    }
+}
+
 // כפתור המשך במצב מצומצם
 .minimized-continue-button {
     background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
@@ -1832,10 +1871,11 @@ mat-form-field {
     padding: 10px 18px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 6px;
     cursor: pointer;
     color: white;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
     transition: all 0.3s ease;
@@ -1844,19 +1884,21 @@ mat-form-field {
     &:hover {
         transform: translateY(-2px) scale(1.05);
         box-shadow: 0 4px 12px rgba(0, 102, 204, 0.5);
+        
+        .continue-arrow {
+            transform: translateX(-3px);
+        }
     }
     
-    .minimized-text {
-        font-weight: 600;
+    .continue-text {
+        position: relative;
+        z-index: 1;
     }
     
-    .minimized-price {
-        font-size: 13px;
-        opacity: 0.95;
-    }
-    
-    .minimized-arrow {
-        margin-right: -2px;
+    .continue-arrow {
+        position: relative;
+        z-index: 1;
+        transition: transform 0.3s ease;
     }
 }
 

@@ -718,13 +718,27 @@
             <span class="calculating-text">מחשב מחיר...</span>
         </div>
                 
-                <!-- כפתור המשך מצומצם -->
-                <button class="minimized-continue-button" 
-                        (click)="togglePriceMinimize()"
-                        *ngIf="isPriceMinimized && calculatedPrice > 0"
-                        [@fadeInScale]>
-                    <span class="minimized-price">{{ getFinalPrice() }} ₪</span>
-                </button>
+                <!-- תצוגה מצומצמת - שורת מחיר + כפתור המשך -->
+                <div class="minimized-price-container" 
+                     *ngIf="isPriceMinimized && calculatedPrice > 0"
+                     [@fadeInScale]>
+                    <!-- שורת המחיר - כפתור שמרחיב ופותח אופציות -->
+                    <button class="minimized-price-display" (click)="expandAndOpenPricingOptions()">
+                        <span class="price-option-name">{{ getPricingOptionShortLabel() | translate }}</span>
+                        <div class="price-value-inline">
+                            {{ getFinalPrice() }} ₪
+                        </div>
+                    </button>
+                    
+                    <!-- כפתור המשך -->
+                    <button class="minimized-continue-button" 
+                            (click)="onContinueOrder(); $event.stopPropagation()">
+                        <span class="continue-text">המשך</span>
+                        <svg class="continue-arrow" width="14" height="14" viewBox="0 0 14 14">
+                            <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
         

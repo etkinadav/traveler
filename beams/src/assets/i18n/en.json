@@ -983,5 +983,8 @@
 	"view_bottom": "Bottom View",
 	"view_left": "Left View",
 	"view_right": "Right View",
-	"view_front": "Front View"
+	"view_front": "Front View",
+	"pricing_option_cut_short": "Cut Beams",
+	"pricing_option_full_short": "Beams & Instructions",
+	"pricing_option_plan_short": "Instructions Only"
 }

@@ -1019,5 +1019,8 @@
   "show_navigation_cube": "הצג קוביית ניווט",
   "reset_camera": "איפוס מבט",
   "hide_axes": "הסתר חצים",
-  "show_axes": "הצג חצים"
+  "show_axes": "הצג חצים",
+  "pricing_option_cut_short": "קורות חתוכות",
+  "pricing_option_full_short": "קורות והוראות",
+  "pricing_option_plan_short": "הוראות בלבד"
 }

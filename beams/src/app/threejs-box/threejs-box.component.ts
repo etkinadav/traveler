@@ -11,6 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PricingService } from '../../../../src/app/services/pricing.service';
 import { DialogService } from '../dialog/dialog.service';
+import { MatMenuTrigger } from '@angular/material/menu';
 import * as THREE from 'three';
 import { trigger, state, style, transition, animate, keyframes } from '@angular/animations';
 interface Shelf {
@@ -186,6 +187,64 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         // סגירת תפריט המחיר כשמצמצמים
         if (this.isPriceMinimized) {
             this.isPriceManuOpen = false;
+        }
+    }
+    
+    // הרחבת תפריט המחיר ופתיחת תפריט האופציות
+    expandAndOpenPricingOptions() {
+        // שלב 1: הרחבת התפריט (אם הוא מצומצם)
+        if (this.isPriceMinimized) {
+            this.isPriceMinimized = false;
+            
+            // שלב 2: פתיחת תפריט 3 האופציות אחרי 100ms
+            setTimeout(() => {
+                if (this.pricingMenuTrigger) {
+                    this.pricingMenuTrigger.openMenu();
+                }
+            }, 100);
+        } else {
+            // אם התפריט כבר מורחב, פשוט פותחים/סוגרים את תפריט האופציות
+            if (this.pricingMenuTrigger) {
+                this.pricingMenuTrigger.toggleMenu();
+            }
+        }
+    }
+    
+    // פונקציה שתופעל אחרי התחברות מוצלחת מדיאלוג ההתחברות
+    onLoginSuccessFromProduct() {
+        console.log('🎉 LOGIN SUCCESS FROM PRODUCT PAGE! User is now authenticated.');
+        console.log('📦 Product:', this.selectedProductName);
+        console.log('💰 Price:', this.calculatedPrice);
+        console.log('🔧 Configuration:', this.params);
+        // כאן אפשר להוסיף לוגיקה נוספת - למשל לפתוח דיאלוג הזמנה, לשמור קונפיגורציה וכו'
+    }
+    
+    // פונקציה לטיפול בלחיצה על כפתור "המשך"
+    onContinueOrder() {
+        // בדיקה אם המשתמש מחובר
+        this.checkUserAuthentication();
+        
+        if (!this.isUserAuthenticated) {
+            // פתיחת דיאלוג התחברות
+            console.log('🔐 User not authenticated - opening login dialog from product page');
+            this.dialogService.onOpenLoginDialog();
+            
+            // שמירת callback שיופעל אחרי התחברות מוצלחת
+            // נאזין לשינויים ב-localStorage כדי לזהות התחברות מוצלחת
+            const checkAuthInterval = setInterval(() => {
+                this.checkUserAuthentication();
+                if (this.isUserAuthenticated) {
+                    clearInterval(checkAuthInterval);
+                    this.onLoginSuccessFromProduct();
+                }
+            }, 500);
+            
+            // ביטול האזנה אחרי 60 שניות
+            setTimeout(() => clearInterval(checkAuthInterval), 60000);
+        } else {
+            // המשתמש מחובר - אפשר להמשיך להזמנה
+            console.log('✅ User is authenticated - proceeding with order');
+            this.onLoginSuccessFromProduct();
         }
     }
     
@@ -519,6 +578,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     quantity: number = 1; // כמות יחידות להזמנה
     selectedPricingOption: 'cut' | 'full' | 'plan' = 'cut'; // אופציית תמחור: cut=חתוכות, full=שלמות+הוראות, plan=הוראות בלבד
     drawingPrice: number = 20; // עלות שרטוט/הוראות חיתוך
+    @ViewChild(MatMenuTrigger) pricingMenuTrigger!: MatMenuTrigger;
     constructor(
         private http: HttpClient,
         private snackBar: MatSnackBar,
@@ -6446,22 +6506,6 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.debugLog('=== selectPricingOption הסתיים ===');
     }
     
-    // המשך להזמנה
-    onContinueOrder() {
-        this.debugLog('Continue order clicked!');
-        this.debugLog('Selected pricing option:', this.selectedPricingOption);
-        this.debugLog('Final price:', this.getFinalPrice());
-        
-        // בדיקה אם המשתמש מחובר
-        if (!this.isUserAuthenticated) {
-            // פתיחת חלונית לוגין
-            this.dialogService.onOpenLoginDialog();
-            return;
-        }
-        
-        // כאן תוכל להוסיף ניווט לעמוד הזמנה או פתיחת דיאלוג
-        // לדוגמה: this.router.navigate(['/order-summary']);
-    }
     
     // קבלת שם האופציה הנבחרת
     getPricingOptionName(): string {
@@ -6488,6 +6532,20 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 return 'הוראות בלבד';
             default:
                 return 'קורות חתוכות'; // ברירת מחדל
+        }
+    }
+    
+    // קבלת מפתח תרגום לאופציה הנבחרת
+    getPricingOptionShortLabel(): string {
+        switch (this.selectedPricingOption) {
+            case 'cut':
+                return 'pricing_option_cut_short';
+            case 'full':
+                return 'pricing_option_full_short';
+            case 'plan':
+                return 'pricing_option_plan_short';
+            default:
+                return 'pricing_option_cut_short'; // ברירת מחדל
         }
     }
 

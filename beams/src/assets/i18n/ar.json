@@ -977,5 +977,8 @@
     "view_bottom": "منظر سفلي",
     "view_left": "منظر يساري",
     "view_right": "منظر يميني",
-    "view_front": "منظر أمامي"
+    "view_front": "منظر أمامي",
+    "pricing_option_cut_short": "عوارض مقطوعة",
+    "pricing_option_full_short": "عوارض وتعليمات",
+    "pricing_option_plan_short": "تعليمات فقط"
 }
