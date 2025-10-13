@@ -1297,16 +1297,26 @@ mat-form-field {
         
         // תמיכה בקלאסים החדשים
         .main-title {
-            font-size: 14px;
+            font-size: 16px; // הוגדל מ-14px ל-16px בדסקטופ
             color: #0066cc;
             font-weight: 600;
+            
+            // מובייל - נשאר קטן
+            @media (max-width: 768px) {
+                font-size: 14px;
+            }
         }
         
         .sub-title {
-            font-size: 12px;
+            font-size: 14px; // הוגדל מ-12px ל-14px בדסקטופ
             color: #0066cc;
             font-weight: 500;
             padding: 0 15px;
+            
+            // מובייל - נשאר קטן
+            @media (max-width: 768px) {
+                font-size: 12px;
+            }
         }
     }
 }
@@ -1349,22 +1359,32 @@ mat-form-field {
 
 // כותרת ראשית - כחול, 14px
 .main-title {
-    font-size: 14px;
+    font-size: 16px; // הוגדל מ-14px ל-16px בדסקטופ
     color: #0066cc;
     font-weight: 600;
     margin-top: 6px;
     margin-bottom: 6px;
     display: block;
+    
+    // מובייל - נשאר קטן
+    @media (max-width: 768px) {
+        font-size: 14px;
+    }
 }
 
 // כותרת משנית - כחול, 12px
 .sub-title {
-    font-size: 12px;
+    font-size: 14px; // הוגדל מ-12px ל-14px בדסקטופ
     color: #0066cc;
     font-weight: 500;
     margin-top: 6px;
     margin-bottom: 6px;
     display: block;
+    
+    // מובייל - נשאר קטן
+    @media (max-width: 768px) {
+        font-size: 12px;
+    }
 }
 
 // הסרת קו רץ מתחת לכותרת
@@ -1424,7 +1444,7 @@ mat-form-field {
     position: relative;
     margin-bottom: 4px;
     font-size: 14px; // דסקטופ
-    padding: 8px 0;
+    padding: 2px 0; // הוקטן מ-8px ל-2px
     color: var(--zx-green) !important;
     
     // מובייל - פונט קטן יותר
@@ -1884,7 +1904,7 @@ mat-form-field {
     gap: 6px;
     cursor: pointer;
     color: white;
-    font-size: 13px;
+    font-size: 15px; // הוגדל מ-13px ל-15px
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
     transition: all 0.3s ease;
@@ -1922,7 +1942,7 @@ mat-form-field {
     gap: 6px;
     cursor: pointer;
     color: white;
-    font-size: 13px;
+    font-size: 15px; // הוגדל מ-13px ל-15px
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
     transition: all 0.3s ease;
