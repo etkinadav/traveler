@@ -676,17 +676,20 @@
                     
                     <!-- קפסולות פירוט מחיר -->
                     <div class="price-capsules">
+                        <!-- שרטוט - תמיד מוצג -->
                         <div class="price-capsule">
                             <div class="capsule-label">שרטוט</div>
                             <div class="capsule-value">{{ drawingPrice }} <span class="currency-symbol">₪</span></div>
                         </div>
-                        <div class="price-capsule" *ngIf="selectedPricingOption === 'cut' || selectedPricingOption === 'full'">
-                            <div class="capsule-label">קורות</div>
-                            <div class="capsule-value">{{ getBeamsOnlyPrice() }} <span class="currency-symbol">₪</span></div>
+                        <!-- קורות - רק אם נבחרו -->
+                        <div class="price-capsule" *ngIf="isBeamsEnabled">
+                            <div class="capsule-label">{{ isCuttingEnabled ? 'קורות חתוכות' : 'קורות שלמות' }}</div>
+                            <div class="capsule-value">{{ getBeamsOnlyPrice() + (isCuttingEnabled ? getCuttingPrice() : 0) }} <span class="currency-symbol">₪</span></div>
                         </div>
-                        <div class="price-capsule" *ngIf="selectedPricingOption === 'cut'">
-                            <div class="capsule-label">חיתוך</div>
-                            <div class="capsule-value">{{ getCuttingPrice() }} <span class="currency-symbol">₪</span></div>
+                        <!-- ברגים - רק אם נבחרו -->
+                        <div class="price-capsule" *ngIf="isScrewsEnabled">
+                            <div class="capsule-label">ברגים</div>
+                            <div class="capsule-value">{{ getScrewsPrice() }} <span class="currency-symbol">₪</span></div>
                         </div>
                     </div>
                     
@@ -724,7 +727,7 @@
                      [@fadeInScale]>
                     <!-- שורת המחיר - כפתור שמרחיב ופותח אופציות -->
                     <button class="minimized-price-display" (click)="expandAndOpenPricingOptions()">
-                        <span class="price-option-name">{{ getPricingOptionShortLabel() | translate }}</span>
+                        <span class="price-option-name">{{ getPricingOptionShortName() }}</span>
                         <div class="price-value-inline">
                             {{ getFinalPrice() }} ₪
                         </div>
@@ -745,102 +748,71 @@
         <!-- תפריט אופציות תמחור -->
         <mat-menu #pricingOptionsMenu="matMenu" class="pricing-options-menu" [hasBackdrop]="false">
             <!-- כותרת התפריט -->
-            <div class="pricing-menu-header">
-                <svg width="22" height="22" viewBox="0 0 22 22" class="header-icon">
-                    <!-- בועת דיבור -->
-                    <path d="M 3 4 Q 3 3 4 3 L 18 3 Q 19 3 19 4 L 19 13 Q 19 14 18 14 L 8 14 L 5 17 L 5 14 L 4 14 Q 3 14 3 13 Z" 
-                          stroke="#0066cc" 
-                          stroke-width="1.2" 
-                          fill="none"/>
-                    <!-- סימני שאלה/אפשרויות -->
-                    <text x="7" y="10" font-size="8" fill="#0066cc" font-weight="600">?</text>
-                    <circle cx="11" cy="8.5" r="0.8" fill="#0066cc"/>
-                    <circle cx="14" cy="8.5" r="0.8" fill="#0066cc"/>
-                </svg>
-                <div class="header-text">
-                    <div class="header-title">בחרו אופציית הזמנה</div>
-                    <div class="header-subtitle">קורות חתוכות, שלמות, או רק שרטוטים?</div>
+            <div class="pricing-menu-header" (click)="$event.stopPropagation()">
+                <!-- קונטיינר flex עם space-between -->
+                <div class="header-container">
+                    <!-- כותרת בצד שמאל -->
+                    <div class="header-title">מה תרצו להזמין?</div>
+                    <!-- כפתור X בצד ימין -->
+                    <button class="close-btn" (click)="pricingMenuTrigger.closeMenu()">×</button>
                 </div>
             </div>
             
-            <!-- אופציה 1: קורות חתוכות -->
-            <button mat-menu-item (click)="selectPricingOption('cut')" [class.selected]="selectedPricingOption === 'cut'">
-                <div class="pricing-menu-item">
-                    <div class="option-title-row">
-                        <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" *ngIf="selectedPricingOption === 'cut'">
-                            <!-- מסגרת checkbox -->
-                            <rect x="1" y="1" width="14" height="14" rx="3" stroke="#0066cc" stroke-width="1.2" fill="none"/>
-                            <!-- סימן V בכתב יד -->
-                            <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="#0066cc" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <div class="option-title">קורות חתוכות לפי מידה</div>
-                    </div>
-                    <div class="menu-capsules">
-                        <div class="menu-capsule">
-                            <div class="menu-capsule-label">שרטוט</div>
-                            <div class="menu-capsule-value">{{ drawingPrice }} ₪</div>
-                        </div>
-                        <div class="menu-capsule">
-                            <div class="menu-capsule-label">קורות</div>
-                            <div class="menu-capsule-value">{{ getBeamsOnlyPrice() }} ₪</div>
-                        </div>
-                        <div class="menu-capsule">
-                            <div class="menu-capsule-label">חיתוך</div>
-                            <div class="menu-capsule-value">{{ getCuttingPrice() }} ₪</div>
-                        </div>
-                    </div>
-                    <div class="option-total">סה"כ: {{ getBeamsOnlyPrice() + getCuttingPrice() + drawingPrice }} ₪</div>
+            <!-- קטגוריה 1: הוראות -->
+            <div class="menu-category" (click)="$event.stopPropagation()">
+                <div class="category-row" (click)="onInstructionsClick($event)">
+                    <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon always-visible mandatory">
+                        <rect x="1" y="1" width="14" height="14" rx="3" stroke="#0066cc" stroke-width="1.2" fill="#0066cc"/>
+                        <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="category-title">הוראות</div>
+                    <div class="category-price">₪ {{ drawingPrice }}</div>
                 </div>
-            </button>
+            </div>
             
-            <!-- אופציה 2: קורות שלמות + הוראות -->
-            <button mat-menu-item (click)="selectPricingOption('full')" [class.selected]="selectedPricingOption === 'full'">
-                <div class="pricing-menu-item">
-                    <div class="option-title-row">
-                        <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" *ngIf="selectedPricingOption === 'full'">
-                            <!-- מסגרת checkbox -->
-                            <rect x="1" y="1" width="14" height="14" rx="3" stroke="#0066cc" stroke-width="1.2" fill="none"/>
-                            <!-- סימן V בכתב יד -->
-                            <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="#0066cc" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <div class="option-title">קורות שלמות והוראות חיתוך</div>
-                    </div>
-                    <div class="menu-capsules">
-                        <div class="menu-capsule">
-                            <div class="menu-capsule-label">שרטוט</div>
-                            <div class="menu-capsule-value">{{ drawingPrice }} ₪</div>
-                        </div>
-                        <div class="menu-capsule">
-                            <div class="menu-capsule-label">קורות</div>
-                            <div class="menu-capsule-value">{{ getBeamsOnlyPrice() }} ₪</div>
-                        </div>
-                    </div>
-                    <div class="option-total">סה"כ: {{ getBeamsOnlyPrice() + drawingPrice }} ₪</div>
+            <!-- קטגוריה 2: קורות -->
+            <div class="menu-category" (click)="$event.stopPropagation()">
+                <div class="category-row" (click)="$event.stopPropagation()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" (click)="toggleBeamsOption(); $event.stopPropagation()" [class.active]="isBeamsEnabled">
+                        <rect x="1" y="1" width="14" height="14" rx="3" stroke="#ccc" stroke-width="1.2" fill="white"/>
+                        <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="category-title" (click)="$event.stopPropagation()">קורות</div>
+                    <div class="category-price" (click)="$event.stopPropagation()">₪ {{ getBeamsOnlyPrice() }}</div>
                 </div>
-            </button>
+            </div>
             
-            <!-- אופציה 3: הוראות בלבד -->
-            <button mat-menu-item (click)="selectPricingOption('plan')" [class.selected]="selectedPricingOption === 'plan'">
-                <div class="pricing-menu-item">
-                    <div class="option-title-row">
-                        <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" *ngIf="selectedPricingOption === 'plan'">
-                            <!-- מסגרת checkbox -->
-                            <rect x="1" y="1" width="14" height="14" rx="3" stroke="#0066cc" stroke-width="1.2" fill="none"/>
-                            <!-- סימן V בכתב יד -->
-                            <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="#0066cc" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <div class="option-title">הוראות חיתוך בלבד</div>
-                    </div>
-                    <div class="menu-capsules">
-                        <div class="menu-capsule">
-                            <div class="menu-capsule-label">שרטוט</div>
-                            <div class="menu-capsule-value">{{ drawingPrice }} ₪</div>
-                        </div>
-                    </div>
-                    <div class="option-total">סה"כ: {{ drawingPrice }} ₪</div>
+            <!-- קטגוריה 3: חיתוך קורות -->
+            <div class="menu-category" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">
+                <div class="category-row" (click)="$event.stopPropagation()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" 
+                         (click)="toggleCuttingOption(); $event.stopPropagation()" 
+                         [class.active]="isCuttingEnabled"
+                         [class.disabled]="!isBeamsEnabled">
+                        <rect x="1" y="1" width="14" height="14" rx="3" 
+                              [attr.stroke]="!isBeamsEnabled ? '#ddd' : '#ccc'" 
+                              stroke-width="1.2" 
+                              fill="white"/>
+                        <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">חיתוך קורות</div>
+                    <div class="category-price" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">₪ {{ getCuttingPrice() }}</div>
                 </div>
-            </button>
+            </div>
+            
+            <!-- קטגוריה 4: ברגים -->
+            <div class="menu-category" (click)="$event.stopPropagation()">
+                <div class="category-row" (click)="$event.stopPropagation()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" class="check-icon" (click)="toggleScrewsOption(); $event.stopPropagation()" [class.active]="isScrewsEnabled">
+                        <rect x="1" y="1" width="14" height="14" rx="3" stroke="#ccc" stroke-width="1.2" fill="white"/>
+                        <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="category-title" (click)="$event.stopPropagation()">ברגים</div>
+                    <div class="category-price" (click)="$event.stopPropagation()">₪ {{ getScrewsPrice() }}</div>
+                </div>
+            </div>
         </mat-menu>
+        
         
         <!-- קופסא נוספת שמופיעה כשהתפריט פתוח -->
         <div class="price-menu-box" 
@@ -849,8 +821,19 @@
             <!-- כותרת דינמית -->
             <span class="thinking-text" *ngIf="!BeamsDataForPricing || BeamsDataForPricing.length === 0">{{ 'price-calculation.first-title' | translate }}...</span>
             
-            <!-- קורות -->
-            <div class="beams-section" *ngIf="BeamsDataForPricing && BeamsDataForPricing.length > 0">
+            <!-- הוראות חיתוך והרכבה (תמיד מוצגות) -->
+            <div class="instructions-section">
+                <div class="main-title">הוראות חיתוך והרכבה</div>
+                <div class="menu-capsules">
+                    <div class="menu-capsule">
+                        <div class="menu-capsule-label">שרטוט</div>
+                        <div class="menu-capsule-value">{{ drawingPrice }} ₪</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- קורות - רק אם מופעלות -->
+            <div class="beams-section" *ngIf="isBeamsEnabled && BeamsDataForPricing && BeamsDataForPricing.length > 0">
                 <div class="main-title">קורות</div>
                 
                 <!-- אורכים נדרשים -->
@@ -869,8 +852,8 @@
                     </div>
                 </div>
                 
-                <!-- סידור אופטימלי לחיתוך -->
-                <div class="sub-title no-border">סידור אופטימלי לחיתוך:</div>
+                <!-- סידור אופטימלי לחיתוך - רק אם חיתוך מופעל -->
+                <div class="sub-title no-border" *ngIf="isCuttingEnabled">סידור אופטימלי לחיתוך:</div>
                 <div class="materials-summary" *ngIf="cuttingPlan && cuttingPlan.length > 0">
                     <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
                         <!-- כותרת קורה -->
@@ -896,8 +879,8 @@
                 </div>
             </div>
             
-            <!-- ברגים -->
-            <div class="screws-section" *ngIf="ForgingDataForPricing && ForgingDataForPricing.length > 0 && hasActiveScrews()">
+            <!-- ברגים - רק אם מופעלים -->
+            <div class="screws-section" *ngIf="isScrewsEnabled && ForgingDataForPricing && ForgingDataForPricing.length > 0 && hasActiveScrews()">
                 <div class="main-title">ברגים</div>
                 
                 <!-- אורכים נדרשים -->
@@ -912,8 +895,8 @@
                     </div>
                 </div>
                 
-                <!-- קופסאות ברגים מומלצות -->
-                <div class="sub-title" *ngIf="screwsPackagingPlan && screwsPackagingPlan.length > 0">קופסאות ברגים מומלצות:</div>
+                <!-- קופסאות ברגים מומלצות - רק אם ברגים מופעלים -->
+                <div class="sub-title" *ngIf="isScrewsEnabled && screwsPackagingPlan && screwsPackagingPlan.length > 0">קופסאות ברגים מומלצות:</div>
                 <div class="materials-summary" *ngIf="screwsPackagingPlan && screwsPackagingPlan.length > 0">
                     <div *ngFor="let package of screwsPackagingPlan; let i = index" class="beam-type-section">
                         <!-- כותרת קופסא עם מספר -->

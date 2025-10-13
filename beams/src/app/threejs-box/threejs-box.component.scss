@@ -1558,6 +1558,355 @@ mat-form-field {
     border-top: 1px solid #e0e0e0;
 }
 
+// סטיילים לתפריט החדש עם טוגלים
+.pricing-menu-item {
+    &.mandatory {
+        background: rgba(0, 102, 204, 0.05);
+        border: 1px solid rgba(0, 102, 204, 0.2);
+        
+        .mandatory-badge {
+            background: #0066cc;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+    }
+    
+    &.toggleable {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        
+        &:hover {
+            background: rgba(0, 102, 204, 0.02);
+        }
+    }
+}
+
+// טוגל סוויץ'
+.toggle-switch {
+    width: 40px;
+    height: 20px;
+    background: #ccc;
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 8px;
+    
+    &.active {
+        background: #0066cc;
+    }
+    
+    &.small {
+        width: 30px;
+        height: 15px;
+        border-radius: 15px;
+    }
+    
+    .toggle-slider {
+        width: 16px;
+        height: 16px;
+        background: white;
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    &.active .toggle-slider {
+        transform: translateX(20px);
+    }
+    
+    &.small .toggle-slider {
+        width: 11px;
+        height: 11px;
+        top: 2px;
+        left: 2px;
+    }
+    
+    &.small.active .toggle-slider {
+        transform: translateX(15px);
+    }
+}
+
+// אופציית חיתוך
+.cutting-option {
+    margin-top: 8px;
+    padding-right: 24px;
+    
+    .cutting-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        
+        .cutting-label {
+            font-size: 12px;
+            color: #666;
+        }
+    }
+}
+
+// אייקון תמיד נראה
+.check-icon.always-visible {
+    display: block !important;
+}
+
+// סקציית הוראות
+.instructions-section {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    
+    .main-title {
+        color: #0066cc;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+}
+
+// מחיר חיתוך
+.cutting-price {
+    color: #666;
+    font-size: 14px;
+    margin-left: auto;
+}
+
+// מחיר אופציה
+.option-price {
+    color: #0066cc;
+    font-weight: 600;
+    font-size: 14px;
+    margin-left: auto;
+}
+
+// שורת כותרת אופציה
+.option-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+// טוגל חיתוך
+.cutting-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+        // קטגוריות התפריט החדש
+        .menu-category {
+            margin-bottom: 16px;
+            
+            &.disabled {
+                opacity: 0.5;
+                pointer-events: none;
+                
+                .category-title,
+                .category-price {
+                    color: #999 !important;
+                }
+                
+                .check-icon {
+                    opacity: 0.3;
+                }
+            }
+            
+            .category-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 8px 0;
+                cursor: pointer;
+                
+                .category-title {
+                    flex: 1;
+                    font-weight: 600;
+                    color: #333;
+                    font-size: 15px;
+                    
+                    &.disabled {
+                        color: #999;
+                    }
+                }
+                
+                .category-price {
+                    font-weight: 600;
+                    color: #0066cc;
+                    font-size: 15px;
+                    
+                    &.disabled {
+                        color: #999;
+                    }
+                }
+            }
+    
+    .sub-option {
+        margin-left: 28px;
+        margin-top: 8px;
+        
+        .sub-option-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 0;
+            cursor: pointer;
+            
+            .sub-option-title {
+                flex: 1;
+                font-weight: 500;
+                color: #666;
+                font-size: 14px;
+            }
+            
+            .sub-option-price {
+                font-weight: 500;
+                color: #666;
+                font-size: 14px;
+            }
+        }
+    }
+}
+
+// אייקון V
+.check-icon {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &.always-visible,
+    &.mandatory {
+        cursor: default;
+        pointer-events: none;
+    }
+    
+    &.disabled {
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: 0.5;
+    }
+    
+    &:not(.always-visible):not(.mandatory):hover {
+        opacity: 0.8;
+    }
+    
+    &.active {
+        rect {
+            stroke: #0066cc !important;
+            fill: #0066cc !important;
+        }
+    }
+}
+
+// סיכום הבחירות
+.selection-summary {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+    
+    .summary-title {
+        font-weight: 600;
+        color: #0066cc;
+        margin-bottom: 12px;
+        font-size: 14px;
+    }
+    
+    .summary-items {
+        margin-bottom: 12px;
+    }
+    
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+        font-size: 14px;
+        
+        .summary-label {
+            color: #666;
+        }
+        
+        .summary-price {
+            color: #0066cc;
+            font-weight: 600;
+        }
+    }
+    
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 8px;
+        border-top: 1px solid #e0e0e0;
+        font-weight: 600;
+        
+        .total-label {
+            color: #333;
+        }
+        
+        .total-price {
+            color: #0066cc;
+            font-size: 16px;
+        }
+    }
+}
+
+// כפתור סגירת תפריט חדש
+.close-btn {
+    background: none !important;
+    border: none !important;
+    color: white !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    padding: 4px 8px !important;
+    border-radius: 3px !important;
+    transition: background-color 0.2s ease !important;
+    height: auto !important;
+    min-height: auto !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    
+    &:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+}
+
+// CSS ספציפי לתפריט כדי לעקוף Angular Material
+::ng-deep .pricing-options-menu {
+    .close-btn {
+        background: none !important;
+        border: none !important;
+        color: white !important;
+        font-size: 18px !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+        padding: 4px 8px !important;
+        border-radius: 3px !important;
+        transition: background-color 0.2s ease !important;
+        height: auto !important;
+        min-height: auto !important;
+        line-height: 1 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: auto !important;
+        
+        &:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+    }
+}
+
 .size-item {
     margin-left: 8px;
     margin-bottom: 2px;
@@ -2208,41 +2557,30 @@ mat-form-field {
     }
     
     .pricing-menu-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
         padding: 8px 16px 12px 16px; // פחות מלמעלה (8px), יותר מלמטה (12px)
         background: #0066cc; // רקע כחול
         border-bottom: none;
         margin: -8px -8px 4px -8px; // להרחיב את הרקע לכל רוחב התפריט
         border-radius: 8px 8px 0 0;
         
-        .header-icon {
-            flex-shrink: 0;
+        .header-container {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
             
-            // להפוך את צבע ה-SVG ללבן
-            path, circle, text {
-                stroke: white !important;
-                fill: white !important;
+            
+            .header-title {
+                font-size: 13px !important;
+                font-weight: 600 !important;
+                color: white !important;
+                flex: 1 !important;
+                text-align: center !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
-        }
-        
-        .header-text {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        
-        .header-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: white; // לבן
-        }
-        
-        .header-subtitle {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.85); // לבן עם שקיפות עדינה
-            line-height: 1.3;
+            
         }
     }
     
@@ -2969,4 +3307,34 @@ mat-form-field {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+// SnackBar מותאם אישית
+::ng-deep .custom-snackbar {
+    background: #0066cc !important;
+    color: white !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
+}
+
+// כפתור X בתפריט המחיר - עם ::ng-deep
+::ng-deep .pricing-menu-header .header-container {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    
+    
+    .header-title {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: white !important;
+        flex: 1 !important;
+        text-align: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
 }

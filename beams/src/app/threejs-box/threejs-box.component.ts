@@ -596,6 +596,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     quantity: number = 1; // כמות יחידות להזמנה
     selectedPricingOption: 'cut' | 'full' | 'plan' = 'cut'; // אופציית תמחור: cut=חתוכות, full=שלמות+הוראות, plan=הוראות בלבד
     drawingPrice: number = 20; // עלות שרטוט/הוראות חיתוך
+    
+    // משתנים חדשים לתפריט הגמיש
+    isBeamsEnabled: boolean = true; // האם קורות מופעלות
+    isCuttingEnabled: boolean = true; // האם חיתוך מופעל
+    isScrewsEnabled: boolean = true; // האם ברגים מופעלים
     @ViewChild(MatMenuTrigger) pricingMenuTrigger!: MatMenuTrigger;
     constructor(
         private http: HttpClient,
@@ -6554,47 +6559,120 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         this.debugLog('=== selectPricingOption הסתיים ===');
     }
     
+    // פונקציות לניהול הטוגלים החדשים
+    toggleBeamsOption() {
+        this.isBeamsEnabled = !this.isBeamsEnabled;
+        if (!this.isBeamsEnabled) {
+            this.isCuttingEnabled = false; // אם קורות כבויות, גם חיתוך כבוי
+        }
+        // לא קוראים ל-calculatePricing() - רק משנים את המצב
+    }
+    
+    toggleCuttingOption() {
+        this.isCuttingEnabled = !this.isCuttingEnabled;
+        // לא קוראים ל-calculatePricing() - רק משנים את המצב
+    }
+    
+    toggleScrewsOption() {
+        this.isScrewsEnabled = !this.isScrewsEnabled;
+        // לא קוראים ל-calculatePricing() - רק משנים את המצב
+    }
+    
+    // פונקציה לקבלת מחיר ברגים
+    getScrewsPrice(): number {
+        if (!this.isScrewsEnabled || !this.screwsPackagingPlan || this.screwsPackagingPlan.length === 0) {
+            return 0;
+        }
+        return this.screwsPackagingPlan.reduce((total, screwPackage) => total + (screwPackage.totalPrice || 0), 0);
+    }
+    
     
     // קבלת שם האופציה הנבחרת
     getPricingOptionName(): string {
-        switch (this.selectedPricingOption) {
-            case 'cut':
-                return 'קורות חתוכות לפי מידה';
-            case 'full':
-                return 'קורות שלמות והוראות חיתוך';
-            case 'plan':
-                return 'הוראות חיתוך בלבד';
-            default:
-                return 'לא ידוע';
+        // אם רק שרטוט
+        if (!this.isBeamsEnabled && !this.isScrewsEnabled) {
+            return 'שרטוט בלבד';
         }
+        
+        // אם קורות חתוכות וברגים
+        if (this.isBeamsEnabled && this.isCuttingEnabled && this.isScrewsEnabled) {
+            return 'קורות חתוכות וברגים';
+        }
+        
+        // אם קורות לא חתוכות וברגים
+        if (this.isBeamsEnabled && !this.isCuttingEnabled && this.isScrewsEnabled) {
+            return 'קורות, הוראות וברגים';
+        }
+        
+        // אם קורות חתוכות בלי ברגים
+        if (this.isBeamsEnabled && this.isCuttingEnabled && !this.isScrewsEnabled) {
+            return 'קורות חתוכות';
+        }
+        
+        // אם קורות לא חתוכות בלי ברגים
+        if (this.isBeamsEnabled && !this.isCuttingEnabled && !this.isScrewsEnabled) {
+            return 'קורות והוראות';
+        }
+        
+        // אם רק ברגים
+        if (!this.isBeamsEnabled && this.isScrewsEnabled) {
+            return 'הוראות וברגים';
+        }
+        
+        return 'הוראות';
     }
     
-    // קבלת שם קצר לאופציה הנבחרת למצב מצומצם
+    // פונקציה לטיפול בלחיצה על הוראות (מנדטוריות)
+    onInstructionsClick(event: Event): void {
+        event.stopPropagation();
+        // הצגת הודעהאפבאר
+        this.snackBar.open('לא ניתן לבטל הוראות חיתוך והרכבה', '', {
+            duration: 3000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['custom-snackbar']
+        });
+    }
+    
+    // קבלת שם קצר לאופציות הנבחרות למצב מצומצם
     getPricingOptionShortName(): string {
-        switch (this.selectedPricingOption) {
-            case 'cut':
-                return 'קורות חתוכות';
-            case 'full':
-                return 'קורות והוראות';
-            case 'plan':
-                return 'הוראות בלבד';
-            default:
-                return 'קורות חתוכות'; // ברירת מחדל
+        // אם רק שרטוט
+        if (!this.isBeamsEnabled && !this.isScrewsEnabled) {
+            return 'שרטוט בלבד';
         }
+        
+        // אם קורות חתוכות וברגים
+        if (this.isBeamsEnabled && this.isCuttingEnabled && this.isScrewsEnabled) {
+            return 'קורות חתוכות וברגים';
+        }
+        
+        // אם קורות לא חתוכות וברגים
+        if (this.isBeamsEnabled && !this.isCuttingEnabled && this.isScrewsEnabled) {
+            return 'קורות, הוראות וברגים';
+        }
+        
+        // אם קורות חתוכות בלי ברגים
+        if (this.isBeamsEnabled && this.isCuttingEnabled && !this.isScrewsEnabled) {
+            return 'קורות חתוכות';
+        }
+        
+        // אם קורות לא חתוכות בלי ברגים
+        if (this.isBeamsEnabled && !this.isCuttingEnabled && !this.isScrewsEnabled) {
+            return 'קורות והוראות';
+        }
+        
+        // אם רק ברגים
+        if (!this.isBeamsEnabled && this.isScrewsEnabled) {
+            return 'הוראות וברגים';
+        }
+        
+        return 'הוראות';
     }
     
-    // קבלת מפתח תרגום לאופציה הנבחרת
+    // קבלת מפתח תרגום לאופציות הנבחרות
     getPricingOptionShortLabel(): string {
-        switch (this.selectedPricingOption) {
-            case 'cut':
-                return 'pricing_option_cut_short';
-            case 'full':
-                return 'pricing_option_full_short';
-            case 'plan':
-                return 'pricing_option_plan_short';
-            default:
-                return 'pricing_option_cut_short'; // ברירת מחדל
-        }
+        // עבור התפריט החדש, נחזיר מפתח קבוע
+        return 'custom_pricing_selection';
     }
 
     
@@ -6610,46 +6688,59 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         return Math.round(price * 100) / 100;
     }
     
-    // חישוב המחיר הסופי לפי האופציה הנבחרת
+    // חישוב המחיר הסופי לפי הטוגלים החדשים
     getFinalPrice(): number {
-        const beamsPrice = this.getBeamsOnlyPrice();
-        const cuttingPrice = this.getCuttingPrice();
-        
         let finalPrice = 0;
-        switch (this.selectedPricingOption) {
-            case 'cut':
-                // קורות חתוכות: קורות + חיתוך + שרטוט
-                finalPrice = beamsPrice + cuttingPrice + this.drawingPrice;
-                break;
-            case 'full':
-                // קורות שלמות: קורות + שרטוט (ללא חיתוך)
-                finalPrice = beamsPrice + this.drawingPrice;
-                break;
-            case 'plan':
-                // הוראות בלבד: רק שרטוט
-                finalPrice = this.drawingPrice;
-                break;
-            default:
-                finalPrice = 0;
+        
+        // הוראות חיתוך והרכבה - תמיד כלולות (חובה)
+        finalPrice += this.drawingPrice;
+        
+        // קורות - רק אם מופעלות
+        if (this.isBeamsEnabled) {
+            finalPrice += this.getBeamsOnlyPrice();
+            
+            // חיתוך - רק אם מופעל
+            if (this.isCuttingEnabled) {
+                finalPrice += this.getCuttingPrice();
+            }
         }
+        
+        // ברגים - רק אם מופעלים
+        if (this.isScrewsEnabled) {
+            finalPrice += this.getScrewsPrice();
+        }
+        
         return Math.round(finalPrice * 100) / 100;
     }
     
-    // קבלת פירוט המחיר לפי האופציה הנבחרת
+    // קבלת פירוט המחיר לפי הטוגלים החדשים
     getPriceBreakdown(): string {
-        const beamsPrice = this.getBeamsOnlyPrice();
-        const cuttingPrice = this.getCuttingPrice();
+        const parts: string[] = [];
         
-        switch (this.selectedPricingOption) {
-            case 'cut':
-                return `${beamsPrice}₪ קורות + ${cuttingPrice}₪ חיתוך + ${this.drawingPrice}₪ שרטוט`;
-            case 'full':
-                return `${beamsPrice}₪ קורות + ${this.drawingPrice}₪ שרטוט`;
-            case 'plan':
-                return `${this.drawingPrice}₪ שרטוט`;
-            default:
-                return '';
+        // הוראות חיתוך והרכבה - תמיד כלולות
+        parts.push(`${this.drawingPrice}₪ שרטוט`);
+        
+        // קורות - רק אם מופעלות
+        if (this.isBeamsEnabled) {
+            const beamsPrice = this.getBeamsOnlyPrice();
+            parts.push(`${beamsPrice}₪ קורות`);
+            
+            // חיתוך - רק אם מופעל
+            if (this.isCuttingEnabled) {
+                const cuttingPrice = this.getCuttingPrice();
+                parts.push(`${cuttingPrice}₪ חיתוך`);
+            }
         }
+        
+        // ברגים - רק אם מופעלים
+        if (this.isScrewsEnabled) {
+            const screwsPrice = this.getScrewsPrice();
+            if (screwsPrice > 0) {
+                parts.push(`${screwsPrice}₪ ברגים`);
+            }
+        }
+        
+        return parts.join(' + ');
     }
 
     // חישוב נתוני קורות לפי מידה למחיר
