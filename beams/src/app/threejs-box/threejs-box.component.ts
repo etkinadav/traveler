@@ -5417,6 +5417,21 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             horizontalPanPixels -= widePanCorrection; // פחות שמאלה = יותר ימינה
         }
         
+        // עבור מוצרים רחבים/ארוכים (רוחב+אורך מעל 70) אבל לא גבוהים (מתחת ל-300) - PAN שמאלה
+        let wideProductLeftPan = 0;
+        if (totalHorizontalSize > 70 && dimensions.height < 300) {
+            // ככל שהמוצר יותר רחב/ארוך - יותר שמאלה
+            const widthBonus = Math.min((totalHorizontalSize - 70) / 100, 1); // 0 ב-70, 1 ב-170+
+            
+            // ככל שהמוצר יותר גבוה - פחות שמאלה (עד 300 גובה = 0 אפקט)
+            const heightReduction = Math.min(dimensions.height / 300, 1); // 0 ב-0, 1 ב-300+
+            
+            // חישוב האפקט הסופי
+            const intensityFactor = 1.0; // פקטור עוצמה לדיוק (הופחת פי 5)
+            wideProductLeftPan = widthBonus * (1 - heightReduction) * 500 * intensityFactor;
+            horizontalPanPixels += wideProductLeftPan; // יותר שמאלה
+        }
+        
         // עבור מוצרים גבוהים (מעל 180 ס"מ) - PAN ימינה נוסף
         let tallProductRightPan = 0;
         if (productHeight > 180) {
@@ -5431,10 +5446,17 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
         
         console.log('📏 HEIGHT-BASED PAN & ROTATE:', {
             productHeight: productHeight,
+            productWidth: dimensions.width,
+            productLength: dimensions.length,
+            totalHorizontalSize: totalHorizontalSize,
             isTallProduct: productHeight > 180,
+            isWideProduct: totalHorizontalSize > 70 && dimensions.height < 300,
+            widthBonus: totalHorizontalSize > 70 ? Math.min((totalHorizontalSize - 70) / 100, 1) : 0,
+            heightReduction: dimensions.height < 300 ? Math.min(dimensions.height / 300, 1) : 1,
             heightBasedPanAmount: heightBasedPanAmount,
             heightBasedRotateAmount: heightBasedRotateAmount,
             azimuthalRotateAmount: azimuthalRotateAmount,
+            wideProductLeftPan: wideProductLeftPan,
             horizontalPanPixels: horizontalPanPixels,
             horizontalPanAmount: horizontalPanAmount,
             totalPanAmount: panAmount + heightBasedPanAmount,
