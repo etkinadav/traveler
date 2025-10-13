@@ -855,7 +855,7 @@
                 
                 <!-- אורכים נדרשים -->
                 <div class="sub-title">אורכים נדרשים:</div>
-                <div class="materials-summary">
+                <div class="materials-summary required-lengths-summary">
                     <div *ngFor="let beamData of BeamsDataForPricing" class="beam-name">
                         <!-- כותרת סוג הקורה -->
                         <div class="pricing-title">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type.translatedName }})</div>
@@ -902,7 +902,7 @@
                 
                 <!-- אורכים נדרשים -->
                 <div class="sub-title">אורכים נדרשים:</div>
-                <div class="materials-summary">
+                <div class="materials-summary required-lengths-summary">
                     <div class="beam-type-section">
                         <div *ngFor="let forgingData of getActiveScrews()" class="size-item">
                             <span class="size-value">{{ forgingData.length }} ס"מ</span>
