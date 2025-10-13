@@ -9,7 +9,7 @@ import {
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PricingService } from '../../../../src/app/services/pricing.service';
+import { PricingService } from '../services/pricing.service';
 import { DialogService } from '../dialog/dialog.service';
 import { MatMenuTrigger } from '@angular/material/menu';
 import * as THREE from 'three';
@@ -575,6 +575,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     ForgingDataForPricing: any[] = []; // מערך של נתוני ברגים לחישוב מחיר
     calculatedPrice: number = 0; // מחיר מחושב
     cuttingPlan: any[] = []; // תוכנית חיתוך מפורטת
+    screwsPackagingPlan: any[] = []; // תוכנית קופסאות ברגים מפורטת
     quantity: number = 1; // כמות יחידות להזמנה
     selectedPricingOption: 'cut' | 'full' | 'plan' = 'cut'; // אופציית תמחור: cut=חתוכות, full=שלמות+הוראות, plan=הוראות בלבד
     drawingPrice: number = 20; // עלות שרטוט/הוראות חיתוך
@@ -3207,8 +3208,12 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
                 this.BeamsDataForPricing,
                 this.ForgingDataForPricing
             );
+            this.screwsPackagingPlan = this.pricingService.getScrewsPackagingPlan(
+                this.ForgingDataForPricing
+            );
             this.debugLog('=== FINAL CALCULATED PRICE FOR BEAMS ===', this.calculatedPrice);
             this.debugLog('=== CUTTING PLAN FOR BEAMS ===', this.cuttingPlan);
+            this.debugLog('=== SCREWS PACKAGING PLAN ===', this.screwsPackagingPlan);
         }
     }
     // חישוב נתוני הקורות לחישוב מחיר
@@ -4861,7 +4866,11 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
             this.BeamsDataForPricing,
             this.ForgingDataForPricing
         );
+        this.screwsPackagingPlan = this.pricingService.getScrewsPackagingPlan(
+            this.ForgingDataForPricing
+        );
         this.debugLog('=== FINAL CALCULATED PRICE ===', this.calculatedPrice);
+        this.debugLog('=== SCREWS PACKAGING PLAN ===', this.screwsPackagingPlan);
         this.debugLog('=== CUTTING PLAN ===', this.cuttingPlan);
         
         // חישוב סכום הקורות הבודדות

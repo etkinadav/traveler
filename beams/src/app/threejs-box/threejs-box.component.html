@@ -911,6 +911,42 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- קופסאות ברגים מומלצות -->
+                <div class="sub-title" *ngIf="screwsPackagingPlan && screwsPackagingPlan.length > 0">קופסאות ברגים מומלצות:</div>
+                <div class="materials-summary" *ngIf="screwsPackagingPlan && screwsPackagingPlan.length > 0">
+                    <div *ngFor="let package of screwsPackagingPlan" class="beam-type-section">
+                        <!-- כותרת סוג הבורג -->
+                        <div class="screw-type-header">
+                            <div class="screw-type-name">{{ package.screwTypeName }} - {{ package.screwTranslatedName }}</div>
+                        </div>
+                        
+                        <!-- כותרת קופסא -->
+                        <div class="beam-header">
+                            <div class="beam-details-item">
+                                <span class="beam-text">{{ package.optimalPackage.translatedName }}</span>
+                                <span class="beam-separator" style="opacity: 0;"></span>
+                                <span class="beam-price">{{ package.totalPrice }}₪</span>
+                            </div>
+                        </div>
+                        
+                        <!-- פרטי הקופסא -->
+                        <div class="screw-package-details">
+                            <div class="screw-detail-row">
+                                <span class="screw-detail-label">יחידות</span>
+                                <span class="screw-detail-value">{{ package.optimalPackage.amount * package.numPackages }} יחידות</span>
+                            </div>
+                            <div class="screw-detail-row">
+                                <span class="screw-detail-label">קופסאות</span>
+                                <span class="screw-detail-value">{{ package.numPackages }} {{ package.optimalPackage.translatedName }}</span>
+                            </div>
+                            <div class="screw-detail-row">
+                                <span class="screw-detail-label">מחיר ליחידה</span>
+                                <span class="screw-detail-value">{{ (package.optimalPackage.price / package.optimalPackage.amount).toFixed(2) }}₪</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

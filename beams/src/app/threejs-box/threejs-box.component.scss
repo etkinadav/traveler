@@ -2856,3 +2856,47 @@ mat-form-field {
 .quantity-selector .quantity-btn:hover {
     background: rgba(0,0,0,0.1) !important;
 }
+
+// סגנונות עבור תצוגת קופסאות ברגים
+.screw-type-header {
+    margin-bottom: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.screw-type-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0066cc;
+    text-align: right;
+}
+
+.screw-package-details {
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(248, 249, 250, 0.3);
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.screw-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    font-size: 12px;
+    
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.screw-detail-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.screw-detail-value {
+    color: #333;
+    font-weight: 600;
+}

@@ -1,12 +1,108 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BinPacking } from 'binpacking';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../environments/environment';
+
+// ממשקים עבור ברגים
+export interface ScrewPackage {
+  name: string;
+  translatedName: string;
+  amount: number;
+  price: number;
+}
+
+export interface Screw {
+  _id: string;
+  name: string;
+  translatedName: string;
+  length: number;
+  width: number;
+  packages: ScrewPackage[];
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class PricingService {
+  private screwsData: Screw[] = [];
+  private readonly SCREWS_API_URL = environment.apiUrl + '/screws/';
 
-  constructor() { }
+  constructor(private http: HttpClient) {
+    // טעינת נתוני ברגים בעת אתחול הסרוויס
+    this.loadScrewsData();
+  }
+
+  /**
+   * טעינת נתוני ברגים מה-DB (בדיוק כמו שהקורות נטענים)
+   */
+  private async loadScrewsData() {
+    try {
+      this.screwsData = await firstValueFrom(this.http.get<Screw[]>(this.SCREWS_API_URL));
+      console.log('✅ Screws data loaded:', this.screwsData.length, 'types');
+      console.log('📦 Screws data details:', this.screwsData);
+      
+      // בדיקה אם יש packages לכל בורג
+      this.screwsData.forEach((screw, index) => {
+        if (!screw.packages || screw.packages.length === 0) {
+          console.error(`❌ Screw ${index + 1} (${screw.name}) has NO packages!`);
+        } else {
+          console.log(`✅ Screw ${index + 1} (${screw.name}): ${screw.packages.length} packages`);
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error loading screws data:', error);
+      this.screwsData = [];
+    }
+  }
+
+  /**
+   * חישוב הקופסאות האופטימליות עבור כמות ברגים מסוימת
+   * (הועבר מ-ScrewsService)
+   */
+  private calculateOptimalPackages(screw: Screw, requiredAmount: number): {
+    packages: { package: ScrewPackage, quantity: number }[],
+    totalAmount: number,
+    totalPrice: number
+  } {
+    if (!screw || !screw.packages || screw.packages.length === 0) {
+      return { packages: [], totalAmount: 0, totalPrice: 0 };
+    }
+
+    // מיון הקופסאות לפי גודל (מהגדול לקטן)
+    const sortedPackages = [...screw.packages].sort((a, b) => b.amount - a.amount);
+
+    const selectedPackages: { package: ScrewPackage, quantity: number }[] = [];
+    let remainingAmount = requiredAmount;
+    let totalPrice = 0;
+
+    // אלגוריתם חמדני: בחר את הקופסה הגדולה ביותר שמתאימה
+    for (const pkg of sortedPackages) {
+      if (remainingAmount <= 0) break;
+
+      const boxesNeeded = Math.ceil(remainingAmount / pkg.amount);
+      
+      if (boxesNeeded > 0) {
+        selectedPackages.push({
+          package: pkg,
+          quantity: boxesNeeded
+        });
+        totalPrice += boxesNeeded * pkg.price;
+        remainingAmount -= boxesNeeded * pkg.amount;
+      }
+    }
+
+    // חישוב הכמות הסופית שהתקבלה
+    const totalAmount = selectedPackages.reduce((sum, item) => 
+      sum + (item.package.amount * item.quantity), 0
+    );
+
+    return {
+      packages: selectedPackages,
+      totalAmount: totalAmount,
+      totalPrice: totalPrice
+    };
+  }
 
   /**
    * חישוב מחיר עבור נתוני קורות
@@ -97,15 +193,15 @@ export class PricingService {
       totalPrice += beamTypePrice + cuttingPriceForBeamType;
     });
     
-    // עיבוד ברגים (ללא חיתוך אופטימלי)
+    // עיבוד ברגים - חישוב מחיר לפי קופסאות אופטימליות
     forgingData.forEach((forgingItem, index) => {
-
-      
       const length = forgingItem.length;
       const count = forgingItem.count;
       
-      const pricePerLength = this.findPriceForLength(forgingItem.type, length);
-      const forgingPrice = pricePerLength * count;
+      // העברת הכמות לפונקציה כדי לקבל מחיר כולל של קופסאות
+      const forgingPrice = this.findPriceForLength(forgingItem.type, length, count);
+      
+      console.log(`📌 Screw item ${index + 1}: length=${length}cm, count=${count}, price=${forgingPrice}₪`);
       
       totalPrice += forgingPrice;
     });
@@ -263,13 +359,13 @@ export class PricingService {
       totalPrice += beamTypePrice + cuttingPriceForBeamType;
     });
     
-    // עיבוד ברגים (ללא חיתוך אופטימלי)
+    // עיבוד ברגים - חישוב מחיר לפי קופסאות אופטימליות
     forgingData.forEach((forgingItem, index) => {
       const length = forgingItem.length;
       const count = forgingItem.count;
       
-      const pricePerLength = this.findPriceForLength(forgingItem.type, length);
-      const forgingPrice = pricePerLength * count;
+      // העברת הכמות לפונקציה כדי לקבל מחיר כולל של קופסאות
+      const forgingPrice = this.findPriceForLength(forgingItem.type, length, count);
       
       totalPrice += forgingPrice;
     });
@@ -484,11 +580,52 @@ export class PricingService {
    * חיפוש מחיר עבור אורך נתון
    * @param type - סוג הקורה/בורג
    * @param length - אורך בס"מ
-   * @returns מחיר ליחידה
+   * @param count - כמות הברגים (אופציונלי)
+   * @returns מחיר ליחידה או מחיר כולל אם סופק count
    */
-  findPriceForLength(type: any, length: number): number {
-    // כרגע מחירי הברגים הם 0 - יעודכן בהמשך
-    return 0;
+  findPriceForLength(type: any, length: number, count?: number): number {
+    // אם אין נתוני ברגים, החזר 0
+    if (!this.screwsData || this.screwsData.length === 0) {
+      console.warn('⚠️ No screws data available for pricing');
+      return 0;
+    }
+
+    // מציאת הבורג הקרוב ביותר לאורך המבוקש
+    const closestScrew = this.screwsData.reduce((closest, current) => {
+      const currentDiff = Math.abs(current.length - length);
+      const closestDiff = Math.abs(closest.length - length);
+      return currentDiff < closestDiff ? current : closest;
+    });
+
+    if (!closestScrew) {
+      console.warn('⚠️ No matching screw found for length:', length);
+      return 0;
+    }
+
+    // בדיקה אם יש packages
+    if (!closestScrew.packages || closestScrew.packages.length === 0) {
+      console.warn('⚠️ Screw has no packages:', closestScrew.name);
+      return 0;
+    }
+
+    // אם סופקה כמות, חשב את המחיר הכולל עבור הקופסאות האופטימליות
+    if (count && count > 0) {
+      const result = this.calculateOptimalPackages(closestScrew, count);
+      console.log(`💰 Screw pricing for ${closestScrew.name} (${count} units):`, {
+        totalPrice: result.totalPrice,
+        totalAmount: result.totalAmount,
+        packages: result.packages
+      });
+      return result.totalPrice;
+    }
+
+    // אם לא סופקה כמות, החזר מחיר ליחידה (מהקופסה הקטנה ביותר)
+    const smallestPackage = closestScrew.packages.reduce((smallest, current) => 
+      current.amount < smallest.amount ? current : smallest, 
+      closestScrew.packages[0] // ערך התחלתי למניעת שגיאה
+    );
+    
+    return smallestPackage.price / smallestPackage.amount;
   }
   
   /**
@@ -500,6 +637,52 @@ export class PricingService {
   async getCuttingPlan(beamsData: any[], forgingData: any[]): Promise<any[]> {
     const result = await this.calculateIterativeOptimalCutting(beamsData, forgingData);
     return result.cuttingPlan;
+  }
+
+  /**
+   * קבלת פירוט קופסאות ברגים
+   * @param forgingData - נתוני הברגים מ-ForgingDataForPricing
+   * @returns רשימת קופסאות ברגים מפורטת
+   */
+  getScrewsPackagingPlan(forgingData: any[]): any[] {
+    const packagingPlan: any[] = [];
+
+    forgingData.forEach((forgingItem, index) => {
+      const length = forgingItem.length;
+      const count = forgingItem.count;
+
+      // מציאת הבורג המתאים
+      if (!this.screwsData || this.screwsData.length === 0) {
+        return;
+      }
+
+      const closestScrew = this.screwsData.reduce((closest, current) => {
+        const currentDiff = Math.abs(current.length - length);
+        const closestDiff = Math.abs(closest.length - length);
+        return currentDiff < closestDiff ? current : closest;
+      });
+
+      if (!closestScrew) {
+        return;
+      }
+
+      // חישוב הקופסאות האופטימליות
+      const result = this.calculateOptimalPackages(closestScrew, count);
+
+      packagingPlan.push({
+        screwTypeName: closestScrew.name,
+        screwTranslatedName: closestScrew.translatedName,
+        screwLength: closestScrew.length,
+        screwWidth: closestScrew.width,
+        requiredAmount: count,
+        optimalPackage: result.packages[0], // הקופסא האופטימלית
+        numPackages: result.packages[0].quantity,
+        totalAmount: result.totalAmount,
+        totalPrice: result.totalPrice
+      });
+    });
+
+    return packagingPlan;
   }
   
   /**
@@ -530,3 +713,4 @@ export class PricingService {
     return price;
   }
 }
+
