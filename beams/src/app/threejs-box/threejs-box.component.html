@@ -747,14 +747,14 @@
         
         <!-- תפריט אופציות תמחור -->
         <mat-menu #pricingOptionsMenu="matMenu" class="pricing-options-menu" [hasBackdrop]="false">
-            <!-- כותרת התפריט -->
             <div class="pricing-menu-header" (click)="$event.stopPropagation()">
-                <!-- קונטיינר flex עם space-between -->
+                <button class="close-menu-btn" (click)="pricingMenuTrigger.closeMenu()" style="position: absolute !important; top: 8px !important; left: 12px !important; background: none !important; border: none !important; padding: 4px !important; cursor: pointer !important; z-index: 10 !important;">
+                    <svg width="12" height="12" viewBox="0 0 16 16" style="display: block !important;">
+                        <path d="M 4 4 L 12 12 M 12 4 L 4 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
                 <div class="header-container">
-                    <!-- כותרת בצד שמאל -->
                     <div class="header-title">מה תרצו להזמין?</div>
-                    <!-- כפתור X בצד ימין -->
-                    <button class="close-btn" (click)="pricingMenuTrigger.closeMenu()">×</button>
                 </div>
             </div>
             
@@ -766,7 +766,7 @@
                         <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <div class="category-title">הוראות</div>
-                    <div class="category-price">₪ {{ drawingPrice }}</div>
+                    <div class="category-price">{{ drawingPrice }} ₪</div>
                 </div>
             </div>
             
@@ -778,7 +778,7 @@
                         <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <div class="category-title" (click)="$event.stopPropagation()">קורות</div>
-                    <div class="category-price" (click)="$event.stopPropagation()">₪ {{ getBeamsOnlyPrice() }}</div>
+                    <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isBeamsEnabled">{{ getBeamsOnlyPrice() }} ₪</div>
                 </div>
             </div>
             
@@ -795,8 +795,8 @@
                               fill="white"/>
                         <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">חיתוך קורות</div>
-                    <div class="category-price" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">₪ {{ getCuttingPrice() }}</div>
+                    <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">חיתוך</div>
+                    <div class="category-price" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">{{ getCuttingPrice() }} ₪</div>
                 </div>
             </div>
             
@@ -808,7 +808,7 @@
                         <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <div class="category-title" (click)="$event.stopPropagation()">ברגים</div>
-                    <div class="category-price" (click)="$event.stopPropagation()">₪ {{ getScrewsPrice() }}</div>
+                    <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isScrewsEnabled">{{ getScrewsPrice() }} ₪</div>
                 </div>
             </div>
         </mat-menu>

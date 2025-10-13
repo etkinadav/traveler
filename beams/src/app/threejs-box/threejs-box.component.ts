@@ -6580,7 +6580,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // פונקציה לקבלת מחיר ברגים
     getScrewsPrice(): number {
-        if (!this.isScrewsEnabled || !this.screwsPackagingPlan || this.screwsPackagingPlan.length === 0) {
+        if (!this.screwsPackagingPlan || this.screwsPackagingPlan.length === 0) {
             return 0;
         }
         return this.screwsPackagingPlan.reduce((total, screwPackage) => total + (screwPackage.totalPrice || 0), 0);
