@@ -36,15 +36,6 @@
 
     <span class="spacer"></span>
 
-    <span *ngIf="userName !== ''" class="zx-text-tiny text-green position-absolute navbar-greeting d-none d-md-block" [class.zx-rtl]="isRTL" [class.navbar-greeting-rtl]="isRTL">
-      <span>{{ 'main-nav.greeting.' + greeting | translate }}, </span>
-      <span>
-          {{ userName| slice:0:30 }}
-        <span *ngIf="userName.length > 30">
-          ...
-        </span>
-      </span>
-    </span>
 
     <div class="d-flex align-items-center gap-2 h-100">
 
@@ -75,6 +66,17 @@
               <div class="zx-profile-manu rounded-3 step-item" [class.zx-profile-manu-rtl]="isRTL"
                 [class.zx-profile-manu-dark]="isDarkMode">
 
+                <!-- בועת דיבור ברכה למשתמש -->
+                <div class="user-greeting-bubble" [class.zx-rtl]="isRTL">
+                  <div class="speech-bubble">
+                    <div class="greeting-text">{{ 'main-nav.greeting.' + greeting | translate }}, {{ getEmailWithoutDomain(userName) }} ;)</div>
+                    
+                    <!-- חץ נפרד עם class חדש -->
+                    <div class="arrow-container">
+                      <div class="speech-arrow"></div>
+                    </div>
+                  </div>
+                </div>
 
                 <button *ngIf="userIsAuthenticated" class="justify-content-start d-sm-none" mat-menu-item
                   (click)="goToMyOrders()">

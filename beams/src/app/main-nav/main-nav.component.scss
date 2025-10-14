@@ -797,3 +797,73 @@ mat-toolbar.transparent-toolbar {
 ::ng-deep .sidenav .mat-mdc-list-item .mat-mdc-list-item-unscoped-content mat-icon {
   color: var(--zx-green) !important;
 }
+
+// סטיילים לבועת דיבור ברכה למשתמש
+.user-greeting-bubble {
+  padding: 16px 16px 0 16px;
+  margin-bottom: 16px; // יותר רווח מתחת
+  text-align: center;
+  
+  .speech-bubble {
+    display: inline-block;
+    background: white;
+    border: 1px solid var(--zx-green); // קוו דק יותר
+    border-radius: 0; // פינות מרובעות
+    padding: 4px 8px; // פחות רווח מעל ומתחת לטקסט
+    position: relative;
+    transform: translateY(-5px) translateX(3px); // העלאה ב-5px והסיט ימינה ב-3px
+    
+    .greeting-text {
+      font-size: 12px; // טקסט יותר קטן
+      font-weight: 400; // לא bold
+      color: var(--zx-green);
+      margin: 0;
+    }
+    
+    // מיכל החץ החדש
+    .arrow-container {
+      position: absolute;
+      bottom: -10px; // עוד 2px למעלה (-12px + 2px = -10px)
+      right: 20%;
+      transform: scale(0.5); // קטנה ב-50%
+      
+      .speech-arrow {
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-left: 2px solid var(--zx-green); // עובי 2px
+        border-bottom: 2px solid var(--zx-green); // עובי 2px
+        transform: rotate(315deg);
+        transform-origin: center;
+      }
+    }
+    
+    // קוו המשכי מהמלבן למשולש - מותאם למיקום החדש
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: calc(20% - 5px); // מותאם לגודל הקטן (scale 0.5)
+      width: 10px; // מותאם לגודל הקטן (20px * 0.5 = 10px)
+      height: 1px;
+      background: white;
+      border-bottom: 1px solid var(--zx-green);
+    }
+  }
+}
+
+// תמיכה ב-RTL
+.user-greeting-bubble.zx-rtl {
+  .greeting-text {
+    text-align: center;
+  }
+}
+
+// סטיילים לקווים אופקיים בתפריט
+::ng-deep .zx-profile-manu hr {
+  margin: 5px 0 0 0 !important; // 5px רווח מעל הקוו, ללא רווח מתחת
+  border: none !important;
+  border-top: 1px solid #e0e0e0 !important; // אותו קוו כמו הכותרת
+  height: 0 !important;
+  background: none !important;
+}

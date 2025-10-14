@@ -453,5 +453,13 @@ export class MainNavComponent implements OnInit, OnDestroy {
   isIphone(): boolean {
     return /iPhone/.test(navigator.userAgent);
   }
+
+  // פונקציה לחילוץ המייל ללא הדומיין
+  getEmailWithoutDomain(email: string): string {
+    if (!email || !email.includes('@')) {
+      return email;
+    }
+    return email.split('@')[0];
+  }
   // ====================
 }
