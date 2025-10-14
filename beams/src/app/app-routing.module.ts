@@ -9,7 +9,6 @@ import { AuthGuard } from "./auth/auth.guard";
 import { TAndCComponent } from "./main-section/legal/t-and-c/t-and-c.component"
 import { PrivacyPolicyComponent } from "./main-section/legal/privacy-policy/privacy-policy.component"
 
-import { QrLinkComponent } from "./main-section/qr-link/qr-link.component";
 
 
 import { MyOrdersComponent } from "./other-pages/my-orders/my-orders.component";
@@ -33,7 +32,6 @@ const routes: Routes = [
     { path: "x/:service/:orderId", component: PendingOrderComponent },
     { path: "tandc", component: TAndCComponent },
     { path: "pp", component: PrivacyPolicyComponent },
-    { path: "qr/:service/:branch", component: QrLinkComponent },
 
     { path: "social", component: SocialComponent },
 

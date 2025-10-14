@@ -13,7 +13,6 @@ import { AngularMaterialModule } from "./angular-material.module";
 import { ChoosePrintingSystemComponent } from "./main-section/choose-printing-system/choose-printing-system.component"
 import { ProductMiniPreviewComponent } from "./main-section/choose-printing-system/product-mini-preview/product-mini-preview.component"
 import { MainNavComponent } from './main-nav/main-nav.component';
-import { QrLinkComponent } from "./main-section/qr-link/qr-link.component"
 
 import { BidiModule } from "@angular/cdk/bidi";
 
@@ -63,7 +62,6 @@ import { EditProductComponent } from './dialog/edit-product/edit-product.compone
     MainNavComponent,
     ChoosePrintingSystemComponent,
     ProductMiniPreviewComponent,
-    QrLinkComponent,
     MyOrdersComponent,
     MyProfileComponent,
     PrintingQueComponent,
