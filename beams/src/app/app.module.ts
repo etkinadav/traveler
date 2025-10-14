@@ -31,12 +31,10 @@ import { DeleteOrderComponent } from "./dialog/delete-order/delete-order.compone
 import { DeleteUserComponent } from "./dialog/delete-user/delete-user.component";
 import { MyOrdersComponent } from "./other-pages/my-orders/my-orders.component";
 import { MyProfileComponent } from "./other-pages/my-profile/my-profile.component";
-import { PrintingQueComponent } from "./other-pages/printing-que/printing-que.component";
 import { QAndAComponent } from "./other-pages/q-and-a/q-and-a.component";
 import { PhoneComponent } from "./dialog/phone/phone.component";
 import { CopyScanComponent } from "./dialog/scan-copy/scan-copy.component";
 import { PropertyExplainComponent } from "./dialog/property-explain/property-explain.component";
-import { PendingOrderComponent } from "./other-pages/pending-order/pending-order.component";
 import { SuEditUserComponent } from "./dialog/su-edit-user/su-edit-user.component";
 
 
@@ -53,7 +51,6 @@ import { ModifyProductModule } from './main-section/modify-product/modify-produc
     ProductMiniPreviewComponent,
     MyOrdersComponent,
     MyProfileComponent,
-    PrintingQueComponent,
     QAndAComponent,
     PreloginComponent,
     SocialComponent,
@@ -64,7 +61,6 @@ import { ModifyProductModule } from './main-section/modify-product/modify-produc
     PropertyExplainComponent,
     DeleteOrderComponent,
     DeleteUserComponent,
-    PendingOrderComponent,
     SuEditUserComponent,
   ],
   imports: [
