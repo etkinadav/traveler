@@ -13,8 +13,6 @@ import { AngularMaterialModule } from "./angular-material.module";
 import { ChoosePrintingSystemComponent } from "./main-section/choose-printing-system/choose-printing-system.component"
 import { ProductMiniPreviewComponent } from "./main-section/choose-printing-system/product-mini-preview/product-mini-preview.component"
 import { MainNavComponent } from './main-nav/main-nav.component';
-import { NavigateDropdownComponent } from "./main-section/settings-area/navigate-dropdown/navigate-dropdown.component";
-import { NavigationToBranchesComponent } from "./main-section/settings-area/navigate-dropdown/navigation-to-branches/navigation-to-branches.component";
 import { QrLinkComponent } from "./main-section/qr-link/qr-link.component"
 
 import { BidiModule } from "@angular/cdk/bidi";
@@ -65,8 +63,6 @@ import { EditProductComponent } from './dialog/edit-product/edit-product.compone
     MainNavComponent,
     ChoosePrintingSystemComponent,
     ProductMiniPreviewComponent,
-    NavigateDropdownComponent,
-    NavigationToBranchesComponent,
     QrLinkComponent,
     MyOrdersComponent,
     MyProfileComponent,
