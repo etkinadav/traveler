@@ -801,17 +801,23 @@
                 <!-- אופציות עריכה לקורות -->
                 <div class="edit-options" *ngIf="showBeamsEditOptions">
                     <div class="edit-options-list">
-                        <div class="edit-option-row">
-                            <span class="option-left">2</span>
-                            <span class="option-right">1</span>
+                        <!-- כותרת -->
+                        <div class="edit-header-row">
+                            <span class="edit-header-title">עריכת כמות קורות</span>
                         </div>
-                        <div class="edit-option-row">
-                            <span class="option-left">4</span>
-                            <span class="option-right">3</span>
-                        </div>
-                        <div class="edit-option-row">
-                            <span class="option-left">6</span>
-                            <span class="option-right">5</span>
+                        
+                        <!-- רשימת קורות -->
+                        <div class="edit-option-row" *ngFor="let beam of getBeamsForEdit(); let i = index">
+                            <span class="option-right">{{ beam.translatedBeamName }} - {{ beam.type.translatedName }}</span>
+                            <div class="quantity-controls">
+                                <button class="qty-btn" (click)="updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) - 1); $event.stopPropagation()">-</button>
+                                <input type="number" 
+                                       class="qty-input" 
+                                       [value]="beam.totalSizes[0]?.count || 0"
+                                       (input)="updateBeamQuantity(i, +$any($event.target).value); $event.stopPropagation()"
+                                       min="0">
+                                <button class="qty-btn" (click)="updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) + 1); $event.stopPropagation()">+</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -866,17 +872,23 @@
                 <!-- אופציות עריכה לברגים -->
                 <div class="edit-options" *ngIf="showScrewsEditOptions">
                     <div class="edit-options-list">
-                        <div class="edit-option-row">
-                            <span class="option-left">2</span>
-                            <span class="option-right">1</span>
+                        <!-- כותרת -->
+                        <div class="edit-header-row">
+                            <span class="edit-header-title">עריכת כמות ברגים</span>
                         </div>
-                        <div class="edit-option-row">
-                            <span class="option-left">4</span>
-                            <span class="option-right">3</span>
-                        </div>
-                        <div class="edit-option-row">
-                            <span class="option-left">6</span>
-                            <span class="option-right">5</span>
+                        
+                        <!-- רשימת ברגים -->
+                        <div class="edit-option-row" *ngFor="let screw of getScrewsForEdit(); let i = index">
+                            <span class="option-right">{{ screw.screwTranslatedName }} - {{ screw.optimalPackage.translatedName }}</span>
+                            <div class="quantity-controls">
+                                <button class="qty-btn" (click)="updateScrewQuantity(i, screw.numPackages - 1); $event.stopPropagation()">-</button>
+                                <input type="number" 
+                                       class="qty-input" 
+                                       [value]="screw.numPackages"
+                                       (input)="updateScrewQuantity(i, +$any($event.target).value); $event.stopPropagation()"
+                                       min="0">
+                                <button class="qty-btn" (click)="updateScrewQuantity(i, screw.numPackages + 1); $event.stopPropagation()">+</button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -647,6 +647,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // משתנים לכפתורי עריכה
     showBeamsEditOptions: boolean = false; // האם להציג אופציות עריכה לקורות
     showScrewsEditOptions: boolean = false; // האם להציג אופציות עריכה לברגים
+    
+    // משתנים לשמירת מצב לפני עריכה
+    private originalBeamsData: any = null;
+    private originalScrewsData: any = null;
     @ViewChild(MatMenuTrigger) pricingMenuTrigger!: MatMenuTrigger;
     constructor(
         private http: HttpClient,
@@ -6625,15 +6629,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // לא קוראים ל-calculatePricing() - רק משנים את המצב
     }
     
-    // פונקציות לכפתורי עריכה
-    toggleBeamsEditOptions() {
-        this.showBeamsEditOptions = !this.showBeamsEditOptions;
-    }
-    
-    toggleScrewsEditOptions() {
-        this.showScrewsEditOptions = !this.showScrewsEditOptions;
-    }
-    
     // פונקציה לקבלת מחיר ברגים
     getScrewsPrice(): number {
         if (!this.screwsPackagingPlan || this.screwsPackagingPlan.length === 0) {
@@ -7242,6 +7237,110 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
         
         return group;
+    }
+    
+    // פונקציות לכפתורי עריכה
+    toggleBeamsEditOptions() {
+        this.showBeamsEditOptions = !this.showBeamsEditOptions;
+        if (this.showBeamsEditOptions) {
+            this.saveOriginalBeamsState();
+        }
+    }
+    
+    toggleScrewsEditOptions() {
+        this.showScrewsEditOptions = !this.showScrewsEditOptions;
+        if (this.showScrewsEditOptions) {
+            this.saveOriginalScrewsState();
+        }
+    }
+    
+    // שמירת מצב הקורות לפני עריכה
+    private saveOriginalBeamsState() {
+        this.originalBeamsData = JSON.parse(JSON.stringify(this.BeamsDataForPricing || []));
+    }
+    
+    // שמירת מצב הברגים לפני עריכה
+    private saveOriginalScrewsState() {
+        this.originalScrewsData = JSON.parse(JSON.stringify(this.screwsPackagingPlan || []));
+    }
+    
+    // קבלת רשימת קורות לעריכה
+    getBeamsForEdit(): any[] {
+        return this.BeamsDataForPricing || [];
+    }
+    
+    // קבלת רשימת ברגים לעריכה (קופסאות ברגים)
+    getScrewsForEdit(): any[] {
+        return this.screwsPackagingPlan || [];
+    }
+    
+    // עדכון כמות קורה
+    updateBeamQuantity(beamIndex: number, newQuantity: number) {
+        if (!this.BeamsDataForPricing || beamIndex < 0 || beamIndex >= this.BeamsDataForPricing.length) {
+            return;
+        }
+        
+        // עדכון הכמות
+        const beam = this.BeamsDataForPricing[beamIndex];
+        const oldQuantity = beam.totalSizes.reduce((sum: number, size: any) => sum + size.count, 0);
+        
+        // חישוב ההפרש
+        const difference = newQuantity - oldQuantity;
+        
+        if (difference !== 0 && beam.totalSizes.length > 0) {
+            // עדכון הכמות בגודל הראשון
+            beam.totalSizes[0].count = Math.max(0, beam.totalSizes[0].count + difference);
+        }
+        
+        // בדיקה אם צריך לבטל את החיתוך
+        this.checkAndDisableCuttingIfNeeded();
+        
+        // עדכון המחירים
+        this.calculatePricing();
+    }
+    
+    // עדכון כמות קופסאות ברגים
+    updateScrewQuantity(screwIndex: number, newQuantity: number) {
+        if (!this.screwsPackagingPlan || screwIndex < 0 || screwIndex >= this.screwsPackagingPlan.length) {
+            return;
+        }
+        
+        // עדכון כמות הקופסאות
+        this.screwsPackagingPlan[screwIndex].numPackages = Math.max(0, newQuantity);
+        
+        // עדכון המחירים
+        this.calculatePricing();
+    }
+    
+    // בדיקה אם צריך לבטל את החיתוך
+    private checkAndDisableCuttingIfNeeded() {
+        if (!this.originalBeamsData || !this.BeamsDataForPricing) {
+            return;
+        }
+        
+        // בדיקה אם יש קטגוריה שהכמות שלה קטנה מהכמות המקורית
+        let shouldDisableCutting = false;
+        
+        for (let i = 0; i < this.BeamsDataForPricing.length; i++) {
+            const currentBeam = this.BeamsDataForPricing[i];
+            const originalBeam = this.originalBeamsData[i];
+            
+            if (!originalBeam) continue;
+            
+            const currentQuantity = currentBeam.totalSizes.reduce((sum: number, size: any) => sum + size.count, 0);
+            const originalQuantity = originalBeam.totalSizes.reduce((sum: number, size: any) => sum + size.count, 0);
+            
+            if (currentQuantity < originalQuantity) {
+                shouldDisableCutting = true;
+                break;
+            }
+        }
+        
+        // אם צריך לבטל את החיתוך - ביטול החיתוך
+        if (shouldDisableCutting && this.isCuttingEnabled) {
+            this.isCuttingEnabled = false;
+            console.log('חיתוך בוטל אוטומטית בגלל הקטנת כמות קורות');
+        }
     }
     
     // פונקציה ליצירת קורות בסיס מיטה
