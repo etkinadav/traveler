@@ -1,7 +1,7 @@
-import { ThreejsBoxComponent } from './threejs-box/threejs-box.component';
+import { ModifyProductComponent } from './main-section/modify-product/modify-product.component';
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
-import { ChoosePrintingSystemComponent } from "./main-section/choose-printing-system/choose-printing-system.component"
+import { ChooseProductComponent } from "./main-section/choose-product/choose-product.component"
 
 import { SocialComponent } from "./auth/social/social.component";
 
@@ -20,9 +20,9 @@ import { PendingOrderComponent } from "./other-pages/pending-order/pending-order
 
 
 const routes: Routes = [
-    { path: "", component: ChoosePrintingSystemComponent },
+    { path: "", component: ChooseProductComponent },
 
-    { path: "beams", component: ThreejsBoxComponent },
+    { path: "beams", component: ModifyProductComponent },
 
     { path: "myorders/:userId", component: MyOrdersComponent },
     { path: "myprofile/:userId", component: MyProfileComponent },

@@ -13,9 +13,9 @@ import { UsersService } from 'src/app/services/users.service';
 import { DialogService } from 'src/app/dialog/dialog.service';
 import { set } from 'lodash';
 @Component({
-  selector: 'app-choose-printing-system',
-  templateUrl: './choose-printing-system.component.html',
-  styleUrls: ['./choose-printing-system.component.scss'],
+  selector: 'app-choose-product',
+  templateUrl: './choose-product.component.html',
+  styleUrls: ['./choose-product.component.scss'],
   host: {
     class: 'fill-screen'
   },
@@ -32,7 +32,7 @@ import { set } from 'lodash';
   ]
 })
 
-export class ChoosePrintingSystemComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit {
   isRTL: boolean = true;
   isDarkMode: boolean = false;
   private directionSubscription: Subscription;

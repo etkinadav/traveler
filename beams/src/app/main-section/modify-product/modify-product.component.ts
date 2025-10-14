@@ -9,8 +9,8 @@ import {
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PricingService } from '../services/pricing.service';
-import { DialogService } from '../dialog/dialog.service';
+import { PricingService } from '../../services/pricing.service';
+import { DialogService } from '../../dialog/dialog.service';
 import { MatMenuTrigger } from '@angular/material/menu';
 import * as THREE from 'three';
 import { trigger, state, style, transition, animate, keyframes } from '@angular/animations';
@@ -18,9 +18,9 @@ interface Shelf {
     gap: number; // רווח מהמדף שמתחתיו (או מהרצפה)
 }
 @Component({
-    selector: 'app-threejs-box',
-    templateUrl: './threejs-box.component.html',
-    styleUrls: ['./threejs-box.component.scss'],
+    selector: 'app-modify-product',
+    templateUrl: './modify-product.component.html',
+    styleUrls: ['./modify-product.component.scss'],
     animations: [
         trigger('fadeInScale', [
             transition(':enter', [
@@ -30,7 +30,7 @@ interface Shelf {
         ])
     ]
 })
-export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
+export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit {
     // Debug mode - set to true to enable console logs
     private enableDebugLogs = false;
     

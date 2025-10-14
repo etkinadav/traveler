@@ -10,8 +10,8 @@ import { ErrorInterceptor } from "./error-interceptor";
 import { ErrorComponent } from "./error/error.component";
 import { AngularMaterialModule } from "./angular-material.module";
 
-import { ChoosePrintingSystemComponent } from "./main-section/choose-printing-system/choose-printing-system.component"
-import { ProductMiniPreviewComponent } from "./main-section/choose-printing-system/product-mini-preview/product-mini-preview.component"
+import { ChooseProductComponent } from "./main-section/choose-product/choose-product.component"
+import { ProductMiniPreviewComponent } from "./main-section/choose-product/product-mini-preview/product-mini-preview.component"
 import { MainNavComponent } from './main-nav/main-nav.component';
 
 import { BidiModule } from "@angular/cdk/bidi";
@@ -42,15 +42,14 @@ import { SuEditUserComponent } from "./dialog/su-edit-user/su-edit-user.componen
 
 import { FileUploadModule } from 'ng2-file-upload';
 import { MatProgressBarModule } from "@angular/material/progress-bar";
-import { ThreejsBoxComponent } from './threejs-box/threejs-box.component';
-import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
+import { ModifyProductModule } from './main-section/modify-product/modify-product.module';
 
 @NgModule({
   declarations: [
     AppComponent,
     ErrorComponent,
     MainNavComponent,
-    ChoosePrintingSystemComponent,
+    ChooseProductComponent,
     ProductMiniPreviewComponent,
     MyOrdersComponent,
     MyProfileComponent,
@@ -90,7 +89,7 @@ import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
     MatProgressBarModule,
     // SocialLoginModule,
     // GoogleSigninButtonModule
-    ThreejsBoxModule,
+    ModifyProductModule,
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

@@ -1,13 +1,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ThreejsBoxComponent } from './threejs-box.component';
-import { AngularMaterialModule } from '../angular-material.module';
+import { ModifyProductComponent } from './modify-product.component';
+import { AngularMaterialModule } from '../../angular-material.module';
 import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
-    declarations: [ThreejsBoxComponent],
+    declarations: [ModifyProductComponent],
     imports: [CommonModule, FormsModule, AngularMaterialModule, TranslateModule],
-    exports: [ThreejsBoxComponent]
+    exports: [ModifyProductComponent]
 })
-export class ThreejsBoxModule { }
+export class ModifyProductModule { }
