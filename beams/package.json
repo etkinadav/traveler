@@ -27,8 +27,6 @@
     "@biesbjerg/ngx-translate-extract-marker": "^1.0.0",
     "@ngx-translate/core": "^15.0.0",
     "@ngx-translate/http-loader": "^8.0.0",
-    "@speckle/objectloader": "^2.25.7",
-    "@speckle/viewer": "^2.25.7",
     "@types/lodash": "^4.17.0",
     "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
