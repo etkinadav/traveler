@@ -212,16 +212,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     
-    // פונקציה שתופעל אחרי התחברות מוצלחת מדיאלוג ההתחברות
-    onLoginSuccessFromProduct() {
-        console.log('🎉 LOGIN SUCCESS FROM PRODUCT PAGE! User is now authenticated.');
-        console.log('📦 Product:', this.selectedProductName);
-        console.log('💰 Price:', this.calculatedPrice);
-        console.log('🔧 Configuration:', this.params);
-        
-        // הוספת המוצר לסל
-        this.addProductToBasket();
-    }
     
     // פונקציה להוספת המוצר לסל
     addProductToBasket() {
@@ -312,31 +302,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // פונקציה לטיפול בלחיצה על כפתור "המשך"
     onContinueOrder() {
-        // בדיקה אם המשתמש מחובר
-        this.checkUserAuthentication();
-        
-        if (!this.isUserAuthenticated) {
-            // פתיחת דיאלוג התחברות
-            console.log('🔐 User not authenticated - opening login dialog from product page');
-            this.dialogService.onOpenLoginDialog();
-            
-            // שמירת callback שיופעל אחרי התחברות מוצלחת
-            // נאזין לשינויים ב-localStorage כדי לזהות התחברות מוצלחת
-            const checkAuthInterval = setInterval(() => {
-                this.checkUserAuthentication();
-                if (this.isUserAuthenticated) {
-                    clearInterval(checkAuthInterval);
-                    this.onLoginSuccessFromProduct();
-                }
-            }, 500);
-            
-            // ביטול האזנה אחרי 60 שניות
-            setTimeout(() => clearInterval(checkAuthInterval), 60000);
-        } else {
-            // המשתמש מחובר - אפשר להמשיך להזמנה
-            console.log('✅ User is authenticated - proceeding with order');
-            this.onLoginSuccessFromProduct();
-        }
+        // הוספת המוצר לסל ללא צורך בהתחברות
+        console.log('🛒 Adding product to basket without authentication requirement');
+        this.addProductToBasket();
     }
     
     // איפוס מבט המצלמה לנקודת ההתחלה
