@@ -11,6 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PricingService } from '../../services/pricing.service';
 import { DialogService } from '../../dialog/dialog.service';
+import { ProductBasketService, ProductConfiguration, CutList, OrganizedArrangement, PricingInfo } from '../../services/product-basket.service';
 import { MatMenuTrigger } from '@angular/material/menu';
 import * as THREE from 'three';
 import { trigger, state, style, transition, animate, keyframes } from '@angular/animations';
@@ -217,7 +218,96 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         console.log('📦 Product:', this.selectedProductName);
         console.log('💰 Price:', this.calculatedPrice);
         console.log('🔧 Configuration:', this.params);
-        // כאן אפשר להוסיף לוגיקה נוספת - למשל לפתוח דיאלוג הזמנה, לשמור קונפיגורציה וכו'
+        
+        // הוספת המוצר לסל
+        this.addProductToBasket();
+    }
+    
+    // פונקציה להוספת המוצר לסל
+    addProductToBasket() {
+        try {
+            // יצירת קונפיגורציה של המוצר (פורמט 1)
+            const productConfiguration: ProductConfiguration = {
+                productName: this.selectedProductName || 'Unknown Product',
+                translatedProductName: this.selectedProductName || 'Unknown Product',
+                inputConfigurations: this.params.map(param => ({
+                    inputName: param.name,
+                    value: param.value
+                })),
+                selectedCorners: this.params.map(param => ({
+                    cornerType: param.name,
+                    cornerData: param.selectedBeamIndex !== undefined ? param.beams[param.selectedBeamIndex] : null
+                })),
+                originalProductData: this.params
+            };
+
+            // יצירת רשימת חיתוך (פורמט 2)
+            const cutList: CutList = {
+                corners: this.BeamsDataForPricing?.map(beamData => ({
+                    cornerType: beamData.beamName,
+                    length: beamData.type.length,
+                    quantity: beamData.totalSizes.reduce((sum, size) => sum + size.count, 0)
+                })) || [],
+                screws: this.ForgingDataForPricing?.map(forgingData => ({
+                    screwType: forgingData.type,
+                    length: forgingData.length,
+                    quantity: forgingData.count
+                })) || []
+            };
+
+            // יצירת הסידור המאורגן (פורמט 3)
+            const organizedArrangement: OrganizedArrangement = {
+                corners: this.cuttingPlan?.map(beam => ({
+                    cornerType: beam.beamType,
+                    length: beam.beamLength,
+                    quantity: beam.cuts.length,
+                    arrangement: beam
+                })) || [],
+                screwBoxes: this.screwsPackagingPlan?.map(pkg => ({
+                    screwType: pkg.screwTranslatedName,
+                    length: pkg.optimalPackage.length,
+                    quantity: pkg.numPackages,
+                    boxPrice: pkg.optimalPackage.price,
+                    arrangement: pkg
+                })) || []
+            };
+
+            // יצירת מידע המחירים
+            const pricingInfo: PricingInfo = {
+                totalPrice: this.calculatedPrice || 0,
+                cutCornersPrice: {
+                    cornerPrice: this.cuttingPlan?.reduce((sum, beam) => sum + beam.beamPrice, 0) || 0,
+                    cuttingPrice: this.drawingPrice || 0,
+                    cornerUnitPrice: this.cuttingPlan?.[0]?.beamPrice || 0,
+                    units: this.cuttingPlan?.reduce((sum, beam) => sum + beam.cuts.length, 0) || 0,
+                    total: (this.cuttingPlan?.reduce((sum, beam) => sum + beam.beamPrice, 0) || 0) + (this.drawingPrice || 0)
+                },
+                screwsPrice: {
+                    boxPrice: this.screwsPackagingPlan?.reduce((sum, pkg) => sum + pkg.totalPrice, 0) || 0,
+                    unitsPerType: this.ForgingDataForPricing?.map(forgingData => ({
+                        screwType: forgingData.type,
+                        quantity: forgingData.count
+                    })) || [],
+                    boxPricePerType: this.screwsPackagingPlan?.map(pkg => ({
+                        screwType: pkg.screwTranslatedName,
+                        price: pkg.optimalPackage.price
+                    })) || []
+                }
+            };
+
+            // הוספה לסל
+            this.productBasketService.addToBasket(
+                productConfiguration,
+                cutList,
+                organizedArrangement,
+                pricingInfo
+            );
+
+            console.log('✅ Product added to basket successfully!');
+            
+        } catch (error) {
+            console.error('❌ Error adding product to basket:', error);
+        }
     }
     
     // פונקציה לטיפול בלחיצה על כפתור "המשך"
@@ -592,7 +682,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         private route: ActivatedRoute,
         private router: Router,
         private pricingService: PricingService,
-        private dialogService: DialogService
+        private dialogService: DialogService,
+        private productBasketService: ProductBasketService
     ) {}
     ngOnInit() {
         // isLoading כבר מוגדר ל-true בברירת המחדל
