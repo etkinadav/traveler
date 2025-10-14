@@ -5,6 +5,7 @@ import {
     AfterViewInit,
     OnDestroy,
     OnInit,
+    ChangeDetectorRef,
 } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -651,6 +652,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // משתנים לשמירת מצב לפני עריכה
     private originalBeamsData: any = null;
     private originalScrewsData: any = null;
+    
+    // משתנים למחירים ספציפיים (מתעדכנים בזמן אמת)
+    private dynamicBeamsPrice: number = 0;
+    private dynamicCuttingPrice: number = 0;
+    private dynamicScrewsPrice: number = 0;
+    
+    // משתנים למחירים המקוריים (להצגה כמחוקים)
+    private originalBeamsPrice: number = 0;
+    private originalCuttingPrice: number = 0;
+    private originalScrewsPrice: number = 0;
+    
+    // משתנים לבדיקה אם יש שינויים
+    private hasBeamsChanged: boolean = false;
+    private hasScrewsChanged: boolean = false;
     @ViewChild(MatMenuTrigger) pricingMenuTrigger!: MatMenuTrigger;
     constructor(
         private http: HttpClient,
@@ -659,7 +674,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         private router: Router,
         private pricingService: PricingService,
         private dialogService: DialogService,
-        private productBasketService: ProductBasketService
+        private productBasketService: ProductBasketService,
+        private cdr: ChangeDetectorRef
     ) {}
     ngOnInit() {
         // isLoading כבר מוגדר ל-true בברירת המחדל
@@ -6631,6 +6647,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // פונקציה לקבלת מחיר ברגים
     getScrewsPrice(): number {
+        // אם יש מחיר דינמי - החזר אותו, אחרת חשב מהתכנית
+        if (this.dynamicScrewsPrice > 0) {
+            return this.dynamicScrewsPrice;
+        }
         if (!this.screwsPackagingPlan || this.screwsPackagingPlan.length === 0) {
             return 0;
         }
@@ -6729,12 +6749,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // חישוב מחיר קורות (ללא חיתוך)
     getBeamsOnlyPrice(): number {
+        // אם יש מחיר דינמי - החזר אותו, אחרת חשב מהתכנית
+        if (this.dynamicBeamsPrice > 0) {
+            return this.dynamicBeamsPrice;
+        }
         const price = this.cuttingPlan.reduce((sum, beam) => sum + beam.beamPrice, 0);
         return Math.round(price * 100) / 100;
     }
     
     // חישוב מחיר חיתוכים
     getCuttingPrice(): number {
+        // אם יש מחיר דינמי - החזר אותו, אחרת חשב מהתכנית
+        if (this.dynamicCuttingPrice > 0) {
+            return this.dynamicCuttingPrice;
+        }
         const price = this.cuttingPlan.reduce((sum, beam) => sum + (beam.totalCuttingPrice || 0), 0);
         return Math.round(price * 100) / 100;
     }
@@ -7244,6 +7272,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.showBeamsEditOptions = !this.showBeamsEditOptions;
         if (this.showBeamsEditOptions) {
             this.saveOriginalBeamsState();
+        } else {
+            // איפוס המחירים הדינמיים כשסוגרים את תפריט העריכה
+            this.resetDynamicPrices();
         }
     }
     
@@ -7251,28 +7282,56 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.showScrewsEditOptions = !this.showScrewsEditOptions;
         if (this.showScrewsEditOptions) {
             this.saveOriginalScrewsState();
+        } else {
+            // איפוס המחירים הדינמיים כשסוגרים את תפריט העריכה
+            this.resetDynamicPrices();
         }
     }
     
     // שמירת מצב הקורות לפני עריכה
     private saveOriginalBeamsState() {
         this.originalBeamsData = JSON.parse(JSON.stringify(this.BeamsDataForPricing || []));
+        
+        // שמירת המחירים המקוריים
+        this.originalBeamsPrice = this.getBeamsOnlyPrice();
+        this.originalCuttingPrice = this.getCuttingPrice();
+        this.originalScrewsPrice = this.getScrewsPrice();
+        
+        // אתחול המחירים הדינמיים עם הערכים הנוכחיים
+        this.dynamicBeamsPrice = this.originalBeamsPrice;
+        this.dynamicCuttingPrice = this.originalCuttingPrice;
+        this.dynamicScrewsPrice = this.originalScrewsPrice;
+        
+        // איפוס סטטוס השינויים
+        this.hasBeamsChanged = false;
+        this.hasScrewsChanged = false;
+        
+        console.log(`CHECH_EDIT_PRICE - אתחול מחירים: מקוריים=${this.originalBeamsPrice}, דינמיים=${this.dynamicBeamsPrice}`);
     }
     
     // שמירת מצב הברגים לפני עריכה
     private saveOriginalScrewsState() {
         this.originalScrewsData = JSON.parse(JSON.stringify(this.screwsPackagingPlan || []));
+        
+        // שמירת המחירים המקוריים
+        this.originalBeamsPrice = this.getBeamsOnlyPrice();
+        this.originalCuttingPrice = this.getCuttingPrice();
+        this.originalScrewsPrice = this.getScrewsPrice();
+        
+        // אתחול המחירים הדינמיים עם הערכים הנוכחיים
+        this.dynamicBeamsPrice = this.originalBeamsPrice;
+        this.dynamicCuttingPrice = this.originalCuttingPrice;
+        this.dynamicScrewsPrice = this.originalScrewsPrice;
+        
+        // איפוס סטטוס השינויים
+        this.hasBeamsChanged = false;
+        this.hasScrewsChanged = false;
+        
+        console.log(`CHECH_EDIT_PRICE - אתחול מחירים: מקוריים=${this.originalScrewsPrice}, דינמיים=${this.dynamicScrewsPrice}`);
     }
     
     // קבלת רשימת קורות לעריכה
     getBeamsForEdit(): any[] {
-        console.log('🔍 BeamsDataForPricing:', this.BeamsDataForPricing);
-        if (this.BeamsDataForPricing && this.BeamsDataForPricing.length > 0) {
-            console.log('🔍 First beam:', this.BeamsDataForPricing[0]);
-            console.log('🔍 First beam name:', this.BeamsDataForPricing[0].name);
-            console.log('🔍 First beam translatedBeamName:', this.BeamsDataForPricing[0].translatedBeamName);
-            console.log('🔍 First beam type:', this.BeamsDataForPricing[0].type);
-        }
         return this.BeamsDataForPricing || [];
     }
     
@@ -7291,19 +7350,23 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const beam = this.BeamsDataForPricing[beamIndex];
         const oldQuantity = beam.totalSizes.reduce((sum: number, size: any) => sum + size.count, 0);
         
-        // חישוב ההפרש
-        const difference = newQuantity - oldQuantity;
+        console.log(`CHECH_EDIT_PRICE - עדכון כמות קורה: ${oldQuantity} → ${newQuantity}`);
         
-        if (difference !== 0 && beam.totalSizes.length > 0) {
-            // עדכון הכמות בגודל הראשון
-            beam.totalSizes[0].count = Math.max(0, beam.totalSizes[0].count + difference);
+        // עדכון הכמות בגודל הראשון
+        if (beam.totalSizes.length > 0) {
+            beam.totalSizes[0].count = Math.max(0, newQuantity);
+            
+            // חישוב ההפרש
+            const difference = newQuantity - oldQuantity;
+            
+            if (difference !== 0) {
+                // עדכון מקומי של המחיר
+                this.updatePriceLocally('beam', beam, difference);
+            }
         }
         
         // בדיקה אם צריך לבטל את החיתוך
         this.checkAndDisableCuttingIfNeeded();
-        
-        // עדכון המחירים
-        this.calculatePricing();
     }
     
     // עדכון כמות קופסאות ברגים
@@ -7312,11 +7375,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return;
         }
         
-        // עדכון כמות הקופסאות
-        this.screwsPackagingPlan[screwIndex].numPackages = Math.max(0, newQuantity);
+        // חישוב ההפרש לפני העדכון
+        const screw = this.screwsPackagingPlan[screwIndex];
+        const oldQuantity = screw.numPackages;
+        const difference = newQuantity - oldQuantity;
         
-        // עדכון המחירים
-        this.calculatePricing();
+        // עדכון כמות הקופסאות
+        screw.numPackages = Math.max(0, newQuantity);
+        
+        // עדכון מקומי של המחיר
+        this.updatePriceLocally('screw', screw, difference);
     }
     
     // בדיקה אם צריך לבטל את החיתוך
@@ -7348,6 +7416,118 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.isCuttingEnabled = false;
             console.log('חיתוך בוטל אוטומטית בגלל הקטנת כמות קורות');
         }
+    }
+    
+    // איפוס המחירים הדינמיים
+    private resetDynamicPrices() {
+        this.dynamicBeamsPrice = 0;
+        this.dynamicCuttingPrice = 0;
+        this.dynamicScrewsPrice = 0;
+        this.hasBeamsChanged = false;
+        this.hasScrewsChanged = false;
+        console.log('CHECH_EDIT_PRICE - מחירים דינמיים אופסו');
+    }
+    
+    // פונקציות לקבלת המחירים המקוריים והחדשים
+    getOriginalBeamsPrice(): number {
+        return this.originalBeamsPrice;
+    }
+    
+    getOriginalCuttingPrice(): number {
+        return this.originalCuttingPrice;
+    }
+    
+    getOriginalScrewsPrice(): number {
+        return this.originalScrewsPrice;
+    }
+    
+    getHasBeamsChanged(): boolean {
+        return this.hasBeamsChanged;
+    }
+    
+    getHasScrewsChanged(): boolean {
+        return this.hasScrewsChanged;
+    }
+    
+    // עדכון מקומי של המחיר על בסיס שינוי כמות
+    private updatePriceLocally(type: 'beam' | 'screw', item: any, quantityDifference: number) {
+        if (quantityDifference === 0) return;
+        
+        console.log(`CHECH_EDIT_PRICE - עדכון מקומי של ${type}:`, item);
+        console.log(`CHECH_EDIT_PRICE - הפרש כמות: ${quantityDifference}`);
+        console.log(`CHECH_EDIT_PRICE - מחיר נוכחי לפני עדכון: ${this.calculatedPrice}`);
+        
+        let pricePerUnit = 0;
+        
+        if (type === 'beam') {
+            // חישוב מחיר לקורה - צריך לקחת את המחיר הספציפי לקורה הזאת
+            console.log(`CHECH_EDIT_PRICE - פרטי קורה:`, {
+                beamName: item.beamName,
+                beamTranslatedName: item.beamTranslatedName,
+                type: item.type,
+                totalSizes: item.totalSizes,
+                isCuttingEnabled: this.isCuttingEnabled
+            });
+            
+            // חישוב מחיר הקורה - נחפש את המחיר הנכון ב-cuttingPlan
+            const beamLength = item.totalSizes && item.totalSizes.length > 0 ? item.totalSizes[0].length : 0;
+            const beamFromCuttingPlan = this.cuttingPlan?.find(beam => 
+                beam.beamLength === beamLength && 
+                beam.beamType === item.beamName
+            );
+            
+            const woodPricePerUnit = beamFromCuttingPlan?.beamPrice || 0;
+            
+            console.log(`CHECH_EDIT_PRICE - אורך קורה: ${beamLength}cm, שם קורה: ${item.beamName}, מחיר ליחידה: ${woodPricePerUnit}`);
+            
+            // עדכון המחיר הספציפי של קורות (רק עץ, לא חיתוך)
+            const oldBeamsPrice = this.dynamicBeamsPrice;
+            
+            // הפרש במחיר הקורות (מחיר העץ בלבד)
+            const beamsPriceDifference = quantityDifference * woodPricePerUnit;
+            
+            this.dynamicBeamsPrice = Math.round((Math.max(0, this.dynamicBeamsPrice + beamsPriceDifference)) * 100) / 100;
+            
+            // סימון שיש שינויים בקורות
+            this.hasBeamsChanged = true;
+            
+            console.log(`CHECH_EDIT_PRICE - מחיר קורות: ${oldBeamsPrice} → ${this.dynamicBeamsPrice} (הפרש: ${beamsPriceDifference})`);
+            console.log(`CHECH_EDIT_PRICE - מחיר חיתוך לא השתנה: ${this.dynamicCuttingPrice}`);
+            
+            // מחיר כולל ליחידה (רק עץ, לא חיתוך)
+            pricePerUnit = woodPricePerUnit;
+            
+        } else if (type === 'screw') {
+            // מחיר לקופסת ברגים
+            console.log(`CHECH_EDIT_PRICE - פרטי ברגים:`, {
+                screwTranslatedName: item.screwTranslatedName,
+                optimalPackage: item.optimalPackage,
+                numPackages: item.numPackages
+            });
+            
+            pricePerUnit = item.optimalPackage?.price || 0;
+            console.log(`CHECH_EDIT_PRICE - מחיר לקופסת ברגים: ${pricePerUnit}`);
+            
+            // עדכון המחיר הספציפי של ברגים
+            this.dynamicScrewsPrice = Math.round((Math.max(0, this.dynamicScrewsPrice + (quantityDifference * pricePerUnit))) * 100) / 100;
+            
+            // סימון שיש שינויים בברגים
+            this.hasScrewsChanged = true;
+            
+            console.log(`CHECH_EDIT_PRICE - מחיר ברגים חדש: ${this.dynamicScrewsPrice}`);
+        }
+        
+        // חישוב ההפרש במחיר
+        const priceDifference = quantityDifference * pricePerUnit;
+        
+        // עדכון המחיר הכולל
+        this.calculatedPrice = Math.round((Math.max(0, this.calculatedPrice + priceDifference)) * 100) / 100;
+        
+        // אילוץ Angular לעדכן את התצוגה
+        this.cdr.detectChanges();
+        
+        console.log(`CHECH_EDIT_PRICE - הפרש מחיר: ${priceDifference}, מחיר חדש: ${this.calculatedPrice}`);
+        console.log(`CHECH_EDIT_PRICE - עדכון מקומי הושלם`);
     }
     
     // פונקציה ליצירת קורות בסיס מיטה

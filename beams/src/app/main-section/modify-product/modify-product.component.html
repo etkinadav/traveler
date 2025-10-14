@@ -794,7 +794,11 @@
                                       stroke-width="0.8"/>
                             </svg>
                         </div>
-                        <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isBeamsEnabled">{{ getBeamsOnlyPrice() }} ₪</div>
+                        <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isBeamsEnabled">
+                            <span *ngIf="getHasBeamsChanged()" class="crossed-price">{{ getOriginalBeamsPrice() }} ₪</span>
+                            <span *ngIf="getHasBeamsChanged()" class="new-price">{{ getBeamsOnlyPrice() }} ₪</span>
+                            <span *ngIf="!getHasBeamsChanged()">{{ getBeamsOnlyPrice() }} ₪</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -811,15 +815,16 @@
                             <div class="option-text-container">
                        <div class="option-line-1">{{ beam.beamTranslatedName }}</div>
                        <div class="option-line-2">{{ beam.type.translatedName }}</div>
+                       <div class="option-line-3">מחיר ליח' - {{ beam.type?.pricePerCut || 0 }} ₪</div>
                             </div>
                             <div class="quantity-controls">
-                                <div class="qty-btn" (click)="updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) - 1); $event.stopPropagation()">-</div>
+                                <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) - 1)">-</div>
                                 <input type="number" 
                                        class="qty-input" 
                                        [value]="beam.totalSizes[0]?.count || 0"
                                        (input)="updateBeamQuantity(i, +$any($event.target).value); $event.stopPropagation()"
                                        min="0">
-                                <div class="qty-btn" (click)="updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) + 1); $event.stopPropagation()">+</div>
+                                <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) + 1)">+</div>
                             </div>
                         </div>
                     </div>
@@ -840,7 +845,11 @@
                         <path class="check-path" d="M 4 8 L 7 11 L 12 5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">חיתוך</div>
-                    <div class="category-price" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">{{ getCuttingPrice() }} ₪</div>
+                    <div class="category-price" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">
+                        <span *ngIf="getHasBeamsChanged()" class="crossed-price">{{ getOriginalCuttingPrice() }} ₪</span>
+                        <span *ngIf="getHasBeamsChanged()" class="new-price">{{ getCuttingPrice() }} ₪</span>
+                        <span *ngIf="!getHasBeamsChanged()">{{ getCuttingPrice() }} ₪</span>
+                    </div>
                 </div>
             </div>
             
@@ -868,7 +877,11 @@
                                       stroke-width="0.8"/>
                             </svg>
                         </div>
-                        <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isScrewsEnabled">{{ getScrewsPrice() }} ₪</div>
+                        <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isScrewsEnabled">
+                            <span *ngIf="getHasScrewsChanged()" class="crossed-price">{{ getOriginalScrewsPrice() }} ₪</span>
+                            <span *ngIf="getHasScrewsChanged()" class="new-price">{{ getScrewsPrice() }} ₪</span>
+                            <span *ngIf="!getHasScrewsChanged()">{{ getScrewsPrice() }} ₪</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -885,15 +898,16 @@
                             <div class="option-text-container">
                                 <div class="option-line-1">{{ screw.screwTranslatedName }}</div>
                                 <div class="option-line-2">{{ screw.optimalPackage.translatedName }}</div>
+                                <div class="option-line-3">מחיר ליח' - {{ screw.optimalPackage?.price || 0 }} ₪</div>
                             </div>
                             <div class="quantity-controls">
-                                <div class="qty-btn" (click)="updateScrewQuantity(i, screw.numPackages - 1); $event.stopPropagation()">-</div>
+                                <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateScrewQuantity(i, screw.numPackages - 1)">-</div>
                                 <input type="number" 
                                        class="qty-input" 
                                        [value]="screw.numPackages"
                                        (input)="updateScrewQuantity(i, +$any($event.target).value); $event.stopPropagation()"
                                        min="0">
-                                <div class="qty-btn" (click)="updateScrewQuantity(i, screw.numPackages + 1); $event.stopPropagation()">+</div>
+                                <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateScrewQuantity(i, screw.numPackages + 1)">+</div>
                             </div>
                         </div>
                     </div>
