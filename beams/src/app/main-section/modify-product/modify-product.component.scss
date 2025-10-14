@@ -1873,28 +1873,28 @@ mat-form-field {
                 order: 1; // אינפוטים יהיו משמאל
             }
             
-            .qty-btn {
-                width: 20px;
-                height: 20px;
-                border: 1px solid #ccc;
-                background: #f8f9fa;
-                cursor: pointer;
-                font-size: 12px;
-                padding: 0;
-                margin: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 2px;
-                
-                &:hover {
-                    background: #e9ecef;
-                }
-                
-                &:active {
-                    background: #dee2e6;
-                }
-            }
+.qty-btn {
+    width: 20px;
+    height: 15px;
+    border: 1px solid #ccc;
+    background: #f8f9fa;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    
+    &:hover {
+        background: #e9ecef;
+    }
+    
+    &:active {
+        background: #dee2e6;
+    }
+}
             
             .qty-input {
                 width: 35px;

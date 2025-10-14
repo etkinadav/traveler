@@ -813,13 +813,13 @@
                        <div class="option-line-2">{{ beam.type.translatedName }}</div>
                             </div>
                             <div class="quantity-controls">
-                                <button class="qty-btn" (click)="updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) - 1); $event.stopPropagation()">-</button>
+                                <div class="qty-btn" (click)="updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) - 1); $event.stopPropagation()">-</div>
                                 <input type="number" 
                                        class="qty-input" 
                                        [value]="beam.totalSizes[0]?.count || 0"
                                        (input)="updateBeamQuantity(i, +$any($event.target).value); $event.stopPropagation()"
                                        min="0">
-                                <button class="qty-btn" (click)="updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) + 1); $event.stopPropagation()">+</button>
+                                <div class="qty-btn" (click)="updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) + 1); $event.stopPropagation()">+</div>
                             </div>
                         </div>
                     </div>
@@ -887,13 +887,13 @@
                                 <div class="option-line-2">{{ screw.optimalPackage.translatedName }}</div>
                             </div>
                             <div class="quantity-controls">
-                                <button class="qty-btn" (click)="updateScrewQuantity(i, screw.numPackages - 1); $event.stopPropagation()">-</button>
+                                <div class="qty-btn" (click)="updateScrewQuantity(i, screw.numPackages - 1); $event.stopPropagation()">-</div>
                                 <input type="number" 
                                        class="qty-input" 
                                        [value]="screw.numPackages"
                                        (input)="updateScrewQuantity(i, +$any($event.target).value); $event.stopPropagation()"
                                        min="0">
-                                <button class="qty-btn" (click)="updateScrewQuantity(i, screw.numPackages + 1); $event.stopPropagation()">+</button>
+                                <div class="qty-btn" (click)="updateScrewQuantity(i, screw.numPackages + 1); $event.stopPropagation()">+</div>
                             </div>
                         </div>
                     </div>
