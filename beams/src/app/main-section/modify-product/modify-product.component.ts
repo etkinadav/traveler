@@ -643,6 +643,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     isBeamsEnabled: boolean = true; // האם קורות מופעלות
     isCuttingEnabled: boolean = true; // האם חיתוך מופעל
     isScrewsEnabled: boolean = true; // האם ברגים מופעלים
+    
+    // משתנים לכפתורי עריכה
+    showBeamsEditOptions: boolean = false; // האם להציג אופציות עריכה לקורות
+    showScrewsEditOptions: boolean = false; // האם להציג אופציות עריכה לברגים
     @ViewChild(MatMenuTrigger) pricingMenuTrigger!: MatMenuTrigger;
     constructor(
         private http: HttpClient,
@@ -6619,6 +6623,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     toggleScrewsOption() {
         this.isScrewsEnabled = !this.isScrewsEnabled;
         // לא קוראים ל-calculatePricing() - רק משנים את המצב
+    }
+    
+    // פונקציות לכפתורי עריכה
+    toggleBeamsEditOptions() {
+        this.showBeamsEditOptions = !this.showBeamsEditOptions;
+    }
+    
+    toggleScrewsEditOptions() {
+        this.showScrewsEditOptions = !this.showScrewsEditOptions;
     }
     
     // פונקציה לקבלת מחיר ברגים
