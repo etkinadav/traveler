@@ -4,18 +4,12 @@ import { Subject } from 'rxjs';
 
 import { PreloginComponent } from '../auth/prelogin/prelogin.component';
 import { RightPlaceComponent } from './right-place/right-place.component';
-import { ApplyToAllComponent } from './apply-to-all/apply-to-all.component';
-import { OrderSummaryComponent } from './order-summary/order-summary.component';
 import { DeleteOrderComponent } from './delete-order/delete-order.component';
 import { DeleteUserComponent } from './delete-user/delete-user.component';
-import { AddPointsComponent } from './add-points/add-points.component';
-import { ResizeComponent } from './resize/resize.component';
 import { PhoneComponent } from './phone/phone.component';
 import { CopyScanComponent } from './scan-copy/scan-copy.component';
-import { FixProductsComponent } from './fix-products/fix-products.component';
 import { PropertyExplainComponent } from './property-explain/property-explain.component';
 import { SuCloseBranchComponent } from './su-close-branch/su-close-branch.component';
-import { EditProductComponent } from './edit-product/edit-product.component';
 import { SuEditUserComponent } from './su-edit-user/su-edit-user.component';
 
 @Injectable({
@@ -24,21 +18,15 @@ import { SuEditUserComponent } from './su-edit-user/su-edit-user.component';
 export class DialogService {
   private dialogLoginRef: MatDialogRef<PreloginComponent> | null = null;
   private dialogRightPlaceRef: MatDialogRef<RightPlaceComponent> | null = null;
-  private dialogApplyToAllRef: MatDialogRef<ApplyToAllComponent> | null = null;
-  private dialogResizeRef: MatDialogRef<ResizeComponent> | null = null;
-  private dialogOrderSummaryRef: MatDialogRef<OrderSummaryComponent> | null = null;
   private dialogDeleteOrderRef: MatDialogRef<DeleteOrderComponent> | null = null;
   private dialogDeleteUserRef: MatDialogRef<DeleteUserComponent> | null = null;
-  private dialogAddPointsRef: MatDialogRef<AddPointsComponent> | null = null;
   private closeResizeDialogSource = new Subject<void>();
   closeResizeDialog$ = this.closeResizeDialogSource.asObservable();
   private dialogPhoneRef: MatDialogRef<PhoneComponent> | null = null;
   private dialogCopyScanRef: MatDialogRef<CopyScanComponent> | null = null;
-  private dialogFixProductsRef: MatDialogRef<FixProductsComponent> | null = null;
   private dialogPropertyExplainRef: MatDialogRef<PropertyExplainComponent> | null = null;
   private dialogSuCloseBranchRef: MatDialogRef<SuCloseBranchComponent> | null = null;
   private dialogSuEditUserRef: MatDialogRef<SuEditUserComponent> | null = null;
-  private dialogEditProductRef: MatDialogRef<EditProductComponent> | null = null;
 
   constructor(
     private dialog: MatDialog,
@@ -71,113 +59,8 @@ export class DialogService {
   }
 
 
-  // Apply To All Dialog
-  onOpenApplyToAllDialog(
-    printingService: string,
-    isOriginalPossible: boolean,
-    printSettings: any,
-    paperWidth: number,
-    currentFile: any,
-    currentImageIndex: number,
-    paperType: string,
-  ): void {
-    this.dialogApplyToAllRef = this.dialog.open(ApplyToAllComponent, {
-      panelClass: 'zx-login-dialog',
-      data: {
-        printingService: printingService,
-        isOriginalPossible: isOriginalPossible,
-        printSettings: printSettings,
-        paperWidth: paperWidth,
-        currentFile: currentFile,
-        currentImageIndex: currentImageIndex,
-        paperType: paperType,
-      }
-    });
-  }
 
-  onCloseApplyToAllDialog(): void {
-    this.dialogApplyToAllRef.close();
-  }
 
-  // Resize Dialog
-  onOpenResizeDialog(
-    paperWidth: number,
-    currentFile: any,
-    currentImageIndex: number,
-    paperType: string,
-    currentImage: any,
-    imagePath: string,
-    isMustResize: boolean,
-    serverAddress: string,
-  ): void {
-    this.dialogResizeRef = this.dialog.open(ResizeComponent, {
-      panelClass: 'zx-resize-dialog',
-      data: {
-        paperWidth: paperWidth,
-        currentFile: currentFile,
-        currentImageIndex: currentImageIndex,
-        paperType: paperType,
-        currentImage: currentImage,
-        imagePath: imagePath,
-        isMustResize: isMustResize,
-        serverAddress: serverAddress,
-      }
-    });
-  }
-
-  onCloseResizeDialog(): void {
-    this.closeResizeDialogSource.next();
-    this.dialogResizeRef.close();
-  }
-
-  // Apply To All Dialog
-  onOpenOrderSummaryDialog(
-    printingService: string,
-    serverAddress: string,
-    branchPapers: any,
-    files: any,
-    branchName: string,
-    totalPriceData: any,
-    user: any,
-    isPendingOrder: boolean = false,
-    isAdminOrder: boolean = false,
-    branchUnique: number = 0,
-    branchID: string = '',
-    printerID: string = '',
-    orderID: string = '',
-    printingCode: number = 0,
-    fixProducts: any = null,
-  ): void {
-    const isIphone = /iPhone/.test(navigator.userAgent);
-    let cdialogClass = 'zx-order-summary-dialog';
-    if (isIphone) {
-      cdialogClass = 'zx-order-summary-dialog-iphone';
-    }
-    this.dialogOrderSummaryRef = this.dialog.open(OrderSummaryComponent, {
-      panelClass: cdialogClass,
-      data: {
-        printingService: printingService,
-        serverAddress: serverAddress,
-        branchPapers: branchPapers,
-        files: files,
-        branchName: branchName,
-        totalPriceData: totalPriceData,
-        user: user,
-        isPendingOrder: isPendingOrder,
-        isAdminOrder: isAdminOrder,
-        branchUnique: branchUnique,
-        branchID: branchID,
-        printerID: printerID,
-        orderID: orderID,
-        printingCode: printingCode,
-        fixProducts: fixProducts,
-      }
-    });
-  }
-
-  onCloseOrderSummaryDialog(): void {
-    this.dialogOrderSummaryRef.close();
-  }
 
   // delete order
   onOpenDeleteOrderDialog(
@@ -213,22 +96,6 @@ export class DialogService {
     this.dialogDeleteUserRef.close();
   }
 
-  // Add Points
-  onOpenAddPointsDialog(
-    user,
-  ): void {
-    console.log("user from onOpenAddPointsDialog", user);
-    this.dialogAddPointsRef = this.dialog.open(AddPointsComponent, {
-      panelClass: 'zx-printer-number-dialog',
-      data: {
-        user: user,
-      }
-    });
-  }
-
-  onCloseAddPointsDialog(): void {
-    this.dialogAddPointsRef.close();
-  }
 
 
   // Phone Dialog
@@ -256,20 +123,6 @@ export class DialogService {
     this.dialogCopyScanRef.close();
   }
 
-  // Fix Products Dialog
-  onOpenFixProductsDialog(branchName: string, products: any): void {
-    this.dialogFixProductsRef = this.dialog.open(FixProductsComponent, {
-      panelClass: 'zx-scan-copy-dialog',
-      data: {
-        branchName: branchName,
-        products: products,
-      }
-    });
-  }
-
-  onCloseFixProductsDialog(): void {
-    this.dialogFixProductsRef.close();
-  }
 
   // Property Explain Dialog
   onOpenExplainPropertyDialog(
@@ -332,30 +185,6 @@ export class DialogService {
   }
 
   // Edit Product Dialog
-  onOpenEditProductDialog(
-    productName: string,
-    modelName: string,
-    params: any[],
-    product: any
-  ): MatDialogRef<EditProductComponent> {
-    this.dialogEditProductRef = this.dialog.open(EditProductComponent, {
-      panelClass: 'zx-edit-product-dialog',
-      hasBackdrop: false,
-      data: {
-        productName: productName,
-        modelName: modelName,
-        params: params,
-        product: product
-      }
-    });
-    return this.dialogEditProductRef;
-  }
-
-  onCloseEditProductDialog(): void {
-    if (this.dialogEditProductRef) {
-      this.dialogEditProductRef.close();
-    }
-  }
 
   // =================
 }

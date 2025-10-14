@@ -153,23 +153,7 @@ export class ThreejsBoxComponent implements AfterViewInit, OnDestroy, OnInit {
     
     // עריכת מוצר
     editProduct() {
-        const productName = this.product?.translatedName || '';
-        const modelName = this.product?.modelName || '';
-        const params = this.params || [];
-        
-        const dialogRef = this.dialogService.onOpenEditProductDialog(
-            productName,
-            modelName,
-            params,
-            this.product
-        );
-        
-        dialogRef.afterClosed().subscribe(result => {
-            if (result && result.modelName !== undefined) {
-                this.debugLog('שם הדגם החדש:', result.modelName);
-                // כאן נוסיף בהמשך שמירה לשרת
-            }
-        });
+        // Edit product dialog removed
     }
     
     // פתיחה/סגירה של תפריט אפשרויות נוספות

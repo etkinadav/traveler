@@ -142,25 +142,7 @@ export class PendingOrderComponent implements OnInit, OnDestroy {
             orderFilesData.push(fileData);
           }
         }
-        // open dialog
-        const present = 100;
-        const totalOrderPriceAfterDiscount = this.order.totalCost * (present / 100);
-        this.dialogService.onOpenOrderSummaryDialog(
-          'plotter',
-          '',
-          [],
-          orderFilesData,
-          this.order.branchID.serial_name,
-          {
-            totalOrderPriceBeforeDiscount: this.order.totalCost,
-            totalOrderPrice: totalOrderPriceAfterDiscount,
-            points: this.user.points ? this.user.points : 0,
-          },
-          this.user,
-          true,
-          this.order.adminOrder ? this.order.adminOrder : false,
-          this.order.branchID.unique,
-        );
+        // Order summary dialog removed
         // // [plotter] ---  [plotter] ---  [plotter] --------------------------------------------------------
       } else if (this.printingService === 'e') {
         // [express] ---  [express] ---  [express] --------------------------------------------------------
@@ -356,25 +338,7 @@ export class PendingOrderComponent implements OnInit, OnDestroy {
             // console.log('fileData ::::: ', fileData);
             orderFilesData.push(fileData);
           }
-          // open dialog
-          const present = this.user.discount ? 100 - this.user.discount : 100;
-          const totalOrderPriceAfterDiscount = this.order.totalCost * (present / 100);
-          this.dialogService.onOpenOrderSummaryDialog(
-            'express',
-            '',
-            [],
-            orderFilesData,
-            this.order.printerID.serial_name,
-            {
-              totalOrderPriceBeforeDiscount: this.order.totalCost,
-              totalOrderPrice: totalOrderPriceAfterDiscount,
-              points: this.user.points ? this.user.points : 0,
-            },
-            this.user,
-            true,
-            this.order.adminOrder ? this.order.adminOrder : false,
-            this.order.printerID.unique
-          );
+          // Order summary dialog removed
         }
         // // [express] ---  [express] ---  [express] --------------------------------------------------------
       }

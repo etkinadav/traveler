@@ -289,26 +289,7 @@ export class MyOrdersComponent implements OnInit, OnDestroy {
             orderFilesData.push(fileData);
           }
         }
-        // open dialog
-        const present = this.user.discount ? 100 - this.user.discount : 100;
-        const totalOrderPriceAfterDiscount = order.totalCost * (present / 100);
-        this.dialogService.onOpenOrderSummaryDialog(
-          'plotter',
-          '',
-          [],
-          orderFilesData,
-          order.branchID.serial_name,
-          {
-            totalOrderPriceBeforeDiscount: order.totalCost,
-            totalOrderPrice: totalOrderPriceAfterDiscount,
-            points: this.user.points ? this.user.points : 0,
-          },
-          this.user,
-          true,
-          order.adminOrder ? order.adminOrder : false,
-          order.branchID.unique,
-          order._id
-        );
+        // Order summary dialog removed
         // // [plotter] ---  [plotter] ---  [plotter] --------------------------------------------------------
       }
 
@@ -506,28 +487,7 @@ export class MyOrdersComponent implements OnInit, OnDestroy {
           // console.log('fileData ::::: ', fileData);
           orderFilesData.push(fileData);
         }
-        // open dialog
-        const present = this.user.discount ? 100 - this.user.discount : 100;
-        const totalOrderPriceAfterDiscount = order.totalCost * (present / 100);
-        this.dialogService.onOpenOrderSummaryDialog(
-          'express',
-          'https://img-express.eazix.io',
-          [],
-          orderFilesData,
-          order.printerID.serial_name,
-          {
-            totalOrderPriceBeforeDiscount: order.totalCost,
-            totalOrderPrice: totalOrderPriceAfterDiscount,
-            points: this.user.points ? this.user.points : 0,
-          },
-          this.user,
-          true,
-          order.adminOrder ? order.adminOrder : false,
-          order.printerID.unique,
-          '',
-          '',
-          order._id,
-        );
+        // Order summary dialog removed
       }
       // // [express] ---  [express] ---  [express] --------------------------------------------------------
     }

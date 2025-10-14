@@ -28,19 +28,14 @@ import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
 import { RightPlaceComponent } from "./dialog/right-place/right-place.component";
-import { ApplyToAllComponent } from "./dialog/apply-to-all/apply-to-all.component";
-import { ResizeComponent } from "./dialog/resize/resize.component";
-import { OrderSummaryComponent } from "./dialog/order-summary/order-summary.component";
 import { DeleteOrderComponent } from "./dialog/delete-order/delete-order.component";
 import { DeleteUserComponent } from "./dialog/delete-user/delete-user.component";
-import { AddPointsComponent } from "./dialog/add-points/add-points.component";
 import { MyOrdersComponent } from "./other-pages/my-orders/my-orders.component";
 import { MyProfileComponent } from "./other-pages/my-profile/my-profile.component";
 import { PrintingQueComponent } from "./other-pages/printing-que/printing-que.component";
 import { QAndAComponent } from "./other-pages/q-and-a/q-and-a.component";
 import { PhoneComponent } from "./dialog/phone/phone.component";
 import { CopyScanComponent } from "./dialog/scan-copy/scan-copy.component";
-import { FixProductsComponent } from "./dialog/fix-products/fix-products.component";
 import { PropertyExplainComponent } from "./dialog/property-explain/property-explain.component";
 import { PendingOrderComponent } from "./other-pages/pending-order/pending-order.component";
 import { SuCloseBranchComponent } from "./dialog/su-close-branch/su-close-branch.component";
@@ -51,7 +46,6 @@ import { FileUploadModule } from 'ng2-file-upload';
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { ThreejsBoxComponent } from './threejs-box/threejs-box.component';
 import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
-import { EditProductComponent } from './dialog/edit-product/edit-product.component';
 
 @NgModule({
   declarations: [
@@ -71,18 +65,12 @@ import { EditProductComponent } from './dialog/edit-product/edit-product.compone
     RightPlaceComponent,
     PhoneComponent,
     CopyScanComponent,
-    FixProductsComponent,
     SuCloseBranchComponent,
     PropertyExplainComponent,
-    ApplyToAllComponent,
-    ResizeComponent,
-    OrderSummaryComponent,
     DeleteOrderComponent,
     DeleteUserComponent,
-    AddPointsComponent,
     PendingOrderComponent,
     SuEditUserComponent,
-    EditProductComponent
   ],
   imports: [
     BrowserModule,
