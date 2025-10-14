@@ -7266,6 +7266,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // קבלת רשימת קורות לעריכה
     getBeamsForEdit(): any[] {
+        console.log('🔍 BeamsDataForPricing:', this.BeamsDataForPricing);
+        if (this.BeamsDataForPricing && this.BeamsDataForPricing.length > 0) {
+            console.log('🔍 First beam:', this.BeamsDataForPricing[0]);
+            console.log('🔍 First beam name:', this.BeamsDataForPricing[0].name);
+            console.log('🔍 First beam translatedBeamName:', this.BeamsDataForPricing[0].translatedBeamName);
+            console.log('🔍 First beam type:', this.BeamsDataForPricing[0].type);
+        }
         return this.BeamsDataForPricing || [];
     }
     

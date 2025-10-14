@@ -808,7 +808,10 @@
                         
                         <!-- רשימת קורות -->
                         <div class="edit-option-row" *ngFor="let beam of getBeamsForEdit(); let i = index">
-                            <span class="option-right">{{ beam.translatedBeamName }} - {{ beam.type.translatedName }}</span>
+                            <div class="option-text-container">
+                       <div class="option-line-1">{{ beam.beamTranslatedName }}</div>
+                       <div class="option-line-2">{{ beam.type.translatedName }}</div>
+                            </div>
                             <div class="quantity-controls">
                                 <button class="qty-btn" (click)="updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) - 1); $event.stopPropagation()">-</button>
                                 <input type="number" 
@@ -879,7 +882,10 @@
                         
                         <!-- רשימת ברגים -->
                         <div class="edit-option-row" *ngFor="let screw of getScrewsForEdit(); let i = index">
-                            <span class="option-right">{{ screw.screwTranslatedName }} - {{ screw.optimalPackage.translatedName }}</span>
+                            <div class="option-text-container">
+                                <div class="option-line-1">{{ screw.screwTranslatedName }}</div>
+                                <div class="option-line-2">{{ screw.optimalPackage.translatedName }}</div>
+                            </div>
                             <div class="quantity-controls">
                                 <button class="qty-btn" (click)="updateScrewQuantity(i, screw.numPackages - 1); $event.stopPropagation()">-</button>
                                 <input type="number" 
