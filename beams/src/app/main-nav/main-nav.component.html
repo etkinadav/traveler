@@ -78,40 +78,44 @@
                   </div>
                 </div>
 
-                <button *ngIf="userIsAuthenticated" class="justify-content-start d-sm-none" mat-menu-item
-                  (click)="goToMyOrders()">
-                  <div class="d-flex align-items-center justify-content-center gap-2">
-                    <span class="mat-list-item-small" [class.fw-bold]="userIsAuthenticated && numOfPendingOrders > 0"
-                      [class.num-pending-text]="userIsAuthenticated && numOfPendingOrders > 0 && !isDarkMode">
-                      {{'main-nav.my-orders' | translate }}
-                    </span>
-                    <span class="num-pending-con" [class.num-pending-con-not-rtl]="!isRTL"
-                      *ngIf="userIsAuthenticated && numOfPendingOrders > 0">
-                      <span class="num-pending">
-                        {{ numOfPendingOrders < 9 ? numOfPendingOrders : '9+' }} </span>
+                <!-- מיכל הכפתורים עם רווחים קבועים -->
+                <div class="menu-buttons-container">
+                  <button *ngIf="userIsAuthenticated" class="justify-content-start d-sm-none" mat-menu-item
+                    (click)="goToMyOrders()">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                      <span class="mat-list-item-small" [class.fw-bold]="userIsAuthenticated && numOfPendingOrders > 0"
+                        [class.num-pending-text]="userIsAuthenticated && numOfPendingOrders > 0 && !isDarkMode">
+                        {{'main-nav.my-orders' | translate }}
                       </span>
-                  </div>
-                </button>
+                      <span class="num-pending-con" [class.num-pending-con-not-rtl]="!isRTL"
+                        *ngIf="userIsAuthenticated && numOfPendingOrders > 0">
+                        <span class="num-pending">
+                          {{ numOfPendingOrders < 9 ? numOfPendingOrders : '9+' }} </span>
+                        </span>
+                    </div>
+                  </button>
 
-                <button class="justify-content-start rounded-sm-top-3" mat-menu-item (click)="goToMyProfile()">
-                  <span class="mat-list-item-small">
-                    {{'main-nav.my-profile' | translate}}
-                  </span>
-                </button>
+                  <button class="justify-content-start rounded-sm-top-3" mat-menu-item (click)="goToMyProfile()">
+                    <span class="mat-list-item-small">
+                      {{'main-nav.my-profile' | translate}}
+                    </span>
+                  </button>
 
-                <button class="justify-content-start" mat-menu-item (click)="goToMyProfileCreditMode()">
-                  <span class="mat-list-item-small">
-                    {{'main-nav.methods-of-payment' | translate}}
-                  </span>
-                </button>
+                  <button class="justify-content-start" mat-menu-item (click)="goToMyProfileCreditMode()">
+                    <span class="mat-list-item-small">
+                      {{'main-nav.methods-of-payment' | translate}}
+                    </span>
+                  </button>
 
-                <hr class="m-1">
+                  <!-- קוו הפרדה רק מעל התנתקות -->
+                  <hr class="menu-separator">
 
-                <button class="justify-content-start rounded-bottom-3" mat-menu-item (click)="onLogout()">
-                  <span class="mat-list-item-small" [class.zx-text-warn]="!isDarkMode">
-                    {{'main-nav.logout' | translate}}
-                  </span>
-                </button>
+                  <button class="justify-content-start rounded-bottom-3" mat-menu-item (click)="onLogout()">
+                    <span class="mat-list-item-small" [class.zx-text-warn]="!isDarkMode">
+                      {{'main-nav.logout' | translate}}
+                    </span>
+                  </button>
+                </div>
 
               </div>
             </div>

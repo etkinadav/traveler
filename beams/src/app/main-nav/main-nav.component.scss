@@ -800,7 +800,7 @@ mat-toolbar.transparent-toolbar {
 
 // סטיילים לבועת דיבור ברכה למשתמש
 .user-greeting-bubble {
-  padding: 16px 16px 0 16px;
+  padding: 24px 16px 0 16px; // שינוי מ-39px ל-24px ב-top
   margin-bottom: 16px; // יותר רווח מתחת
   text-align: center;
   
@@ -857,6 +857,52 @@ mat-toolbar.transparent-toolbar {
   .greeting-text {
     text-align: center;
   }
+}
+
+// סטיילים למיכל הכפתורים
+.menu-buttons-container {
+  padding: 0 16px 1px 16px; // הקטנת padding bottom מ-16px ל-1px (15px פחות)
+  
+  .mat-mdc-menu-item {
+    margin-bottom: 8px; // רווח קבוע בין הכפתורים
+    height: 48px !important; // גובה אחיד לכל הכפתורים
+    display: flex !important;
+    align-items: center !important; // יישור אנכי למרכז
+    
+    &:last-child {
+      margin-bottom: 0; // אין רווח אחרון
+    }
+    
+    // וידוא שהטקסט מיושר למרכז
+    .mat-list-item-small {
+      line-height: 1 !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    
+    // וידוא שה-div הפנימי לא משפיע על היישור
+    .d-flex {
+      align-items: center !important;
+      justify-content: flex-start !important;
+    }
+  }
+}
+
+// קוו הפרדה מעל התנתקות
+.menu-separator {
+  margin: 8px 0 !important; // רווח קבוע מעל ומתחת
+  border: none !important;
+  border-top: 1px solid #e0e0e0 !important;
+  height: 0 !important;
+  background: none !important;
+}
+
+// הזזת כל התפריט בדסקטופ בלבד - 2px למטה ו-10px ימינה (8px + 2px = 10px)
+.zx-profile-manu {
+  @media (min-width: 768px) {
+    transform: translateY(2px) translateX(10px) !important; // דסקטופ: עוד 2px ימינה (8px+2px=10px)
+  }
+  transform: translateY(3px) translateX(5px) !important; // מובייל: נשאר כמו שהיה
 }
 
 // סטיילים לקווים אופקיים בתפריט
