@@ -779,7 +779,10 @@
                     </svg>
                     <div class="category-title" (click)="$event.stopPropagation()">קורות</div>
                     <div class="category-price-container">
-                        <div class="edit-icon-div" (click)="toggleBeamsEditOptions(); $event.stopPropagation()" title="עריכה">
+                        <div class="edit-icon-div" 
+                             matTooltip="עריכה" 
+                             matTooltipPosition="above"
+                             (click)="toggleBeamsEditOptions(); $event.stopPropagation()">
                             <svg width="12" height="12" viewBox="0 0 12 12" class="edit-icon">
                                 <path d="M 8.5 1 L 11 3.5 L 4 10.5 L 1 11 L 1.5 8 Z" 
                                       stroke="currentColor" 
@@ -797,9 +800,20 @@
                 
                 <!-- אופציות עריכה לקורות -->
                 <div class="edit-options" *ngIf="showBeamsEditOptions">
-                    <button class="edit-option-button" (click)="$event.stopPropagation()">
-                        <span>X</span>
-                    </button>
+                    <div class="edit-options-list">
+                        <div class="edit-option-row">
+                            <span class="option-left">2</span>
+                            <span class="option-right">1</span>
+                        </div>
+                        <div class="edit-option-row">
+                            <span class="option-left">4</span>
+                            <span class="option-right">3</span>
+                        </div>
+                        <div class="edit-option-row">
+                            <span class="option-left">6</span>
+                            <span class="option-right">5</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -830,7 +844,10 @@
                     </svg>
                     <div class="category-title" (click)="$event.stopPropagation()">ברגים</div>
                     <div class="category-price-container">
-                        <div class="edit-icon-div" (click)="toggleScrewsEditOptions(); $event.stopPropagation()" title="עריכה">
+                        <div class="edit-icon-div" 
+                             matTooltip="עריכה" 
+                             matTooltipPosition="above"
+                             (click)="toggleScrewsEditOptions(); $event.stopPropagation()">
                             <svg width="12" height="12" viewBox="0 0 12 12" class="edit-icon">
                                 <path d="M 8.5 1 L 11 3.5 L 4 10.5 L 1 11 L 1.5 8 Z" 
                                       stroke="currentColor" 
@@ -848,9 +865,20 @@
                 
                 <!-- אופציות עריכה לברגים -->
                 <div class="edit-options" *ngIf="showScrewsEditOptions">
-                    <button class="edit-option-button" (click)="$event.stopPropagation()">
-                        <span>X</span>
-                    </button>
+                    <div class="edit-options-list">
+                        <div class="edit-option-row">
+                            <span class="option-left">2</span>
+                            <span class="option-right">1</span>
+                        </div>
+                        <div class="edit-option-row">
+                            <span class="option-left">4</span>
+                            <span class="option-right">3</span>
+                        </div>
+                        <div class="edit-option-row">
+                            <span class="option-left">6</span>
+                            <span class="option-right">5</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </mat-menu>

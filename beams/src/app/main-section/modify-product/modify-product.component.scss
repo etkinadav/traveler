@@ -1828,40 +1828,40 @@ mat-form-field {
         }
     }
     
-    .edit-options {
-        margin-top: 4px;
-        padding: 0 16px;
-        display: flex;
-        justify-content: flex-start;
-    }
-    
-    .edit-option-button {
-        background: #f5f5f5 !important;
-        border: none !important;
-        border-radius: 0 !important;
-        padding: 4px 8px !important;
-        cursor: pointer !important;
-        transition: background-color 0.2s ease !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: auto !important;
-        min-width: auto !important;
-        
-        &:hover {
-            background: #e8e8e8 !important;
-        }
-        
-        &:focus {
-            outline: none !important;
-        }
-        
-        span {
-            font-size: 12px !important;
-            color: #0066cc !important;
-            font-weight: 500 !important;
-        }
-    }
+            .edit-options {
+                margin-top: 4px;
+                padding: 0 16px;
+                display: flex;
+                justify-content: flex-start;
+            }
+            
+            .edit-options-list {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                width: 100%;
+            }
+            
+            .edit-option-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 2px 0;
+            }
+            
+            .option-left {
+                font-size: 12px;
+                color: #333;
+                font-weight: 500;
+                text-align: left;
+            }
+            
+            .option-right {
+                font-size: 12px;
+                color: #333;
+                font-weight: 500;
+                text-align: right;
+            }
 }
 
 // אייקון V
