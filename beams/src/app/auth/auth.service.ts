@@ -269,7 +269,7 @@ export class AuthService {
                         if (this.printingService && this.printingService !== '' && this.branch && this.branch !== '') {
                             this.dataSharingService.setPrintingService(this.printingService);
                             this.dataSharingService.setBranch(this.branch);
-                            this.dialogService.onOpenRightPlaceDialog();
+                            // Right place dialog removed
                         }
                     }
                     this.triggerAuthComplete();
@@ -317,7 +317,7 @@ export class AuthService {
                         !this.isRightPlaceOpened) {
                         if (!isfromSocial || isfromSocial === '' || isfromSocial === "false") {
                             console.log("onOpenRightPlaceDialog1")
-                            this.dialogService.onOpenRightPlaceDialog();
+                            // Right place dialog removed
                         }
                     }
                     this.isRightPlaceOpened = true;
@@ -370,7 +370,7 @@ export class AuthService {
         console.log("setting timer: " + duration)
         this.tokenTimer = setTimeout(() => {
             this.logout();
-            this.dialogService.onCloseRightPlaceDialog();
+            // Right place dialog removed
             this.dialogService.onOpenLoginDialog('', '');
         }, duration * 1000)
     }

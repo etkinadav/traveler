@@ -27,7 +27,6 @@ import { PrivacyPolicyComponent } from "./main-section/legal/privacy-policy/priv
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
-import { RightPlaceComponent } from "./dialog/right-place/right-place.component";
 import { DeleteOrderComponent } from "./dialog/delete-order/delete-order.component";
 import { DeleteUserComponent } from "./dialog/delete-user/delete-user.component";
 import { MyOrdersComponent } from "./other-pages/my-orders/my-orders.component";
@@ -38,7 +37,6 @@ import { PhoneComponent } from "./dialog/phone/phone.component";
 import { CopyScanComponent } from "./dialog/scan-copy/scan-copy.component";
 import { PropertyExplainComponent } from "./dialog/property-explain/property-explain.component";
 import { PendingOrderComponent } from "./other-pages/pending-order/pending-order.component";
-import { SuCloseBranchComponent } from "./dialog/su-close-branch/su-close-branch.component";
 import { SuEditUserComponent } from "./dialog/su-edit-user/su-edit-user.component";
 
 
@@ -62,10 +60,8 @@ import { ThreejsBoxModule } from './threejs-box/threejs-box.module';
     SocialComponent,
     TAndCComponent,
     PrivacyPolicyComponent,
-    RightPlaceComponent,
     PhoneComponent,
     CopyScanComponent,
-    SuCloseBranchComponent,
     PropertyExplainComponent,
     DeleteOrderComponent,
     DeleteUserComponent,

@@ -362,7 +362,7 @@ export class MainNavComponent implements OnInit, OnDestroy {
     const branch = localStorage.getItem('branch');
     if (printingService && printingService !== 'null' && printingService !== '' &&
       branch && branch !== 'null' && branch !== '') {
-      this.dialogService.onOpenRightPlaceDialog();
+      // Right place dialog removed
     } else if (branch && branch !== 'null' && branch !== '') {
       this.router.navigate(["/branch"]);
     } else {

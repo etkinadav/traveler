@@ -82,7 +82,7 @@ export class PendingOrderComponent implements OnInit, OnDestroy {
     if (localStorage.getItem('userId') &&
       this.user._id &&
       localStorage.getItem('userId') === this.user._id) {
-      this.dialogService.onOpenRightPlaceDialog();
+      // Right place dialog removed
       this.router.navigate(['/']);
     } else {
       this.dialogService.onOpenLoginDialog();

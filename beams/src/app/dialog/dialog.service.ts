@@ -3,13 +3,11 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 
 import { PreloginComponent } from '../auth/prelogin/prelogin.component';
-import { RightPlaceComponent } from './right-place/right-place.component';
 import { DeleteOrderComponent } from './delete-order/delete-order.component';
 import { DeleteUserComponent } from './delete-user/delete-user.component';
 import { PhoneComponent } from './phone/phone.component';
 import { CopyScanComponent } from './scan-copy/scan-copy.component';
 import { PropertyExplainComponent } from './property-explain/property-explain.component';
-import { SuCloseBranchComponent } from './su-close-branch/su-close-branch.component';
 import { SuEditUserComponent } from './su-edit-user/su-edit-user.component';
 
 @Injectable({
@@ -17,7 +15,6 @@ import { SuEditUserComponent } from './su-edit-user/su-edit-user.component';
 })
 export class DialogService {
   private dialogLoginRef: MatDialogRef<PreloginComponent> | null = null;
-  private dialogRightPlaceRef: MatDialogRef<RightPlaceComponent> | null = null;
   private dialogDeleteOrderRef: MatDialogRef<DeleteOrderComponent> | null = null;
   private dialogDeleteUserRef: MatDialogRef<DeleteUserComponent> | null = null;
   private closeResizeDialogSource = new Subject<void>();
@@ -25,7 +22,6 @@ export class DialogService {
   private dialogPhoneRef: MatDialogRef<PhoneComponent> | null = null;
   private dialogCopyScanRef: MatDialogRef<CopyScanComponent> | null = null;
   private dialogPropertyExplainRef: MatDialogRef<PropertyExplainComponent> | null = null;
-  private dialogSuCloseBranchRef: MatDialogRef<SuCloseBranchComponent> | null = null;
   private dialogSuEditUserRef: MatDialogRef<SuEditUserComponent> | null = null;
 
   constructor(
@@ -47,16 +43,6 @@ export class DialogService {
     this.dialogLoginRef.close();
   }
 
-  // Right Place Dialog
-  onOpenRightPlaceDialog(): void {
-    this.dialogRightPlaceRef = this.dialog.open(RightPlaceComponent, {
-      panelClass: 'zx-rightplace-dialog',
-    });
-  }
-
-  onCloseRightPlaceDialog(): void {
-    this.dialogRightPlaceRef.close();
-  }
 
 
 
@@ -146,27 +132,6 @@ export class DialogService {
 
 
 
-  // Su Close Branch Dialog
-  onOpenSuCloseBranchDialog(
-    isClose: boolean,
-    service: string,
-    branch: string,
-    close_msg: string,
-  ): void {
-    this.dialogSuCloseBranchRef = this.dialog.open(SuCloseBranchComponent, {
-      panelClass: 'zx-printer-number-dialog',
-      data: {
-        isClose: isClose,
-        service: service,
-        branch: branch,
-        close_msg: close_msg,
-      }
-    });
-  }
-
-  onCloseSuCloseBranchDialog(): void {
-    this.dialogSuCloseBranchRef.close();
-  }
 
   // Su Edit User Dialog
   onOpenSuEditUserDialog(
