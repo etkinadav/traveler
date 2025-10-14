@@ -4,13 +4,11 @@ import { Subject } from 'rxjs';
 
 import { PreloginComponent } from '../auth/prelogin/prelogin.component';
 import { RightPlaceComponent } from './right-place/right-place.component';
-import { ImagePreviewComponent } from './image-preview/image-preview.component';
 import { ApplyToAllComponent } from './apply-to-all/apply-to-all.component';
 import { OrderSummaryComponent } from './order-summary/order-summary.component';
 import { DeleteOrderComponent } from './delete-order/delete-order.component';
 import { DeleteUserComponent } from './delete-user/delete-user.component';
 import { AddPointsComponent } from './add-points/add-points.component';
-import { CloseBranchComponent } from './close-branch/close-branch.component';
 import { ResizeComponent } from './resize/resize.component';
 import { PhoneComponent } from './phone/phone.component';
 import { CopyScanComponent } from './scan-copy/scan-copy.component';
@@ -26,14 +24,12 @@ import { SuEditUserComponent } from './su-edit-user/su-edit-user.component';
 export class DialogService {
   private dialogLoginRef: MatDialogRef<PreloginComponent> | null = null;
   private dialogRightPlaceRef: MatDialogRef<RightPlaceComponent> | null = null;
-  private dialogImagePreviewRef: MatDialogRef<ImagePreviewComponent> | null = null;
   private dialogApplyToAllRef: MatDialogRef<ApplyToAllComponent> | null = null;
   private dialogResizeRef: MatDialogRef<ResizeComponent> | null = null;
   private dialogOrderSummaryRef: MatDialogRef<OrderSummaryComponent> | null = null;
   private dialogDeleteOrderRef: MatDialogRef<DeleteOrderComponent> | null = null;
   private dialogDeleteUserRef: MatDialogRef<DeleteUserComponent> | null = null;
   private dialogAddPointsRef: MatDialogRef<AddPointsComponent> | null = null;
-  private dialogCloseBranchRef: MatDialogRef<CloseBranchComponent> | null = null;
   private closeResizeDialogSource = new Subject<void>();
   closeResizeDialog$ = this.closeResizeDialogSource.asObservable();
   private dialogPhoneRef: MatDialogRef<PhoneComponent> | null = null;
@@ -74,31 +70,6 @@ export class DialogService {
     this.dialogRightPlaceRef.close();
   }
 
-  // Image Preview Dialog
-  onOpenImagePreviewDialog(
-    printingService: string,
-    currentFile: any,
-    currentImage: any,
-    realBranch: any,
-    selectedPaper: any,
-    cropRatioValue: boolean,
-  ): void {
-    this.dialogImagePreviewRef = this.dialog.open(ImagePreviewComponent, {
-      panelClass: 'zx-image-preview-dialog',
-      data: {
-        printingService: printingService,
-        currentFile: currentFile,
-        currentImage: currentImage,
-        realBranch: realBranch,
-        selectedPaper: selectedPaper,
-        cropRatioValue: cropRatioValue,
-      }
-    });
-  }
-
-  onCloseImagePreviewDialog(): void {
-    this.dialogImagePreviewRef.close();
-  }
 
   // Apply To All Dialog
   onOpenApplyToAllDialog(
@@ -259,21 +230,6 @@ export class DialogService {
     this.dialogAddPointsRef.close();
   }
 
-  // Close Branch
-  onOpenCloseBranchDialog(service, branch, close_msg): void {
-    this.dialogCloseBranchRef = this.dialog.open(CloseBranchComponent, {
-      panelClass: 'zx-printer-number-dialog',
-      data: {
-        service: service,
-        branch: branch,
-        close_msg: close_msg,
-      }
-    });
-  }
-
-  onCloseCloseBranchDialog(): void {
-    this.dialogCloseBranchRef.close();
-  }
 
   // Phone Dialog
   onOpenPhoneDialog(): void {

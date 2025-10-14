@@ -28,14 +28,12 @@ import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
 import { RightPlaceComponent } from "./dialog/right-place/right-place.component";
-import { ImagePreviewComponent } from "./dialog/image-preview/image-preview.component";
 import { ApplyToAllComponent } from "./dialog/apply-to-all/apply-to-all.component";
 import { ResizeComponent } from "./dialog/resize/resize.component";
 import { OrderSummaryComponent } from "./dialog/order-summary/order-summary.component";
 import { DeleteOrderComponent } from "./dialog/delete-order/delete-order.component";
 import { DeleteUserComponent } from "./dialog/delete-user/delete-user.component";
 import { AddPointsComponent } from "./dialog/add-points/add-points.component";
-import { CloseBranchComponent } from "./dialog/close-branch/close-branch.component";
 import { MyOrdersComponent } from "./other-pages/my-orders/my-orders.component";
 import { MyProfileComponent } from "./other-pages/my-profile/my-profile.component";
 import { PrintingQueComponent } from "./other-pages/printing-que/printing-que.component";
@@ -76,14 +74,12 @@ import { EditProductComponent } from './dialog/edit-product/edit-product.compone
     FixProductsComponent,
     SuCloseBranchComponent,
     PropertyExplainComponent,
-    ImagePreviewComponent,
     ApplyToAllComponent,
     ResizeComponent,
     OrderSummaryComponent,
     DeleteOrderComponent,
     DeleteUserComponent,
     AddPointsComponent,
-    CloseBranchComponent,
     PendingOrderComponent,
     SuEditUserComponent,
     EditProductComponent
