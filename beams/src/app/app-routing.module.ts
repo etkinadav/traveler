@@ -2,8 +2,6 @@ import { ThreejsBoxComponent } from './threejs-box/threejs-box.component';
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { ChoosePrintingSystemComponent } from "./main-section/choose-printing-system/choose-printing-system.component"
-import { ChooseBranchComponent } from "./main-section/choose-branch/choose-branch.component"
-import { ChooseProductComponent } from "./main-section/choose-product/choose-product.component"
 
 import { SocialComponent } from "./auth/social/social.component";
 
@@ -37,8 +35,6 @@ const routes: Routes = [
 
     { path: "beams", component: ThreejsBoxComponent },
 
-    { path: "branch", component: ChooseBranchComponent },
-    { path: "product", component: ChooseProductComponent },
     { path: "myorders/:userId", component: MyOrdersComponent },
     { path: "myprofile/:userId", component: MyProfileComponent },
     { path: "queue/:branch", component: PrintingQueComponent },

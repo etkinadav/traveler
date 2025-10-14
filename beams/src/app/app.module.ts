@@ -12,8 +12,6 @@ import { AngularMaterialModule } from "./angular-material.module";
 
 import { ChoosePrintingSystemComponent } from "./main-section/choose-printing-system/choose-printing-system.component"
 import { ProductMiniPreviewComponent } from "./main-section/choose-printing-system/product-mini-preview/product-mini-preview.component"
-import { ChooseBranchComponent } from "./main-section/choose-branch/choose-branch.component"
-import { ChooseProductComponent } from "./main-section/choose-product/choose-product.component"
 import { MainNavComponent } from './main-nav/main-nav.component';
 import { NavigateDropdownComponent } from "./main-section/settings-area/navigate-dropdown/navigate-dropdown.component";
 import { NavigationToBranchesComponent } from "./main-section/settings-area/navigate-dropdown/navigation-to-branches/navigation-to-branches.component";
@@ -74,8 +72,6 @@ import { EditProductComponent } from './dialog/edit-product/edit-product.compone
     MainNavComponent,
     ChoosePrintingSystemComponent,
     ProductMiniPreviewComponent,
-    ChooseBranchComponent,
-    ChooseProductComponent,
     NavigateDropdownComponent,
     NavigationToBranchesComponent,
     NavigationFromPrinterManigmentComponent,
