@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-import { BranchesService } from "../../super-management/branch/branches.service";
+import { BranchesService } from "../../services/branches.service";
 
 @Injectable({
   providedIn: 'root',

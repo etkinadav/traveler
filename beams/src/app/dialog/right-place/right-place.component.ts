@@ -3,11 +3,11 @@ import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 
 import { DirectionService } from '../../direction.service';
-import { UsersService } from 'src/app/super-management/user/users.service';
+import { UsersService } from 'src/app/services/users.service';
 import { AuthService } from 'src/app/auth/auth.service';
 import { DialogService } from 'src/app/dialog/dialog.service';
 
-import { BranchesService } from 'src/app/super-management/branch/branches.service';
+import { BranchesService } from 'src/app/services/branches.service';
 import { DataSharingService } from 'src/app/main-section/data-shering-service/data-sharing.service';
 import { set } from 'lodash';
 

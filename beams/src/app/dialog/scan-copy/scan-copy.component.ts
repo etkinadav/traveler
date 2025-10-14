@@ -6,7 +6,7 @@ import { AuthService } from 'src/app/auth/auth.service';
 import { DialogService } from 'src/app/dialog/dialog.service';
 
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { BranchesService } from 'src/app/super-management/branch/branches.service';
+import { BranchesService } from 'src/app/services/branches.service';
 import { NgForm } from "@angular/forms";
 
 @Component({

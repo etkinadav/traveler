@@ -7,7 +7,7 @@ import { AuthService } from 'src/app/auth/auth.service';
 import { DialogService } from 'src/app/dialog/dialog.service';
 
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { BranchesService } from 'src/app/super-management/branch/branches.service';
+import { BranchesService } from 'src/app/services/branches.service';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({

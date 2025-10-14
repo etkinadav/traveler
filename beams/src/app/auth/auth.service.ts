@@ -11,7 +11,6 @@ import { DataSharingService } from '../main-section/data-shering-service/data-sh
 import { DirectionService } from '../direction.service'
 import { filter } from 'rxjs/operators';
 
-import { UsersService } from '../super-management/user/users.service';
 import { set } from "lodash";
 // import { SocialAuthService } from "@abacritt/angularx-social-login";
 // import { FacebookLoginProvider } from "@abacritt/angularx-social-login";
@@ -52,7 +51,6 @@ export class AuthService {
         private dataSharingService: DataSharingService,
         private router: Router,
         private directionService: DirectionService,
-        private usersService: UsersService,
         // public socialService: SocialAuthService
     ) {
         this.branchSubscription = this.dataSharingService.getBranch().subscribe((value) => {
@@ -328,10 +326,8 @@ export class AuthService {
                         this.branch = localStorage.getItem("branch");
                         if (this.printingService && this.printingService !== '' && this.printingService !== 'null'
                             && this.branch && this.branch !== '' && this.branch !== 'null') {
-                            this.usersService.updateUserPlaceAsync(this.printingService, this.branch).subscribe(() => {
-                                this.dataSharingService.setPrintingService(this.printingService);
-                                this.dataSharingService.setBranch(this.branch);
-                            });
+                            this.dataSharingService.setPrintingService(this.printingService);
+                            this.dataSharingService.setBranch(this.branch);
                         }
                         localStorage.removeItem("isfromSocial");
                     }

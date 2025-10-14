@@ -4,9 +4,8 @@ import { EMPTY, Observable, Subject, of, throwError } from "rxjs";
 import { map } from "rxjs/operators";
 import { Router } from "@angular/router";
 
-import { environment } from "src/environments/environment";
-import { User } from "./user.model";
-import { DirectionService } from "src/app/direction.service";
+import { environment } from "../../environments/environment";
+import { DirectionService } from "../direction.service";
 
 const BACKEND_URL = environment.apiUrl + "/user/";
 
@@ -15,8 +14,8 @@ const BACKEND_URL = environment.apiUrl + "/user/";
 })
 
 export class UsersService {
-  private users: User[] = [];
-  private usersUpdated = new Subject<{ users: User[], userCount: number }>();
+  private users: any[] = [];
+  private usersUpdated = new Subject<{ users: any[], userCount: number }>();
   phoneUpdated = new Subject<number>();
   phone: number;
 
@@ -261,5 +260,25 @@ export class UsersService {
     this.usersUpdatedSource.next();
     console.log("emitusersUpdated");
   }
-  // ===========
+
+  // Legacy methods for compatibility
+  getUserById(id: string): Observable<any> {
+    return this.getUser(id);
+  }
+
+  createUser(user: any): Observable<any> {
+    return this.http.post<any>(BACKEND_URL, user);
+  }
+
+  updateUser(id: string, user: any): Observable<any> {
+    return this.http.put<any>(BACKEND_URL + id, user);
+  }
+
+  addPointsToUser(userId: string, points: number): Observable<any> {
+    return this.onAddUserPoints(userId, 'add', points);
+  }
+
+  resetPassword(email: string): Observable<any> {
+    return this.http.post<any>(BACKEND_URL + 'reset-password', { email });
+  }
 }

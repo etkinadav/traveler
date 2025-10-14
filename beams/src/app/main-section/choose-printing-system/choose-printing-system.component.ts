@@ -9,7 +9,7 @@ import { DataSharingService } from '../data-shering-service/data-sharing.service
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from "src/app/auth/auth.service";
 
-import { UsersService } from 'src/app/super-management/user/users.service';
+import { UsersService } from 'src/app/services/users.service';
 import { DialogService } from 'src/app/dialog/dialog.service';
 import { set } from 'lodash';
 @Component({

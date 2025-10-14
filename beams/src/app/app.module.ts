@@ -26,10 +26,6 @@ import { SocialComponent } from "./auth/social/social.component";
 import { TAndCComponent } from "./main-section/legal/t-and-c/t-and-c.component";
 import { PrivacyPolicyComponent } from "./main-section/legal/privacy-policy/privacy-policy.component";
 
-import { BranchesModule } from "./super-management/branch/branches.module";
-import { ProductsModule } from "./super-management/product/products.module";
-import { UsersModule } from "./super-management/user/users.module";
-import { PapersModule } from "./super-management/paper/papers.module";
 
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
@@ -43,7 +39,6 @@ import { DeleteOrderComponent } from "./dialog/delete-order/delete-order.compone
 import { DeleteUserComponent } from "./dialog/delete-user/delete-user.component";
 import { AddPointsComponent } from "./dialog/add-points/add-points.component";
 import { CloseBranchComponent } from "./dialog/close-branch/close-branch.component";
-import { NavigationFromPrinterManigmentComponent } from "./super-management/printer/navigation-from-printer-manigment/navigation-from-printer-manigment.component";
 import { MyOrdersComponent } from "./other-pages/my-orders/my-orders.component";
 import { MyProfileComponent } from "./other-pages/my-profile/my-profile.component";
 import { PrintingQueComponent } from "./other-pages/printing-que/printing-que.component";
@@ -52,9 +47,7 @@ import { PhoneComponent } from "./dialog/phone/phone.component";
 import { CopyScanComponent } from "./dialog/scan-copy/scan-copy.component";
 import { FixProductsComponent } from "./dialog/fix-products/fix-products.component";
 import { PropertyExplainComponent } from "./dialog/property-explain/property-explain.component";
-import { StationScreenComponent } from "./super-management/station-screen/station-screen.component";
 import { PendingOrderComponent } from "./other-pages/pending-order/pending-order.component";
-import { PrinterComponent } from "./super-management/printer/printer.component";
 import { SuCloseBranchComponent } from "./dialog/su-close-branch/su-close-branch.component";
 import { SuEditUserComponent } from "./dialog/su-edit-user/su-edit-user.component";
 
@@ -74,7 +67,6 @@ import { EditProductComponent } from './dialog/edit-product/edit-product.compone
     ProductMiniPreviewComponent,
     NavigateDropdownComponent,
     NavigationToBranchesComponent,
-    NavigationFromPrinterManigmentComponent,
     QrLinkComponent,
     MyOrdersComponent,
     MyProfileComponent,
@@ -90,7 +82,6 @@ import { EditProductComponent } from './dialog/edit-product/edit-product.compone
     FixProductsComponent,
     SuCloseBranchComponent,
     PropertyExplainComponent,
-    StationScreenComponent,
     ImagePreviewComponent,
     ApplyToAllComponent,
     ResizeComponent,
@@ -100,7 +91,6 @@ import { EditProductComponent } from './dialog/edit-product/edit-product.compone
     AddPointsComponent,
     CloseBranchComponent,
     PendingOrderComponent,
-    PrinterComponent,
     SuEditUserComponent,
     EditProductComponent
   ],
@@ -119,10 +109,6 @@ import { EditProductComponent } from './dialog/edit-product/edit-product.compone
         deps: [HttpClient],
       },
     }),
-    BranchesModule,
-    ProductsModule,
-    UsersModule,
-    PapersModule,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

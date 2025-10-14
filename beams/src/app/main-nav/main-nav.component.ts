@@ -8,11 +8,11 @@ import { AuthService } from "../auth/auth.service";
 import { Router, NavigationEnd } from "@angular/router";
 import { DialogService } from '../dialog/dialog.service';
 
-import { UsersService } from '../super-management/user/users.service';
+import { UsersService } from '../services/users.service';
 import { OrdersService } from "../other-pages/my-orders/orders-service";
 
 import { delay, switchMap, filter } from 'rxjs/operators';
-import { BranchesService } from 'src/app/super-management/branch/branches.service';
+import { BranchesService } from 'src/app/services/branches.service';
 import { ConstantsService } from '../services/constants.service';
 
 @Component({

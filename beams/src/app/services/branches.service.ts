@@ -4,7 +4,7 @@ import { Subject, Observable, of } from "rxjs";
 import { map, catchError } from "rxjs/operators";
 import { Router } from "@angular/router";
 
-import { environment } from "src/environments/environment";
+import { environment } from "../../environments/environment";
 
 const BACKEND_URL = environment.apiUrl + "/branches/";
 
@@ -317,7 +317,24 @@ export class BranchesService {
     return this.http.put(BACKEND_URL + '/replaceconsumable/' + printingService + '/' + branchId, branchData);
   }
 
+  // Additional methods for order management
+  createExpressOrder(filesIds: string[], branchID: string, printerID: string): Observable<any> {
+    const orderData = {
+      files: filesIds,
+      branchID: branchID,
+      printerID: printerID
+    };
+    return this.http.post<any>(BACKEND_URL + 'create-express-order', orderData);
+  }
+
+  // Legacy methods for compatibility
+  createBranch(branch: any): Observable<any> {
+    return this.http.post<any>(BACKEND_URL, branch);
+  }
+
+  getBranchesByService(printingService: string): Observable<any[]> {
+    return this.http.get<any[]>(BACKEND_URL + 'service/' + printingService);
+  }
+
   // =======================================
 }
-
-

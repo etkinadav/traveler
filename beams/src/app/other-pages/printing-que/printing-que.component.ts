@@ -4,12 +4,12 @@ import { startWith, switchMap } from 'rxjs/operators';
 import { DirectionService } from '../../direction.service';
 
 import { AuthService } from "src/app/auth/auth.service";
-import { UsersService } from 'src/app/super-management/user/users.service';
+import { UsersService } from 'src/app/services/users.service';
 
 import { Router, ActivatedRoute } from "@angular/router";
 import { DialogService } from 'src/app/dialog/dialog.service';
 
-import { BranchesService } from 'src/app/super-management/branch/branches.service';
+import { BranchesService } from 'src/app/services/branches.service';
 
 import { DataSharingService } from 'src/app/main-section/data-shering-service/data-sharing.service';
 

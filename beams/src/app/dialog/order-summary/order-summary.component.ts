@@ -27,13 +27,13 @@ import { getLocaleId } from '@angular/common';
 import { DateAdapter } from '@angular/material/core';
 
 import { Router } from "@angular/router";
-import { UsersService } from 'src/app/super-management/user/users.service';
+import { UsersService } from 'src/app/services/users.service';
 
 import lottie from 'lottie-web';
 import { AuthService } from 'src/app/auth/auth.service';
 import { set } from 'lodash';
 
-import { BranchesService } from "../../super-management/order/order.service";
+import { BranchesService } from "../../services/branches.service";
 import * as http from "node:http";
 
 @Directive({

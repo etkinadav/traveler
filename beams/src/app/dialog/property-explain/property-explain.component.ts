@@ -5,7 +5,7 @@ import { DirectionService } from '../../direction.service';
 import { AuthService } from 'src/app/auth/auth.service';
 import { DialogService } from 'src/app/dialog/dialog.service';
 
-import { UsersService } from 'src/app/super-management/user/users.service';
+import { UsersService } from 'src/app/services/users.service';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({

@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 
 import { DirectionService } from '../../../direction.service';
 import { DataSharingService } from '../../data-shering-service/data-sharing.service';
-import { BranchesService } from 'src/app/super-management/branch/branches.service';
+import { BranchesService } from 'src/app/services/branches.service';
 
 @Component({
   selector: 'app-navigate-dropdown',

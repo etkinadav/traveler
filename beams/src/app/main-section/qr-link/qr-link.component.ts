@@ -7,7 +7,7 @@ import { DataSharingService } from '../data-shering-service/data-sharing.service
 import { DialogService } from '../../dialog/dialog.service';
 import { AuthService } from "../../auth/auth.service";
 
-import { UsersService } from 'src/app/super-management/user/users.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-qr-link',

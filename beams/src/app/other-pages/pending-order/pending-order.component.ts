@@ -3,7 +3,7 @@ import { Subscription, combineLatest } from 'rxjs';
 import { DirectionService } from '../../direction.service';
 
 import { AuthService } from "src/app/auth/auth.service";
-import { UsersService } from 'src/app/super-management/user/users.service';
+import { UsersService } from 'src/app/services/users.service';
 
 import { Router, ActivatedRoute } from "@angular/router";
 import { DialogService } from 'src/app/dialog/dialog.service';
