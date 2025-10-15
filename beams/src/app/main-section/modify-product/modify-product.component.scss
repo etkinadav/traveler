@@ -3609,6 +3609,16 @@ mat-form-field {
 }
 
 // כפתור X בתפריט המחיר - עם ::ng-deep
+::ng-deep .close-menu-btn {
+    position: absolute !important;
+    top: 4px !important; // הקטנה מ-8px ל-4px
+    left: 8px !important; // הקטנה מ-12px ל-8px
+    background: none !important;
+    border: none !important;
+    padding: 2px !important; // הקטנה מ-4px ל-2px
+    cursor: pointer !important;
+    z-index: 10 !important;
+}
 
 // תפריט אופציות תמחור - סגנונות גלובליים
 ::ng-deep .mat-mdc-menu-panel.pricing-options-menu,
@@ -3656,12 +3666,25 @@ mat-form-field {
         border-radius: 8px 8px 0 0;
         padding-top: 18px; // הוספת 10px רווח מעל הכותרת
         
+        .close-menu-btn {
+            position: absolute !important;
+            top: 4px !important; // הקטנה מ-8px ל-4px
+            left: 8px !important; // הקטנה מ-12px ל-8px
+            background: none !important;
+            border: none !important;
+            padding: 2px !important; // הקטנה מ-4px ל-2px
+            cursor: pointer !important;
+            z-index: 10 !important;
+        }
+        
         .header-container {
             display: flex !important;
             flex-direction: row !important;
             align-items: center !important;
             justify-content: center !important;
             width: 100% !important;
+            padding: 0 !important; // וידוא שאין padding שמשפיע על המיקום
+            margin: 0 !important; // וידוא שאין margin שמשפיע על המיקום
             
         .header-title {
             font-size: 11px !important;
