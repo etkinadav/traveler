@@ -1976,16 +1976,16 @@ mat-form-field {
         width: 24px;
         height: 24px;
         border: 2px solid #ccc;
-        border-radius: 4px;
-        background: white;
+        border-radius: 0; // מרובע, ללא פינות עגולות
+        background: white; // רקע לבן תמיד
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
         
         .checkmark {
-            color: white;
-            font-size: 14px;
+            color: var(--zx-green); // V בכחול שלנו
+            font-size: 18px; // הגדלנו מ-14px ל-18px (פי 1.3)
             font-weight: bold;
             opacity: 0;
             transition: opacity 0.2s ease;
@@ -1993,8 +1993,8 @@ mat-form-field {
     }
     
     &.active .checkbox-border {
-        border-color: #0066cc;
-        background: #0066cc;
+        border-color: var(--zx-green); // גבול כחול כשבוחרים
+        background: white; // רקע לבן תמיד
         
         .checkmark {
             opacity: 1;
@@ -2007,8 +2007,8 @@ mat-form-field {
         pointer-events: none;
         
         .checkbox-border {
-            border-color: #0066cc;
-            background: #0066cc;
+            border-color: var(--zx-green); // גבול כחול
+            background: white; // רקע לבן תמיד
             
             .checkmark {
                 opacity: 1;
@@ -2024,7 +2024,7 @@ mat-form-field {
     
     &:hover:not(.always-visible):not(.mandatory):not(.disabled) {
         .checkbox-border {
-            border-color: #0066cc;
+            border-color: var(--zx-green); // גבול כחול ב-hover
         }
     }
 }
