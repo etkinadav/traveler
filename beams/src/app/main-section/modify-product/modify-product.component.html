@@ -794,10 +794,10 @@
                                       stroke-width="0.8"/>
                             </svg>
                         </div>
-                        <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isBeamsEnabled">
-                            <span *ngIf="getHasBeamsChanged() && getOriginalBeamsPrice() !== getBeamsOnlyPrice()" class="crossed-price">{{ getOriginalBeamsPrice() }} ₪</span>
-                            <span *ngIf="getHasBeamsChanged() && getOriginalBeamsPrice() !== getBeamsOnlyPrice()" class="new-price">{{ getBeamsOnlyPrice() }} ₪</span>
-                            <span *ngIf="!getHasBeamsChanged() || getOriginalBeamsPrice() === getBeamsOnlyPrice()">{{ getBeamsOnlyPrice() }} ₪</span>
+                        <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isBeamsEnabled" style="display: flex; align-items: center; gap: 8px;">
+                            <div *ngIf="getHasBeamsChanged() && getOriginalBeamsPrice() !== getBeamsOnlyPrice()" class="crossed-price">{{ getOriginalBeamsPrice() }} ₪</div>
+                            <div *ngIf="getHasBeamsChanged() && getOriginalBeamsPrice() !== getBeamsOnlyPrice()" class="new-price">{{ getBeamsOnlyPrice() }} ₪</div>
+                            <div *ngIf="!getHasBeamsChanged() || getOriginalBeamsPrice() === getBeamsOnlyPrice()">{{ getBeamsOnlyPrice() }} ₪</div>
                         </div>
                     </div>
                 </div>
@@ -846,9 +846,7 @@
                     </svg>
                     <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">חיתוך</div>
                     <div class="category-price" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">
-                        <span *ngIf="getHasBeamsChanged()" class="crossed-price">{{ getOriginalCuttingPrice() }} ₪</span>
-                        <span *ngIf="getHasBeamsChanged()" class="new-price">{{ getCuttingPrice() }} ₪</span>
-                        <span *ngIf="!getHasBeamsChanged()">{{ getCuttingPrice() }} ₪</span>
+                        <span>{{ getCuttingPrice() }} ₪</span>
                     </div>
                 </div>
             </div>
@@ -877,10 +875,10 @@
                                       stroke-width="0.8"/>
                             </svg>
                         </div>
-                        <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isScrewsEnabled">
-                            <span *ngIf="getHasScrewsChanged() && getOriginalScrewsPrice() !== getScrewsPrice()" class="crossed-price">{{ getOriginalScrewsPrice() }} ₪</span>
-                            <span *ngIf="getHasScrewsChanged() && getOriginalScrewsPrice() !== getScrewsPrice()" class="new-price">{{ getScrewsPrice() }} ₪</span>
-                            <span *ngIf="!getHasScrewsChanged() || getOriginalScrewsPrice() === getScrewsPrice()">{{ getScrewsPrice() }} ₪</span>
+                        <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isScrewsEnabled" style="display: flex; align-items: center; gap: 8px;">
+                            <div *ngIf="getHasScrewsChanged() && getOriginalScrewsPrice() !== getScrewsPrice()" class="crossed-price">{{ getOriginalScrewsPrice() }} ₪</div>
+                            <div *ngIf="getHasScrewsChanged() && getOriginalScrewsPrice() !== getScrewsPrice()" class="new-price">{{ getScrewsPrice() }} ₪</div>
+                            <div *ngIf="!getHasScrewsChanged() || getOriginalScrewsPrice() === getScrewsPrice()">{{ getScrewsPrice() }} ₪</div>
                         </div>
                     </div>
                 </div>
