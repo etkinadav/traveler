@@ -846,11 +846,12 @@
                         </div>
                     </div>
                     <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">חיתוך</div>
-                    <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isBeamsEnabled || !isCuttingEnabled">
-                        <span *ngIf="!isCuttingPossible && isBeamsEnabled" class="insufficient-beams-message">{{ 'modify-product.insufficient-beams-for-cutting' | translate }}</span>
-                        <span *ngIf="isCuttingPossible || !isBeamsEnabled">{{ getCuttingPrice() }} ₪</span>
+                    <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isCuttingEnabled">
+                        <span>{{ getCuttingPrice() }} ₪</span>
                     </div>
                 </div>
+                <!-- הודעת אזהרה נפרדת מתחת לחיתוך -->
+                <div *ngIf="!isCuttingPossible && isBeamsEnabled" class="insufficient-beams-message">{{ 'modify-product.insufficient-beams-for-cutting' | translate }}</div>
             </div>
             
             <!-- קטגוריה 4: ברגים -->

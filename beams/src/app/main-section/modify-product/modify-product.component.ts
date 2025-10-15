@@ -653,6 +653,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // משתנים לשמירת מצב לפני עריכה
     private originalBeamsData: any = null;
     private originalScrewsData: any = null;
+    private originalBeamQuantities: number[] = []; // שמירת הכמויות המקוריות של הקורות
     
     // משתנים למחירים ספציפיים (מתעדכנים בזמן אמת)
     private dynamicBeamsPrice: number = 0;
@@ -3312,6 +3313,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.debugLog('=== CUTTING PLAN FOR BEAMS ===', this.cuttingPlan);
             this.debugLog('=== SCREWS PACKAGING PLAN ===', this.screwsPackagingPlan);
         }
+        
+        // שמירת מצב מקורי של הקורות בסוף החישוב הראשוני
+        console.log('CUTTING_DEBUG - שומר מצב מקורי של קורות בסוף החישוב הראשוני');
+        this.saveOriginalBeamsState();
     }
     // חישוב נתוני הקורות לחישוב מחיר
     async calculateBeamsData() {
@@ -7332,7 +7337,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // שמירת מצב הקורות לפני עריכה
     private saveOriginalBeamsState() {
+        console.log('CUTTING_DEBUG - saveOriginalBeamsState נקרא');
+        console.log('CUTTING_DEBUG - BeamsDataForPricing לפני שמירה:', this.BeamsDataForPricing);
+        
         this.originalBeamsData = JSON.parse(JSON.stringify(this.BeamsDataForPricing || []));
+        
+        // שמירת הכמויות המקוריות של הקורות
+        this.originalBeamQuantities = [];
+        if (this.BeamsDataForPricing) {
+            this.BeamsDataForPricing.forEach((beam, index) => {
+                const quantity = this.getFullBeamsCount(beam);
+                this.originalBeamQuantities[index] = quantity;
+                console.log(`CUTTING_DEBUG - שומר כמות מקורית לקורה ${index}: ${quantity}`);
+            });
+        }
         
         // שמירת המחירים המקוריים
         this.originalBeamsPrice = this.getBeamsOnlyPrice();
@@ -7348,7 +7366,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.hasBeamsChanged = false;
         this.hasScrewsChanged = false;
         
-        console.log(`CHECH_EDIT_PRICE - אתחול מחירים: מקוריים=${this.originalBeamsPrice}, דינמיים=${this.dynamicBeamsPrice}`);
+        console.log('CUTTING_DEBUG - originalBeamsData נשמר:', this.originalBeamsData);
+        
+        // הדפסת הכמויות המקוריות לכל קורה
+        if (this.originalBeamsData) {
+            this.originalBeamsData.forEach((beam, index) => {
+                const originalQuantity = this.getFullBeamsCount(beam);
+                console.log(`CUTTING_DEBUG - קורה מקורית ${index} (${beam.beamTranslatedName}): כמות=${originalQuantity}`);
+            });
+        }
+        
+        console.log(`CUTTING_DEBUG - אתחול מחירים: מקוריים=${this.originalBeamsPrice}, דינמיים=${this.dynamicBeamsPrice}`);
     }
     
     // שמירת מצב הברגים לפני עריכה
@@ -7532,7 +7560,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
     // עדכון כמות קורה
     updateBeamQuantity(beamIndex: number, newQuantity: number) {
+        console.log(`CUTTING_DEBUG - updateBeamQuantity נקרא: beamIndex=${beamIndex}, newQuantity=${newQuantity}`);
+        
         if (!this.BeamsDataForPricing || beamIndex < 0 || beamIndex >= this.BeamsDataForPricing.length) {
+            console.log('CUTTING_DEBUG - updateBeamQuantity - תנאים לא מתקיימים, יוצא');
             return;
         }
         
@@ -7540,7 +7571,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const beam = this.BeamsDataForPricing[beamIndex];
         const oldQuantity = this.getFullBeamsCount(beam);
         
-        console.log(`CHECH_EDIT_PRICE - עדכון כמות קורה: ${oldQuantity} → ${newQuantity}`);
+        console.log(`CUTTING_DEBUG - עדכון כמות קורה: ${oldQuantity} → ${newQuantity}`);
         
         // חישוב ההפרש
         const difference = newQuantity - oldQuantity;
@@ -7609,6 +7640,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
             
             // עדכון סטטוס החיתוך בכל שינוי כמות
+            console.log('CUTTING_DEBUG - קורא ל-updateCuttingStatus');
             this.updateCuttingStatus();
         }
     }
@@ -7649,43 +7681,60 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // בדיקה אם הכמויות מספיקות לחיתוך
     private checkCuttingPossibility(): boolean {
+        console.log('CUTTING_DEBUG - checkCuttingPossibility נקרא!');
+        
         if (!this.originalBeamsData || !this.BeamsDataForPricing) {
+            console.log('CUTTING_DEBUG - אין נתונים מקוריים, מחזיר true');
             return true;
         }
         
-        // בדיקה אם יש סוג קורה שהכמות שלו קטנה מהכמות המקורית הנדרשת
+        console.log('CUTTING_DEBUG - בודק אפשרות חיתוך:');
+        console.log('CUTTING_DEBUG - BeamsDataForPricing:', this.BeamsDataForPricing);
+        console.log('CUTTING_DEBUG - originalBeamsData:', this.originalBeamsData);
+        
+        // בדיקה אם יש סוג קורה שהכמות הנוכחית שלו קטנה מהכמות המקורית הנדרשת
         for (let i = 0; i < this.BeamsDataForPricing.length; i++) {
             const currentBeam = this.BeamsDataForPricing[i];
-            const originalBeam = this.originalBeamsData[i];
             
-            if (!originalBeam) continue;
+            // הכמות הנוכחית של הקורות השלמות (מה שהמשתמש רואה באינפוט)
+            const currentQuantity = this.getFullBeamsCount(currentBeam);
+            // הכמות המקורית הנדרשת (מספר הקורות שהיו נדרשות לחיתוך)
+            const originalQuantity = this.originalBeamQuantities[i] || 0;
             
-            const currentQuantity = currentBeam.totalSizes.reduce((sum: number, size: any) => sum + size.count, 0);
-            const originalQuantity = originalBeam.totalSizes.reduce((sum: number, size: any) => sum + size.count, 0);
+            console.log(`CUTTING_DEBUG - קורה ${i} (${currentBeam.beamTranslatedName}): נוכחי=${currentQuantity}, מקורי=${originalQuantity}`);
             
             if (currentQuantity < originalQuantity) {
+                console.log(`CUTTING_DEBUG - קורה ${i} לא מספיקה לחיתוך (${currentQuantity} < ${originalQuantity}), מחזיר false`);
                 return false; // לא ניתן לבצע חיתוך
             }
         }
         
+        console.log('CUTTING_DEBUG - כל הקורות מספיקות לחיתוך, מחזיר true');
         return true; // ניתן לבצע חיתוך
     }
     
     // עדכון סטטוס החיתוך
     private updateCuttingStatus() {
+        console.log('CUTTING_DEBUG - updateCuttingStatus נקרא!');
         const wasPossible = this.isCuttingPossible;
         this.isCuttingPossible = this.checkCuttingPossibility();
+        
+        console.log(`CUTTING_DEBUG - updateCuttingStatus: wasPossible=${wasPossible}, isCuttingPossible=${this.isCuttingPossible}, isCuttingEnabled=${this.isCuttingEnabled}`);
         
         // אם החיתוך לא אפשרי יותר, נבטל אותו
         if (!this.isCuttingPossible && this.isCuttingEnabled) {
             this.isCuttingEnabled = false;
-            console.log('CHECH_EDIT_PRICE - חיתוך בוטל - הכמויות לא מספיקות');
+            // עדכון המחיר הדינמי של החיתוך ל-0
+            this.dynamicCuttingPrice = 0;
+            console.log('CUTTING_DEBUG - חיתוך בוטל - הכמויות לא מספיקות');
         }
         
         // אם החיתוך הפך לאפשרי שוב, נפעיל אותו (רק אם קורות מופעלות)
         if (this.isCuttingPossible && !this.isCuttingEnabled && this.isBeamsEnabled) {
             this.isCuttingEnabled = true;
-            console.log('CHECH_EDIT_PRICE - חיתוך הופעל - הכמויות מספיקות');
+            // החזרת המחיר המקורי של החיתוך
+            this.dynamicCuttingPrice = this.originalCuttingPrice;
+            console.log('CUTTING_DEBUG - חיתוך הופעל - הכמויות מספיקות');
         }
     }
     
