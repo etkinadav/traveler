@@ -6694,11 +6694,54 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
         }
         
+        // מחזיר את cuttingPlan למצב המקורי (ללא חישוב מחדש)
+        // צריך לשחזר את cuttingPlan על בסיס הכמויות המקוריות
+        this.restoreOriginalCuttingPlan();
+        
+        // עדכון סטטוס החיתוך - עכשיו שהוא חזר למקור, החיתוך אפשרי
+        this.isCuttingPossible = true;
+        
         // איפוס מחירים דינמיים
         this.dynamicBeamsPrice = this.originalBeamsPrice;
         this.hasBeamsChanged = false;
         
         console.log('CHECH_EDIT_PRICE - קורות הוחזרו למצב המקורי');
+    }
+    
+    // שחזור cuttingPlan למצב המקורי (ללא חישוב מחדש)
+    private restoreOriginalCuttingPlan() {
+        if (!this.originalBeamsData || !this.BeamsDataForPricing) {
+            return;
+        }
+        
+        console.log('CHECH_EDIT_PRICE - משחזר cuttingPlan למצב המקורי');
+        
+        // ניקוי cuttingPlan הנוכחי
+        this.cuttingPlan = [];
+        
+        // שחזור cuttingPlan על בסיס הכמויות המקוריות
+        for (let i = 0; i < this.BeamsDataForPricing.length; i++) {
+            const currentBeam = this.BeamsDataForPricing[i];
+            const originalQuantity = this.originalBeamQuantities[i];
+            
+            if (originalQuantity > 0 && currentBeam) {
+                // חישוב אורך הקורה המקורי
+                const beamLength = this.getBeamLengthInMeters(currentBeam);
+                const beamPrice = this.getBeamPrice(currentBeam);
+                
+                // הוספת הקורות ל-cuttingPlan
+                for (let j = 0; j < originalQuantity; j++) {
+                    this.cuttingPlan.push({
+                        beamType: currentBeam.beamTranslatedName,
+                        beamLength: beamLength,
+                        beamPrice: beamPrice,
+                        beamId: `${currentBeam.beamTranslatedName}_${j}`
+                    });
+                }
+            }
+        }
+        
+        console.log('CHECH_EDIT_PRICE - cuttingPlan שוחזר:', this.cuttingPlan);
     }
     
     // החזרת ברגים למצב המקורי
@@ -7789,16 +7832,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // אם החיתוך לא אפשרי יותר, נבטל אותו
         if (!this.isCuttingPossible && this.isCuttingEnabled) {
             this.isCuttingEnabled = false;
-            // עדכון המחיר הדינמי של החיתוך ל-0
-            this.dynamicCuttingPrice = 0;
+            // לא משנים את המחיר - הוא נשאר קבוע!
             console.log('CUTTING_DEBUG - חיתוך בוטל - הכמויות לא מספיקות');
         }
         
         // אם החיתוך הפך לאפשרי שוב, נפעיל אותו (רק אם קורות מופעלות)
         if (this.isCuttingPossible && !this.isCuttingEnabled && this.isBeamsEnabled) {
             this.isCuttingEnabled = true;
-            // החזרת המחיר המקורי של החיתוך
-            this.dynamicCuttingPrice = this.originalCuttingPrice;
+            // לא משנים את המחיר - הוא נשאר קבוע!
             console.log('CUTTING_DEBUG - חיתוך הופעל - הכמויות מספיקות');
         }
     }
