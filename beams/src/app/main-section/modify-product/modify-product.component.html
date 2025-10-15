@@ -795,9 +795,9 @@
                             </svg>
                         </div>
                         <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isBeamsEnabled">
-                            <span *ngIf="getHasBeamsChanged()" class="crossed-price">{{ getOriginalBeamsPrice() }} ₪</span>
-                            <span *ngIf="getHasBeamsChanged()" class="new-price">{{ getBeamsOnlyPrice() }} ₪</span>
-                            <span *ngIf="!getHasBeamsChanged()">{{ getBeamsOnlyPrice() }} ₪</span>
+                            <span *ngIf="getHasBeamsChanged() && getOriginalBeamsPrice() !== getBeamsOnlyPrice()" class="crossed-price">{{ getOriginalBeamsPrice() }} ₪</span>
+                            <span *ngIf="getHasBeamsChanged() && getOriginalBeamsPrice() !== getBeamsOnlyPrice()" class="new-price">{{ getBeamsOnlyPrice() }} ₪</span>
+                            <span *ngIf="!getHasBeamsChanged() || getOriginalBeamsPrice() === getBeamsOnlyPrice()">{{ getBeamsOnlyPrice() }} ₪</span>
                         </div>
                     </div>
                 </div>
@@ -878,9 +878,9 @@
                             </svg>
                         </div>
                         <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isScrewsEnabled">
-                            <span *ngIf="getHasScrewsChanged()" class="crossed-price">{{ getOriginalScrewsPrice() }} ₪</span>
-                            <span *ngIf="getHasScrewsChanged()" class="new-price">{{ getScrewsPrice() }} ₪</span>
-                            <span *ngIf="!getHasScrewsChanged()">{{ getScrewsPrice() }} ₪</span>
+                            <span *ngIf="getHasScrewsChanged() && getOriginalScrewsPrice() !== getScrewsPrice()" class="crossed-price">{{ getOriginalScrewsPrice() }} ₪</span>
+                            <span *ngIf="getHasScrewsChanged() && getOriginalScrewsPrice() !== getScrewsPrice()" class="new-price">{{ getScrewsPrice() }} ₪</span>
+                            <span *ngIf="!getHasScrewsChanged() || getOriginalScrewsPrice() === getScrewsPrice()">{{ getScrewsPrice() }} ₪</span>
                         </div>
                     </div>
                 </div>

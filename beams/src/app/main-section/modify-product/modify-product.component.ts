@@ -7380,19 +7380,31 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return 0;
     }
     
-    // קבלת המחיר הנכון של הקורה השלמה
+    // קבלת המחיר הנכון של הקורה השלמה (קבוע ולא משתנה)
     getBeamPrice(beam: any): number {
-        // חיפוש הקורה ב-cuttingPlan כדי לקבל את המחיר הנכון
+        // נחפש ב-cuttingPlan את האורך של הקורה השלמה
         const beamInPlan = this.cuttingPlan?.find(plan => 
             plan.beamType === beam.beamTranslatedName
         );
         
         if (beamInPlan) {
-            return beamInPlan.beamPrice; // המחיר של הקורה השלמה
+            // נחפש את המחיר לפי האורך של הקורה השלמה
+            const beamLengthData = beam.type?.length?.find((l: any) => l.length === beamInPlan.beamLength);
+            if (beamLengthData) {
+                return beamLengthData.price; // המחיר הקבוע של הקורה השלמה
+            }
         }
         
-        // אם לא נמצא, נחזיר את pricePerCut (מחיר לחיתוך)
-        return beam.type?.pricePerCut || 0;
+        // אם לא נמצא ב-cuttingPlan, נחזיר את המחיר הגבוה ביותר (כנראה הקורה הארוכה ביותר)
+        if (beam.type?.length && beam.type.length.length > 0) {
+            const maxPriceBeam = beam.type.length.reduce((max: any, current: any) => 
+                current.price > max.price ? current : max
+            );
+            return maxPriceBeam.price;
+        }
+        
+        // אם לא נמצא, נחזיר 0
+        return 0;
     }
     
     // קבלת מספר הקורות השלמות (מספר הקורות שצריך לקנות)
@@ -7418,6 +7430,44 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return this.screwsPackagingPlan || [];
     }
     
+    // יצירת קורה חדשה מהמידע של beam
+    private createBeamFromBeamData(beam: any): any {
+        // חיפוש הקורה המקורית ב-cuttingPlan כדי לקבל את המידע המלא
+        const originalBeam = this.cuttingPlan?.find(plan => 
+            plan.beamType === beam.beamTranslatedName
+        );
+        
+        if (originalBeam) {
+            return originalBeam;
+        }
+        
+        // אם לא נמצאה, נצור קורה חדשה מהמידע הזמין
+        if (beam.totalSizes && beam.totalSizes.length > 0) {
+            const firstSize = beam.totalSizes[0];
+            const beamLength = firstSize.length;
+            
+            // חיפוש מחיר לפי האורך
+            const beamLengthData = beam.type?.length?.find((l: any) => l.length === beamLength);
+            const beamPrice = beamLengthData?.price || 0;
+            
+            return {
+                beamNumber: 1,
+                beamLength: beamLength,
+                beamPrice: beamPrice,
+                cuts: Array(firstSize.count).fill(beamLength),
+                remaining: 0,
+                waste: 0,
+                beamType: beam.beamTranslatedName,
+                beamWoodType: beam.beamWoodType,
+                pricePerCut: beam.type?.pricePerCut || 0,
+                numberOfCuts: firstSize.count,
+                totalCuttingPrice: (beam.type?.pricePerCut || 0) * firstSize.count
+            };
+        }
+        
+        return null;
+    }
+    
     // עדכון כמות קורה
     updateBeamQuantity(beamIndex: number, newQuantity: number) {
         if (!this.BeamsDataForPricing || beamIndex < 0 || beamIndex >= this.BeamsDataForPricing.length) {
@@ -7435,19 +7485,30 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         if (difference !== 0) {
             // עדכון ה-cuttingPlan ישירות
-            const allBeamsOfThisType = this.cuttingPlan?.filter(plan => 
+            let allBeamsOfThisType = this.cuttingPlan?.filter(plan => 
                 plan.beamType === beam.beamTranslatedName
             ) || [];
             
             if (difference > 0) {
                 // הוספת קורות
-                const firstBeam = allBeamsOfThisType[0];
-                if (firstBeam) {
+                let templateBeam = allBeamsOfThisType[0];
+                
+                // אם אין קורות קיימות, נצור קורה חדשה מהמידע של beam
+                if (!templateBeam) {
+                    templateBeam = this.createBeamFromBeamData(beam);
+                }
+                
+                if (templateBeam) {
                     for (let i = 0; i < difference; i++) {
-                        const newBeam = JSON.parse(JSON.stringify(firstBeam));
+                        const newBeam = JSON.parse(JSON.stringify(templateBeam));
                         newBeam.beamNumber = this.cuttingPlan.length + 1;
                         this.cuttingPlan.push(newBeam);
                     }
+                    
+                    // עדכון מחיר
+                    const beamPrice = templateBeam.beamPrice;
+                    const priceDifference = difference * beamPrice;
+                    this.updatePriceLocally('beam', beam, priceDifference);
                 }
             } else {
                 // הסרת קורות
@@ -7457,20 +7518,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const index = this.cuttingPlan.indexOf(lastBeam);
                     if (index > -1) {
                         this.cuttingPlan.splice(index, 1);
+                        allBeamsOfThisType.splice(allBeamsOfThisType.length - 1, 1);
                     }
                 }
-            }
-            
-            // עדכון מקומי של המחיר
-            if (allBeamsOfThisType.length > 0) {
-                const beamPrice = allBeamsOfThisType[0].beamPrice;
-                const priceDifference = difference * beamPrice;
-                this.updatePriceLocally('beam', beam, priceDifference);
+                
+                // עדכון מחיר
+                if (allBeamsOfThisType.length > 0) {
+                    const beamPrice = allBeamsOfThisType[0].beamPrice;
+                    const priceDifference = difference * beamPrice;
+                    this.updatePriceLocally('beam', beam, priceDifference);
+                }
             }
         }
-        
-        // בדיקה אם צריך לבטל את החיתוך
-        this.checkAndDisableCuttingIfNeeded();
     }
     
     // עדכון כמות קופסאות ברגים
