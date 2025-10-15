@@ -6662,6 +6662,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.isScrewsEnabled = !this.isScrewsEnabled;
         if (!this.isScrewsEnabled) {
             this.showScrewsEditOptions = false; // סגירת איזור עריכת ברגים
+        } else {
+            // אם מחזירים ברגים, מחזירים למצב המקורי
+            this.resetScrewsToOriginalState();
         }
         // לא קוראים ל-calculatePricing() - רק משנים את המצב
     }
@@ -6690,6 +6693,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.hasBeamsChanged = false;
         
         console.log('CHECH_EDIT_PRICE - קורות הוחזרו למצב המקורי');
+    }
+    
+    // החזרת ברגים למצב המקורי
+    private resetScrewsToOriginalState() {
+        if (!this.originalScrewsData || !this.screwsPackagingPlan) {
+            return;
+        }
+        
+        console.log('CHECH_EDIT_PRICE - מחזיר ברגים למצב המקורי');
+        for (let i = 0; i < this.screwsPackagingPlan.length; i++) {
+            const currentScrew = this.screwsPackagingPlan[i];
+            const originalScrew = this.originalScrewsData[i];
+            
+            if (originalScrew && currentScrew) {
+                // מחזיר את הכמויות המקוריות
+                currentScrew.numPackages = originalScrew.numPackages;
+            }
+        }
+        
+        this.dynamicScrewsPrice = this.originalScrewsPrice;
+        this.hasScrewsChanged = false;
+        console.log('CHECH_EDIT_PRICE - ברגים הוחזרו למצב המקורי');
     }
     
     // פונקציה לקבלת מחיר ברגים
@@ -6812,6 +6837,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
         const price = this.cuttingPlan.reduce((sum, beam) => sum + (beam.totalCuttingPrice || 0), 0);
         return Math.round(price * 100) / 100;
+    }
+    
+    // קבלת מחיר החיתוך המקורי
+    getOriginalCuttingPrice(): number {
+        return this.originalCuttingPrice || 0;
     }
     
     // חישוב המחיר הסופי לפי הטוגלים החדשים
@@ -7352,6 +7382,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             });
         }
         
+        // שמירת מצב הברגים המקורי גם כן
+        this.originalScrewsData = JSON.parse(JSON.stringify(this.screwsPackagingPlan || []));
+        
         // שמירת המחירים המקוריים
         this.originalBeamsPrice = this.getBeamsOnlyPrice();
         this.originalCuttingPrice = this.getCuttingPrice();
@@ -7756,9 +7789,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return this.originalBeamsPrice;
     }
     
-    getOriginalCuttingPrice(): number {
-        return this.originalCuttingPrice;
-    }
     
     getOriginalScrewsPrice(): number {
         return this.originalScrewsPrice;

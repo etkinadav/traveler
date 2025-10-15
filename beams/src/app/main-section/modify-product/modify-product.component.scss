@@ -1757,7 +1757,8 @@ mat-form-field {
                     
                     &.crossed-out {
                         text-decoration: line-through;
-                        opacity: 0.6;
+                        color: #0066cc; // כחול גם עם קו חוצה
+                        opacity: 1; // לא אפור
                     }
                 }
             }
@@ -3750,7 +3751,8 @@ mat-form-field {
                 
                 &.crossed-out {
                     text-decoration: line-through;
-                    opacity: 0.6;
+                    color: #0066cc; // כחול גם עם קו חוצה
+                    opacity: 1; // לא אפור
                 }
             }
             
