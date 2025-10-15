@@ -7464,7 +7464,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // עדכון מקומי של המחיר
             if (allBeamsOfThisType.length > 0) {
                 const beamPrice = allBeamsOfThisType[0].beamPrice;
-                this.updatePriceLocally('beam', beam, difference * beamPrice);
+                const priceDifference = difference * beamPrice;
+                this.updatePriceLocally('beam', beam, priceDifference);
             }
         }
         
@@ -7566,42 +7567,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         let pricePerUnit = 0;
         
         if (type === 'beam') {
-            // חישוב מחיר לקורה - צריך לקחת את המחיר הספציפי לקורה הזאת
-            console.log(`CHECH_EDIT_PRICE - פרטי קורה:`, {
-                beamName: item.beamName,
-                beamTranslatedName: item.beamTranslatedName,
-                type: item.type,
-                totalSizes: item.totalSizes,
-                isCuttingEnabled: this.isCuttingEnabled
-            });
-            
-            // חישוב מחיר הקורה - נחפש את המחיר הנכון ב-cuttingPlan
-            const beamLength = item.totalSizes && item.totalSizes.length > 0 ? item.totalSizes[0].length : 0;
-            const beamFromCuttingPlan = this.cuttingPlan?.find(beam => 
-                beam.beamLength === beamLength && 
-                beam.beamType === item.beamName
-            );
-            
-            const woodPricePerUnit = beamFromCuttingPlan?.beamPrice || 0;
-            
-            console.log(`CHECH_EDIT_PRICE - אורך קורה: ${beamLength}cm, שם קורה: ${item.beamName}, מחיר ליחידה: ${woodPricePerUnit}`);
-            
             // עדכון המחיר הספציפי של קורות (רק עץ, לא חיתוך)
             const oldBeamsPrice = this.dynamicBeamsPrice;
             
-            // הפרש במחיר הקורות (מחיר העץ בלבד)
-            const beamsPriceDifference = quantityDifference * woodPricePerUnit;
+            // quantityDifference כבר מכיל את ההפרש במחיר (לא בכמות)
+            const beamsPriceDifference = quantityDifference;
             
             this.dynamicBeamsPrice = Math.round((Math.max(0, this.dynamicBeamsPrice + beamsPriceDifference)) * 100) / 100;
             
             // סימון שיש שינויים בקורות
             this.hasBeamsChanged = true;
             
-            console.log(`CHECH_EDIT_PRICE - מחיר קורות: ${oldBeamsPrice} → ${this.dynamicBeamsPrice} (הפרש: ${beamsPriceDifference})`);
-            console.log(`CHECH_EDIT_PRICE - מחיר חיתוך לא השתנה: ${this.dynamicCuttingPrice}`);
-            
-            // מחיר כולל ליחידה (רק עץ, לא חיתוך)
-            pricePerUnit = woodPricePerUnit;
+            console.log(`CHECH_EDIT_PRICE - עדכון מחיר קורות: ${oldBeamsPrice} → ${this.dynamicBeamsPrice} (הפרש: ${beamsPriceDifference})`);
             
         } else if (type === 'screw') {
             // מחיר לקופסת ברגים
