@@ -6638,6 +6638,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.isBeamsEnabled = !this.isBeamsEnabled;
         if (!this.isBeamsEnabled) {
             this.isCuttingEnabled = false; // אם קורות כבויות, גם חיתוך כבוי
+            this.showBeamsEditOptions = false; // סגירת איזור עריכת קורות
         } else {
             // אם מחזירים קורות, מפעילים גם חיתוך ומחזירים למצב המקורי
             this.isCuttingEnabled = true;
@@ -6653,6 +6654,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     toggleScrewsOption() {
         this.isScrewsEnabled = !this.isScrewsEnabled;
+        if (!this.isScrewsEnabled) {
+            this.showScrewsEditOptions = false; // סגירת איזור עריכת ברגים
+        }
         // לא קוראים ל-calculatePricing() - רק משנים את המצב
     }
     
@@ -7597,6 +7601,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     // בדיקה אם כל הקורות על 0
                     if (this.checkAllBeamsZero()) {
                         this.isBeamsEnabled = false;
+                        this.showBeamsEditOptions = false; // סגירת איזור עריכת קורות
                         console.log('CHECH_EDIT_PRICE - כל הקורות על 0, הסרת V מקורות');
                     }
                 }
@@ -7626,6 +7631,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // בדיקה אם כל הברגים על 0
             if (this.checkAllScrewsZero()) {
                 this.isScrewsEnabled = false;
+                this.showScrewsEditOptions = false; // סגירת איזור עריכת ברגים
                 console.log('CHECH_EDIT_PRICE - כל הברגים על 0, הסרת V מברגים');
             }
         }

@@ -782,6 +782,7 @@
                     <div class="category-title" (click)="$event.stopPropagation()">קורות</div>
                     <div class="category-price-container">
                         <div class="edit-icon-div" 
+                             *ngIf="isBeamsEnabled"
                              matTooltip="עריכה" 
                              matTooltipPosition="above"
                              (click)="toggleBeamsEditOptions(); $event.stopPropagation()">
@@ -845,7 +846,7 @@
                         </div>
                     </div>
                     <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">חיתוך</div>
-                    <div class="category-price" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled || !isCuttingEnabled">
+                    <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isBeamsEnabled || !isCuttingEnabled">
                         <span>{{ getCuttingPrice() }} ₪</span>
                     </div>
                 </div>
@@ -862,6 +863,7 @@
                     <div class="category-title" (click)="$event.stopPropagation()">ברגים</div>
                     <div class="category-price-container">
                         <div class="edit-icon-div" 
+                             *ngIf="isScrewsEnabled"
                              matTooltip="עריכה" 
                              matTooltipPosition="above"
                              (click)="toggleScrewsEditOptions(); $event.stopPropagation()">
