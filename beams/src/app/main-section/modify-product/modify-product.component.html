@@ -814,17 +814,17 @@
                         <div class="edit-option-row" *ngFor="let beam of getBeamsForEdit(); let i = index">
                             <div class="option-text-container">
                        <div class="option-line-1">{{ beam.beamTranslatedName }}</div>
-                       <div class="option-line-2">{{ beam.type.translatedName }}</div>
-                       <div class="option-line-3">מחיר ליח' - {{ beam.type?.pricePerCut || 0 }} ₪</div>
+                       <div class="option-line-2">{{ beam.type?.translatedName || beam.beamWoodType }} - קורת {{ getBeamLengthInMeters(beam) }} מ'</div>
+                       <div class="option-line-3">מחיר ליח' - {{ getBeamPrice(beam) }} ₪</div>
                             </div>
                             <div class="quantity-controls">
-                                <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) - 1)">-</div>
+                                <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateBeamQuantity(i, getFullBeamsCount(beam) - 1)">-</div>
                                 <input type="number" 
                                        class="qty-input" 
-                                       [value]="beam.totalSizes[0]?.count || 0"
+                                       [value]="getFullBeamsCount(beam)"
                                        (input)="updateBeamQuantity(i, +$any($event.target).value); $event.stopPropagation()"
                                        min="0">
-                                <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateBeamQuantity(i, (beam.totalSizes[0]?.count || 0) + 1)">+</div>
+                                <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateBeamQuantity(i, getFullBeamsCount(beam) + 1)">+</div>
                             </div>
                         </div>
                     </div>
@@ -943,7 +943,7 @@
                 <div class="materials-summary required-lengths-summary">
                     <div *ngFor="let beamData of BeamsDataForPricing" class="beam-name">
                         <!-- כותרת סוג הקורה -->
-                        <div class="pricing-title">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type.translatedName }})</div>
+                        <div class="pricing-title">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type?.translatedName || beamData.beamWoodType }}) - קורת {{ getBeamLengthInMeters(beamData) }} מ'</div>
                         
                         <!-- רשימת המידות -->
                         <div *ngFor="let sizeData of beamData.totalSizes" class="size-item">

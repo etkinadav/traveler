@@ -7342,6 +7342,77 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return this.BeamsDataForPricing || [];
     }
     
+    // קבלת הכמות הכוללת של קורה (סכום כל החתיכות)
+    getTotalBeamQuantity(beam: any): number {
+        if (!beam || !beam.totalSizes) return 0;
+        return beam.totalSizes.reduce((sum: number, size: any) => sum + size.count, 0);
+    }
+    
+    // משתנה לבדיקה שהלוגים כבר הופעלו
+    private beamDebugLogged = false;
+
+    // קבלת האורך של הקורה במטרים (מהקורה הראשונה ב-cuttingPlan)
+    getBeamLengthInMeters(beam: any): number {
+        if (!this.beamDebugLogged) {
+            console.log('🔍 BEAM_DEBUG - beam structure:', beam);
+            console.log('🔍 BEAM_DEBUG - beam.beamTranslatedName:', beam.beamTranslatedName);
+            console.log('🔍 BEAM_DEBUG - beam.type:', beam?.type);
+            console.log('🔍 BEAM_DEBUG - beam.type?.length:', beam?.type?.length);
+            console.log('🔍 BEAM_DEBUG - cuttingPlan:', this.cuttingPlan);
+            this.beamDebugLogged = true;
+        }
+        
+        // חיפוש הקורה ב-cuttingPlan כדי לקבל את האורך הנכון
+        const beamInPlan = this.cuttingPlan?.find(plan => 
+            plan.beamType === beam.beamTranslatedName
+        );
+        
+        if (!this.beamDebugLogged && beamInPlan) {
+            console.log('🔍 BEAM_DEBUG - Found beam in cuttingPlan for length:', beamInPlan);
+            console.log('🔍 BEAM_DEBUG - beamLength:', beamInPlan.beamLength);
+        }
+        
+        if (beamInPlan) {
+            return beamInPlan.beamLength / 100; // המרה מס"מ למטרים
+        }
+        
+        // אם לא נמצא, נחזיר 0
+        return 0;
+    }
+    
+    // קבלת המחיר הנכון של הקורה השלמה
+    getBeamPrice(beam: any): number {
+        // חיפוש הקורה ב-cuttingPlan כדי לקבל את המחיר הנכון
+        const beamInPlan = this.cuttingPlan?.find(plan => 
+            plan.beamType === beam.beamTranslatedName
+        );
+        
+        if (beamInPlan) {
+            return beamInPlan.beamPrice; // המחיר של הקורה השלמה
+        }
+        
+        // אם לא נמצא, נחזיר את pricePerCut (מחיר לחיתוך)
+        return beam.type?.pricePerCut || 0;
+    }
+    
+    // קבלת מספר הקורות השלמות (מספר הקורות שצריך לקנות)
+    getFullBeamsCount(beam: any): number {
+        if (!beam) return 0;
+        
+        // ספירת כל הקורות השלמות מכל הסוג הזה ב-cuttingPlan
+        const allBeamsOfThisType = this.cuttingPlan?.filter(plan => 
+            plan.beamType === beam.beamTranslatedName
+        ) || [];
+        
+        if (!this.beamDebugLogged && allBeamsOfThisType.length > 0) {
+            console.log('🔍 BEAM_DEBUG - All beams of this type:', allBeamsOfThisType);
+            console.log('🔍 BEAM_DEBUG - Total number of full beams:', allBeamsOfThisType.length);
+        }
+        
+        // החזרת מספר הקורות השלמות
+        return allBeamsOfThisType.length;
+    }
+    
     // קבלת רשימת ברגים לעריכה (קופסאות ברגים)
     getScrewsForEdit(): any[] {
         return this.screwsPackagingPlan || [];
@@ -7355,20 +7426,45 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // עדכון הכמות
         const beam = this.BeamsDataForPricing[beamIndex];
-        const oldQuantity = beam.totalSizes.reduce((sum: number, size: any) => sum + size.count, 0);
+        const oldQuantity = this.getFullBeamsCount(beam);
         
         console.log(`CHECH_EDIT_PRICE - עדכון כמות קורה: ${oldQuantity} → ${newQuantity}`);
         
-        // עדכון הכמות בגודל הראשון
-        if (beam.totalSizes.length > 0) {
-            beam.totalSizes[0].count = Math.max(0, newQuantity);
+        // חישוב ההפרש
+        const difference = newQuantity - oldQuantity;
+        
+        if (difference !== 0) {
+            // עדכון ה-cuttingPlan ישירות
+            const allBeamsOfThisType = this.cuttingPlan?.filter(plan => 
+                plan.beamType === beam.beamTranslatedName
+            ) || [];
             
-            // חישוב ההפרש
-            const difference = newQuantity - oldQuantity;
+            if (difference > 0) {
+                // הוספת קורות
+                const firstBeam = allBeamsOfThisType[0];
+                if (firstBeam) {
+                    for (let i = 0; i < difference; i++) {
+                        const newBeam = JSON.parse(JSON.stringify(firstBeam));
+                        newBeam.beamNumber = this.cuttingPlan.length + 1;
+                        this.cuttingPlan.push(newBeam);
+                    }
+                }
+            } else {
+                // הסרת קורות
+                const beamsToRemove = Math.abs(difference);
+                for (let i = 0; i < beamsToRemove && allBeamsOfThisType.length > 0; i++) {
+                    const lastBeam = allBeamsOfThisType[allBeamsOfThisType.length - 1];
+                    const index = this.cuttingPlan.indexOf(lastBeam);
+                    if (index > -1) {
+                        this.cuttingPlan.splice(index, 1);
+                    }
+                }
+            }
             
-            if (difference !== 0) {
-                // עדכון מקומי של המחיר
-                this.updatePriceLocally('beam', beam, difference);
+            // עדכון מקומי של המחיר
+            if (allBeamsOfThisType.length > 0) {
+                const beamPrice = allBeamsOfThisType[0].beamPrice;
+                this.updatePriceLocally('beam', beam, difference * beamPrice);
             }
         }
         
