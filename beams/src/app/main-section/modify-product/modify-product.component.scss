@@ -1502,13 +1502,13 @@ mat-form-field {
 .price-menu-box .beam-text {
     color: var(--zx-green) !important;
     font-weight: normal;
-    font-size: 14px; // דסקטופ
+    font-size: 18px; // הוגדל מ-16px ל-18px בדסקטופ
     flex-shrink: 0;
     white-space: nowrap;
     
     // מובייל - פונט קטן יותר
     @media (max-width: 768px) {
-        font-size: 12px !important;
+        font-size: 16px !important; // הוגדל מ-14px ל-16px במובייל
     }
 }
 
@@ -1524,13 +1524,13 @@ mat-form-field {
 
 .price-menu-box .beam-price {
     color: #333;
-    font-size: 14px; // דסקטופ
+    font-size: 18px; // הוגדל מ-16px ל-18px בדסקטופ
     flex-shrink: 0;
     white-space: nowrap;
     
     // מובייל - פונט קטן יותר
     @media (max-width: 768px) {
-        font-size: 12px !important;
+        font-size: 16px !important; // הוגדל מ-14px ל-16px במובייל
     }
 }
 
@@ -1947,11 +1947,11 @@ mat-form-field {
 }
 
 .option-line-3 {
-    font-size: 9px;
-    color: #0066cc;
-    font-weight: 300;
+    font-size: 10px; // כמו option-line-2
+    color: #0066cc; // כחול במקום אפור
+    font-weight: 400; // כמו option-line-2
     line-height: 1.2;
-    margin-top: 2px;
+    margin-top: 1px; // כמו option-line-2
 }
 
 // סגנונות למחירים מקוריים וחדשים
@@ -2473,18 +2473,18 @@ mat-form-field {
         }
         
         .capsule-label {
-            font-size: 14px; // 10px + 4px בדסקטופ
+            font-size: 18px; // הוגדל מ-16px ל-18px בדסקטופ
             color: #666;
             font-weight: 600;
             margin-bottom: 0px;
             
             @media (max-width: 576px) {
-                font-size: 12px; // 10px + 2px במובייל
+                font-size: 14px; // הוגדל מ-12px ל-14px במובייל
             }
         }
         
         .capsule-value {
-            font-size: 10px;
+            font-size: 16px; // הוגדל מ-14px ל-16px בדסקטופ
             font-weight: 600;
             color: #0066cc;
         }
