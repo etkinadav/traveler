@@ -746,7 +746,7 @@
         </div>
         
         <!-- תפריט אופציות תמחור -->
-        <mat-menu #pricingOptionsMenu="matMenu" class="pricing-options-menu" [hasBackdrop]="false" (click)="$event.stopPropagation()">
+        <mat-menu #pricingOptionsMenu="matMenu" class="pricing-options-menu" [hasBackdrop]="true" (click)="$event.stopPropagation()">
             <div class="pricing-menu-header" (click)="$event.stopPropagation()">
                 <button class="close-menu-btn" (click)="pricingMenuTrigger.closeMenu()" style="position: absolute !important; top: 8px !important; left: 12px !important; background: none !important; border: none !important; padding: 4px !important; cursor: pointer !important; z-index: 10 !important;">
                     <svg width="12" height="12" viewBox="0 0 16 16" style="display: block !important;">

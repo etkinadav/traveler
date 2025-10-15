@@ -2816,7 +2816,11 @@ mat-form-field {
 }
 
 // תפריט אופציות תמחור
-::ng-deep .pricing-options-menu {    
+::ng-deep .pricing-options-menu {
+    // עיצוב ה-backdrop השקוף
+    .mat-mdc-menu-backdrop {
+        background-color: rgba(0, 0, 0, 0.1) !important; // רקע שקוף עדין
+    }    
     .mat-mdc-menu-panel {
         min-width: 260px !important; // הקטנה מ-310px ל-260px (50px פחות)
         max-width: 260px !important; // הקטנה מ-310px ל-260px
@@ -3626,6 +3630,12 @@ mat-form-field {
     min-width: 260px !important; // הקטנה מ-310px ל-260px (50px פחות)
     max-width: 260px !important; // הקטנה מ-310px ל-260px
     width: 260px !important; // הקטנה מ-310px ל-260px
+}
+
+// עיצוב ה-backdrop השקוף
+::ng-deep .pricing-options-menu .mat-mdc-menu-backdrop {
+    background-color: rgba(0, 0, 0, 0.1) !important; // רקע שקוף עדין
+    backdrop-filter: blur(1px) !important; // אפקט blur עדין
 }
 
 // וידוא שהקונטיינר של המחיר עובד נכון
