@@ -161,6 +161,41 @@
   }
 }
 
+// כפתור סל המוצרים - זהה להמבורגר בעיצוב
+.custom-cart-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: transform 0.3s ease;
+  position: relative !important;
+  z-index: 1001 !important;
+  
+  &:hover {
+    background-color: rgba(0, 102, 204, 0.08) !important;
+    background: rgba(0, 102, 204, 0.08) !important;
+  }
+}
+
+.cart-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.cart-svg {
+  width: 30px;
+  height: 30px;
+  filter: brightness(0) saturate(100%) invert(27%) sepia(96%) saturate(7500%) hue-rotate(214deg) brightness(91%) contrast(101%);
+}
+
+
 button mat-icon {
   font-size: 20px;
   display: flex;

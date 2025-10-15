@@ -240,6 +240,12 @@ export class MainNavComponent implements OnInit, OnDestroy {
     console.log('המבורגר hover - הסתיים');
   }
 
+  // פונקציה פשוטה לסל המוצרים
+  openCartDialog() {
+    console.log('Opening cart...');
+    // TODO: פתיחת סל המוצרים
+  }
+
   openDrawer() {
     this.isDrawerOpen = true;
     this.isHamburgerOpen = true;
