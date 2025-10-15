@@ -1269,12 +1269,12 @@ mat-form-field {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border: 1px solid #e0e0e0;
         padding: 12px 16px;
-        width: 350px;
+        width: 300px; // הקטנה מ-350px ל-300px (50px פחות)
         max-height: 65vh;
         overflow-y: auto;
         overflow-x: hidden;
-        min-width: 350px;
-        max-width: 450px;
+        min-width: 300px; // הקטנה מ-350px ל-300px
+        max-width: 400px; // הקטנה מ-450px ל-400px
         
         // מובייל - הרבה יותר צר
         @media (max-width: 640px) {
@@ -1703,7 +1703,7 @@ mat-form-field {
 .menu-category {
     margin-bottom: 6px;
     margin-top: 10px;
-    padding: 0 16px;
+    padding: 0 8px; // הקטנה מ-16px ל-8px כדי לחסוך מקום
     
     &:first-child {
         margin-top: 14px;
@@ -1726,7 +1726,7 @@ mat-form-field {
             .category-row {
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                gap: 8px; // הקטנה מ-12px ל-8px כדי לחסוך מקום
                 padding: 8px 0;
                 cursor: pointer;
                 
@@ -2135,12 +2135,12 @@ mat-form-field {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border: 1px solid #e0e0e0;
     padding: 12px 16px;
-    width: 350px;
+    width: 300px; // הקטנה מ-350px ל-300px (50px פחות)
     max-height: 65vh;
     overflow-y: auto;
     overflow-x: hidden;
-    min-width: 350px;
-    max-width: 450px;
+    min-width: 300px; // הקטנה מ-350px ל-300px
+    max-width: 400px; // הקטנה מ-450px ל-400px
     z-index: 1000;
     
     // מובייל - הרבה יותר צר
@@ -2818,9 +2818,9 @@ mat-form-field {
 // תפריט אופציות תמחור
 ::ng-deep .pricing-options-menu {    
     .mat-mdc-menu-panel {
-        min-width: 310px !important;
-        max-width: 310px !important; // מניעת overflow
-        width: 310px !important; // רוחב קבוע
+        min-width: 260px !important; // הקטנה מ-310px ל-260px (50px פחות)
+        max-width: 260px !important; // הקטנה מ-310px ל-260px
+        width: 260px !important; // הקטנה מ-310px ל-260px
         border: none !important; // הסרת border מהתפריט
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; // shadow עדין במקום border
         overflow-x: hidden !important; // מניעת overflow אופקי
@@ -2836,9 +2836,9 @@ mat-form-field {
     
     .mat-mdc-menu-content {
         overflow-x: hidden !important; // מניעת overflow אופקי בתוכן
-        max-width: 100% !important;
-        width: 100% !important;
-        min-width: 310px !important; // וידוא שהתוכן מתרחב לרוחב הנכון
+        max-width: 260px !important; // הקטנה מ-100% ל-260px
+        width: 260px !important; // הקטנה מ-100% ל-260px
+        min-width: 260px !important; // הקטנה מ-310px ל-260px
     }
     
     // עיצוב הכפתורים בתוך התפריט
@@ -3613,9 +3613,9 @@ mat-form-field {
 // תפריט אופציות תמחור - סגנונות גלובליים
 ::ng-deep .mat-mdc-menu-panel.pricing-options-menu,
 ::ng-deep .pricing-options-menu.mat-mdc-menu-panel {
-    min-width: 310px !important;
-    max-width: 310px !important;
-    width: 310px !important;
+    min-width: 260px !important; // הקטנה מ-310px ל-260px (50px פחות)
+    max-width: 260px !important; // הקטנה מ-310px ל-260px
+    width: 260px !important; // הקטנה מ-310px ל-260px
 }
 
 // וידוא שהקונטיינר של המחיר עובד נכון
@@ -3649,11 +3649,12 @@ mat-form-field {
 
 .pricing-options-menu {
     .pricing-menu-header {
-        padding: 8px 16px 12px 16px;
+        padding: 8px 8px 12px 8px; // הקטנה מ-16px ל-8px כדי לחסוך מקום
         background: #0066cc;
         border-bottom: none;
         margin: -8px -8px 4px -8px;
         border-radius: 8px 8px 0 0;
+        padding-top: 18px; // הוספת 10px רווח מעל הכותרת
         
         .header-container {
             display: flex !important;
@@ -3662,26 +3663,26 @@ mat-form-field {
             justify-content: center !important;
             width: 100% !important;
             
-            .header-title {
-                font-size: 11px !important;
-                font-weight: bold !important;
-                color: #0066cc !important;
-                flex: 1 !important;
-                text-align: center !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
+        .header-title {
+            font-size: 11px !important;
+            font-weight: bold !important;
+            color: #0066cc !important;
+            flex: 1 !important;
+            text-align: center !important;
+            padding-top: 15px !important; // הוספת 15px רווח מעל הכותרת
+            margin: 0 !important;
+        }
         }
     }
     
     .menu-category {
         margin-bottom: 6px;
-        padding: 0 16px;
+        padding: 0 8px; // הקטנה מ-16px ל-8px כדי לחסוך מקום
         
         .category-row {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px; // הקטנה מ-12px ל-8px כדי לחסוך מקום
             padding: 8px 0;
             cursor: pointer;
             
