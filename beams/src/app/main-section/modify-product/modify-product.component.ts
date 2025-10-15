@@ -6638,6 +6638,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.isBeamsEnabled = !this.isBeamsEnabled;
         if (!this.isBeamsEnabled) {
             this.isCuttingEnabled = false; // אם קורות כבויות, גם חיתוך כבוי
+        } else {
+            // אם מחזירים קורות, מפעילים גם חיתוך ומחזירים למצב המקורי
+            this.isCuttingEnabled = true;
+            this.resetBeamsToOriginalState();
         }
         // לא קוראים ל-calculatePricing() - רק משנים את המצב
     }
@@ -6650,6 +6654,32 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     toggleScrewsOption() {
         this.isScrewsEnabled = !this.isScrewsEnabled;
         // לא קוראים ל-calculatePricing() - רק משנים את המצב
+    }
+    
+    // החזרת קורות למצב המקורי
+    private resetBeamsToOriginalState() {
+        if (!this.originalBeamsData || !this.BeamsDataForPricing) {
+            return;
+        }
+        
+        console.log('CHECH_EDIT_PRICE - מחזיר קורות למצב המקורי');
+        
+        // מחזיר את הכמויות למצב המקורי
+        for (let i = 0; i < this.BeamsDataForPricing.length; i++) {
+            const currentBeam = this.BeamsDataForPricing[i];
+            const originalBeam = this.originalBeamsData[i];
+            
+            if (originalBeam && currentBeam) {
+                // מחזיר את הכמויות המקוריות
+                currentBeam.totalSizes = JSON.parse(JSON.stringify(originalBeam.totalSizes));
+            }
+        }
+        
+        // איפוס מחירים דינמיים
+        this.dynamicBeamsPrice = this.originalBeamsPrice;
+        this.hasBeamsChanged = false;
+        
+        console.log('CHECH_EDIT_PRICE - קורות הוחזרו למצב המקורי');
     }
     
     // פונקציה לקבלת מחיר ברגים

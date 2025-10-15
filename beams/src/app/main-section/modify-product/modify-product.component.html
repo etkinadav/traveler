@@ -760,8 +760,8 @@
             
             <!-- קטגוריה 1: הוראות -->
             <div class="menu-category" (click)="$event.stopPropagation()">
-                <div class="category-row" (click)="onInstructionsClick($event)">
-                    <div class="simple-checkbox always-visible mandatory disabled-icon" style="cursor: not-allowed !important; pointer-events: none !important; opacity: 0.7 !important; filter: grayscale(0.3) !important;">
+                <div class="category-row" (click)="$event.stopPropagation()">
+                    <div class="simple-checkbox always-visible mandatory" (click)="$event.stopPropagation()">
                         <div class="checkbox-border">
                             <div class="checkmark">✓</div>
                         </div>
@@ -845,7 +845,7 @@
                         </div>
                     </div>
                     <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">חיתוך</div>
-                    <div class="category-price" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">
+                    <div class="category-price" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled || !isCuttingEnabled">
                         <span>{{ getCuttingPrice() }} ₪</span>
                     </div>
                 </div>
