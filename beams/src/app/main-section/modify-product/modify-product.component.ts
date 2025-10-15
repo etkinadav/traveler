@@ -283,6 +283,56 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         screwType: pkg.screwTranslatedName,
                         price: pkg.optimalPackage.price
                     })) || []
+                },
+                // מידע נוסף על עריכת המוצר
+                editingInfo: {
+                    // האם המשתמש ערך את הכמויות
+                    wasEdited: this.hasBeamsChanged || this.hasScrewsChanged,
+                    // אופציות שנבחרו (V) וכמה כל אחת עולה
+                    selectedOptions: {
+                        drawing: { 
+                            enabled: true, // תמיד מופעל
+                            price: this.drawingPrice || 0 
+                        },
+                        beams: { 
+                            enabled: this.isBeamsEnabled, 
+                            price: this.isBeamsEnabled ? this.getBeamsOnlyPrice() : 0 
+                        },
+                        cutting: { 
+                            enabled: this.isCuttingEnabled, 
+                            price: this.isCuttingEnabled ? this.getCuttingPrice() : 0 
+                        },
+                        screws: { 
+                            enabled: this.isScrewsEnabled, 
+                            price: this.isScrewsEnabled ? this.getScrewsPrice() : 0 
+                        }
+                    },
+                    // מחירים לפני ואחרי עריכה
+                    pricesComparison: {
+                        originalTotal: this.originalBeamsPrice + this.originalCuttingPrice + this.originalScrewsPrice + (this.drawingPrice || 0),
+                        editedTotal: this.getFinalPrice(),
+                        originalBeams: this.originalBeamsPrice,
+                        editedBeams: this.getBeamsOnlyPrice(),
+                        originalCutting: this.originalCuttingPrice,
+                        editedCutting: this.getCuttingPrice(),
+                        originalScrews: this.originalScrewsPrice,
+                        editedScrews: this.getScrewsPrice()
+                    },
+                    // כמויות מעודכנות של קורות וברגים אחרי עריכה
+                    updatedQuantities: {
+                        beams: this.BeamsDataForPricing?.map((beam, index) => ({
+                            beamType: beam.beamTranslatedName,
+                            originalQuantity: this.originalBeamQuantities[index] || 0,
+                            editedQuantity: this.getFullBeamsCount(beam)
+                        })) || [],
+                        screws: this.screwsPackagingPlan?.map((screw, index) => ({
+                            screwType: screw.screwTranslatedName,
+                            originalQuantity: this.originalScrewsData?.[index]?.numPackages || 0,
+                            editedQuantity: screw.numPackages
+                        })) || []
+                    },
+                    // האם הקורות מספיקות לבניית הרהיט
+                    isCuttingPossible: this.isCuttingPossible
                 }
             };
 

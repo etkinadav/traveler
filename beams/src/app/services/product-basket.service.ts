@@ -66,6 +66,36 @@ export interface PricingInfo {
     unitsPerType: { screwType: string; quantity: number }[];
     boxPricePerType: { screwType: string; price: number }[];
   };
+  // מידע נוסף על עריכת המוצר
+  editingInfo: {
+    // האם המשתמש ערך את הכמויות (שונה מהמקורי)
+    wasEdited: boolean;
+    // אופציות שנבחרו (V) וכמה כל אחת עולה
+    selectedOptions: {
+      drawing: { enabled: boolean; price: number };
+      beams: { enabled: boolean; price: number };
+      cutting: { enabled: boolean; price: number };
+      screws: { enabled: boolean; price: number };
+    };
+    // מחירים לפני ואחרי עריכה
+    pricesComparison: {
+      originalTotal: number;
+      editedTotal: number;
+      originalBeams: number;
+      editedBeams: number;
+      originalCutting: number;
+      editedCutting: number;
+      originalScrews: number;
+      editedScrews: number;
+    };
+    // כמויות מעודכנות של קורות וברגים אחרי עריכה
+    updatedQuantities: {
+      beams: { beamType: string; originalQuantity: number; editedQuantity: number }[];
+      screws: { screwType: string; originalQuantity: number; editedQuantity: number }[];
+    };
+    // האם הקורות מספיקות לבניית הרהיט
+    isCuttingPossible: boolean;
+  };
 }
 
 // Interface for complete basket item
@@ -117,6 +147,15 @@ export class ProductBasketService {
     console.log('BASKET-NEW-ITEM: Organized Arrangement', organizedArrangement);
     console.log('BASKET-NEW-ITEM: Pricing Info', pricingInfo);
     console.log('BASKET-NEW-ITEM: Complete Basket Item', basketItem);
+    
+    // לוג מפורט של המידע החדש
+    console.log('BASKET-NEW-ITEM: Editing Info', {
+      wasEdited: pricingInfo.editingInfo.wasEdited,
+      selectedOptions: pricingInfo.editingInfo.selectedOptions,
+      pricesComparison: pricingInfo.editingInfo.pricesComparison,
+      updatedQuantities: pricingInfo.editingInfo.updatedQuantities,
+      isCuttingPossible: pricingInfo.editingInfo.isCuttingPossible
+    });
     
     // לוג נוסף עם המוצר החדש בלבד
     console.log('BASKET-NEW-ITEM - NEW!', basketItem);
