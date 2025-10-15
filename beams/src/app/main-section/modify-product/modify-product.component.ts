@@ -3281,6 +3281,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // איפוס המחיר למצב "מחשב..." (0 מציג את הספינר)
         this.calculatedPrice = 0;
         
+        // איפוס המחירים הדינמיים כשעושים חישוב מחדש מלא
+        this.dynamicBeamsPrice = 0;
+        this.dynamicCuttingPrice = 0;
+        this.dynamicScrewsPrice = 0;
+        this.hasBeamsChanged = false;
+        this.hasScrewsChanged = false;
+        
         await this.calculateBeamsData();
         
         // עבור מוצר קורות - אין ברגים, אבל עדיין צריך לקרוא ל-calculateForgingData
@@ -6647,8 +6654,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // פונקציה לקבלת מחיר ברגים
     getScrewsPrice(): number {
-        // אם יש מחיר דינמי - החזר אותו, אחרת חשב מהתכנית
-        if (this.dynamicScrewsPrice > 0) {
+        // אם יש מחיר דינמי (לא 0) - החזר אותו, אחרת חשב מהתכנית
+        if (this.dynamicScrewsPrice !== 0) {
             return this.dynamicScrewsPrice;
         }
         if (!this.screwsPackagingPlan || this.screwsPackagingPlan.length === 0) {
@@ -6749,8 +6756,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // חישוב מחיר קורות (ללא חיתוך)
     getBeamsOnlyPrice(): number {
-        // אם יש מחיר דינמי - החזר אותו, אחרת חשב מהתכנית
-        if (this.dynamicBeamsPrice > 0) {
+        // אם יש מחיר דינמי (לא 0) - החזר אותו, אחרת חשב מהתכנית
+        if (this.dynamicBeamsPrice !== 0) {
             return this.dynamicBeamsPrice;
         }
         const price = this.cuttingPlan.reduce((sum, beam) => sum + beam.beamPrice, 0);
@@ -6759,8 +6766,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // חישוב מחיר חיתוכים
     getCuttingPrice(): number {
-        // אם יש מחיר דינמי - החזר אותו, אחרת חשב מהתכנית
-        if (this.dynamicCuttingPrice > 0) {
+        // אם יש מחיר דינמי (לא 0) - החזר אותו, אחרת חשב מהתכנית
+        if (this.dynamicCuttingPrice !== 0) {
             return this.dynamicCuttingPrice;
         }
         const price = this.cuttingPlan.reduce((sum, beam) => sum + (beam.totalCuttingPrice || 0), 0);
@@ -7418,14 +7425,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     
-    // איפוס המחירים הדינמיים
+    // איפוס המחירים הדינמיים (רק כשעושים חישוב מחדש מלא)
     private resetDynamicPrices() {
-        this.dynamicBeamsPrice = 0;
-        this.dynamicCuttingPrice = 0;
-        this.dynamicScrewsPrice = 0;
-        this.hasBeamsChanged = false;
-        this.hasScrewsChanged = false;
-        console.log('CHECH_EDIT_PRICE - מחירים דינמיים אופסו');
+        // רק אם לא פותחים תפריט עריכה חדש
+        if (!this.showBeamsEditOptions && !this.showScrewsEditOptions) {
+            this.dynamicBeamsPrice = 0;
+            this.dynamicCuttingPrice = 0;
+            this.dynamicScrewsPrice = 0;
+            this.hasBeamsChanged = false;
+            this.hasScrewsChanged = false;
+            console.log('CHECH_EDIT_PRICE - מחירים דינמיים אופסו');
+        }
     }
     
     // פונקציות לקבלת המחירים המקוריים והחדשים
