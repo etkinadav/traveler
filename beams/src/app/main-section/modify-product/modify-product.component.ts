@@ -644,6 +644,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     isBeamsEnabled: boolean = true; // האם קורות מופעלות
     isCuttingEnabled: boolean = true; // האם חיתוך מופעל
     isScrewsEnabled: boolean = true; // האם ברגים מופעלים
+    isCuttingPossible: boolean = true; // האם הכמויות מספיקות לחיתוך
     
     // משתנים לכפתורי עריכה
     showBeamsEditOptions: boolean = false; // האם להציג אופציות עריכה לקורות
@@ -7606,6 +7607,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     }
                 }
             }
+            
+            // עדכון סטטוס החיתוך בכל שינוי כמות
+            this.updateCuttingStatus();
         }
     }
     
@@ -7643,15 +7647,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     
-    // בדיקה אם צריך לבטל את החיתוך
-    private checkAndDisableCuttingIfNeeded() {
+    // בדיקה אם הכמויות מספיקות לחיתוך
+    private checkCuttingPossibility(): boolean {
         if (!this.originalBeamsData || !this.BeamsDataForPricing) {
-            return;
+            return true;
         }
         
-        // בדיקה אם יש קטגוריה שהכמות שלה קטנה מהכמות המקורית
-        let shouldDisableCutting = false;
-        
+        // בדיקה אם יש סוג קורה שהכמות שלו קטנה מהכמות המקורית הנדרשת
         for (let i = 0; i < this.BeamsDataForPricing.length; i++) {
             const currentBeam = this.BeamsDataForPricing[i];
             const originalBeam = this.originalBeamsData[i];
@@ -7662,15 +7664,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const originalQuantity = originalBeam.totalSizes.reduce((sum: number, size: any) => sum + size.count, 0);
             
             if (currentQuantity < originalQuantity) {
-                shouldDisableCutting = true;
-                break;
+                return false; // לא ניתן לבצע חיתוך
             }
         }
         
-        // אם צריך לבטל את החיתוך - ביטול החיתוך
-        if (shouldDisableCutting && this.isCuttingEnabled) {
+        return true; // ניתן לבצע חיתוך
+    }
+    
+    // עדכון סטטוס החיתוך
+    private updateCuttingStatus() {
+        const wasPossible = this.isCuttingPossible;
+        this.isCuttingPossible = this.checkCuttingPossibility();
+        
+        // אם החיתוך לא אפשרי יותר, נבטל אותו
+        if (!this.isCuttingPossible && this.isCuttingEnabled) {
             this.isCuttingEnabled = false;
-            console.log('חיתוך בוטל אוטומטית בגלל הקטנת כמות קורות');
+            console.log('CHECH_EDIT_PRICE - חיתוך בוטל - הכמויות לא מספיקות');
+        }
+        
+        // אם החיתוך הפך לאפשרי שוב, נפעיל אותו (רק אם קורות מופעלות)
+        if (this.isCuttingPossible && !this.isCuttingEnabled && this.isBeamsEnabled) {
+            this.isCuttingEnabled = true;
+            console.log('CHECH_EDIT_PRICE - חיתוך הופעל - הכמויות מספיקות');
         }
     }
     
@@ -7964,3 +7979,4 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
 }
+
