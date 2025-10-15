@@ -1730,6 +1730,11 @@ mat-form-field {
                 padding: 8px 0;
                 cursor: pointer;
                 
+                .check-icon {
+                    width: 24px !important;
+                    height: 24px !important;
+                }
+                
                 .category-title {
                     flex: 1;
                     font-weight: normal;
@@ -1960,10 +1965,76 @@ mat-form-field {
 }
 }
 
-// אייקון V
+// Checkbox פשוט ויציב
+.simple-checkbox {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    .checkbox-border {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        
+        .checkmark {
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+    }
+    
+    &.active .checkbox-border {
+        border-color: #0066cc;
+        background: #0066cc;
+        
+        .checkmark {
+            opacity: 1;
+        }
+    }
+    
+    &.always-visible,
+    &.mandatory {
+        cursor: default;
+        pointer-events: none;
+        
+        .checkbox-border {
+            border-color: #0066cc;
+            background: #0066cc;
+            
+            .checkmark {
+                opacity: 1;
+            }
+        }
+    }
+    
+    &.disabled {
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: 0.5;
+    }
+    
+    &:hover:not(.always-visible):not(.mandatory):not(.disabled) {
+        .checkbox-border {
+            border-color: #0066cc;
+        }
+    }
+}
+
+// אייקון V (ישן - נשאיר למקרה שמישהו עדיין משתמש)
 .check-icon {
     cursor: pointer;
     transition: all 0.2s ease;
+    width: 24px !important;
+    height: 24px !important;
     
     &.always-visible,
     &.mandatory {
@@ -3605,6 +3676,11 @@ mat-form-field {
             padding: 8px 0;
             cursor: pointer;
             
+            .check-icon {
+                width: 24px !important;
+                height: 24px !important;
+            }
+            
             .category-title {
                 flex: 1;
                 font-weight: normal;
@@ -3671,6 +3747,8 @@ mat-form-field {
     .check-icon {
         cursor: pointer;
         transition: all 0.2s ease;
+        width: 24px !important;
+        height: 24px !important;
         
         &.always-visible,
         &.mandatory {
