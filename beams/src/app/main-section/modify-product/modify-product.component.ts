@@ -3283,10 +3283,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // איפוס המחיר למצב "מחשב..." (0 מציג את הספינר)
         this.calculatedPrice = 0;
         
-        // איפוס המחירים הדינמיים כשעושים חישוב מחדש מלא
-        this.dynamicBeamsPrice = 0;
-        this.dynamicCuttingPrice = 0;
-        this.dynamicScrewsPrice = 0;
+        // איפוס המחירים הדינמיים כשעושים חישוב מחדש מלא (רק אם לא נשמרו מקוריים)
+        if (this.originalBeamsPrice === 0) {
+            this.dynamicBeamsPrice = 0;
+        }
+        if (this.originalCuttingPrice === 0) {
+            this.dynamicCuttingPrice = 0;
+        }
+        if (this.originalScrewsPrice === 0) {
+            this.dynamicScrewsPrice = 0;
+        }
         this.hasBeamsChanged = false;
         this.hasScrewsChanged = false;
         
@@ -7590,7 +7596,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
         return true;
     }
-
+    
     // עדכון כמות קורה
     updateBeamQuantity(beamIndex: number, newQuantity: number) {
         console.log(`CUTTING_DEBUG - updateBeamQuantity נקרא: beamIndex=${beamIndex}, newQuantity=${newQuantity}`);
@@ -7605,11 +7611,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const oldQuantity = this.getFullBeamsCount(beam);
         
         console.log(`CUTTING_DEBUG - עדכון כמות קורה: ${oldQuantity} → ${newQuantity}`);
-        
-        // חישוב ההפרש
-        const difference = newQuantity - oldQuantity;
-        
-        if (difference !== 0) {
+            
+            // חישוב ההפרש
+            const difference = newQuantity - oldQuantity;
+            
+            if (difference !== 0) {
             // עדכון ה-cuttingPlan ישירות
             let allBeamsOfThisType = this.cuttingPlan?.filter(plan => 
                 plan.beamType === beam.beamTranslatedName
@@ -7655,10 +7661,36 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }
                 
                 // עדכון מחיר
+                console.log(`CUTTING_DEBUG - allBeamsOfThisType.length: ${allBeamsOfThisType.length}`);
                 if (allBeamsOfThisType.length > 0) {
                     const beamPrice = allBeamsOfThisType[0].beamPrice;
                     const priceDifference = difference * beamPrice;
+                    console.log(`CUTTING_DEBUG - קורא ל-updatePriceLocally עם beamPrice: ${beamPrice}, priceDifference: ${priceDifference}`);
                     this.updatePriceLocally('beam', beam, priceDifference);
+                } else {
+                    // אם אין קורות מהסוג הזה, עדיין צריך לעדכן את המחיר
+                    // נשתמש במחיר מהנתונים המקוריים
+                    console.log(`CUTTING_DEBUG - אין קורות מהסוג הזה, מחפש מחיר אלטרנטיבי`);
+                    const originalBeam = this.originalBeamsData.find(b => b.beamTranslatedName === beam.beamTranslatedName);
+                    if (originalBeam) {
+                        // נמצא קורה דומה ב-cuttingPlan המקורי
+                        const similarBeam = this.cuttingPlan.find(plan => plan.beamType === beam.beamTranslatedName);
+                        if (similarBeam) {
+                            const beamPrice = similarBeam.beamPrice;
+                            const priceDifference = difference * beamPrice;
+                            console.log(`CUTTING_DEBUG - קורא ל-updatePriceLocally (אלטרנטיבי) עם beamPrice: ${beamPrice}, priceDifference: ${priceDifference}`);
+                            this.updatePriceLocally('beam', beam, priceDifference);
+                        } else {
+                            // אם לא נמצא, נשתמש במחיר מהנתונים המקוריים
+                            console.log(`CUTTING_DEBUG - לא נמצא קורה דומה, משתמש במחיר מקורי`);
+                            // נחשב מחיר על בסיס המחיר המקורי
+                            const originalPrice = this.originalBeamsPrice;
+                            const pricePerBeam = originalPrice / this.originalBeamQuantities.reduce((sum, q) => sum + q, 0);
+                            const priceDifference = difference * pricePerBeam;
+                            console.log(`CUTTING_DEBUG - קורא ל-updatePriceLocally (מחיר מקורי) עם pricePerBeam: ${pricePerBeam}, priceDifference: ${priceDifference}`);
+                            this.updatePriceLocally('beam', beam, priceDifference);
+                        }
+                    }
                 }
                 
                 // בדיקה אם זה היה המעבר מ-1 ל-0
