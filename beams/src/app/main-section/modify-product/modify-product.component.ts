@@ -7468,6 +7468,33 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return null;
     }
     
+    // בדיקה אם כל הקורות על 0
+    private checkAllBeamsZero(): boolean {
+        if (!this.BeamsDataForPricing) return false;
+        
+        for (let i = 0; i < this.BeamsDataForPricing.length; i++) {
+            const beam = this.BeamsDataForPricing[i];
+            const quantity = this.getFullBeamsCount(beam);
+            if (quantity > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // בדיקה אם כל הברגים על 0
+    private checkAllScrewsZero(): boolean {
+        if (!this.screwsPackagingPlan) return false;
+        
+        for (let i = 0; i < this.screwsPackagingPlan.length; i++) {
+            const screw = this.screwsPackagingPlan[i];
+            if (screw.numPackages > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // עדכון כמות קורה
     updateBeamQuantity(beamIndex: number, newQuantity: number) {
         if (!this.BeamsDataForPricing || beamIndex < 0 || beamIndex >= this.BeamsDataForPricing.length) {
@@ -7510,6 +7537,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const priceDifference = difference * beamPrice;
                     this.updatePriceLocally('beam', beam, priceDifference);
                 }
+                
+                // אם הקורות לא היו מופעלות והוספנו קורה, נפעיל אותן
+                if (!this.isBeamsEnabled && oldQuantity === 0) {
+                    this.isBeamsEnabled = true;
+                    console.log('CHECH_EDIT_PRICE - הוספת קורה, החזרת V לקורות');
+                }
             } else {
                 // הסרת קורות
                 const beamsToRemove = Math.abs(difference);
@@ -7527,6 +7560,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const beamPrice = allBeamsOfThisType[0].beamPrice;
                     const priceDifference = difference * beamPrice;
                     this.updatePriceLocally('beam', beam, priceDifference);
+                }
+                
+                // בדיקה אם זה היה המעבר מ-1 ל-0
+                if (oldQuantity === 1 && newQuantity === 0) {
+                    // בדיקה אם כל הקורות על 0
+                    if (this.checkAllBeamsZero()) {
+                        this.isBeamsEnabled = false;
+                        console.log('CHECH_EDIT_PRICE - כל הקורות על 0, הסרת V מקורות');
+                    }
                 }
             }
         }
@@ -7548,6 +7590,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // עדכון מקומי של המחיר
         this.updatePriceLocally('screw', screw, difference);
+        
+        // בדיקה אם זה היה המעבר מ-1 ל-0
+        if (oldQuantity === 1 && newQuantity === 0) {
+            // בדיקה אם כל הברגים על 0
+            if (this.checkAllScrewsZero()) {
+                this.isScrewsEnabled = false;
+                console.log('CHECH_EDIT_PRICE - כל הברגים על 0, הסרת V מברגים');
+            }
+        }
+        
+        // אם הברגים לא היו מופעלים והוספנו ברג, נפעיל אותם
+        if (difference > 0 && !this.isScrewsEnabled && oldQuantity === 0) {
+            this.isScrewsEnabled = true;
+            console.log('CHECH_EDIT_PRICE - הוספת ברג, החזרת V לברגים');
+        }
     }
     
     // בדיקה אם צריך לבטל את החיתוך
