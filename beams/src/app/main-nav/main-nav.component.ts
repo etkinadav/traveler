@@ -70,7 +70,7 @@ export class MainNavComponent implements OnInit, OnDestroy {
     private ordersService: OrdersService,
     private elementRef: ElementRef,
     private branchesService: BranchesService,
-    private constantsService: ConstantsService,
+    private constantsService: ConstantsService
   ) {
     this.translateService.onLangChange.subscribe(() => {
       this.updateTranslation();
@@ -243,7 +243,7 @@ export class MainNavComponent implements OnInit, OnDestroy {
   // פונקציה פשוטה לסל המוצרים
   openCartDialog() {
     console.log('Opening cart...');
-    // TODO: פתיחת סל המוצרים
+    this.router.navigate(['/shopping-cart']);
   }
 
   openDrawer() {

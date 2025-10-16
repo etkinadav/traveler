@@ -1446,3 +1446,14 @@ h4 {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* סגנון דיאלוג סל מוצרים */
+.shopping-cart-dialog .mat-mdc-dialog-container {
+  padding: 0;
+  overflow: hidden;
+}
+
+.shopping-cart-dialog .mat-mdc-dialog-surface {
+  border-radius: 12px;
+  overflow: hidden;
+}

@@ -41,6 +41,7 @@ import { SuEditUserComponent } from "./dialog/su-edit-user/su-edit-user.componen
 import { FileUploadModule } from 'ng2-file-upload';
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { ModifyProductModule } from './main-section/modify-product/modify-product.module';
+import { ShoppingCartComponent } from './main-nav/shopping-cart/shopping-cart.component';
 
 @NgModule({
   declarations: [
@@ -62,6 +63,7 @@ import { ModifyProductModule } from './main-section/modify-product/modify-produc
     DeleteOrderComponent,
     DeleteUserComponent,
     SuEditUserComponent,
+    ShoppingCartComponent,
   ],
   imports: [
     BrowserModule,

@@ -346,9 +346,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
             console.log('✅ Product added to basket successfully!');
             
+            // פתיחת דיאלוג הסל
+            this.openShoppingCart();
+            
         } catch (error) {
             console.error('❌ Error adding product to basket:', error);
         }
+    }
+    
+    /**
+     * פתיחת דיאלוג סל המוצרים
+     */
+    openShoppingCart() {
+        this.router.navigate(['/shopping-cart']);
     }
     
     // פונקציה לטיפול בלחיצה על כפתור "המשך"

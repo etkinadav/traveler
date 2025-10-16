@@ -1,0 +1,83 @@
+<div class="shopping-cart-page">
+  <!-- כותרת הסל -->
+  <div class="cart-header">
+    <button class="back-btn" (click)="goBack()" title="חזרה">
+      ← חזרה
+    </button>
+    <h1>סל הקניות שלי</h1>
+  </div>
+
+  <!-- סל ריק -->
+  <div *ngIf="isBasketEmpty()" class="empty-cart">
+    <div class="empty-cart-icon">🛒</div>
+    <h3>הסל ריק</h3>
+    <p>עדיין לא הוספת מוצרים לסל</p>
+    <button class="continue-shopping-btn" (click)="continueShopping()">
+      המשך קניות
+    </button>
+  </div>
+
+  <!-- רשימת מוצרים בסל -->
+  <div *ngIf="!isBasketEmpty()" class="cart-content">
+    <div class="row">
+      <div class="col-12 col-md-6 col-lg-4" *ngFor="let item of basketItems; let i = index">
+        <div class="cart-item-card">
+          <!-- כותרת המוצר -->
+          <div class="item-header">
+            <h3 class="item-title">{{ getProductDescription(item) }}</h3>
+            <button class="remove-item-btn" (click)="removeItem(item.id)" title="הסר מהסל">
+              🗑️
+            </button>
+          </div>
+
+          <!-- תצוגת מוצר מיני -->
+          <div class="product-mini-preview">
+            <!-- כאן נשים את התצוגה המיני של המוצר -->
+            <div class="product-image-placeholder">
+              📦
+            </div>
+          </div>
+
+          <!-- סיכום מהיר -->
+          <div class="item-quick-summary">
+            <div class="summary-item">
+              <span class="label">תאריך:</span>
+              <span class="value">{{ formatDate(item.addedToBasketAt) }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">מחיר:</span>
+              <span class="value price">{{ item.pricingInfo.totalPrice }} ₪</span>
+            </div>
+          </div>
+
+          <!-- כפתורי פעולה -->
+          <div class="item-actions">
+            <button class="edit-btn" (click)="toggleEditMode(item.id)">
+              {{ isEditing(item.id) ? 'סיים עריכה' : 'ערוך מוצר' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- סיכום סופי -->
+    <div class="cart-footer">
+      <div class="total-section">
+        <h3>סה"כ לתשלום:</h3>
+        <h2 class="total-price">{{ totalPrice }} ₪</h2>
+      </div>
+      
+      <div class="footer-actions">
+        <button class="clear-cart-btn" (click)="clearBasket()">
+          נקה סל
+        </button>
+        <button class="continue-shopping-btn" (click)="continueShopping()">
+          המשך קניות
+        </button>
+        <button class="checkout-btn" (click)="proceedToCheckout()">
+          המשך לתשלום
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
