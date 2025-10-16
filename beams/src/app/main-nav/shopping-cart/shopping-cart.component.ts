@@ -16,6 +16,9 @@ export class ShoppingCartComponent implements OnInit {
   // מצב עריכה עבור כל מוצר
   editingStates: { [key: string]: boolean } = {};
   
+  // למניעת לוגים חוזרים
+  private debugLogsShown = new Set<string>();
+  
   constructor(
     private basketService: ProductBasketService,
     private router: Router,
@@ -161,12 +164,33 @@ export class ShoppingCartComponent implements OnInit {
     // מחזיר את המוצר המקורי מהקונפיגורציה
     const originalData = item.productConfiguration.originalProductData;
     
+    // לוג חד פעמי לכל מוצר
+    const logKey = `getProductForPreview_${item.id}`;
+    if (!this.debugLogsShown.has(logKey)) {
+      console.log('🔍 DEBUG - getProductForPreview:', {
+        itemId: item.id,
+        originalDataExists: !!originalData,
+        originalDataKeys: originalData ? Object.keys(originalData) : [],
+        originalParams: originalData?.params || [],
+        inputConfigurations: item.productConfiguration.inputConfigurations
+      });
+      this.debugLogsShown.add(logKey);
+    }
+    
     // יצירת מוצר מעודכן עם הפרמטרים הנכונים
     const updatedProduct = {
       ...originalData,
       // עדכון הפרמטרים מהקונפיגורציה השמורה
       params: this.getUpdatedParamsFromConfiguration(item)
     };
+    
+    if (!this.debugLogsShown.has(logKey + '_result')) {
+      console.log('🔍 DEBUG - Updated Product for Preview:', {
+        updatedProductKeys: Object.keys(updatedProduct),
+        updatedParams: updatedProduct.params
+      });
+      this.debugLogsShown.add(logKey + '_result');
+    }
     
     return updatedProduct;
   }
@@ -177,8 +201,20 @@ export class ShoppingCartComponent implements OnInit {
   private getUpdatedParamsFromConfiguration(item: BasketItem): any[] {
     const originalParams = item.productConfiguration.originalProductData.params || [];
     
+    // לוג חד פעמי לכל מוצר
+    const logKey = `getUpdatedParamsFromConfiguration_${item.id}`;
+    if (!this.debugLogsShown.has(logKey)) {
+      console.log('🔍 DEBUG - getUpdatedParamsFromConfiguration:', {
+        itemId: item.id,
+        originalParamsCount: originalParams.length,
+        originalParams: originalParams.map(p => ({ name: p.name, type: p.type, value: p.value })),
+        inputConfigurations: item.productConfiguration.inputConfigurations
+      });
+      this.debugLogsShown.add(logKey);
+    }
+    
     // עדכון הפרמטרים עם הערכים השמורים בקונפיגורציה
-    return originalParams.map((param: any) => {
+    const updatedParams = originalParams.map((param: any) => {
       const configParam = item.productConfiguration.inputConfigurations.find(
         (config: any) => config.inputName === param.name
       );
@@ -193,6 +229,17 @@ export class ShoppingCartComponent implements OnInit {
       
       return param;
     });
+    
+    if (!this.debugLogsShown.has(logKey + '_result')) {
+      console.log('🔍 DEBUG - Updated Params Result:', {
+        itemId: item.id,
+        updatedParamsCount: updatedParams.length,
+        updatedParams: updatedParams.map(p => ({ name: p.name, type: p.type, value: p.value }))
+      });
+      this.debugLogsShown.add(logKey + '_result');
+    }
+    
+    return updatedParams;
   }
 
   /**
@@ -250,6 +297,19 @@ export class ShoppingCartComponent implements OnInit {
    */
   getConfigurationIndex(item: BasketItem): number {
     // מחזיר את האינדקס של הקונפיגורציה שנבחרה מהמוצר המקורי
-    return item.productConfiguration.originalProductData?.configurationIndex || 0;
+    const configurationIndex = item.productConfiguration.originalProductData?.configurationIndex || 0;
+    
+    // לוג חד פעמי לכל מוצר
+    const logKey = `getConfigurationIndex_${item.id}`;
+    if (!this.debugLogsShown.has(logKey)) {
+      console.log('🔍 DEBUG - getConfigurationIndex:', {
+        itemId: item.id,
+        configurationIndex: configurationIndex,
+        originalProductDataExists: !!item.productConfiguration.originalProductData
+      });
+      this.debugLogsShown.add(logKey);
+    }
+    
+    return configurationIndex;
   }
 }
