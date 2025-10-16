@@ -1920,10 +1920,10 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       return [];
     }
     
-    console.log('createFrameBeams called with:', { totalWidth, totalLength, frameWidth, frameHeight, legWidth, legDepth });
-    console.log('Using frameBeamWidth/Height:', frameBeamWidth, frameBeamHeight);
-    console.log('Leg width/depth:', legWidth, legDepth);
-    console.log('Total width/length:', totalWidth, totalLength);
+    // console.log('createFrameBeams called with:', { totalWidth, totalLength, frameWidth, frameHeight, legWidth, legDepth });
+    // console.log('Using frameBeamWidth/Height:', frameBeamWidth, frameBeamHeight);
+    // console.log('Leg width/depth:', legWidth, legDepth);
+    // console.log('Total width/length:', totalWidth, totalLength);
     
     const beams = [];
     // X axis beams (front/back) - קורות אופקיות קדמיות ואחוריות
@@ -1932,16 +1932,16 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       totalLength / 2 - legDepth / 2      // אחורית - צמודה לקצה לפי מידות הרגליים
     ]) {
       const beamWidth = totalWidth - 2 * legWidth;
-      console.log('Creating horizontal frame beam:', {
-        z: z,
-        beamWidth: beamWidth,
-        totalWidth: totalWidth,
-        legWidth: legWidth,
-        beamStart: -beamWidth / 2,
-        beamEnd: beamWidth / 2,
-        legStart: -totalWidth / 2 + legWidth / 2,
-        legEnd: totalWidth / 2 - legWidth / 2
-      });
+      // console.log('Creating horizontal frame beam:', {
+      //   z: z,
+      //   beamWidth: beamWidth,
+      //   totalWidth: totalWidth,
+      //   legWidth: legWidth,
+      //   beamStart: -beamWidth / 2,
+      //   beamEnd: beamWidth / 2,
+      //   legStart: -totalWidth / 2 + legWidth / 2,
+      //   legEnd: totalWidth / 2 - legWidth / 2
+      // });
       beams.push({
         x: 0,  // ממורכזות במרכז
         y: 0,
@@ -1958,12 +1958,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     ]) {
       const originalX = x;
       const adjustedX = x;  // עבור שולחן וארון - מיקום זהה
-      console.log('Creating vertical frame beam:', {
-        originalX: originalX,
-        adjustedX: adjustedX,
-        legWidth: legWidth,
-        beamDepth: totalLength - 2 * legDepth
-      });
+      // console.log('Creating vertical frame beam:', {
+      //   originalX: originalX,
+      //   adjustedX: adjustedX,
+      //   legWidth: legWidth,
+      //   beamDepth: totalLength - 2 * legDepth
+      // });
       beams.push({
         x: adjustedX,  // עבור שולחן, שתי הקורות ממורכזות למרכז הרגל
         y: 0,
