@@ -218,6 +218,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     addProductToBasket() {
         try {
             // יצירת קונפיגורציה של המוצר (פורמט 1)
+            console.log('🔍 DEBUG - Adding to basket - this.product:', {
+                productExists: !!this.product,
+                productKeys: this.product ? Object.keys(this.product) : [],
+                productParams: this.product?.params || [],
+                productParamsCount: this.product?.params?.length || 0,
+                thisParams: this.params || [],
+                thisParamsCount: this.params?.length || 0
+            });
+            
             const productConfiguration: ProductConfiguration = {
                 productName: this.selectedProductName || 'Unknown Product',
                 translatedProductName: this.selectedProductName || 'Unknown Product',

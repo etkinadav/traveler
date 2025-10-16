@@ -36,6 +36,7 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   isRTL: boolean = true;
   isDarkMode: boolean = false;
   private directionSubscription: Subscription;
+  private comparisonLogsShown = new Set<string>();
   public hoveredPrintingService: string = '';
   public printingService: string = '';
   continueToServiceText: string = '';
@@ -246,7 +247,50 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
 
   // פונקציה ללוגים מהתבנית
   logProductCreation(product: any) {
-    // Log for debugging if needed
+    // לוג חד פעמי להשוואה
+    const logKey = `choose-product-${product.id || product.name}`;
+    if (!this.comparisonLogsShown.has(logKey)) {
+      console.log('CHECK-MINI-CHOOSE - Product passed to mini preview:', {
+        productId: product.id || product.name,
+        productKeys: Object.keys(product),
+        hasParams: !!product.params,
+        paramsCount: product.params?.length || 0,
+        params: product.params?.map(p => ({ name: p.name, type: p.type, value: p.value })) || [],
+        configurationIndex: product.configurationIndex || 0,
+        hasBeams: product.params?.some(p => p.beams) || false,
+        beamTypes: product.params?.filter(p => p.beams).map(p => ({ name: p.name, beamsCount: p.beams?.length })) || []
+      });
+      this.comparisonLogsShown.add(logKey);
+    }
+  }
+
+  // פונקציה לבדיקת מוצר כשעוברים עליו עם העכבר
+  onHoverProduct(product: any) {
+    if (product && !product.isEmpty) {
+      this.hoveredProduct = product;
+      
+      // עדכון hoveredPrintingService כדי להציג טקסטים בקנבס
+      this.hoveredPrintingService = product.name || 'product';
+      
+      // לוג חד פעמי להשוואה
+      const logKey = `choose-hover-${product.id || product.name}`;
+      if (!this.comparisonLogsShown.has(logKey)) {
+        console.log('CHECK-MINI-CHOOSE - Product hovered:', {
+          productId: product.id || product.name,
+          productKeys: Object.keys(product),
+          hasParams: !!product.params,
+          paramsCount: product.params?.length || 0,
+          params: product.params?.map(p => ({ name: p.name, type: p.type, value: p.value })) || [],
+          configurationIndex: product.configurationIndex || 0,
+          hasBeams: product.params?.some(p => p.beams) || false,
+          beamTypes: product.params?.filter(p => p.beams).map(p => ({ name: p.name, beamsCount: p.beams?.length })) || []
+        });
+        this.comparisonLogsShown.add(logKey);
+      }
+    } else {
+      this.hoveredProduct = null;
+      this.hoveredPrintingService = '';
+    }
   }
   
   // פונקציה לבדוק אם מוצר נראה במסך
@@ -304,6 +348,23 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     
     // משיכת כל הקורות (אם קיים endpoint) ואז המוצרים
     this.loadBeamsAndProducts();
+    
+    // לוג ראשון של המוצרים
+    setTimeout(() => {
+      if (this.products && this.products.length > 0) {
+        console.log('CHECK-MINI-CHOOSE - Products loaded in ngOnInit:', {
+          totalProducts: this.products.length,
+          firstProduct: this.products[0] ? {
+            productId: this.products[0].id || this.products[0].name,
+            productKeys: Object.keys(this.products[0]),
+            hasParams: !!this.products[0].params,
+            paramsCount: this.products[0].params?.length || 0,
+            params: this.products[0].params?.map(p => ({ name: p.name, type: p.type, value: p.value })) || [],
+            hasBeams: this.products[0].params?.some(p => p.beams) || false
+          } : null
+        });
+      }
+    }, 1000);
     
     // הוסר - החלפת תמונות נמחקה
     
@@ -468,15 +529,6 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     });
   }
 
-  onHoverProduct(product: any) {
-    this.hoveredProduct = product;
-    // עדכון hoveredPrintingService כדי להציג טקסטים בקנבס
-    if (product) {
-      this.hoveredPrintingService = product.name || 'product';
-    } else {
-      this.hoveredPrintingService = '';
-    }
-  }
 
   // פונקציה למשיכת קורות ואז מוצרים
   loadBeamsAndProducts() {

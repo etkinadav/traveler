@@ -7,6 +7,9 @@ import * as THREE from 'three';
   styleUrls: ['./product-mini-preview.component.scss']
 })
 export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, OnChanges {
+  private debugLogsTimer: any = null;
+  private debugLogsEnabled = true;
+  private miniPreviewLogsShown = new Set<string>();
   @Input() product: any;
   @Input() configurationIndex: number = 0;
   @ViewChild('miniPreviewContainer', { static: true }) container!: ElementRef;
@@ -107,6 +110,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.initializeParamsFromProduct();
       this.createSimpleProduct();
       this.animate();
+      
+      // הפעלת טיימר לכיבוי לוגים אחרי 3 שניות
+      this.debugLogsTimer = setTimeout(() => {
+        this.debugLogsEnabled = false;
+        console.log('🔍 DEBUG - Mini preview debug logs disabled after 3 seconds');
+      }, 3000);
     } catch (error) {
       console.error('Error initializing 3D preview:', error);
     }
@@ -114,6 +123,22 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['product'] && this.scene) {
+      // לוג חד פעמי להשוואה
+      const logKey = `mini-preview-${this.product?.id || this.product?.name || 'unknown'}`;
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey)) {
+        console.log('CHECK-MINI-PREVIEW - Product received:', {
+          productId: this.product?.id || this.product?.name || 'unknown',
+          productKeys: this.product ? Object.keys(this.product) : [],
+          hasParams: !!this.product?.params,
+          paramsCount: this.product?.params?.length || 0,
+          params: this.product?.params?.map(p => ({ name: p.name, type: p.type, value: p.value })) || [],
+          configurationIndex: this.configurationIndex,
+          hasBeams: this.product?.params?.some(p => p.beams) || false,
+          beamTypes: this.product?.params?.filter(p => p.beams).map(p => ({ name: p.name, beamsCount: p.beams?.length })) || []
+        });
+        this.miniPreviewLogsShown.add(logKey);
+      }
+      
       // השתמש ב-setTimeout כדי למנוע את השגיאה
       setTimeout(() => {
         this.initializeParamsFromProduct();
@@ -131,6 +156,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }
     if (this.inactivityTimer) {
       clearTimeout(this.inactivityTimer);
+    }
+    if (this.debugLogsTimer) {
+      clearTimeout(this.debugLogsTimer);
     }
   }
 
@@ -1034,19 +1062,19 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         if (param.beams && param.beams.length > 0) {
           const beamIndex = this.getBeamIndexByDefaultType(param);
           const beam = param.beams[beamIndex];
-          console.log('beamSingle beam:', beam);
+          // if (this.debugLogsEnabled) console.log('beamSingle beam:', beam);
           // החלפה: width של הפרמטר הופך ל-height של הקורה, height של הפרמטר הופך ל-width של הקורה
           const beamWidth = beam.width || 50; // ברירת מחדל 50 מ"מ
           const beamHeight = beam.height || 50; // ברירת מחדל 50 מ"מ
           this.dynamicParams.frameWidth = beamHeight / 10; // height הופך ל-width
           this.dynamicParams.frameHeight = beamWidth / 10; // width הופך ל-height
-          console.log('אתחול מידות קורת חיזוק:', { beamWidth, beamHeight, frameWidthCm: this.dynamicParams.frameWidth, frameHeightCm: this.dynamicParams.frameHeight });
+          // if (this.debugLogsEnabled) console.log('אתחול מידות קורת חיזוק:', { beamWidth, beamHeight, frameWidthCm: this.dynamicParams.frameWidth, frameHeightCm: this.dynamicParams.frameHeight });
         }
       } else if (param.type === 'beamArray' && param.name === 'shelfs') {
         if (param.beams && param.beams.length > 0) {
           const beamIndex = this.getBeamIndexByDefaultType(param);
           const beam = param.beams[beamIndex];
-          console.log('shelfs beam:', beam);
+          // if (this.debugLogsEnabled) console.log('shelfs beam:', beam);
           // המרה ממ"מ לס"מ כמו בקובץ הראשי
           const beamWidth = beam.width || 100; // ברירת מחדל 100 מ"מ
           const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
@@ -1073,13 +1101,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         if (param.beams && param.beams.length > 0) {
           const beamIndex = this.getBeamIndexByDefaultType(param);
           const beam = param.beams[beamIndex];
-          console.log('plata beam:', beam);
+          if (this.debugLogsEnabled) console.log('plata beam:', beam);
           // המרה ממ"מ לס"מ כמו בקובץ הראשי
           const beamWidth = beam.width || 100; // ברירת מחדל 100 מ"מ
           const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
           this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
           this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
-          console.log('אתחול מידות קורת פלטה:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
+          if (this.debugLogsEnabled) console.log('אתחול מידות קורת פלטה:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
         }
         // שולחן - יש רק מדף אחד
         this.dynamicParams.shelfCount = 1;
@@ -1093,13 +1121,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         if (param.beams && param.beams.length > 0) {
           const beamIndex = this.getBeamIndexByDefaultType(param);
           const beam = param.beams[beamIndex];
-          console.log(isBox ? 'box beam:' : 'planter beam:', beam);
+          if (this.debugLogsEnabled) console.log(isBox ? 'box beam:' : 'planter beam:', beam);
           // המרה ממ"מ לס"מ כמו בקובץ הראשי
           const beamWidth = beam.width || 50; // ברירת מחדל 50 מ"מ
           const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
           this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
           this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
-          console.log(isBox ? 'אתחול מידות קורת קופסא:' : 'אתחול מידות קורת עדנית:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
+          if (this.debugLogsEnabled) console.log(isBox ? 'אתחול מידות קורת קופסא:' : 'אתחול מידות קורת עדנית:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
         }
       }
     });
@@ -1173,8 +1201,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
       const shelfBeamIndex = this.getBeamIndexByDefaultType(shelfsParam);
       shelfBeam = shelfsParam.beams[shelfBeamIndex];
-      console.log('shelfBeam:', shelfBeam);
-      console.log('shelfBeam.types:', shelfBeam ? shelfBeam.types : 'null');
+      // if (this.debugLogsEnabled) console.log('shelfBeam:', shelfBeam);
+      // if (this.debugLogsEnabled) console.log('shelfBeam.types:', shelfBeam ? shelfBeam.types : 'null');
       shelfType = shelfBeam.types && shelfBeam.types.length ? shelfBeam.types[shelfsParam.selectedBeamTypeIndex || 0] : null;
     }
     
@@ -1188,8 +1216,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
       const frameBeamIndex = this.getBeamIndexByDefaultType(frameParam);
       frameBeam = frameParam.beams[frameBeamIndex];
-      console.log('frameBeam:', frameBeam);
-      console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
+      if (this.debugLogsEnabled) console.log('frameBeam:', frameBeam);
+      if (this.debugLogsEnabled) console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
       frameType = frameBeam.types && frameBeam.types.length ? frameBeam.types[frameParam.selectedBeamTypeIndex || 0] : null;
     }
     
@@ -1302,7 +1330,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // עבור שולחן, נשתמש במידות קורת הפלטה
       legWidth = frameBeam.width ? frameBeam.width / 10 : actualFrameWidth; // רוחב הרגל מקורת החיזוק
       legDepth = frameBeam.height ? frameBeam.height / 10 : actualFrameHeight; // עומק הרגל מקורת החיזוק
-      console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
+      if (this.debugLogsEnabled) console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
     } else if (!isTable) {
       // עבור ארון - הפיכת הפרופיל של הרגליים (width ↔ height)
       legWidth = actualFrameHeight;  // רוחב הרגל = גובה קורת החיזוק
@@ -1367,7 +1395,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const extraBeamParam = this.product?.params?.find((p: any) => p.name === 'extraBeam');
       if (extraBeamParam && extraBeamParam.default > 0) {
         const extraBeamDistance = extraBeamParam.default;
-        console.log('Adding extra frame beams for table with distance:', extraBeamDistance);
+        if (this.debugLogsEnabled) console.log('Adding extra frame beams for table with distance:', extraBeamDistance);
         
         // יצירת קורות חיזוק נוספות באותו מיקום אבל יותר נמוך
         const extraFrameBeams = this.createFrameBeams(
@@ -1381,7 +1409,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         
         // המרחק הכולל = הנתון החדש + גובה קורות החיזוק
         const totalDistance = extraBeamDistance + actualFrameHeight;
-        console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
+        if (this.debugLogsEnabled) console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
         
         for (const beam of extraFrameBeams) {
           const extraFrameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
@@ -1394,7 +1422,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           extraFrameMesh.receiveShadow = true;
           this.scene.add(extraFrameMesh);
           this.meshes.push(extraFrameMesh);
-          console.log('Created extra frame beam at position:', beam.x, currentY - beam.height / 2 - totalDistance - this.dynamicParams.beamHeight, beam.z);
+          if (this.debugLogsEnabled) console.log('Created extra frame beam at position:', beam.x, currentY - beam.height / 2 - totalDistance - this.dynamicParams.beamHeight, beam.z);
         }
       }
     }
@@ -1465,8 +1493,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
       const shelfBeamIndex = this.getBeamIndexByDefaultType(shelfsParam);
       shelfBeam = shelfsParam.beams[shelfBeamIndex];
-      console.log('shelfBeam:', shelfBeam);
-      console.log('shelfBeam.types:', shelfBeam ? shelfBeam.types : 'null');
+      // if (this.debugLogsEnabled) console.log('shelfBeam:', shelfBeam);
+      // if (this.debugLogsEnabled) console.log('shelfBeam.types:', shelfBeam ? shelfBeam.types : 'null');
       shelfType = shelfBeam.types && shelfBeam.types.length ? shelfBeam.types[shelfsParam.selectedBeamTypeIndex || 0] : null;
     }
     
@@ -1480,8 +1508,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
       const frameBeamIndex = this.getBeamIndexByDefaultType(frameParam);
       frameBeam = frameParam.beams[frameBeamIndex];
-      console.log('frameBeam:', frameBeam);
-      console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
+      if (this.debugLogsEnabled) console.log('frameBeam:', frameBeam);
+      if (this.debugLogsEnabled) console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
       frameType = frameBeam.types && frameBeam.types.length ? frameBeam.types[frameParam.selectedBeamTypeIndex || 0] : null;
     }
     
@@ -1594,7 +1622,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // עבור שולחן, נשתמש במידות קורת הפלטה
       legWidth = frameBeam.width ? frameBeam.width / 10 : actualFrameWidth; // רוחב הרגל מקורת החיזוק
       legDepth = frameBeam.height ? frameBeam.height / 10 : actualFrameHeight; // עומק הרגל מקורת החיזוק
-      console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
+      if (this.debugLogsEnabled) console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
     } else if (!isTable) {
       // עבור ארון - הפיכת הפרופיל של הרגליים (width ↔ height)
       legWidth = actualFrameHeight;  // רוחב הרגל = גובה קורת החיזוק
@@ -1659,7 +1687,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const extraBeamParam = this.product?.params?.find((p: any) => p.name === 'extraBeam');
       if (extraBeamParam && extraBeamParam.default > 0) {
         const extraBeamDistance = extraBeamParam.default;
-        console.log('Adding extra frame beams for table with distance:', extraBeamDistance);
+        if (this.debugLogsEnabled) console.log('Adding extra frame beams for table with distance:', extraBeamDistance);
         
         // יצירת קורות חיזוק נוספות באותו מיקום אבל יותר נמוך
         const extraFrameBeams = this.createFrameBeams(
@@ -1673,7 +1701,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         
         // המרחק הכולל = הנתון החדש + גובה קורות החיזוק
         const totalDistance = extraBeamDistance + actualFrameHeight;
-        console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
+        if (this.debugLogsEnabled) console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
         
         for (const beam of extraFrameBeams) {
           const extraFrameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
@@ -1686,7 +1714,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           extraFrameMesh.receiveShadow = true;
           this.scene.add(extraFrameMesh);
           this.meshes.push(extraFrameMesh);
-          console.log('Created extra frame beam at position:', beam.x, currentY - beam.height / 2 - totalDistance - this.dynamicParams.beamHeight, beam.z);
+          if (this.debugLogsEnabled) console.log('Created extra frame beam at position:', beam.x, currentY - beam.height / 2 - totalDistance - this.dynamicParams.beamHeight, beam.z);
         }
       }
     }

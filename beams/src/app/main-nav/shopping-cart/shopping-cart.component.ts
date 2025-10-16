@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ProductBasketService, BasketItem } from '../../services/product-basket.service';
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-shopping-cart',
@@ -9,7 +10,7 @@ import { DatePipe } from '@angular/common';
   styleUrls: ['./shopping-cart.component.css'],
   providers: [DatePipe]
 })
-export class ShoppingCartComponent implements OnInit {
+export class ShoppingCartComponent implements OnInit, OnDestroy {
   basketItems: BasketItem[] = [];
   totalPrice: number = 0;
   
@@ -18,6 +19,9 @@ export class ShoppingCartComponent implements OnInit {
   
   // למניעת לוגים חוזרים
   private debugLogsShown = new Set<string>();
+  private debugLogsTimer: any = null;
+  private debugLogsEnabled = true;
+  private basketSubscription: Subscription = new Subscription();
   
   constructor(
     private basketService: ProductBasketService,
@@ -27,6 +31,12 @@ export class ShoppingCartComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadBasket();
+    
+    // הפעלת טיימר לכיבוי לוגים אחרי 3 שניות
+    this.debugLogsTimer = setTimeout(() => {
+      this.debugLogsEnabled = false;
+      console.log('🔍 DEBUG - Debug logs disabled after 3 seconds');
+    }, 3000);
   }
 
   /**
@@ -164,15 +174,17 @@ export class ShoppingCartComponent implements OnInit {
     // מחזיר את המוצר המקורי מהקונפיגורציה
     const originalData = item.productConfiguration.originalProductData;
     
-    // לוג חד פעמי לכל מוצר
+    // לוג חד פעמי לכל מוצר (רק ב-3 השניות הראשונות)
     const logKey = `getProductForPreview_${item.id}`;
-    if (!this.debugLogsShown.has(logKey)) {
-      console.log('🔍 DEBUG - getProductForPreview:', {
+    if (this.debugLogsEnabled && !this.debugLogsShown.has(logKey)) {
+      console.log('CHECK-MINI-BASKET - getProductForPreview:', {
         itemId: item.id,
         originalDataExists: !!originalData,
         originalDataKeys: originalData ? Object.keys(originalData) : [],
         originalParams: originalData?.params || [],
-        inputConfigurations: item.productConfiguration.inputConfigurations
+        originalParamsCount: originalData?.params?.length || 0,
+        inputConfigurations: item.productConfiguration.inputConfigurations,
+        inputConfigurationsCount: item.productConfiguration.inputConfigurations.length
       });
       this.debugLogsShown.add(logKey);
     }
@@ -184,10 +196,15 @@ export class ShoppingCartComponent implements OnInit {
       params: this.getUpdatedParamsFromConfiguration(item)
     };
     
-    if (!this.debugLogsShown.has(logKey + '_result')) {
-      console.log('🔍 DEBUG - Updated Product for Preview:', {
+    if (this.debugLogsEnabled && !this.debugLogsShown.has(logKey + '_result')) {
+      console.log('CHECK-MINI-BASKET - Updated Product for Preview:', {
+        itemId: item.id,
         updatedProductKeys: Object.keys(updatedProduct),
-        updatedParams: updatedProduct.params
+        updatedParamsCount: updatedProduct.params?.length || 0,
+        updatedParams: updatedProduct.params?.map(p => ({ name: p.name, type: p.type, value: p.value })) || [],
+        hasBeams: updatedProduct.params?.some(p => p.beams) || false,
+        beamTypes: updatedProduct.params?.filter(p => p.beams).map(p => ({ name: p.name, beamsCount: p.beams?.length })) || [],
+        configurationIndex: updatedProduct.configurationIndex || 0
       });
       this.debugLogsShown.add(logKey + '_result');
     }
@@ -199,18 +216,63 @@ export class ShoppingCartComponent implements OnInit {
    * קבלת פרמטרים מעודכנים מהקונפיגורציה
    */
   private getUpdatedParamsFromConfiguration(item: BasketItem): any[] {
-    const originalParams = item.productConfiguration.originalProductData.params || [];
+    // אם אין פרמטרים ב-originalProductData, ננסה לבנות אותם מ-inputConfigurations
+    let originalParams = item.productConfiguration.originalProductData.params || [];
     
-    // לוג חד פעמי לכל מוצר
+    // לוג חד פעמי לכל מוצר (רק ב-3 השניות הראשונות)
     const logKey = `getUpdatedParamsFromConfiguration_${item.id}`;
-    if (!this.debugLogsShown.has(logKey)) {
+    if (this.debugLogsEnabled && !this.debugLogsShown.has(logKey)) {
       console.log('🔍 DEBUG - getUpdatedParamsFromConfiguration:', {
         itemId: item.id,
         originalParamsCount: originalParams.length,
         originalParams: originalParams.map(p => ({ name: p.name, type: p.type, value: p.value })),
-        inputConfigurations: item.productConfiguration.inputConfigurations
+        inputConfigurations: item.productConfiguration.inputConfigurations,
+        originalProductDataKeys: item.productConfiguration.originalProductData ? Object.keys(item.productConfiguration.originalProductData) : []
       });
       this.debugLogsShown.add(logKey);
+    }
+    
+    // אם אין פרמטרים ב-originalProductData, ננסה לבנות פרמטרים בסיסיים
+    if (originalParams.length === 0 && item.productConfiguration.inputConfigurations.length > 0) {
+      if (this.debugLogsEnabled && !this.debugLogsShown.has(logKey + '_creating_params')) {
+        console.log('🔍 DEBUG - No original params found, creating basic params from inputConfigurations');
+        this.debugLogsShown.add(logKey + '_creating_params');
+      }
+      
+      // ננסה לבנות פרמטרים בסיסיים מה-inputConfigurations
+      originalParams = item.productConfiguration.inputConfigurations.map((config: any) => {
+        const paramType = this.getParamTypeFromInputName(config.inputName);
+        
+        // אם זה פרמטר קורות, נוסיף beams array בסיסי
+        let param: any = {
+          name: config.inputName,
+          type: paramType,
+          value: config.value,
+          default: config.value
+        };
+        
+        // הוספת beams array לפרמטרים של קורות
+        if (paramType === 'beamArray' || paramType === 'beamSingle') {
+          param.beams = [
+            {
+              name: 'קורה בסיסית',
+              width: 50,
+              height: 100,
+              length: 1000,
+              types: [
+                {
+                  name: 'סוג בסיסי',
+                  length: 1000
+                }
+              ]
+            }
+          ];
+          param.selectedBeamIndex = 0;
+          param.selectedBeamTypeIndex = 0;
+        }
+        
+        return param;
+      });
     }
     
     // עדכון הפרמטרים עם הערכים השמורים בקונפיגורציה
@@ -230,7 +292,7 @@ export class ShoppingCartComponent implements OnInit {
       return param;
     });
     
-    if (!this.debugLogsShown.has(logKey + '_result')) {
+    if (this.debugLogsEnabled && !this.debugLogsShown.has(logKey + '_result')) {
       console.log('🔍 DEBUG - Updated Params Result:', {
         itemId: item.id,
         updatedParamsCount: updatedParams.length,
@@ -240,6 +302,22 @@ export class ShoppingCartComponent implements OnInit {
     }
     
     return updatedParams;
+  }
+
+  private getParamTypeFromInputName(inputName: string): string {
+    // מיפוי שמות inputs לסוגי פרמטרים
+    const typeMap: { [key: string]: string } = {
+      'width': 'number',
+      'height': 'number', 
+      'depth': 'number',
+      'length': 'number',
+      'shelfs': 'beamArray',
+      'beam': 'beamSingle',
+      'frame': 'beamSingle',
+      'legs': 'beamSingle'
+    };
+    
+    return typeMap[inputName] || 'number';
   }
 
   /**
@@ -299,9 +377,9 @@ export class ShoppingCartComponent implements OnInit {
     // מחזיר את האינדקס של הקונפיגורציה שנבחרה מהמוצר המקורי
     const configurationIndex = item.productConfiguration.originalProductData?.configurationIndex || 0;
     
-    // לוג חד פעמי לכל מוצר
+    // לוג חד פעמי לכל מוצר (רק ב-3 השניות הראשונות)
     const logKey = `getConfigurationIndex_${item.id}`;
-    if (!this.debugLogsShown.has(logKey)) {
+    if (this.debugLogsEnabled && !this.debugLogsShown.has(logKey)) {
       console.log('🔍 DEBUG - getConfigurationIndex:', {
         itemId: item.id,
         configurationIndex: configurationIndex,
@@ -311,5 +389,14 @@ export class ShoppingCartComponent implements OnInit {
     }
     
     return configurationIndex;
+  }
+
+  ngOnDestroy(): void {
+    this.basketSubscription.unsubscribe();
+    
+    // ניקוי הטיימר
+    if (this.debugLogsTimer) {
+      clearTimeout(this.debugLogsTimer);
+    }
   }
 }
