@@ -153,4 +153,103 @@ export class ShoppingCartComponent implements OnInit {
   formatDate(date: Date): string {
     return this.datePipe.transform(date, 'dd/MM/yyyy HH:mm') || '';
   }
+
+  /**
+   * קבלת מוצר לתצוגה מיני
+   */
+  getProductForPreview(item: BasketItem): any {
+    // מחזיר את המוצר המקורי מהקונפיגורציה
+    const originalData = item.productConfiguration.originalProductData;
+    
+    // יצירת מוצר מעודכן עם הפרמטרים הנכונים
+    const updatedProduct = {
+      ...originalData,
+      // עדכון הפרמטרים מהקונפיגורציה השמורה
+      params: this.getUpdatedParamsFromConfiguration(item)
+    };
+    
+    return updatedProduct;
+  }
+
+  /**
+   * קבלת פרמטרים מעודכנים מהקונפיגורציה
+   */
+  private getUpdatedParamsFromConfiguration(item: BasketItem): any[] {
+    const originalParams = item.productConfiguration.originalProductData.params || [];
+    
+    // עדכון הפרמטרים עם הערכים השמורים בקונפיגורציה
+    return originalParams.map((param: any) => {
+      const configParam = item.productConfiguration.inputConfigurations.find(
+        (config: any) => config.inputName === param.name
+      );
+      
+      if (configParam) {
+        // עדכון הערך מהקונפיגורציה השמורה
+        return {
+          ...param,
+          value: configParam.value
+        };
+      }
+      
+      return param;
+    });
+  }
+
+  /**
+   * עדכון נתוני קורות לתצוגה מיני
+   */
+  private updateBeamsDataForPreview(item: BasketItem): any[] {
+    const originalBeams = item.productConfiguration.originalProductData.BeamsDataForPricing || [];
+    
+    return originalBeams.map((beam: any, index: number) => {
+      const beamUpdate = item.pricingInfo.editingInfo.updatedQuantities.beams[index];
+      
+      if (beamUpdate && beamUpdate.editedQuantity !== beamUpdate.originalQuantity) {
+        // עדכון הכמות בהתאם לעריכה
+        const updatedBeam = { ...beam };
+        
+        // עדכון totalSizes בהתאם לכמות המעודכנת
+        if (updatedBeam.totalSizes && updatedBeam.totalSizes.length > 0) {
+          const totalPieces = beamUpdate.editedQuantity * (beam.totalSizes[0]?.count || 1);
+          updatedBeam.totalSizes = [{
+            ...beam.totalSizes[0],
+            count: totalPieces
+          }];
+        }
+        
+        return updatedBeam;
+      }
+      
+      return beam;
+    });
+  }
+
+  /**
+   * עדכון נתוני ברגים לתצוגה מיני
+   */
+  private updateScrewsDataForPreview(item: BasketItem): any[] {
+    const originalScrews = item.productConfiguration.originalProductData.ForgingDataForPricing || [];
+    
+    return originalScrews.map((screw: any, index: number) => {
+      const screwUpdate = item.pricingInfo.editingInfo.updatedQuantities.screws[index];
+      
+      if (screwUpdate && screwUpdate.editedQuantity !== screwUpdate.originalQuantity) {
+        // עדכון הכמות בהתאם לעריכה
+        return {
+          ...screw,
+          count: screwUpdate.editedQuantity
+        };
+      }
+      
+      return screw;
+    });
+  }
+
+  /**
+   * קבלת אינדקס הקונפיגורציה
+   */
+  getConfigurationIndex(item: BasketItem): number {
+    // מחזיר את האינדקס של הקונפיגורציה שנבחרה מהמוצר המקורי
+    return item.productConfiguration.originalProductData?.configurationIndex || 0;
+  }
 }

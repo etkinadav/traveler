@@ -32,10 +32,10 @@
 
           <!-- תצוגת מוצר מיני -->
           <div class="product-mini-preview">
-            <!-- כאן נשים את התצוגה המיני של המוצר -->
-            <div class="product-image-placeholder">
-              📦
-            </div>
+            <app-product-mini-preview 
+              [product]="getProductForPreview(item)"
+              [configurationIndex]="getConfigurationIndex(item)">
+            </app-product-mini-preview>
           </div>
 
           <!-- סיכום מהיר -->

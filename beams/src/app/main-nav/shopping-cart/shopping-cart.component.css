@@ -153,19 +153,17 @@
 .product-mini-preview {
   margin-bottom: 15px;
   text-align: center;
+  height: 150px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
 }
 
-.product-image-placeholder {
+.product-mini-preview app-product-mini-preview {
+  display: block;
   width: 100%;
-  height: 120px;
-  background: #f0f0f0;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 48px;
-  color: #999;
-  margin-bottom: 10px;
+  height: 100%;
 }
 
 /* סיכום מהיר */

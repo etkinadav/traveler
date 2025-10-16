@@ -229,7 +229,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     cornerType: param.name,
                     cornerData: param.selectedBeamIndex !== undefined ? param.beams[param.selectedBeamIndex] : null
                 })),
-                originalProductData: this.params
+                originalProductData: this.product
             };
 
             // יצירת רשימת חיתוך (פורמט 2)

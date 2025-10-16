@@ -63,11 +63,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   // Get wood texture based on beam type - זהה לקובץ הראשי
   private getWoodTexture(beamType: string): THREE.Texture {
-    console.log('getWoodTexture נקרא עם beamType:', beamType);
-    
     // טקסטורה אחת פשוטה כמו שאר המוצרים
     const texturePath = 'assets/textures/pine.jpg';
-    console.log('טוען טקסטורה מהנתיב:', texturePath);
     return this.textureLoader.load(texturePath);
   }
 
@@ -84,7 +81,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       });
       if (foundIndex !== -1) {
         beamIndex = foundIndex;
-        console.log(`CHACK-BEAM-MINI: 🎯 בחירת קורת ${param.name} לפי defaultType: ${defaultTypeId} -> index ${beamIndex}`);
       }
     }
     
@@ -118,7 +114,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['product'] && this.scene) {
-      console.log('מוצר השתנה, מעדכן פרמטרים...');
       // השתמש ב-setTimeout כדי למנוע את השגיאה
       setTimeout(() => {
         this.initializeParamsFromProduct();
@@ -146,7 +141,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }
     this.inactivityTimer = setTimeout(() => {
       this.hasUserInteracted = false; // החזרת הסיבוב האוטומטי
-      console.log('החזרת סיבוב אוטומטי אחרי 30 שניות של חוסר פעילות');
     }, 30000); // 30 שניות
   }
 
@@ -303,17 +297,14 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const beamHeight = beamType.height || beam.height || 50; // ברירת מחדל 50 מ"מ
       this.dynamicParams.frameWidth = beamHeight / 10; // height הופך ל-width
       this.dynamicParams.frameHeight = beamWidth / 10; // width הופך ל-height
-      console.log('עדכון מידות קורת חיזוק:', { beamWidth, beamHeight, frameWidthCm: this.dynamicParams.frameWidth, frameHeightCm: this.dynamicParams.frameHeight });
     } else {
       // אם אין types, נשתמש במידות הקורה עצמה
       const beamWidth = beam.width || 50; // ברירת מחדל 50 מ"מ
       const beamHeight = beam.height || 50; // ברירת מחדל 50 מ"מ
       this.dynamicParams.frameWidth = beamHeight / 10;
       this.dynamicParams.frameHeight = beamWidth / 10;
-      console.log('עדכון מידות קורת חיזוק (ללא types):', { beamWidth, beamHeight, frameWidthCm: this.dynamicParams.frameWidth, frameHeightCm: this.dynamicParams.frameHeight });
     }
 
-    console.log(`החלפתי קורת חיזוק לקורה ${randomBeamIndex}, סוג ${randomTypeIndex}:`, beam);
 
     // יצירת המודל מחדש ללא עדכון מצלמה
     this.createSimpleProductWithoutCameraUpdate();
@@ -392,17 +383,14 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const beamHeight = beamType.height || beam.height || 25; // ברירת מחדל 25 מ"מ
       this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
       this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
-      console.log('עדכון מידות קורת מדפים:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
     } else {
       // אם אין types, נשתמש במידות הקורה עצמה
       const beamWidth = beam.width || 100; // ברירת מחדל 100 מ"מ
       const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
       this.dynamicParams.beamWidth = beamWidth / 10;
       this.dynamicParams.beamHeight = beamHeight / 10;
-      console.log('עדכון מידות קורת מדפים (ללא types):', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
     }
 
-    console.log(`החלפתי קורת מדפים לקורה ${randomBeamIndex}, סוג ${randomTypeIndex}:`, beam);
 
     // יצירת המודל מחדש ללא עדכון מצלמה
     this.createSimpleProductWithoutCameraUpdate();
@@ -457,17 +445,14 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const beamHeight = beamType.height || beam.height || 50; // ברירת מחדל 50 מ"מ
       this.dynamicParams.frameWidth = beamHeight / 10; // height הופך ל-width
       this.dynamicParams.frameHeight = beamWidth / 10; // width הופך ל-height
-      console.log('עדכון מידות קורת חיזוק (אוטומטי):', { beamWidth, beamHeight, frameWidthCm: this.dynamicParams.frameWidth, frameHeightCm: this.dynamicParams.frameHeight });
     } else {
       // אם אין types, נשתמש במידות הקורה עצמה
       const beamWidth = beam.width || 50; // ברירת מחדל 50 מ"מ
       const beamHeight = beam.height || 50; // ברירת מחדל 50 מ"מ
       this.dynamicParams.frameWidth = beamHeight / 10;
       this.dynamicParams.frameHeight = beamWidth / 10;
-      console.log('עדכון מידות קורת חיזוק (אוטומטי, ללא types):', { beamWidth, beamHeight, frameWidthCm: this.dynamicParams.frameWidth, frameHeightCm: this.dynamicParams.frameHeight });
     }
 
-    console.log(`החלפתי קורת חיזוק אוטומטית לקורה ${randomBeamIndex}, סוג ${randomTypeIndex}:`, beam);
 
     // יצירת המודל מחדש ללא עדכון מצלמה
     this.createSimpleProductWithoutCameraUpdate();
@@ -541,17 +526,14 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const beamHeight = beamType.height || beam.height || 25; // ברירת מחדל 25 מ"מ
       this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
       this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
-      console.log('עדכון מידות קורת מדפים (אוטומטי):', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
     } else {
       // אם אין types, נשתמש במידות הקורה עצמה
       const beamWidth = beam.width || 100; // ברירת מחדל 100 מ"מ
       const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
       this.dynamicParams.beamWidth = beamWidth / 10;
       this.dynamicParams.beamHeight = beamHeight / 10;
-      console.log('עדכון מידות קורת מדפים (אוטומטי, ללא types):', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
     }
 
-    console.log(`החלפתי קורת מדפים אוטומטית לקורה ${randomBeamIndex}, סוג ${randomTypeIndex}:`, beam);
 
     // יצירת המודל מחדש ללא עדכון מצלמה
     this.createSimpleProductWithoutCameraUpdate();
@@ -577,7 +559,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // שחזור המצב של המצלמה
     this.restoreCameraState(currentCameraState);
     
-    console.log('רוחב הוגדל ל:', this.dynamicParams.width);
   }
 
   decreaseWidth() {
@@ -600,7 +581,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // שחזור המצב של המצלמה
       this.restoreCameraState(currentCameraState);
       
-      console.log('רוחב הוקטן ל:', this.dynamicParams.width);
     }
   }
 
@@ -620,7 +600,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // שחזור המצב של המצלמה
     this.restoreCameraState(currentCameraState);
     
-    console.log('אורך הוגדל ל:', this.dynamicParams.length);
   }
 
   decreaseLength() {
@@ -643,7 +622,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // שחזור המצב של המצלמה
       this.restoreCameraState(currentCameraState);
       
-      console.log('אורך הוקטן ל:', this.dynamicParams.length);
     }
   }
 
@@ -663,11 +641,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // שולחן - הגדלת גובה המדף היחיד
       this.shelfGaps[0] += 5; // הוספת 5 ס"מ למדף היחיד
       this.dynamicParams.height = this.shelfGaps[0]; // עדכון פרמטר הגובה
-      console.log('גובה שולחן הוגדל ל:', this.shelfGaps[0]);
     } else {
       // ארון - הגדלת גובה המדף השלישי
       this.shelfGaps[2] += 5; // הוספת 5 ס"מ למדף השלישי
-      console.log('גובה המדף השלישי הוגדל ל:', this.shelfGaps[2]);
     }
     
     this.createSimpleProductWithoutCameraUpdate(); // יצירת המודל מחדש ללא עדכון מצלמה
@@ -703,7 +679,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         // עדכון הזום בהתאם לגובה הכולל
         this.restoreCameraState(currentCameraState, true);
         
-        console.log('גובה שולחן הוקטן ל:', this.shelfGaps[0]);
       }
     } else {
       // ארון - הקטנת גובה המדף השלישי
@@ -722,7 +697,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         // עדכון הזום בהתאם לגובה הכולל
         this.restoreCameraState(currentCameraState, true);
         
-        console.log('גובה המדף השלישי הוקטן ל:', this.shelfGaps[2]);
       }
     }
   }
@@ -1040,25 +1014,19 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         const beamHeight = firstBeamType.height || firstBeam.height || 25; // ברירת מחדל 25 מ"מ
         this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
         this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
-        console.log('אתחול מידות קורת מדפים:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
       }
     }
 
     // אתחול הפרמטרים הדינמיים מהמוצר
-    console.log('פרמטרים מהמוצר:', this.product.params);
     this.product.params.forEach((param: any) => {
-      console.log(`פרמטר ${param.name || param.type}:`, param);
       
       // בדיקה לפי שם הפרמטר עבור מידות
       if (param.name === 'width') {
         this.dynamicParams.width = param.default || 100;
-        console.log('רוחב:', this.dynamicParams.width);
       } else if (param.name === 'depth') {
         this.dynamicParams.length = param.default || 100;
-        console.log('אורך (depth):', this.dynamicParams.length);
       } else if (param.name === 'height') {
         this.dynamicParams.height = param.default || 100;
-        console.log('גובה:', this.dynamicParams.height);
       }
       
       // בדיקה לפי סוג הפרמטר עבור קורות
@@ -1084,7 +1052,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
           this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
           this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
-          console.log('אתחול מידות קורת מדפים:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
         }
         // מספר מדפים
         this.dynamicParams.shelfCount = param.default || 3;
@@ -1121,7 +1088,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
         const tableHeight = heightParam ? this.dynamicParams.height || heightParam.default || 80 : 80;
         this.shelfGaps = [tableHeight]; // מדף אחד בגובה שנקבע
-        console.log('גובה מדף שולחן נטען:', this.shelfGaps);
       } else if ((isPlanter || isBox) && param.name === 'beam') {
         // עדנית או קופסא - טיפול בפרמטר beam
         if (param.beams && param.beams.length > 0) {
@@ -1144,10 +1110,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const tableHeight = heightParam ? heightParam.default || 80 : 80;
       this.shelfGaps = [tableHeight];
       this.dynamicParams.height = tableHeight;
-      console.log('אתחול ברירת מחדל לגובה שולחן:', this.shelfGaps);
     }
 
-    console.log('פרמטרים מאותחלים מהמוצר:', this.dynamicParams);
   }
 
   private createSimpleProduct() {
@@ -1183,7 +1147,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     // זיהוי סוג המוצר - שולחן או ארון
     const isTable = this.product?.name === 'table';
-    console.log('סוג מוצר:', isTable ? 'שולחן' : 'ארון');
     
     // קבלת רשימת gaps מהמוצר
     let shelfsParam = null;
@@ -1207,10 +1170,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // קבלת סוג הקורה והעץ מהפרמטרים - זהה לקובץ הראשי
     let shelfBeam = null;
     let shelfType = null;
-    console.log('shelfsParam:', shelfsParam);
     if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
-      console.log('selectedBeamIndex:', shelfsParam.selectedBeamIndex);
-      console.log('selectedBeamTypeIndex:', shelfsParam.selectedBeamTypeIndex);
       const shelfBeamIndex = this.getBeamIndexByDefaultType(shelfsParam);
       shelfBeam = shelfsParam.beams[shelfBeamIndex];
       console.log('shelfBeam:', shelfBeam);
@@ -1219,18 +1179,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }
     
     // קבלת טקסטורת עץ לקורות המדפים - זהה לקובץ הראשי
-    console.log('shelfType:', shelfType);
-    console.log('shelfType.name:', shelfType ? shelfType.name : 'null');
     const shelfWoodTexture = this.getWoodTexture(shelfType ? shelfType.name : '');
     
     // קבלת סוג הקורה והעץ של קורות החיזוק מהפרמטרים
     const frameParam = this.product?.params?.find((p: any) => p.type === 'beamSingle' && p.name === 'leg');
     let frameBeam = null;
     let frameType = null;
-    console.log('frameParam:', frameParam);
     if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
-      console.log('frameParam.selectedBeamIndex:', frameParam.selectedBeamIndex);
-      console.log('frameParam.selectedBeamTypeIndex:', frameParam.selectedBeamTypeIndex);
       const frameBeamIndex = this.getBeamIndexByDefaultType(frameParam);
       frameBeam = frameParam.beams[frameBeamIndex];
       console.log('frameBeam:', frameBeam);
@@ -1239,8 +1194,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }
     
     // קבלת טקסטורת עץ לקורות החיזוק
-    console.log('frameType:', frameType);
-    console.log('frameType.name:', frameType ? frameType.name : 'null');
     const frameWoodTexture = this.getWoodTexture(frameType ? frameType.name : '');
     
     // חישוב מידות אמיתיות של קורת החיזוק פעם אחת
@@ -1258,9 +1211,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     actualFrameWidth = actualFrameWidth || 5; // ברירת מחדל 5 ס"מ
     actualFrameHeight = actualFrameHeight || 5; // ברירת מחדל 5 ס"מ
     
-    console.log('מידות אמיתיות של קורת החיזוק:');
-    console.log('actualFrameWidth:', actualFrameWidth);
-    console.log('actualFrameHeight:', actualFrameHeight);
     
     for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
       const isTopShelf = shelfIndex === totalShelves - 1;
@@ -1327,10 +1277,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // יצירת רגליים (legs) - זהה לקורות החיזוק
     // הרגליים משתמשות באותן הגדרות של קורות החיזוק
     // לא צריך לחפש פרמטר נפרד - משתמשים ב-frameParam שכבר נמצא
-    console.log('רגליים משתמשות בהגדרות קורות החיזוק:');
-    console.log('frameType.name:', frameType ? frameType.name : 'null');
-    console.log('frameWidth:', this.dynamicParams.frameWidth);
-    console.log('frameHeight:', this.dynamicParams.frameHeight);
 
     // חישוב גובה הרגליים - הרגליים מגיעות רק עד לקורות החיזוק התחתונות
     let totalY = 0;
@@ -1347,13 +1293,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const safeBeamHeight = this.dynamicParams.beamHeight || 2.5; // גובה קורת מדף
     const legHeight = Math.max(totalY - safeBeamHeight, 20); // מינימום 20 ס"מ
     
-    console.log('חישוב גובה רגליים:', {
-      totalY,
-      safeBeamHeight,
-      legHeight,
-      shelfGapsLength: shelfGaps.length,
-      totalShelves
-    });
     
     
     // קבלת מידות הרגליים מקורת החיזוק (לא מקורת הפלטה)
@@ -1368,7 +1307,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // עבור ארון - הפיכת הפרופיל של הרגליים (width ↔ height)
       legWidth = actualFrameHeight;  // רוחב הרגל = גובה קורת החיזוק
       legDepth = actualFrameWidth;  // עומק הרגל = רוחב קורת החיזוק
-      console.log('מידות רגליים מארון (פרופיל מוחלף):', { legWidth, legDepth, actualFrameWidth, actualFrameHeight });
     }
 
     // מיקום הרגליים - זהה לקובץ הראשי
@@ -1501,7 +1439,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     // זיהוי סוג המוצר - שולחן או ארון
     const isTable = this.product?.name === 'table';
-    console.log('סוג מוצר:', isTable ? 'שולחן' : 'ארון');
     
     // קבלת רשימת gaps מהמוצר
     let shelfsParam = null;
@@ -1525,10 +1462,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // קבלת סוג הקורה והעץ מהפרמטרים - זהה לקובץ הראשי
     let shelfBeam = null;
     let shelfType = null;
-    console.log('shelfsParam:', shelfsParam);
     if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
-      console.log('selectedBeamIndex:', shelfsParam.selectedBeamIndex);
-      console.log('selectedBeamTypeIndex:', shelfsParam.selectedBeamTypeIndex);
       const shelfBeamIndex = this.getBeamIndexByDefaultType(shelfsParam);
       shelfBeam = shelfsParam.beams[shelfBeamIndex];
       console.log('shelfBeam:', shelfBeam);
@@ -1537,18 +1471,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }
     
     // קבלת טקסטורת עץ לקורות המדפים - זהה לקובץ הראשי
-    console.log('shelfType:', shelfType);
-    console.log('shelfType.name:', shelfType ? shelfType.name : 'null');
     const shelfWoodTexture = this.getWoodTexture(shelfType ? shelfType.name : '');
     
     // קבלת סוג הקורה והעץ של קורות החיזוק מהפרמטרים
     const frameParam = this.product?.params?.find((p: any) => p.type === 'beamSingle' && p.name === 'leg');
     let frameBeam = null;
     let frameType = null;
-    console.log('frameParam:', frameParam);
     if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
-      console.log('frameParam.selectedBeamIndex:', frameParam.selectedBeamIndex);
-      console.log('frameParam.selectedBeamTypeIndex:', frameParam.selectedBeamTypeIndex);
       const frameBeamIndex = this.getBeamIndexByDefaultType(frameParam);
       frameBeam = frameParam.beams[frameBeamIndex];
       console.log('frameBeam:', frameBeam);
@@ -1557,8 +1486,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }
     
     // קבלת טקסטורת עץ לקורות החיזוק
-    console.log('frameType:', frameType);
-    console.log('frameType.name:', frameType ? frameType.name : 'null');
     const frameWoodTexture = this.getWoodTexture(frameType ? frameType.name : '');
     
     // חישוב מידות אמיתיות של קורת החיזוק פעם אחת
@@ -1576,9 +1503,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     actualFrameWidth = actualFrameWidth || 5; // ברירת מחדל 5 ס"מ
     actualFrameHeight = actualFrameHeight || 5; // ברירת מחדל 5 ס"מ
     
-    console.log('מידות אמיתיות של קורת החיזוק:');
-    console.log('actualFrameWidth:', actualFrameWidth);
-    console.log('actualFrameHeight:', actualFrameHeight);
     
     for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
       const isTopShelf = shelfIndex === totalShelves - 1;
@@ -1645,10 +1569,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // יצירת רגליים (legs) - זהה לקורות החיזוק
     // הרגליים משתמשות באותן הגדרות של קורות החיזוק
     // לא צריך לחפש פרמטר נפרד - משתמשים ב-frameParam שכבר נמצא
-    console.log('רגליים משתמשות בהגדרות קורות החיזוק:');
-    console.log('frameType.name:', frameType ? frameType.name : 'null');
-    console.log('frameWidth:', this.dynamicParams.frameWidth);
-    console.log('frameHeight:', this.dynamicParams.frameHeight);
 
     // חישוב גובה הרגליים - הרגליים מגיעות רק עד לקורות החיזוק התחתונות
     let totalY = 0;
@@ -1665,13 +1585,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const safeBeamHeight = this.dynamicParams.beamHeight || 2.5; // גובה קורת מדף
     const legHeight = Math.max(totalY - safeBeamHeight, 20); // מינימום 20 ס"מ
     
-    console.log('חישוב גובה רגליים:', {
-      totalY,
-      safeBeamHeight,
-      legHeight,
-      shelfGapsLength: shelfGaps.length,
-      totalShelves
-    });
     
     
     // קבלת מידות הרגליים מקורת החיזוק (לא מקורת הפלטה)
@@ -1686,7 +1599,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // עבור ארון - הפיכת הפרופיל של הרגליים (width ↔ height)
       legWidth = actualFrameHeight;  // רוחב הרגל = גובה קורת החיזוק
       legDepth = actualFrameWidth;  // עומק הרגל = רוחב קורת החיזוק
-      console.log('מידות רגליים מארון (פרופיל מוחלף):', { legWidth, legDepth, actualFrameWidth, actualFrameHeight });
     }
 
     // מיקום הרגליים - זהה לקובץ הראשי
@@ -1901,14 +1813,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const offset2 = this.camera.position.clone().sub(this.target);
     this.spherical.setFromVector3(offset2);
     
-    console.log('עדכון מצלמה:', {
-      width,
-      height: totalModelHeight,
-      depth,
-      centerY,
-      distance,
-      target: this.target
-    });
   }
 
 
@@ -2106,8 +2010,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // חישוב הגובה הכולל של ברירת המחדל מהמוצר
     const defaultTotalHeight = this.getTotalShelfHeightDefault();
     
-    console.log('גובה כולל נוכחי:', currentTotalHeight);
-    console.log('גובה כולל ברירת מחדל:', defaultTotalHeight);
     
     // חישוב יחס הזום (ברירת מחדל = זום רגיל)
     const zoomRatio = currentTotalHeight / defaultTotalHeight;
@@ -2172,7 +2074,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.dynamicParams.frameHeight = 5;
     }
 
-    console.log('פרמטרים דינמיים לאחר בדיקת תקינות:', this.dynamicParams);
   }
 
   // פונקציות לבדיקת גבולות עבור disabled של כפתורים
@@ -2452,7 +2353,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // קבלת פרמטר beams מהמוצר
     const beamsParam = this.product?.params?.find((p: any) => p.name === 'beams');
     if (!beamsParam || !beamsParam.beams || beamsParam.beams.length === 0) {
-      console.log('לא נמצא פרמטר beams או קורות זמינות');
       return;
     }
 
