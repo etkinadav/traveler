@@ -38,6 +38,9 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   
   // לכיסוי המודלים התלת-ממדיים
   showHintMap: { [key: string]: boolean } = {};
+  
+  // מעקב אחר overlays שהוסרו
+  overlayRemovedMap: { [key: string]: boolean } = {};
 
   // Cache למוצרים מעובדים כדי למנוע יצירה מחדש כל הזמן
   private productPreviewCache = new Map<string, any>();
@@ -562,13 +565,26 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   /**
    * הסרת הכיסוי מהמודל התלת-ממדי
    */
-  removeOverlay(event: Event, miniPreview: any): void {
+  removeOverlay(event: Event, miniPreview: any, itemId: string): void {
     event.preventDefault();
     event.stopPropagation();
+    
+    // סימון שה-overlay הוסר עבור המוצר הזה
+    this.overlayRemovedMap[itemId] = true;
+    
+    // הסתרת הטקסט hint
+    this.showHintMap[itemId] = false;
     
     if (miniPreview && miniPreview.removeOverlay) {
       miniPreview.removeOverlay();
     }
+  }
+  
+  /**
+   * בדיקה האם ה-overlay הוסר עבור מוצר מסוים
+   */
+  isOverlayRemoved(itemId: string): boolean {
+    return this.overlayRemovedMap[itemId] || false;
   }
 
   /**

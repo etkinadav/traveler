@@ -2037,16 +2037,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const oldRotation = this.scene.rotation.y;
       this.scene.rotation.y += 0.005; // סיבוב איטי
       
-      // לוג לבדיקת הסיבוב (כל פעם)
-      const rotationDebugKey = `rotation-debug-${this.product?.id || this.product?.name || 'unknown'}`;
-      if (!this.miniPreviewLogsShown.has(rotationDebugKey)) {
-        console.log('ROTATEMINI - 🔄 ROTATION DEBUG - Old rotation:', oldRotation, 'New rotation:', this.scene.rotation.y, 'hasUserInteracted:', this.hasUserInteracted);
-        this.miniPreviewLogsShown.add(rotationDebugKey);
-        // נוסיף timeout כדי לבדוק שוב אחרי שנייה
-        setTimeout(() => {
-          this.miniPreviewLogsShown.delete(rotationDebugKey);
-        }, 1000);
-      }
       
       // לוג חד פעמי להשוואה (רק פעם אחת לכל מוצר)
       const logKey = `animation-${this.product?.id || this.product?.name || 'unknown'}`;
@@ -2062,26 +2052,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         this.miniPreviewLogsShown.add(logKey);
       }
       
-      // לוג לבדיקת הסיבוב (כל שנייה)
-      const rotationLogKey = `rotation-check-${this.product?.id || this.product?.name || 'unknown'}`;
-      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(rotationLogKey)) {
-        console.log('ROTATEMINI - 🔄 ROTATION CHECK - Scene rotation Y:', this.scene.rotation.y, 'hasUserInteracted:', this.hasUserInteracted, 'isElementVisible:', this.isElementVisible());
-        this.miniPreviewLogsShown.add(rotationLogKey);
-        // נוסיף timeout כדי לבדוק שוב אחרי שנייה
-        setTimeout(() => {
-          this.miniPreviewLogsShown.delete(rotationLogKey);
-        }, 1000);
-      }
       
-      // לוג נוסף לבדיקת הסיבוב (כל 60 frames - בערך כל שנייה)
-      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey + '_rotation_check')) {
-        console.log('ROTATEMINI - 🔄 ROTATION CHECK - Scene rotation Y:', this.scene.rotation.y, 'hasUserInteracted:', this.hasUserInteracted);
-        this.miniPreviewLogsShown.add(logKey + '_rotation_check');
-        // נוסיף timeout כדי לבדוק שוב אחרי 2 שניות
-        setTimeout(() => {
-          this.miniPreviewLogsShown.delete(logKey + '_rotation_check');
-        }, 2000);
-      }
     }
     
     if (this.renderer && this.scene && this.camera) {

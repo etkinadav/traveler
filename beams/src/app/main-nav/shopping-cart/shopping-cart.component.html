@@ -41,8 +41,10 @@
               [configurationIndex]="getConfigurationIndex(item)">
             </app-product-mini-preview>
             <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
-            <div class="product-3d-overlay" 
-                 (click)="removeOverlay($event, miniPreview)"
+            <div *ngIf="!isOverlayRemoved(item.id)"
+                 class="product-3d-overlay" 
+                 [class.hidden]="isOverlayRemoved(item.id)"
+                 (click)="removeOverlay($event, miniPreview, item.id)"
                  (mouseenter)="showHintForProduct(item.id)"
                  (mouseleave)="hideHintForProduct(item.id)">
               <!-- טקסט הוראה בריחוף -->

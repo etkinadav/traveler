@@ -175,7 +175,8 @@
   position: relative;
   margin-bottom: 15px;
   text-align: center;
-  height: 150px;
+  width: 100%;
+  padding-top: 100%; /* יוצר ריבוע (aspect ratio 1:1) */
   border-radius: 0; /* פינות חדות כמו בבחירת המוצר */
   overflow: hidden;
   background: #f8f9fa;
@@ -184,6 +185,9 @@
 }
 
 .product-mini-preview app-product-mini-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -217,26 +221,34 @@
   /* טקסט הוראה בריחוף */
   .overlay-hint {
     position: absolute;
-    top: 8px; /* למעלה במקום למטה */
+    top: 50%; /* למרכז */
     left: 50%;
-    transform: translateX(-50%);
-    background: none; /* ללא רקע */
-    color: var(--zx-green); /* כחול כמו בבחירת המוצר */
-    padding: 0;
-    font-size: 13px; /* קצת יותר קטן */
-    font-weight: 500;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 102, 204, 0.9); /* רקע כחול עם שקיפות */
+    color: white;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
     opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 0.3s ease-in-out;
     pointer-events: none;
     white-space: nowrap;
     z-index: 11;
     width: max-content; /* רוחב מינימלי */
-    max-width: 100%; /* לא יוצא מהמסך */
+    max-width: 90%; /* לא יוצא מהמסך */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
     
     &.show {
       opacity: 1;
     }
   }
+}
+
+/* הסתרת ה-overlay אחרי לחיצה */
+.product-3d-overlay.hidden {
+  display: none;
+  pointer-events: none;
 }
 
 /* סיכום מהיר */
