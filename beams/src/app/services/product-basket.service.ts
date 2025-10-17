@@ -4,6 +4,8 @@ import { Injectable } from '@angular/core';
 export interface InputConfiguration {
   inputName: string;
   value: any;
+  selectedBeamIndex?: number;
+  selectedTypeIndex?: number;
 }
 
 export interface SelectedCorner {

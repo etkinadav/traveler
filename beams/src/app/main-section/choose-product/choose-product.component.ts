@@ -274,18 +274,37 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
       
       // לוג חד פעמי להשוואה
       const logKey = `choose-hover-${product.id || product.name}`;
-      if (!this.comparisonLogsShown.has(logKey)) {
-        console.log('CHECK-MINI-CHOOSE - Product hovered:', {
-          productId: product.id || product.name,
-          productKeys: Object.keys(product),
-          hasParams: !!product.params,
-          paramsCount: product.params?.length || 0,
-          params: product.params?.map(p => ({ name: p.name, type: p.type, value: p.value })) || [],
-          configurationIndex: product.configurationIndex || 0,
-          hasBeams: product.params?.some(p => p.beams) || false,
-          beamTypes: product.params?.filter(p => p.beams).map(p => ({ name: p.name, beamsCount: p.beams?.length })) || []
-        });
-        this.comparisonLogsShown.add(logKey);
+      // לוג מפורט חד פעמי
+      if (!this.comparisonLogsShown.has(logKey + '_detailed')) {
+        console.log('ROTATEMINI - DETAILED-CHOOSE-LOG:', JSON.stringify({
+        productId: product.id || product.name,
+        productKeys: Object.keys(product),
+        hasParams: !!product.params,
+        paramsCount: product.params?.length || 0,
+        params: product.params?.map(p => ({ 
+          name: p.name, 
+          type: p.type, 
+          value: p.value,
+          selectedBeamIndex: p.selectedBeamIndex,
+          selectedBeamTypeIndex: p.selectedBeamTypeIndex,
+          hasBeams: !!p.beams,
+          beamsCount: p.beams?.length || 0
+        })) || [],
+        configurationIndex: product.configurationIndex || 0,
+        hasBeams: product.params?.some(p => p.beams) || false,
+        beamTypes: product.params?.filter(p => p.beams).map(p => ({ 
+          name: p.name, 
+          beamsCount: p.beams?.length,
+          selectedBeamIndex: p.selectedBeamIndex,
+          selectedBeamTypeIndex: p.selectedBeamTypeIndex,
+          firstBeam: p.beams?.[0] ? {
+            name: p.beams[0].name,
+            types: p.beams[0].types?.map(t => ({ name: t.name, texture: t.texture })) || []
+            } : null
+          })) || []
+        }, null, 2));
+        this.comparisonLogsShown.add(logKey + '_detailed');
+        this.comparisonLogsShown.add('ngOnInit_products');
       }
     } else {
       this.hoveredProduct = null;
@@ -351,7 +370,7 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     
     // לוג ראשון של המוצרים
     setTimeout(() => {
-      if (this.products && this.products.length > 0) {
+      if (this.products && this.products.length > 0 && !this.comparisonLogsShown.has('ngOnInit_products')) {
         console.log('CHECK-MINI-CHOOSE - Products loaded in ngOnInit:', {
           totalProducts: this.products.length,
           firstProduct: this.products[0] ? {

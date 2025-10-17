@@ -5,6 +5,9 @@
       ← חזרה
     </button>
     <h1>סל הקניות שלי</h1>
+    <button class="clear-cart-btn" (click)="clearCart()" title="מחק את כל הסל" *ngIf="!isBasketEmpty()">
+      🗑️ מחק סל
+    </button>
   </div>
 
   <!-- סל ריק -->
@@ -36,6 +39,7 @@
               [product]="getProductForPreview(item)"
               [configurationIndex]="getConfigurationIndex(item)">
             </app-product-mini-preview>
+            <div class="view-hint">לחץ לשינוי זוית מבט</div>
           </div>
 
           <!-- סיכום מהיר -->

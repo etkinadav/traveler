@@ -66,14 +66,91 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   // Get wood texture based on beam type - זהה לקובץ הראשי
   private getWoodTexture(beamType: string): THREE.Texture {
-    // טקסטורה אחת פשוטה כמו שאר המוצרים
-    const texturePath = 'assets/textures/pine.jpg';
-    return this.textureLoader.load(texturePath);
+    let texturePath = 'assets/textures/pine.jpg'; // default
+    if (beamType) {
+      texturePath = 'assets/textures/' + beamType + '.jpg';
+    } else {
+      texturePath = 'assets/textures/pine.jpg';
+    }
+    
+    // Debug log for texture loading
+    const logKey = `texture-loading-${this.product?.id || this.product?.name || 'unknown'}-${beamType}`;
+    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey)) {
+      console.log('ROTATEMINI - 🔍 DEBUG - Loading texture:', texturePath, 'for beamType:', beamType);
+      this.miniPreviewLogsShown.add(logKey);
+    }
+    
+    // נסה לטעון את הטקסטורה באופן סינכרוני
+    let texture: THREE.Texture;
+    try {
+      // נסה ליצור טקסטורה עם תמונה שנטענה מראש
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.src = texturePath;
+      
+      if (image.complete) {
+        texture = new THREE.Texture(image);
+        texture.needsUpdate = true;
+        console.log('ROTATEMINI - 🔍 SYNC - Texture loaded synchronously:', texturePath);
+      } else {
+        // אם התמונה לא נטענה, נסה עם נתיב אחר
+        texture = this.textureLoader.load(texturePath);
+      }
+    } catch (error) {
+      console.warn('ROTATEMINI - 🔍 WARN - Sync loading failed, using async:', error);
+      texture = this.textureLoader.load(texturePath);
+    }
+    
+    // הוספת error handling לטקסטורה
+    texture.onError = (error) => {
+      console.error('ROTATEMINI - 🔍 ERROR - Failed to load texture:', texturePath, error);
+    };
+    
+    texture.onLoad = () => {
+      console.log('ROTATEMINI - 🔍 SUCCESS - Texture loaded successfully:', texturePath);
+      // וידוא שהטקסטורה מוחלת על המודל
+      texture.needsUpdate = true;
+      // רנדור מחדש כדי להציג את הטקסטורה
+      if (this.renderer && this.scene && this.camera) {
+        this.renderer.render(this.scene, this.camera);
+        console.log('ROTATEMINI - 🔍 RENDER - Rendered scene after texture load');
+      }
+    };
+    
+    // בדיקה אם הטקסטורה כבר נטענה (cache)
+    if (texture.image && texture.image.complete) {
+      console.log('ROTATEMINI - 🔍 CACHE - Texture already loaded from cache:', texturePath);
+      texture.needsUpdate = true;
+    }
+    
+    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey + '_loaded')) {
+      console.log('ROTATEMINI - 🔍 DEBUG - Texture loaded:', texture);
+      console.log('ROTATEMINI - 🔍 DEBUG - Texture image:', texture.image);
+      console.log('ROTATEMINI - 🔍 DEBUG - Texture complete:', texture.image ? texture.image.complete : 'no image');
+      console.log('ROTATEMINI - 🔍 DEBUG - Texture needsUpdate:', texture.needsUpdate);
+      this.miniPreviewLogsShown.add(logKey + '_loaded');
+    }
+    
+    return texture;
   }
 
   // פונקציה עזר לבחירת קורה לפי defaultType
   private getBeamIndexByDefaultType(param: any): number {
     let beamIndex = param.selectedBeamIndex || 0;
+    
+    // Debug log for beam selection
+    const logKey = `beam-selection-${this.product?.id || this.product?.name || 'unknown'}-${param.name}`;
+    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey)) {
+      console.log('ROTATEMINI - 🔍 DEBUG - getBeamIndexByDefaultType:', {
+        paramName: param.name,
+        selectedBeamIndex: param.selectedBeamIndex,
+        selectedBeamTypeIndex: param.selectedBeamTypeIndex,
+        hasDefaultType: !!param.defaultType,
+        beamsCount: param.beams?.length || 0,
+        calculatedBeamIndex: beamIndex
+      });
+      this.miniPreviewLogsShown.add(logKey);
+    }
     
     // אם יש defaultType, מחפשים את הקורה המתאימה לפי ה-ID
     if (param.defaultType && !param.selectedBeamIndex && param.beams && param.beams.length > 0) {
@@ -106,9 +183,21 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   ngAfterViewInit() {
     try {
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('ngAfterViewInit_started')) {
+        console.log('CHECK-MINI-PREVIEW - ngAfterViewInit started');
+        this.miniPreviewLogsShown.add('ngAfterViewInit_started');
+      }
       this.initThreeJS();
       this.initializeParamsFromProduct();
       this.createSimpleProduct();
+      
+      // וידוא שהסיבוב האוטומטי מופעל
+      this.hasUserInteracted = false;
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('ngAfterViewInit_animation')) {
+        console.log('CHECK-MINI-PREVIEW - Starting animation with hasUserInteracted:', this.hasUserInteracted);
+        this.miniPreviewLogsShown.add('ngAfterViewInit_animation');
+      }
+      
       this.animate();
       
       // הפעלת טיימר לכיבוי לוגים אחרי 3 שניות
@@ -125,19 +214,52 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (changes['product'] && this.scene) {
       // לוג חד פעמי להשוואה
       const logKey = `mini-preview-${this.product?.id || this.product?.name || 'unknown'}`;
-      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey)) {
-        console.log('CHECK-MINI-PREVIEW - Product received:', {
-          productId: this.product?.id || this.product?.name || 'unknown',
-          productKeys: this.product ? Object.keys(this.product) : [],
-          hasParams: !!this.product?.params,
-          paramsCount: this.product?.params?.length || 0,
-          params: this.product?.params?.map(p => ({ name: p.name, type: p.type, value: p.value })) || [],
-          configurationIndex: this.configurationIndex,
-          hasBeams: this.product?.params?.some(p => p.beams) || false,
-          beamTypes: this.product?.params?.filter(p => p.beams).map(p => ({ name: p.name, beamsCount: p.beams?.length })) || []
-        });
-        this.miniPreviewLogsShown.add(logKey);
-      }
+        // לוג מפורט חד פעמי
+        if (!this.miniPreviewLogsShown.has(logKey + '_detailed')) {
+      console.log('ROTATEMINI - DETAILED-PREVIEW-LOG:', JSON.stringify({
+        productId: this.product?.id || this.product?.name || 'unknown',
+        productSource: 'SHOPPING_CART', // הוספת מזהים למקור הנתונים
+        timestamp: new Date().toISOString(), // הוספת זמן לזיהוי נתונים חדשים
+        isFromShoppingCart: true, // הוספת מזהים למקור הנתונים
+        debugInfo: 'This log is from shopping cart mini preview', // הוספת מידע דיבאג
+        textureInfo: 'Check if textures are loading correctly', // הוספת מידע על טקסטורות
+        animationInfo: 'Check if animation is running', // הוספת מידע על אנימציה
+        CRITICAL_DEBUG: 'Check if selectedBeamIndex and selectedBeamTypeIndex are preserved', // הוספת מידע קריטי
+            productKeys: this.product ? Object.keys(this.product) : [],
+            hasParams: !!this.product?.params,
+            paramsCount: this.product?.params?.length || 0,
+            params: this.product?.params?.map(p => ({
+              name: p.name,
+              type: p.type,
+              value: p.value,
+              selectedBeamIndex: p.selectedBeamIndex,
+              selectedBeamTypeIndex: p.selectedBeamTypeIndex,
+              hasBeams: !!p.beams,
+              beamsCount: p.beams?.length || 0,
+              beamsArray: p.beams || []
+            })) || [],
+            configurationIndex: this.configurationIndex,
+            hasBeams: this.product?.params?.some(p => p.beams) || false,
+            beamTypes: this.product?.params?.filter(p => p.beams).map(p => ({
+              name: p.name,
+              beamsCount: p.beams?.length,
+              selectedBeamIndex: p.selectedBeamIndex,
+              selectedBeamTypeIndex: p.selectedBeamTypeIndex,
+              firstBeam: p.beams?.[0] ? {
+                name: p.beams[0].name,
+                types: p.beams[0].types?.map(t => ({ name: t.name, texture: t.texture })) || []
+                } : null,
+              allBeams: p.beams?.map(b => ({
+                name: b.name,
+                types: b.types?.map(t => ({ name: t.name, texture: t.texture })) || []
+              })) || []
+              })) || []
+          }, null, 2));
+          this.miniPreviewLogsShown.add(logKey + '_detailed');
+        }
+      
+      // אתחול מחדש של הסיבוב האוטומטי
+      this.hasUserInteracted = false;
       
       // השתמש ב-setTimeout כדי למנוע את השגיאה
       setTimeout(() => {
@@ -734,6 +856,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const width = container.clientWidth;
     const height = container.clientHeight;
 
+    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('initThreeJS_started')) {
+      console.log('CHECK-MINI-PREVIEW - initThreeJS started');
+      this.miniPreviewLogsShown.add('initThreeJS_started');
+    }
+
     // Scene
     this.scene = new THREE.Scene();
     
@@ -832,6 +959,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
     // הוספת אירועי עכבר לזום וסיבוב
     this.addMouseControls();
+    
+    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('initThreeJS_completed')) {
+      console.log('CHECK-MINI-PREVIEW - initThreeJS completed');
+      this.miniPreviewLogsShown.add('initThreeJS_completed');
+    }
   }
 
   private addMouseControls() {
@@ -1144,13 +1276,24 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   private createSimpleProduct() {
     
+    // console.log('🔍 DEBUG - createSimpleProduct called for product:', this.product?.name);
+    
     // בדיקות בטיחות למידות לפני יצירת המודל
+    // console.log('🔍 DEBUG - Before validateDynamicParams:', {
+    //   dynamicParams: this.dynamicParams,
+    //   productParams: this.product?.params?.map(p => ({ name: p.name, type: p.type, value: p.value }))
+    // });
     this.validateDynamicParams();
+    // console.log('🔍 DEBUG - After validateDynamicParams:', {
+    //   dynamicParams: this.dynamicParams
+    // });
     
     // ניקוי המודל הקודם
     this.meshes.forEach(mesh => this.scene.remove(mesh));
     this.meshes = [];
 
+    // console.log('🔍 DEBUG - After clearing meshes, checking product type');
+    
     // בדיקה אם זו עדנית, קופסא, מיטה או beams
     const isPlanter = this.product?.name === 'planter';
     const isBox = this.product?.name === 'box';
@@ -1216,8 +1359,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
       const frameBeamIndex = this.getBeamIndexByDefaultType(frameParam);
       frameBeam = frameParam.beams[frameBeamIndex];
-      if (this.debugLogsEnabled) console.log('frameBeam:', frameBeam);
-      if (this.debugLogsEnabled) console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
+      // if (this.debugLogsEnabled) console.log('frameBeam:', frameBeam);
+      // if (this.debugLogsEnabled) console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
       frameType = frameBeam.types && frameBeam.types.length ? frameBeam.types[frameParam.selectedBeamTypeIndex || 0] : null;
     }
     
@@ -1330,7 +1473,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // עבור שולחן, נשתמש במידות קורת הפלטה
       legWidth = frameBeam.width ? frameBeam.width / 10 : actualFrameWidth; // רוחב הרגל מקורת החיזוק
       legDepth = frameBeam.height ? frameBeam.height / 10 : actualFrameHeight; // עומק הרגל מקורת החיזוק
-      if (this.debugLogsEnabled) console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
+      // if (this.debugLogsEnabled) console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
     } else if (!isTable) {
       // עבור ארון - הפיכת הפרופיל של הרגליים (width ↔ height)
       legWidth = actualFrameHeight;  // רוחב הרגל = גובה קורת החיזוק
@@ -1395,7 +1538,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const extraBeamParam = this.product?.params?.find((p: any) => p.name === 'extraBeam');
       if (extraBeamParam && extraBeamParam.default > 0) {
         const extraBeamDistance = extraBeamParam.default;
-        if (this.debugLogsEnabled) console.log('Adding extra frame beams for table with distance:', extraBeamDistance);
+        // if (this.debugLogsEnabled) console.log('Adding extra frame beams for table with distance:', extraBeamDistance);
         
         // יצירת קורות חיזוק נוספות באותו מיקום אבל יותר נמוך
         const extraFrameBeams = this.createFrameBeams(
@@ -1409,7 +1552,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         
         // המרחק הכולל = הנתון החדש + גובה קורות החיזוק
         const totalDistance = extraBeamDistance + actualFrameHeight;
-        if (this.debugLogsEnabled) console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
+        // if (this.debugLogsEnabled) console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
         
         for (const beam of extraFrameBeams) {
           const extraFrameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
@@ -1422,7 +1565,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           extraFrameMesh.receiveShadow = true;
           this.scene.add(extraFrameMesh);
           this.meshes.push(extraFrameMesh);
-          if (this.debugLogsEnabled) console.log('Created extra frame beam at position:', beam.x, currentY - beam.height / 2 - totalDistance - this.dynamicParams.beamHeight, beam.z);
+          // if (this.debugLogsEnabled) console.log('Created extra frame beam at position:', beam.x, currentY - beam.height / 2 - totalDistance - this.dynamicParams.beamHeight, beam.z);
         }
       }
     }
@@ -1430,8 +1573,18 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // סיבוב המודל - זהה לקובץ הראשי
     this.scene.rotation.y = Math.PI / 6; // 30 מעלות סיבוב
     
+    
     // התאמת מיקום המצלמה למידות האוביקט - זהה לקובץ הראשי
     this.updateCameraPosition();
+    
+    const logKey = `createSimpleProduct-completed-${this.product?.id || this.product?.name || 'unknown'}`;
+    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey)) {
+      console.log('ROTATEMINI - CHECK-MINI-PREVIEW - createSimpleProduct completed', {
+        meshesCount: this.meshes.length,
+        sceneChildrenCount: this.scene.children.length
+      });
+      this.miniPreviewLogsShown.add(logKey);
+    }
   }
 
   // יצירת מוצר פשוט ללא עדכון מצלמה (לשימוש בכפתורי שליטה)
@@ -1508,8 +1661,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
       const frameBeamIndex = this.getBeamIndexByDefaultType(frameParam);
       frameBeam = frameParam.beams[frameBeamIndex];
-      if (this.debugLogsEnabled) console.log('frameBeam:', frameBeam);
-      if (this.debugLogsEnabled) console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
+      // if (this.debugLogsEnabled) console.log('frameBeam:', frameBeam);
+      // if (this.debugLogsEnabled) console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
       frameType = frameBeam.types && frameBeam.types.length ? frameBeam.types[frameParam.selectedBeamTypeIndex || 0] : null;
     }
     
@@ -1622,7 +1775,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // עבור שולחן, נשתמש במידות קורת הפלטה
       legWidth = frameBeam.width ? frameBeam.width / 10 : actualFrameWidth; // רוחב הרגל מקורת החיזוק
       legDepth = frameBeam.height ? frameBeam.height / 10 : actualFrameHeight; // עומק הרגל מקורת החיזוק
-      if (this.debugLogsEnabled) console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
+      // if (this.debugLogsEnabled) console.log('מידות רגליים משולחן (מקורת חיזוק):', { legWidth, legDepth, frameBeam });
     } else if (!isTable) {
       // עבור ארון - הפיכת הפרופיל של הרגליים (width ↔ height)
       legWidth = actualFrameHeight;  // רוחב הרגל = גובה קורת החיזוק
@@ -1687,7 +1840,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const extraBeamParam = this.product?.params?.find((p: any) => p.name === 'extraBeam');
       if (extraBeamParam && extraBeamParam.default > 0) {
         const extraBeamDistance = extraBeamParam.default;
-        if (this.debugLogsEnabled) console.log('Adding extra frame beams for table with distance:', extraBeamDistance);
+        // if (this.debugLogsEnabled) console.log('Adding extra frame beams for table with distance:', extraBeamDistance);
         
         // יצירת קורות חיזוק נוספות באותו מיקום אבל יותר נמוך
         const extraFrameBeams = this.createFrameBeams(
@@ -1701,7 +1854,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         
         // המרחק הכולל = הנתון החדש + גובה קורות החיזוק
         const totalDistance = extraBeamDistance + actualFrameHeight;
-        if (this.debugLogsEnabled) console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
+        // if (this.debugLogsEnabled) console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
         
         for (const beam of extraFrameBeams) {
           const extraFrameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
@@ -1714,7 +1867,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           extraFrameMesh.receiveShadow = true;
           this.scene.add(extraFrameMesh);
           this.meshes.push(extraFrameMesh);
-          if (this.debugLogsEnabled) console.log('Created extra frame beam at position:', beam.x, currentY - beam.height / 2 - totalDistance - this.dynamicParams.beamHeight, beam.z);
+          // if (this.debugLogsEnabled) console.log('Created extra frame beam at position:', beam.x, currentY - beam.height / 2 - totalDistance - this.dynamicParams.beamHeight, beam.z);
         }
       }
     }
@@ -1853,9 +2006,25 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // סיבוב איטי של המודל (רק אם המשתמש לא התחיל להזיז)
     if (!this.hasUserInteracted) {
       this.scene.rotation.y += 0.005;
+      
+      // לוג חד פעמי להשוואה
+      const logKey = `animation-${this.product?.id || this.product?.name || 'unknown'}`;
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey)) {
+        console.log('ROTATEMINI - CHECK-MINI-PREVIEW - Animation running:', {
+          productId: this.product?.id || this.product?.name || 'unknown',
+          hasUserInteracted: this.hasUserInteracted,
+          sceneRotationY: this.scene.rotation.y,
+          hasScene: !!this.scene,
+          hasRenderer: !!this.renderer,
+          hasCamera: !!this.camera
+        });
+        this.miniPreviewLogsShown.add(logKey);
+      }
     }
     
-    this.renderer.render(this.scene, this.camera);
+    if (this.renderer && this.scene && this.camera) {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   // קורות משטח - זהה לקובץ הראשי
@@ -2175,7 +2344,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   // יצירת מודל עדנית
   private createPlanterModel() {
-    console.log('=== Creating Planter Model ===');
+    // console.log('=== Creating Planter Model ===');
     
     // שימוש בפרמטרים הדינמיים כדי שהעדנית תשתנה באופן דינמי
     const planterWidth = this.dynamicParams.width || 70; // רוחב העדנית
@@ -2199,7 +2368,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     const woodTexture = this.getWoodTexture(beamType ? beamType.name : '');
     
-    console.log('Planter params:', { planterWidth, planterDepth, planterHeight, beamWidth, beamHeight });
+    // console.log('Planter params:', { planterWidth, planterDepth, planterHeight, beamWidth, beamHeight });
     
     // 1. יצירת קורות רצפה
     const beamsInDepth = Math.floor(planterWidth / beamWidth);
@@ -2305,7 +2474,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const shouldShowCover = isBox && this.dynamicParams.coverOpenOffset !== null;
     
     if (shouldShowCover) {
-      console.log('יצירת מכסה לקופסא במיני-פרוויו...');
+      // console.log('יצירת מכסה לקופסא במיני-פרוויו...');
       
       // גובה המכסה = beamHeight (עובי רצפה) + (beamsInHeight × beamWidth) + חצי beamHeight של המכסה + offset פתיחה
       const coverY = beamHeight + (beamsInHeight * beamWidth) + beamHeight / 2 + (this.dynamicParams.coverOpenOffset || 0);
@@ -2332,7 +2501,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       }
       
       // קורות תמיכה למכסה (בציר Z - לאורך planterWidth, מתחת למכסה)
-      console.log('יצירת קורות תמיכה למכסה במיני-פרוויו...');
+      // console.log('יצירת קורות תמיכה למכסה במיני-פרוויו...');
       const supportBeamY = coverY - beamHeight - 0.05; // מתחת למכסה בגובה של קורה + רווח קטן
       const supportBeamLength = planterWidth - (4 * beamHeight) - 0.4; // קיצור נוסף של 0.2 ס"מ מכל צד
       
@@ -2359,7 +2528,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         this.meshes.push(mesh);
       }
       
-      console.log('מכסה קופסא נוצר בהצלחה במיני-פרוויו');
+      // console.log('מכסה קופסא נוצר בהצלחה במיני-פרוויו');
     }
     
     // סיבוב המודל
@@ -2368,7 +2537,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // התאמת מצלמה
     this.updateCameraPosition();
     
-    console.log('Planter model created successfully');
+    // console.log('Planter model created successfully');
   }
 
   private createBeamsModel() {

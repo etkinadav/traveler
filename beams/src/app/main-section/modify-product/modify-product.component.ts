@@ -232,7 +232,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 translatedProductName: this.selectedProductName || 'Unknown Product',
                 inputConfigurations: this.params.map(param => ({
                     inputName: param.name,
-                    value: param.value
+                    value: param.value,
+                    selectedBeamIndex: param.selectedBeamIndex,
+                    selectedTypeIndex: param.selectedTypeIndex
                 })),
                 selectedCorners: this.params.map(param => ({
                     cornerType: param.name,

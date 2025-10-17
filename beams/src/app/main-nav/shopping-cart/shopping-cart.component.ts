@@ -128,6 +128,12 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
     window.history.back();
   }
 
+  clearCart(): void {
+    if (confirm('האם אתה בטוח שברצונך למחוק את כל הסל?')) {
+      this.basketService.clearBasket();
+    }
+  }
+
   /**
    * האם הסל ריק
    */
@@ -183,39 +189,128 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
         originalDataKeys: originalData ? Object.keys(originalData) : [],
         originalParams: originalData?.params || [],
         originalParamsCount: originalData?.params?.length || 0,
+        originalParamsWithBeams: originalData?.params?.map(p => ({
+          name: p.name,
+          type: p.type,
+          hasBeams: !!p.beams,
+          beamsCount: p.beams?.length || 0
+        })) || [],
         inputConfigurations: item.productConfiguration.inputConfigurations,
         inputConfigurationsCount: item.productConfiguration.inputConfigurations.length
       });
       this.debugLogsShown.add(logKey);
     }
     
-    // יצירת מוצר מעודכן עם הפרמטרים הנכונים
-    const updatedProduct = {
-      ...originalData,
-      // עדכון הפרמטרים מהקונפיגורציה השמורה
-      params: this.getUpdatedParamsFromConfiguration(item)
-    };
+    // החזרת המוצר המקורי כמו בקובץ בחירת המוצר
+    // עדכון הפרמטרים עם הערכים שנשמרו
+    if (originalData && originalData.params) {
+      if (!this.debugLogsShown.has(logKey + '_originalParams')) {
+        console.log('ROTATEMINI - originalData.params:', JSON.stringify(originalData.params.map(p => ({
+          name: p.name,
+          selectedTypeIndex: p.selectedTypeIndex,
+          selectedBeamIndex: p.selectedBeamIndex
+        })), null, 2));
+        this.debugLogsShown.add(logKey + '_originalParams');
+      }
+      
+               const updatedParams = originalData.params.map(param => {
+                 const configParam = item.productConfiguration.inputConfigurations.find(
+                   config => config.inputName === param.name
+                 );
+                 if (configParam) {
+                   const updatedParam = {
+                     ...param,
+                     value: configParam.value,
+                     // שימור selectedBeamIndex ו-selectedTypeIndex שחיוניים לבחירת הקורה והטקסטורה
+                     selectedBeamIndex: configParam.selectedBeamIndex !== undefined ? configParam.selectedBeamIndex : param.selectedBeamIndex,
+                     // לוג לבדיקה
+                     debug_selectedTypeIndex: configParam.selectedTypeIndex,
+                     debug_selectedBeamIndex: configParam.selectedBeamIndex
+                   };
+                   
+                   // רק אם יש selectedTypeIndex ב-configParam, נקצה selectedBeamTypeIndex
+                   if (configParam.selectedTypeIndex !== undefined) {
+                     updatedParam.selectedBeamTypeIndex = configParam.selectedTypeIndex;
+                   } else if (param.selectedTypeIndex !== undefined) {
+                     updatedParam.selectedBeamTypeIndex = param.selectedTypeIndex;
+                   }
+                   // אם אין בכלל, לא נקצה את השדה הזה
+                   
+                   return updatedParam;
+                 }
+                 return param;
+               });
+      
+      if (!this.debugLogsShown.has(logKey + '_inputConfigurations')) {
+        console.log('ROTATEMINI - inputConfigurations:', JSON.stringify(item.productConfiguration.inputConfigurations.map(c => ({
+          inputName: c.inputName,
+          value: c.value,
+          selectedBeamIndex: c.selectedBeamIndex,
+          selectedTypeIndex: c.selectedTypeIndex
+        })), null, 2));
+        this.debugLogsShown.add(logKey + '_inputConfigurations');
+      }
+      
+      if (!this.debugLogsShown.has(logKey + '_updatedParams')) {
+        console.log('ROTATEMINI - updatedParams:', JSON.stringify(updatedParams.map(p => ({
+          name: p.name,
+          selectedBeamTypeIndex: p.selectedBeamTypeIndex,
+          debug_selectedTypeIndex: p.debug_selectedTypeIndex,
+          debug_selectedBeamIndex: p.debug_selectedBeamIndex
+        })), null, 2));
+        this.debugLogsShown.add(logKey + '_updatedParams');
+      }
+      
+      const updatedProduct = {
+        ...originalData,
+        params: updatedParams
+      };
     
-    if (this.debugLogsEnabled && !this.debugLogsShown.has(logKey + '_result')) {
-      console.log('CHECK-MINI-BASKET - Updated Product for Preview:', {
+      // לוג מפורט חד פעמי
+      if (!this.debugLogsShown.has(logKey + '_detailed')) {
+        console.log('ROTATEMINI - DETAILED-BASKET-LOG:', JSON.stringify({
         itemId: item.id,
+        productName: updatedProduct.name,
+        productId: updatedProduct._id || updatedProduct.id,
         updatedProductKeys: Object.keys(updatedProduct),
         updatedParamsCount: updatedProduct.params?.length || 0,
-        updatedParams: updatedProduct.params?.map(p => ({ name: p.name, type: p.type, value: p.value })) || [],
+        updatedParams: updatedProduct.params?.map(p => ({ 
+          name: p.name, 
+          type: p.type, 
+          value: p.value,
+          selectedBeamIndex: p.selectedBeamIndex,
+          selectedBeamTypeIndex: p.selectedBeamTypeIndex,
+          hasBeams: !!p.beams,
+          beamsCount: p.beams?.length || 0,
+          beamTypes: p.beams?.map(b => ({ name: b.name, types: b.types?.length || 0 })) || []
+        })) || [],
         hasBeams: updatedProduct.params?.some(p => p.beams) || false,
-        beamTypes: updatedProduct.params?.filter(p => p.beams).map(p => ({ name: p.name, beamsCount: p.beams?.length })) || [],
+        beamTypes: updatedProduct.params?.filter(p => p.beams).map(p => ({ 
+          name: p.name, 
+          beamsCount: p.beams?.length,
+          selectedBeamIndex: p.selectedBeamIndex,
+          selectedBeamTypeIndex: p.selectedBeamTypeIndex,
+          firstBeam: p.beams?.[0] ? {
+            name: p.beams[0].name,
+            types: p.beams[0].types?.map(t => ({ name: t.name, texture: t.texture })) || []
+          } : null
+        })) || [],
         configurationIndex: updatedProduct.configurationIndex || 0
-      });
-      this.debugLogsShown.add(logKey + '_result');
+        }, null, 2));
+        this.debugLogsShown.add(logKey + '_detailed');
+      }
+      
+      return updatedProduct;
     }
     
-    return updatedProduct;
+    // אם אין params, החזר את הנתונים המקוריים
+    return originalData;
   }
 
   /**
-   * קבלת פרמטרים מעודכנים מהקונפיגורציה
+   * קבלת פרמטרים מעודכנים מהקונפיגורציה - לא בשימוש יותר
    */
-  private getUpdatedParamsFromConfiguration(item: BasketItem): any[] {
+  private getUpdatedParamsFromConfiguration_OLD(item: BasketItem): any[] {
     // אם אין פרמטרים ב-originalProductData, ננסה לבנות אותם מ-inputConfigurations
     let originalParams = item.productConfiguration.originalProductData.params || [];
     
@@ -253,22 +348,35 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
         
         // הוספת beams array לפרמטרים של קורות
         if (paramType === 'beamArray' || paramType === 'beamSingle') {
-          param.beams = [
-            {
-              name: 'קורה בסיסית',
-              width: 50,
-              height: 100,
-              length: 1000,
-              types: [
-                {
-                  name: 'סוג בסיסי',
-                  length: 1000
-                }
-              ]
-            }
-          ];
-          param.selectedBeamIndex = 0;
-          param.selectedBeamTypeIndex = 0;
+          // ננסה לקבל את ה-beams מהפרמטר המקורי אם קיים
+          const originalParam = item.productConfiguration.originalProductData?.params?.find(
+            (p: any) => p.name === config.inputName
+          );
+          
+          if (originalParam && originalParam.beams) {
+            // השתמש ב-beams המקוריים
+            param.beams = originalParam.beams;
+            param.selectedBeamIndex = originalParam.selectedBeamIndex || 0;
+            param.selectedBeamTypeIndex = config.selectedTypeIndex !== undefined ? config.selectedTypeIndex : (originalParam.selectedTypeIndex || 0);
+          } else {
+            // השתמש ב-beams בסיסיים
+            param.beams = [
+              {
+                name: 'קורה בסיסית',
+                width: 50,
+                height: 100,
+                length: 1000,
+                types: [
+                  {
+                    name: 'סוג בסיסי',
+                    length: 1000
+                  }
+                ]
+              }
+            ];
+            param.selectedBeamIndex = 0;
+            param.selectedBeamTypeIndex = 0;
+          }
         }
         
         return param;
@@ -283,10 +391,26 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
       
       if (configParam) {
         // עדכון הערך מהקונפיגורציה השמורה
-        return {
+        const updatedParam = {
           ...param,
           value: configParam.value
         };
+        
+        // אם זה פרמטר קורות, וודא שיש לו beams
+        if ((param.type === 'beamArray' || param.type === 'beamSingle') && !updatedParam.beams) {
+          // ננסה לקבל את ה-beams מהפרמטר המקורי אם קיים
+          const originalParam = item.productConfiguration.originalProductData?.params?.find(
+            (p: any) => p.name === param.name
+          );
+          
+          if (originalParam && originalParam.beams) {
+            updatedParam.beams = originalParam.beams;
+            updatedParam.selectedBeamIndex = originalParam.selectedBeamIndex || 0;
+            updatedParam.selectedBeamTypeIndex = configParam.selectedTypeIndex !== undefined ? configParam.selectedTypeIndex : (originalParam.selectedTypeIndex || 0);
+          }
+        }
+        
+        return updatedParam;
       }
       
       return param;
@@ -296,7 +420,20 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
       console.log('🔍 DEBUG - Updated Params Result:', {
         itemId: item.id,
         updatedParamsCount: updatedParams.length,
-        updatedParams: updatedParams.map(p => ({ name: p.name, type: p.type, value: p.value }))
+        updatedParams: updatedParams.map(p => ({
+          name: p.name,
+          type: p.type,
+          value: p.value,
+          hasBeams: !!p.beams,
+          beamsCount: p.beams?.length || 0,
+          beams: p.beams?.map(b => ({
+            name: b.name,
+            width: b.width,
+            height: b.height,
+            length: b.length,
+            typesCount: b.types?.length || 0
+          })) || []
+        }))
       });
       this.debugLogsShown.add(logKey + '_result');
     }
