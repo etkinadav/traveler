@@ -12,17 +12,15 @@
 .cart-header {
   position: relative;
   text-align: center;
-  padding-bottom: 30px;
-  border-bottom: 3px solid #0066cc;
-  margin-bottom: 40px;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .cart-header h1 {
   margin: 0;
-  color: #0066cc;
-  font-size: 36px;
+  color: var(--zx-green); /* זהה לצבע בקובץ בחירת המוצר */
+  font-size: 24px; /* זהה לגודל הכותרת "מה בונים היום" */
   font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 102, 204, 0.1);
 }
 
 .back-btn {
@@ -30,20 +28,19 @@
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  background: #0066cc;
-  color: white;
+  background: none; /* ללא רקע */
+  color: var(--zx-green); /* כחול כמו בקובץ בחירת המוצר */
   border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
+  padding: 0;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 24px; /* חץ גדול יותר */
   font-weight: 500;
   transition: all 0.3s;
 }
 
 .back-btn:hover {
-  background: #0052a3;
-  transform: translateY(-50%) scale(1.05);
+  color: #1976d2; /* כחול כהה יותר בריחוף */
+  transform: translateY(-50%) scale(1.1);
 }
 
 .clear-cart-btn {
