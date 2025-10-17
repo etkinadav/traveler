@@ -1,69 +1,96 @@
 .shopping-cart-page {
   width: 100%;
-  max-width: 1400px;
+  max-width: none; /* הסרת הגבלת רוחב מקסימלי */
   margin: 0 auto;
   padding: 40px 20px;
   direction: rtl;
   background: #f8f9fa;
   min-height: 100vh;
+  overflow-y: visible; /* מאפשר גלילה אנכית */
 }
 
 /* כותרת */
 .cart-header {
-  position: relative;
-  text-align: right; /* כותרת צמודה לימין */
-  padding-bottom: 20px;
+  width: 100%; /* רוחב רגיל של הקונטיינר */
+  text-align: center; /* מירכוז הכותרת */
+  padding: 9px 0 20px 0; /* ללא padding מהצדדים */
   margin-bottom: 30px;
+  display: flex; /* תמיד בשורה אחת */
+  align-items: center; /* מירכוז אנכי */
+  justify-content: space-between; /* פיזור הכפתורים */
+  box-sizing: border-box; /* כולל padding ברוחב */
+  background: #f8f9fa; /* רקע זהה לדף */
 }
 
 .cart-header h1 {
   margin: 0;
   color: var(--zx-green); /* זהה לצבע בקובץ בחירת המוצר */
-  font-size: 24px; /* זהה לגודל הכותרת "מה בונים היום" */
+  font-size: 24px !important; /* זהה לגודל הכותרת "מה בונים היום" - גם במובייל */
   font-weight: 700;
+  flex: 1; /* תופס את כל המקום הפנוי */
+  text-align: right; /* כותרת צמודה לימין בתוך הקונטיינר */
+}
+
+.cart-buttons {
+  display: flex;
+  align-items: center;
+  gap: 5px !important; /* רווח קטן במובייל */
+  flex-shrink: 0; /* לא יתכווץ */
+  padding-left: 20px; /* רווח מהקצה השמאלי */
+}
+
+/* בדסקטופ - רווח גדול יותר */
+@media (min-width: 768px) {
+  .cart-buttons {
+    gap: 10px !important; /* רווח גדול יותר בדסקטופ */
+  }
 }
 
 .back-btn {
-  position: absolute;
-  left: 0; /* משמאל */
-  top: 50%;
-  transform: translateY(-50%);
-  background: none; /* ללא רקע */
-  color: var(--zx-green); /* כחול כמו בקובץ בחירת המוצר */
-  border: none;
-  padding: 0;
+  background: none !important; /* ללא רקע */
+  color: var(--zx-green) !important; /* כחול כמו בקובץ בחירת המוצר */
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important; /* ללא margin */
   cursor: pointer;
-  font-size: 24px; /* חץ גדול יותר */
+  font-size: 24px !important; /* חץ גדול יותר */
   font-weight: 500;
   transition: all 0.3s;
+  line-height: 1 !important; /* ללא רווח נוסף */
 }
 
 .back-btn:hover {
-  color: #1976d2; /* כחול כהה יותר בריחוף */
-  transform: translateY(-50%) scale(1.1);
+  color: #1976d2 !important; /* כחול כהה יותר בריחוף */
+  background: none !important; /* ללא רקע בריחוף */
+  transform: scale(1.1);
 }
 
 .clear-cart-btn {
-  position: absolute;
-  left: 40px; /* רווח קטן מהכפתור חזרה */
-  top: 50%;
-  transform: translateY(-50%);
   background: none !important; /* ללא רקע */
   background-color: transparent !important; /* ללא רקע */
   color: #2196f3 !important; /* כחול כמו בקובץ בחירת המוצר */
   border: none !important;
-  padding: 0; /* ללא padding */
+  padding: 0 !important;
+  margin: 0 0 0 5px !important; /* רווח משמאל לכפתור השני */
   cursor: pointer;
-  font-size: 20px; /* אייקון פח זבל */
+  font-size: 20px !important; /* אייקון פח זבל */
   font-weight: 500;
   transition: all 0.3s;
+  line-height: 1 !important; /* ללא רווח נוסף */
+}
+
+/* בדסקטופ - רווח גדול יותר */
+@media (min-width: 768px) {
+  .clear-cart-btn {
+    margin: 0 0 0 10px !important; /* רווח גדול יותר בדסקטופ */
+  }
 }
 
 .clear-cart-btn:hover {
   color: #1976d2 !important; /* כחול כהה יותר בריחוף */
   background: none !important; /* ללא רקע בריחוף */
   background-color: transparent !important; /* ללא רקע בריחוף */
-  transform: translateY(-50%) scale(1.1);
+  transform: scale(1.1);
 }
 
 /* סל ריק */

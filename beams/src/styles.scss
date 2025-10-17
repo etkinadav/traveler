@@ -163,10 +163,12 @@ body {
     margin: 0;
     cursor: default;
     overflow-x: hidden !important;
+    overflow-y: auto !important; /* מאפשר גלילה אנכית */
 }
 
 html {
     overflow-x: hidden !important;
+    overflow-y: auto !important; /* מאפשר גלילה אנכית */
 }
 
 * {

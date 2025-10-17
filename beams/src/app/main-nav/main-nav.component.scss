@@ -404,8 +404,8 @@ button.mat-icon-hanburger-con {
 mat-sidenav-content {
   display: flex !important;
   flex-direction: column;
-  max-height: 100vh !important;
-  overflow-y: hidden !important;
+  min-height: 100vh !important; /* במקום max-height קבוע */
+  overflow-y: auto !important; /* מאפשר גלילה אנכית */
   z-index: 1 !important;
 }
 
