@@ -13,13 +13,20 @@
 .cart-header {
   width: 100%; /* רוחב רגיל של הקונטיינר */
   text-align: center; /* מירכוז הכותרת */
-  padding: 9px 0 20px 0; /* ללא padding מהצדדים */
-  margin-bottom: 30px;
+  padding: 9px 5px 20px 5px; /* padding מהצדדים - מובייל */
+  margin-bottom: 15px; /* חצי מהmargin הקודם */
   display: flex; /* תמיד בשורה אחת */
   align-items: center; /* מירכוז אנכי */
   justify-content: space-between; /* פיזור הכפתורים */
   box-sizing: border-box; /* כולל padding ברוחב */
   background: #f8f9fa; /* רקע זהה לדף */
+}
+
+/* בדסקטופ - padding גדול יותר */
+@media (min-width: 768px) {
+  .cart-header {
+    padding: 5px 20px 20px 20px; /* padding גדול יותר בדסקטופ */
+  }
 }
 
 .cart-header h1 {
@@ -36,7 +43,6 @@
   align-items: center;
   gap: 5px !important; /* רווח קטן במובייל */
   flex-shrink: 0; /* לא יתכווץ */
-  padding-left: 20px; /* רווח מהקצה השמאלי */
 }
 
 /* בדסקטופ - רווח גדול יותר */
@@ -44,6 +50,32 @@
   .cart-buttons {
     gap: 10px !important; /* רווח גדול יותר בדסקטופ */
   }
+}
+
+/* כפתור הסרה בכרטיסיות */
+.remove-item-btn {
+  background: none !important;
+  background-color: transparent !important;
+  color: #2196f3 !important;
+  border: none !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  cursor: pointer;
+  font-size: 16px !important;
+  font-weight: 500;
+  transition: all 0.3s;
+  line-height: 1 !important;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-item-btn:hover {
+  color: #1976d2 !important;
+  background: none !important;
+  background-color: transparent !important;
+  transform: scale(1.1);
 }
 
 .back-btn {
