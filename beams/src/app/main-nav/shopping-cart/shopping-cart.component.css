@@ -176,10 +176,11 @@
   margin-bottom: 15px;
   text-align: center;
   height: 150px;
-  border-radius: 8px;
+  border-radius: 0; /* פינות חדות כמו בבחירת המוצר */
   overflow: hidden;
   background: #f8f9fa;
   border: 1px solid #e9ecef;
+  isolation: isolate; /* יוצר stacking context חדש */
 }
 
 .product-mini-preview app-product-mini-preview {
@@ -188,23 +189,54 @@
   height: 100%;
 }
 
-.view-hint {
+/* כיסוי שקוף מעל המודלים התלת-ממדיים */
+.product-3d-overlay {
   position: absolute;
-  bottom: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.product-mini-preview:hover .view-hint {
-  opacity: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent; /* שקוף לחלוטין */
+  border-radius: 0; /* פינות חדות */
+  pointer-events: auto; /* חוסם אינטראקציות עם המודל התלת-ממדי */
+  z-index: 10; /* מעל המודל התלת-ממדי */
+  cursor: pointer; /* עכבר לחיצה */
+  isolation: isolate; /* יוצר stacking context חדש - מבודד מהמוצרים האחרים */
+  
+  /* מניעת גלילה ומשיכה */
+  touch-action: none; /* מונע משיכה במובייל */
+  -webkit-touch-callout: none; /* מונע קריאה לפעולה במובייל */
+  -webkit-user-select: none; /* מונע בחירת טקסט */
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  /* אפקט ripple */
+  overflow: hidden;
+  
+  /* טקסט הוראה בריחוף */
+  .overlay-hint {
+    position: absolute;
+    top: 8px; /* למעלה במקום למטה */
+    left: 50%;
+    transform: translateX(-50%);
+    background: none; /* ללא רקע */
+    color: var(--zx-green); /* כחול כמו בבחירת המוצר */
+    padding: 0;
+    font-size: 13px; /* קצת יותר קטן */
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 11;
+    width: max-content; /* רוחב מינימלי */
+    max-width: 100%; /* לא יוצא מהמסך */
+    
+    &.show {
+      opacity: 1;
+    }
+  }
 }
 
 /* סיכום מהיר */

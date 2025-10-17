@@ -36,10 +36,22 @@
           <!-- תצוגת מוצר מיני -->
           <div class="product-mini-preview">
             <app-product-mini-preview 
+              #miniPreview
               [product]="getProductForPreview(item)"
               [configurationIndex]="getConfigurationIndex(item)">
             </app-product-mini-preview>
-            <div class="view-hint">לחץ לשינוי זוית מבט</div>
+            <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
+            <div class="product-3d-overlay" 
+                 (click)="removeOverlay($event, miniPreview)"
+                 (mouseenter)="showHintForProduct(item.id)"
+                 (mouseleave)="hideHintForProduct(item.id)">
+              <!-- טקסט הוראה בריחוף -->
+              <div *ngIf="showHintMap[item.id]" 
+                   class="overlay-hint show"
+                   [@fadeInOut]>
+                לחץ לשינוי המבט
+              </div>
+            </div>
           </div>
 
           <!-- סיכום מהיר -->

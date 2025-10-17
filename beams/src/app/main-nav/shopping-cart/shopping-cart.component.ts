@@ -3,12 +3,25 @@ import { ProductBasketService, BasketItem } from '../../services/product-basket.
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-shopping-cart',
   templateUrl: './shopping-cart.component.html',
   styleUrls: ['./shopping-cart.component.css'],
-  providers: [DatePipe]
+  providers: [DatePipe],
+  animations: [
+    trigger('fadeInOut', [
+      state('in', style({ opacity: 1 })),
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('0.3s ease-in')
+      ]),
+      transition(':leave', [
+        animate('0.3s ease-out', style({ opacity: 0 }))
+      ])
+    ])
+  ]
 })
 export class ShoppingCartComponent implements OnInit, OnDestroy {
   basketItems: BasketItem[] = [];
@@ -22,6 +35,12 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   private debugLogsTimer: any = null;
   private debugLogsEnabled = true;
   private basketSubscription: Subscription = new Subscription();
+  
+  // לכיסוי המודלים התלת-ממדיים
+  showHintMap: { [key: string]: boolean } = {};
+
+  // Cache למוצרים מעובדים כדי למנוע יצירה מחדש כל הזמן
+  private productPreviewCache = new Map<string, any>();
   
   constructor(
     private basketService: ProductBasketService,
@@ -131,6 +150,8 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   clearCart(): void {
     if (confirm('האם אתה בטוח שברצונך למחוק את כל הסל?')) {
       this.basketService.clearBasket();
+      // ניקוי cache כשמנקים את הסל
+      this.productPreviewCache.clear();
     }
   }
 
@@ -177,6 +198,12 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
    * קבלת מוצר לתצוגה מיני
    */
   getProductForPreview(item: BasketItem): any {
+    // בדיקה אם יש כבר cache למוצר הזה
+    const cacheKey = `${item.id}_${item.productConfiguration.inputConfigurations.length}`;
+    if (this.productPreviewCache.has(cacheKey)) {
+      return this.productPreviewCache.get(cacheKey);
+    }
+
     // מחזיר את המוצר המקורי מהקונפיגורציה
     const originalData = item.productConfiguration.originalProductData;
     
@@ -300,11 +327,15 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
         this.debugLogsShown.add(logKey + '_detailed');
       }
       
+      // שמירה ב-cache
+      this.productPreviewCache.set(cacheKey, updatedProduct);
       return updatedProduct;
     }
     
     // אם אין params, החזר את הנתונים המקוריים
-    return originalData;
+    const result = originalData;
+    this.productPreviewCache.set(cacheKey, result);
+    return result;
   }
 
   /**
@@ -526,6 +557,32 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
     }
     
     return configurationIndex;
+  }
+
+  /**
+   * הסרת הכיסוי מהמודל התלת-ממדי
+   */
+  removeOverlay(event: Event, miniPreview: any): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (miniPreview && miniPreview.removeOverlay) {
+      miniPreview.removeOverlay();
+    }
+  }
+
+  /**
+   * הצגת טקסט הוראה בריחוף
+   */
+  showHintForProduct(productId: string): void {
+    this.showHintMap[productId] = true;
+  }
+
+  /**
+   * הסתרת טקסט הוראה בריחוף
+   */
+  hideHintForProduct(productId: string): void {
+    this.showHintMap[productId] = false;
   }
 
   ngOnDestroy(): void {

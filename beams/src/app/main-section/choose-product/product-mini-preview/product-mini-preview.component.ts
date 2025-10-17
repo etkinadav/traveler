@@ -91,7 +91,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       if (image.complete) {
         texture = new THREE.Texture(image);
         texture.needsUpdate = true;
-        console.log('ROTATEMINI - 🔍 SYNC - Texture loaded synchronously:', texturePath);
+        // console.log('ROTATEMINI - 🔍 SYNC - Texture loaded synchronously:', texturePath);
       } else {
         // אם התמונה לא נטענה, נסה עם נתיב אחר
         texture = this.textureLoader.load(texturePath);
@@ -119,7 +119,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     // בדיקה אם הטקסטורה כבר נטענה (cache)
     if (texture.image && texture.image.complete) {
-      console.log('ROTATEMINI - 🔍 CACHE - Texture already loaded from cache:', texturePath);
+      // console.log('ROTATEMINI - 🔍 CACHE - Texture already loaded from cache:', texturePath);
       texture.needsUpdate = true;
     }
     
@@ -184,7 +184,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   ngAfterViewInit() {
     try {
       if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('ngAfterViewInit_started')) {
-        console.log('CHECK-MINI-PREVIEW - ngAfterViewInit started');
+        console.log('ROTATEMINI - CHECK-MINI-PREVIEW - ngAfterViewInit started');
         this.miniPreviewLogsShown.add('ngAfterViewInit_started');
       }
       this.initThreeJS();
@@ -194,7 +194,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // וידוא שהסיבוב האוטומטי מופעל
       this.hasUserInteracted = false;
       if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('ngAfterViewInit_animation')) {
-        console.log('CHECK-MINI-PREVIEW - Starting animation with hasUserInteracted:', this.hasUserInteracted);
+        console.log('ROTATEMINI - CHECK-MINI-PREVIEW - Starting animation with hasUserInteracted:', this.hasUserInteracted);
         this.miniPreviewLogsShown.add('ngAfterViewInit_animation');
       }
       
@@ -203,7 +203,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // הפעלת טיימר לכיבוי לוגים אחרי 3 שניות
       this.debugLogsTimer = setTimeout(() => {
         this.debugLogsEnabled = false;
-        console.log('🔍 DEBUG - Mini preview debug logs disabled after 3 seconds');
+        console.log('ROTATEMINI - 🔍 DEBUG - Mini preview debug logs disabled after 3 seconds');
+        // וידוא שהאנימציה ממשיכה לרוץ גם אחרי כיבוי הלוגים
+        console.log('ROTATEMINI - 🔍 DEBUG - Animation should continue running...');
       }, 3000);
     } catch (error) {
       console.error('Error initializing 3D preview:', error);
@@ -857,7 +859,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const height = container.clientHeight;
 
     if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('initThreeJS_started')) {
-      console.log('CHECK-MINI-PREVIEW - initThreeJS started');
+      console.log('ROTATEMINI - CHECK-MINI-PREVIEW - initThreeJS started');
       this.miniPreviewLogsShown.add('initThreeJS_started');
     }
 
@@ -961,7 +963,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.addMouseControls();
     
     if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('initThreeJS_completed')) {
-      console.log('CHECK-MINI-PREVIEW - initThreeJS completed');
+      console.log('ROTATEMINI - CHECK-MINI-PREVIEW - initThreeJS completed');
       this.miniPreviewLogsShown.add('initThreeJS_completed');
     }
   }
@@ -1233,13 +1235,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         if (param.beams && param.beams.length > 0) {
           const beamIndex = this.getBeamIndexByDefaultType(param);
           const beam = param.beams[beamIndex];
-          if (this.debugLogsEnabled) console.log('plata beam:', beam);
+          if (this.debugLogsEnabled) console.log('ROTATEMINI - plata beam:', beam);
           // המרה ממ"מ לס"מ כמו בקובץ הראשי
           const beamWidth = beam.width || 100; // ברירת מחדל 100 מ"מ
           const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
           this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
           this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
-          if (this.debugLogsEnabled) console.log('אתחול מידות קורת פלטה:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
+          if (this.debugLogsEnabled) console.log('ROTATEMINI - אתחול מידות קורת פלטה:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
         }
         // שולחן - יש רק מדף אחד
         this.dynamicParams.shelfCount = 1;
@@ -1253,13 +1255,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         if (param.beams && param.beams.length > 0) {
           const beamIndex = this.getBeamIndexByDefaultType(param);
           const beam = param.beams[beamIndex];
-          if (this.debugLogsEnabled) console.log(isBox ? 'box beam:' : 'planter beam:', beam);
+          if (this.debugLogsEnabled) console.log('ROTATEMINI -', isBox ? 'box beam:' : 'planter beam:', beam);
           // המרה ממ"מ לס"מ כמו בקובץ הראשי
           const beamWidth = beam.width || 50; // ברירת מחדל 50 מ"מ
           const beamHeight = beam.height || 25; // ברירת מחדל 25 מ"מ
           this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
           this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
-          if (this.debugLogsEnabled) console.log(isBox ? 'אתחול מידות קורת קופסא:' : 'אתחול מידות קורת עדנית:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
+          if (this.debugLogsEnabled) console.log('ROTATEMINI -', isBox ? 'אתחול מידות קורת קופסא:' : 'אתחול מידות קורת עדנית:', { beamWidth, beamHeight, beamWidthCm: this.dynamicParams.beamWidth, beamHeightCm: this.dynamicParams.beamHeight });
         }
       }
     });
@@ -1997,20 +1999,59 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   }
 
 
+  private lastTime = 0;
   private animate() {
-    this.animationId = requestAnimationFrame(() => this.animate());
+    // עצירת הלוגים של requestAnimationFrame לגמרי
+    this.animationId = requestAnimationFrame((currentTime) => {
+      // הגבלת תדירות ל-60 FPS
+      if (currentTime - this.lastTime < 16.67) { // 16.67ms = ~60 FPS
+        this.animate();
+        return;
+      }
+      this.lastTime = currentTime;
+      
+      this.animate();
+    });
+    
+    // בדיקה אם הקומפוננט נראה במסך (Intersection Observer)
+    if (!this.isElementVisible()) {
+      // אם האלמנט לא נראה, נעצור את האנימציה לגמרי
+      if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = 0;
+      }
+      return; // לא להמשיך עם האנימציה אם האלמנט לא נראה
+    }
+    
+    // אם האנימציה נעצרה אבל האלמנט חזר להיות נראה, נמשיך אותה
+    if (!this.animationId && this.isElementVisible()) {
+      this.animate();
+      return;
+    }
     
     // עדכון נקודת המבט של המצלמה
     this.camera.lookAt(this.target);
     
     // סיבוב איטי של המודל (רק אם המשתמש לא התחיל להזיז)
     if (!this.hasUserInteracted) {
-      this.scene.rotation.y += 0.005;
+      const oldRotation = this.scene.rotation.y;
+      this.scene.rotation.y += 0.005; // סיבוב איטי
       
-      // לוג חד פעמי להשוואה
+      // לוג לבדיקת הסיבוב (כל פעם)
+      const rotationDebugKey = `rotation-debug-${this.product?.id || this.product?.name || 'unknown'}`;
+      if (!this.miniPreviewLogsShown.has(rotationDebugKey)) {
+        console.log('ROTATEMINI - 🔄 ROTATION DEBUG - Old rotation:', oldRotation, 'New rotation:', this.scene.rotation.y, 'hasUserInteracted:', this.hasUserInteracted);
+        this.miniPreviewLogsShown.add(rotationDebugKey);
+        // נוסיף timeout כדי לבדוק שוב אחרי שנייה
+        setTimeout(() => {
+          this.miniPreviewLogsShown.delete(rotationDebugKey);
+        }, 1000);
+      }
+      
+      // לוג חד פעמי להשוואה (רק פעם אחת לכל מוצר)
       const logKey = `animation-${this.product?.id || this.product?.name || 'unknown'}`;
       if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey)) {
-        console.log('ROTATEMINI - CHECK-MINI-PREVIEW - Animation running:', {
+        console.log('ROTATEMINI - CHECK-MINI-PREVIEW - Animation started:', {
           productId: this.product?.id || this.product?.name || 'unknown',
           hasUserInteracted: this.hasUserInteracted,
           sceneRotationY: this.scene.rotation.y,
@@ -2020,10 +2061,62 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         });
         this.miniPreviewLogsShown.add(logKey);
       }
+      
+      // לוג לבדיקת הסיבוב (כל שנייה)
+      const rotationLogKey = `rotation-check-${this.product?.id || this.product?.name || 'unknown'}`;
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(rotationLogKey)) {
+        console.log('ROTATEMINI - 🔄 ROTATION CHECK - Scene rotation Y:', this.scene.rotation.y, 'hasUserInteracted:', this.hasUserInteracted, 'isElementVisible:', this.isElementVisible());
+        this.miniPreviewLogsShown.add(rotationLogKey);
+        // נוסיף timeout כדי לבדוק שוב אחרי שנייה
+        setTimeout(() => {
+          this.miniPreviewLogsShown.delete(rotationLogKey);
+        }, 1000);
+      }
+      
+      // לוג נוסף לבדיקת הסיבוב (כל 60 frames - בערך כל שנייה)
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey + '_rotation_check')) {
+        console.log('ROTATEMINI - 🔄 ROTATION CHECK - Scene rotation Y:', this.scene.rotation.y, 'hasUserInteracted:', this.hasUserInteracted);
+        this.miniPreviewLogsShown.add(logKey + '_rotation_check');
+        // נוסיף timeout כדי לבדוק שוב אחרי 2 שניות
+        setTimeout(() => {
+          this.miniPreviewLogsShown.delete(logKey + '_rotation_check');
+        }, 2000);
+      }
     }
     
     if (this.renderer && this.scene && this.camera) {
       this.renderer.render(this.scene, this.camera);
+      
+      // לוג לבדיקת מודלים בסצנה (רק פעם אחת)
+      const logKey = `scene-meshes-${this.product?.id || this.product?.name || 'unknown'}`;
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(logKey)) {
+        console.log('ROTATEMINI - 📦 SCENE CHECK - Scene children count:', this.scene.children.length, 'Meshes count:', this.meshes.length);
+        console.log('ROTATEMINI - 📦 SCENE CHECK - Scene children types:', this.scene.children.map(child => child.type));
+        console.log('ROTATEMINI - 📦 SCENE CHECK - Scene rotation Y:', this.scene.rotation.y);
+        this.miniPreviewLogsShown.add(logKey);
+      }
+      
+      // לוג לבדיקת האנימציה (כל 5 שניות)
+      const animationLogKey = `animation-check-${this.product?.id || this.product?.name || 'unknown'}`;
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has(animationLogKey)) {
+        console.log('ROTATEMINI - 🎬 ANIMATION CHECK - Animation running, scene rotation Y:', this.scene.rotation.y, 'isElementVisible:', this.isElementVisible());
+        this.miniPreviewLogsShown.add(animationLogKey);
+        // נוסיף timeout כדי לבדוק שוב אחרי 5 שניות
+        setTimeout(() => {
+          this.miniPreviewLogsShown.delete(animationLogKey);
+        }, 5000);
+      }
+      
+      // לוג לבדיקת האנימציה גם אחרי כיבוי הלוגים (כל 10 שניות)
+      const animationLogKeyAfter = `animation-check-after-${this.product?.id || this.product?.name || 'unknown'}`;
+      if (!this.miniPreviewLogsShown.has(animationLogKeyAfter)) {
+        console.log('ROTATEMINI - 🎬 ANIMATION CHECK AFTER - Animation running, scene rotation Y:', this.scene.rotation.y, 'isElementVisible:', this.isElementVisible(), 'hasUserInteracted:', this.hasUserInteracted);
+        this.miniPreviewLogsShown.add(animationLogKeyAfter);
+        // נוסיף timeout כדי לבדוק שוב אחרי 10 שניות
+        setTimeout(() => {
+          this.miniPreviewLogsShown.delete(animationLogKeyAfter);
+        }, 10000);
+      }
     }
   }
 
@@ -2222,7 +2315,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const maxRadius = 250;
     const clampedRadius = Math.max(minRadius, Math.min(maxRadius, newRadius));
     
-    console.log(`זום: יחס=${zoomRatio.toFixed(2)}, רדיוס בסיס=${baseRadius.toFixed(2)}, רדיוס חדש=${clampedRadius.toFixed(2)}`);
+    console.log(`ROTATEMINI - זום: יחס=${zoomRatio.toFixed(2)}, רדיוס בסיס=${baseRadius.toFixed(2)}, רדיוס חדש=${clampedRadius.toFixed(2)}`);
     
     // עדכון המצב של המצלמה עם הרדיוס החדש
     cameraState.spherical.radius = clampedRadius;
@@ -2232,7 +2325,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.camera.position.setFromSpherical(this.spherical).add(this.target);
     this.camera.lookAt(this.target);
     
-    console.log('זום עודכן ישירות למצלמה:', this.spherical.radius);
+    console.log('ROTATEMINI - זום עודכן ישירות למצלמה:', this.spherical.radius);
   }
 
   // פונקציה לבדיקת תקינות הפרמטרים הדינמיים
@@ -2541,7 +2634,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   }
 
   private createBeamsModel() {
-    console.log('יצירת מודל beams במיני-פרוויו...');
+    console.log('ROTATEMINI - יצירת מודל beams במיני-פרוויו...');
     
     // ניקוי המודל הקודם
     this.meshes.forEach(mesh => this.scene.remove(mesh));
@@ -2562,7 +2655,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const beamHeightCm = (defaultType.height || defaultBeam.height || 15) / 10; // המרה ממ"מ לס"מ
     const beamDepthCm = (defaultType.depth || defaultBeam.depth || 100) / 10; // המרה ממ"מ לס"מ
 
-    console.log('מידות קורה ברירת מחדל:', { beamWidthCm, beamHeightCm, beamDepthCm });
+    console.log('ROTATEMINI - מידות קורה ברירת מחדל:', { beamWidthCm, beamHeightCm, beamDepthCm });
 
     // יצירת קורה אחת ברירת מחדל (100 ס"מ)
     this.dynamicBeams = [{ length: 100, quantity: 1 }];
@@ -2576,7 +2669,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // התאמת מצלמה
     this.updateCameraPosition();
     
-    console.log('Beams model created successfully');
+    console.log('ROTATEMINI - Beams model created successfully');
   }
 
 
@@ -2624,13 +2717,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       currentZ += beamDepthCm + beamSpacing;
     });
     
-    console.log(`נוצרו ${this.meshes.length} קורות במיני-פרוויו`);
+    console.log(`ROTATEMINI - נוצרו ${this.meshes.length} קורות במיני-פרוויו`);
   }
 
 
   // יצירת מודל מיטה
   private createFutonModel() {
-    console.log('=== Creating Futon Model ===');
+    console.log('ROTATEMINI - === Creating Futon Model ===');
     
     // שימוש בפרמטרים הדינמיים
     const futonWidth = this.dynamicParams.width || 200; // רוחב המיטה
@@ -2673,7 +2766,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const plataWoodTexture = this.getWoodTexture(plataType ? plataType.name : '');
     const legWoodTexture = this.getWoodTexture(legType ? legType.name : '');
     
-    console.log('Futon params:', { futonWidth, futonDepth, platformHeight, plataBeamWidth, plataBeamHeight, legBeamWidth, legBeamHeight });
+    console.log('ROTATEMINI - Futon params:', { futonWidth, futonDepth, platformHeight, plataBeamWidth, plataBeamHeight, legBeamWidth, legBeamHeight });
     
     // 1. יצירת קורות הפלטה (דומה לשולחן)
     const minGap = 2; // רווח מינימלי בין קורות
@@ -2693,7 +2786,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.scene.add(mesh);
       this.meshes.push(mesh);
       
-      console.log(`קורת פלטה ${i + 1} - X: ${beam.x}, Y: ${platformHeight + beam.height / 2}, Z: ${beam.z}`);
+      console.log(`ROTATEMINI - קורת פלטה ${i + 1} - X: ${beam.x}, Y: ${platformHeight + beam.height / 2}, Z: ${beam.z}`);
     });
     
     // 2. יצירת קורות הרגליים (3 רגליים עם הזחה של 5 ס"מ מכל קצה)
@@ -2724,13 +2817,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.scene.add(mesh);
       this.meshes.push(mesh);
       
-      console.log(`רגל ${i + 1} - X: ${pos.x}, Y: ${legBeamWidth / 2}, Z: ${pos.z}, אורך: ${futonDepth}ס"מ`);
+      console.log(`ROTATEMINI - רגל ${i + 1} - X: ${pos.x}, Y: ${legBeamWidth / 2}, Z: ${pos.z}, אורך: ${futonDepth}ס"מ`);
     });
     
     // התאמת מצלמה
     this.updateCameraPosition();
     
-    console.log('מיטה נוצרה בהצלחה');
+    console.log('ROTATEMINI - מיטה נוצרה בהצלחה');
   }
   
   // פונקציה עזר ליצירת קורות פלטה למיטה (דומה לשולחן)
@@ -2768,6 +2861,30 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   // פונקציה להפסקת הסיבוב האוטומטי
   public stopAutoRotation(): void {
     this.hasUserInteracted = true;
-    console.log('סיבוב אוטומטי הופסק');
+    console.log('ROTATEMINI - סיבוב אוטומטי הופסק');
+  }
+
+  // פונקציה להסרת הכיסוי
+  public removeOverlay(): void {
+    this.hasUserInteracted = true;
+    console.log('ROTATEMINI - כיסוי הוסר - סיבוב אוטומטי הופסק');
+  }
+
+  // בדיקה אם הקומפוננט נראה במסך
+  private isElementVisible(): boolean {
+    if (!this.container || !this.container.nativeElement) {
+      return false;
+    }
+    
+    const rect = this.container.nativeElement.getBoundingClientRect();
+    const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+    const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+    
+    return (
+      rect.top < windowHeight &&
+      rect.bottom > 0 &&
+      rect.left < windowWidth &&
+      rect.right > 0
+    );
   }
 }
