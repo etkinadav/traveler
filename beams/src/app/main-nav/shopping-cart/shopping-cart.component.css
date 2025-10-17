@@ -173,10 +173,10 @@
 /* תצוגת מוצר מיני */
 .product-mini-preview {
   position: relative;
-  margin-bottom: 15px;
+  margin: 0 auto 15px auto; /* מירכוז אוטומטי */
   text-align: center;
-  width: 100%;
-  padding-top: 100%; /* יוצר ריבוע (aspect ratio 1:1) */
+  width: 220px; /* גודל זהה לבחירת המוצר */
+  height: 220px; /* גודל זהה לבחירת המוצר */
   border-radius: 0; /* פינות חדות כמו בבחירת המוצר */
   overflow: hidden;
   background: #f8f9fa;
@@ -221,23 +221,21 @@
   /* טקסט הוראה בריחוף */
   .overlay-hint {
     position: absolute;
-    top: 50%; /* למרכז */
+    top: 8px; /* צמוד למעלה כמו בבחירת המוצר */
     left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 102, 204, 0.9); /* רקע כחול עם שקיפות */
-    color: white;
-    padding: 12px 24px;
-    font-size: 15px;
-    font-weight: 600;
+    transform: translateX(-50%);
+    background: none; /* ללא רקע */
+    color: #2196f3; /* כחול כמו בבחירת המוצר */
+    padding: 0; /* ללא padding */
+    font-size: 12px; /* גודל זהה לבחירת המוצר */
+    font-weight: bold; /* משקל זהה לבחירת המוצר */
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
     pointer-events: none;
     white-space: nowrap;
     z-index: 11;
     width: max-content; /* רוחב מינימלי */
-    max-width: 90%; /* לא יוצא מהמסך */
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    max-width: 100%; /* לא יוצא מהמסך */
     
     &.show {
       opacity: 1;
