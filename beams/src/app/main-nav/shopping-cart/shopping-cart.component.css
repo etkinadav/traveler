@@ -11,7 +11,7 @@
 /* כותרת */
 .cart-header {
   position: relative;
-  text-align: center;
+  text-align: right; /* כותרת צמודה לימין */
   padding-bottom: 20px;
   margin-bottom: 30px;
 }
@@ -25,7 +25,7 @@
 
 .back-btn {
   position: absolute;
-  right: 0;
+  left: 0; /* משמאל */
   top: 50%;
   transform: translateY(-50%);
   background: none; /* ללא רקע */
@@ -45,23 +45,25 @@
 
 .clear-cart-btn {
   position: absolute;
-  left: 0;
+  left: 40px; /* רווח קטן מהכפתור חזרה */
   top: 50%;
   transform: translateY(-50%);
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
+  background: none !important; /* ללא רקע */
+  background-color: transparent !important; /* ללא רקע */
+  color: #2196f3 !important; /* כחול כמו בקובץ בחירת המוצר */
+  border: none !important;
+  padding: 0; /* ללא padding */
   cursor: pointer;
-  font-size: 16px;
+  font-size: 20px; /* אייקון פח זבל */
   font-weight: 500;
   transition: all 0.3s;
 }
 
 .clear-cart-btn:hover {
-  background: #c82333;
-  transform: translateY(-50%) scale(1.05);
+  color: #1976d2 !important; /* כחול כהה יותר בריחוף */
+  background: none !important; /* ללא רקע בריחוף */
+  background-color: transparent !important; /* ללא רקע בריחוף */
+  transform: translateY(-50%) scale(1.1);
 }
 
 /* סל ריק */
