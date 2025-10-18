@@ -9,6 +9,7 @@ import { PhoneComponent } from './phone/phone.component';
 import { CopyScanComponent } from './scan-copy/scan-copy.component';
 import { PropertyExplainComponent } from './property-explain/property-explain.component';
 import { SuEditUserComponent } from './su-edit-user/su-edit-user.component';
+import { DeleteCartConfirmationComponent, DeleteCartConfirmationData } from './delete-cart-confirmation/delete-cart-confirmation.component';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,7 @@ export class DialogService {
   private dialogCopyScanRef: MatDialogRef<CopyScanComponent> | null = null;
   private dialogPropertyExplainRef: MatDialogRef<PropertyExplainComponent> | null = null;
   private dialogSuEditUserRef: MatDialogRef<SuEditUserComponent> | null = null;
+  private dialogDeleteCartConfirmationRef: MatDialogRef<DeleteCartConfirmationComponent> | null = null;
 
   constructor(
     private dialog: MatDialog,
@@ -147,6 +149,25 @@ export class DialogService {
 
   onCloseSuEditUserDialog(): void {
     this.dialogSuEditUserRef.close();
+  }
+
+  // Delete Cart Confirmation Dialog
+  onOpenDeleteCartConfirmationDialog(data: DeleteCartConfirmationData): Promise<boolean> {
+    this.dialogDeleteCartConfirmationRef = this.dialog.open(DeleteCartConfirmationComponent, {
+      panelClass: 'fill-screen-modal-phone',
+      data: data,
+      disableClose: false
+    });
+
+    return this.dialogDeleteCartConfirmationRef.afterClosed().toPromise().then(result => {
+      return result === true; // true = המשתמש אישר, false = ביטל
+    });
+  }
+
+  onCloseDeleteCartConfirmationDialog(): void {
+    if (this.dialogDeleteCartConfirmationRef) {
+      this.dialogDeleteCartConfirmationRef.close();
+    }
   }
 
   // Edit Product Dialog

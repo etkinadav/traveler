@@ -1,0 +1,41 @@
+<div class="h-100 w-100 d-flex flex-column flex-grow-1 overflow-auto">
+
+    <!-- Close button positioned at top-right -->
+    <div class="position-absolute w-100 d-flex" [class.justify-content-end]="isRTL">
+        <button type="button" mat-icon-button aria-label="Close dialog" (click)="onCancel()"
+            class="close-icon d-flex align-items-center justify-content-center">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="d-flex flex-grow-1 flex-column align-items-center px-3 pt-5 pb-5 px-md-4 pt-md-6 pb-md-6 gap-3 w-100">
+        <!-- Title -->
+        <h4 class="text-center fw-bold m-0 pt-3 pt-lg-0">
+            {{ getTitle() }}
+        </h4>
+
+        <!-- Message -->
+        <div class="d-flex flex-column gap-3 align-items-center w-100 pt-3">
+            <span class="text-center pt-2">
+                {{ getMessage() }}
+            </span>
+
+            <!-- Action buttons -->
+            <div class="d-flex flex-column flex-lg-row justify-content-center align-items-center w-100 gap-4 mt-4">
+                <!-- Delete button (red) -->
+                <button color="warn" mat-raised-button (click)="onConfirm()"
+                    class="text-white zx-btn-single fw-bold">
+                    <mat-icon>delete</mat-icon>
+                    {{ getDeleteButtonText() }}
+                </button>
+                
+                <!-- Cancel button (blue) -->
+                <button (click)="onCancel()" color="primary" mat-button
+                    class="zx-btn-single fw-bold">
+                    <mat-icon>cancel</mat-icon>
+                    {{ getCancelButtonText() }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

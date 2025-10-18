@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { trigger, state, style, transition, animate } from '@angular/animations';
+import { DialogService } from '../../dialog/dialog.service';
 
 @Component({
   selector: 'app-shopping-cart',
@@ -48,6 +49,7 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   constructor(
     private basketService: ProductBasketService,
     private router: Router,
+    private dialogService: DialogService,
     private datePipe: DatePipe
   ) {}
 
@@ -77,14 +79,6 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * הסרת מוצר מהסל
-   */
-  removeItem(itemId: string): void {
-    this.basketService.removeFromBasket(itemId);
-    this.loadBasket();
-  }
-
-  /**
    * קבלת המידות של מוצר בסל
    */
   getProductDimensions(item: BasketItem): string {
@@ -94,16 +88,6 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
     
     const { length, width, height } = item.dimensions;
     return `${length} × ${width} × ${height} ס"מ`;
-  }
-
-  /**
-   * ניקוי כל הסל
-   */
-  clearBasket(): void {
-    if (confirm('האם אתה בטוח שברצונך לנקות את כל הסל?')) {
-      this.basketService.clearBasket();
-      this.loadBasket();
-    }
   }
 
   /**
@@ -162,11 +146,16 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
     window.history.back();
   }
 
-  clearCart(): void {
-    if (confirm('האם אתה בטוח שברצונך למחוק את כל הסל?')) {
+  async clearCart(): Promise<void> {
+    const confirmed = await this.dialogService.onOpenDeleteCartConfirmationDialog({
+      type: 'cart'
+    });
+
+    if (confirmed) {
       this.basketService.clearBasket();
       // ניקוי cache כשמנקים את הסל
       this.productPreviewCache.clear();
+      this.loadBasket();
     }
   }
 
@@ -611,6 +600,24 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
    */
   hideHintForProduct(productId: string): void {
     this.showHintMap[productId] = false;
+  }
+
+  /**
+   * מחיקת פריט מהסל
+   */
+  async removeItem(itemId: string): Promise<void> {
+    const item = this.basketItems.find(i => i.id === itemId);
+    const itemName = item?.productConfiguration.originalProductData?.name || 'הפריט';
+
+    const confirmed = await this.dialogService.onOpenDeleteCartConfirmationDialog({
+      type: 'item',
+      itemName: itemName
+    });
+
+    if (confirmed) {
+      this.basketService.removeFromBasket(itemId);
+      this.loadBasket();
+    }
   }
 
   ngOnDestroy(): void {
