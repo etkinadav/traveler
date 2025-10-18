@@ -105,6 +105,20 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * בדיקה האם המוצר עבר שינויים קבועים (לא במצב המקורי)
+   */
+  isProductModified(item: BasketItem): boolean {
+    return item.pricingInfo.editingInfo.wasEdited;
+  }
+
+  /**
+   * קבלת סטטוס המוצר (מקורי או מעודכן)
+   */
+  getProductStatus(item: BasketItem): string {
+    return this.isProductModified(item) ? 'מעודכן' : 'מקורי';
+  }
+
+  /**
    * עדכון כמות קורה
    */
   updateBeamQuantity(item: BasketItem, beamIndex: number, newQuantity: number): void {

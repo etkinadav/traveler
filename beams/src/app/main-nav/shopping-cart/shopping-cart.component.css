@@ -79,14 +79,23 @@
 }
 
 /* עיצוב למידות המוצר */
-.summary-item .dimensions {
+.summary-item .status {
   font-weight: 600;
-  color: var(--zx-green);
-  font-family: 'Courier New', monospace;
-  background: rgba(0, 102, 204, 0.1);
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 4px;
   font-size: 13px;
+}
+
+.summary-item .status.modified {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.summary-item .status.original {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
 }
 
 .back-btn {

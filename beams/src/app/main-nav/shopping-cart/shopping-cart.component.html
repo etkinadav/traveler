@@ -71,6 +71,12 @@
           <!-- סיכום מהיר -->
           <div class="item-quick-summary">
             <div class="summary-item">
+              <span class="label">סטטוס:</span>
+              <span class="value status" [class.modified]="isProductModified(item)" [class.original]="!isProductModified(item)">
+                {{ getProductStatus(item) }}
+              </span>
+            </div>
+            <div class="summary-item">
               <span class="label">מידות:</span>
               <span class="value dimensions">{{ getProductDimensions(item) }}</span>
             </div>
