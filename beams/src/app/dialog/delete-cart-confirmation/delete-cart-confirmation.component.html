@@ -21,17 +21,17 @@
             </span>
 
             <!-- Action buttons -->
-            <div class="d-flex flex-column flex-lg-row justify-content-center align-items-center w-100 gap-4 mt-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-center align-items-stretch w-100 gap-3 mt-4">
                 <!-- Delete button (red) -->
                 <button color="warn" mat-raised-button (click)="onConfirm()"
-                    class="text-white zx-btn-single fw-bold">
+                    class="text-white zx-btn-single fw-bold flex-fill">
                     <mat-icon>delete</mat-icon>
                     {{ getDeleteButtonText() }}
                 </button>
                 
                 <!-- Cancel button (blue) -->
                 <button (click)="onCancel()" color="primary" mat-button
-                    class="zx-btn-single fw-bold">
+                    class="zx-btn-single fw-bold flex-fill">
                     <mat-icon>cancel</mat-icon>
                     {{ getCancelButtonText() }}
                 </button>
