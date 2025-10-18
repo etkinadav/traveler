@@ -85,6 +85,18 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * קבלת המידות של מוצר בסל
+   */
+  getProductDimensions(item: BasketItem): string {
+    if (!item.dimensions) {
+      return 'מידות לא זמינות';
+    }
+    
+    const { length, width, height } = item.dimensions;
+    return `${length} × ${width} × ${height} ס"מ`;
+  }
+
+  /**
    * ניקוי כל הסל
    */
   clearBasket(): void {

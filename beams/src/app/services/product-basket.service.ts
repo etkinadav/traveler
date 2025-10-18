@@ -100,6 +100,13 @@ export interface PricingInfo {
   };
 }
 
+// Interface for product dimensions
+export interface ProductDimensions {
+  length: number; // אורך בס"מ
+  width: number;   // רוחב בס"מ
+  height: number; // גובה בס"מ
+}
+
 // Interface for complete basket item
 export interface BasketItem {
   id: string;
@@ -107,6 +114,7 @@ export interface BasketItem {
   cutList: CutList;
   organizedArrangement: OrganizedArrangement;
   pricingInfo: PricingInfo;
+  dimensions: ProductDimensions; // מידות סופיות של המוצר
   addedToBasketAt: Date;
 }
 
@@ -122,6 +130,90 @@ export class ProductBasketService {
   }
 
   /**
+   * Calculate final product dimensions based on configuration
+   */
+  calculateProductDimensions(productConfiguration: ProductConfiguration): ProductDimensions {
+    const params = productConfiguration.inputConfigurations;
+    
+    // חיפוש פרמטרים של מידות
+    let width = 0;
+    let height = 0;
+    let length = 0;
+    
+    console.log('🔍 DIMENSIONS DEBUG - inputConfigurations:', params);
+    
+    // חיפוש ראשון - לפי שמות פרמטרים
+    params.forEach(param => {
+      const paramName = param.inputName.toLowerCase();
+      const value = param.value;
+      
+      console.log(`🔍 DIMENSIONS DEBUG - param: ${paramName}, value: ${value}, type: ${typeof value}`);
+      
+      if (paramName.includes('width') || paramName.includes('רוחב')) {
+        width = typeof value === 'number' ? value : parseFloat(value) || 0;
+        console.log(`🔍 DIMENSIONS DEBUG - width set to: ${width}`);
+      } else if (paramName.includes('height') || paramName.includes('גובה')) {
+        height = typeof value === 'number' ? value : parseFloat(value) || 0;
+        console.log(`🔍 DIMENSIONS DEBUG - height set to: ${height}`);
+      } else if (paramName.includes('length') || paramName.includes('אורך') || paramName.includes('depth') || paramName.includes('עומק')) {
+        length = typeof value === 'number' ? value : parseFloat(value) || 0;
+        console.log(`🔍 DIMENSIONS DEBUG - length set to: ${length}`);
+      }
+    });
+    
+    // חיפוש שני - לפי שמות נפוצים
+    if (width === 0 || height === 0 || length === 0) {
+      params.forEach(param => {
+        const paramName = param.inputName.toLowerCase();
+        const value = param.value;
+        
+        if (paramName.includes('x') && width === 0) {
+          width = typeof value === 'number' ? value : parseFloat(value) || 0;
+        } else if (paramName.includes('y') && height === 0) {
+          height = typeof value === 'number' ? value : parseFloat(value) || 0;
+        } else if (paramName.includes('z') && length === 0) {
+          length = typeof value === 'number' ? value : parseFloat(value) || 0;
+        }
+      });
+    }
+    
+    // חיפוש שלישי - לפי סדר הפרמטרים (אם יש 3 פרמטרים מספריים)
+    if (width === 0 || height === 0 || length === 0) {
+      const numericParams = params.filter(param => {
+        const value = param.value;
+        return typeof value === 'number' && value > 0;
+      });
+      
+      console.log(`🔍 DIMENSIONS DEBUG - numericParams found: ${numericParams.length}`);
+      
+      if (numericParams.length >= 3) {
+        // נניח שהסדר הוא: width, depth, height
+        width = numericParams[0].value;
+        length = numericParams[1].value;
+        height = numericParams[2].value;
+        console.log(`🔍 DIMENSIONS DEBUG - set by order: width=${width}, length=${length}, height=${height}`);
+      }
+    }
+    
+    console.log(`🔍 DIMENSIONS DEBUG - final values: width=${width}, height=${height}, length=${length}`);
+    
+    // אם עדיין לא נמצאו מידות, נשתמש בערכים ברירת מחדל
+    if (width === 0 || isNaN(width)) width = 50; // 50 ס"מ ברירת מחדל
+    if (height === 0 || isNaN(height)) height = 30; // 30 ס"מ ברירת מחדל  
+    if (length === 0 || isNaN(length)) length = 40; // 40 ס"מ ברירת מחדל
+    
+    const result = {
+      length: Math.round(length * 10) / 10, // עיגול לעשירית
+      width: Math.round(width * 10) / 10,
+      height: Math.round(height * 10) / 10
+    };
+    
+    console.log(`🔍 DIMENSIONS DEBUG - final result:`, result);
+    
+    return result;
+  }
+
+  /**
    * Add a new product to the basket
    * This method is called when user saves an order (clicks "Continue" button when logged in)
    */
@@ -129,14 +221,19 @@ export class ProductBasketService {
     productConfiguration: ProductConfiguration,
     cutList: CutList,
     organizedArrangement: OrganizedArrangement,
-    pricingInfo: PricingInfo
+    pricingInfo: PricingInfo,
+    dimensions?: ProductDimensions
   ): void {
+    // אם לא סופקו מידות, נחשב אותן
+    const finalDimensions = dimensions || this.calculateProductDimensions(productConfiguration);
+    
     const basketItem: BasketItem = {
       id: this.generateUniqueId(),
       productConfiguration,
       cutList,
       organizedArrangement,
       pricingInfo,
+      dimensions: finalDimensions,
       addedToBasketAt: new Date()
     };
 

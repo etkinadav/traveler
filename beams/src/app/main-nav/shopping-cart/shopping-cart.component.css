@@ -78,6 +78,17 @@
   transform: scale(1.1);
 }
 
+/* עיצוב למידות המוצר */
+.summary-item .dimensions {
+  font-weight: 600;
+  color: var(--zx-green);
+  font-family: 'Courier New', monospace;
+  background: rgba(0, 102, 204, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
 .back-btn {
   background: none !important; /* ללא רקע */
   color: var(--zx-green) !important; /* כחול כמו בקובץ בחירת המוצר */
