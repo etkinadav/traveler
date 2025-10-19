@@ -94,11 +94,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         texture = new THREE.Texture(image);
         texture.needsUpdate = true;
         // Texture loaded synchronously (preloaded)
-        console.log(`✅ Using preloaded texture: ${texturePath}`);
       } else {
         // אם התמונה לא נטענה, נסה עם נתיב אחר
         texture = this.textureLoader.load(texturePath);
-        console.log(`⏳ Loading texture async: ${texturePath}`);
       }
     } catch (error) {
       console.warn('Sync loading failed, using async:', error);
@@ -2817,10 +2815,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   // בדיקה אם הקומפוננט נראה במסך
   private isElementVisible(): boolean {
-    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-isElementVisible')) {
-      console.log('CHACK_01 - isElementVisible called in mini preview');
-      this.miniPreviewLogsShown.add('chack01-isElementVisible');
-    }
     
     if (!this.container || !this.container.nativeElement) {
       if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-no-container')) {

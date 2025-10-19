@@ -97,10 +97,6 @@
                                                     <div class="step-item-trans-product step-item position-relative empty-card"
                                                          [class.step-item-dark]="isDarkMode">
                                                         
-                                                        <!-- מספר הכרטיסיה בפינה -->
-                                                        <div class="card-number-badge">
-                                                            {{ getGlobalProductIndex(groupIndex, i) }}
-                                                        </div>
                                                         
                                                         <!-- ערכי כרטיסיות - comment out
                                                         <div class="mega-card-number">
@@ -119,10 +115,6 @@
                                                      class="step-item-trans-product step-item position-relative"
                                                      [class.step-item-dark]="isDarkMode">
                                                     
-                                                    <!-- מספר הכרטיסיה בפינה -->
-                                                    <div class="card-number-badge">
-                                                        {{ getGlobalProductIndex(groupIndex, i) }}
-                                                    </div>
                                                     
                                                     <!-- כותרת קטגוריה - רק בכרטיסייה הראשונה -->
                                                     <div *ngIf="i === 0" class="category-title-container">

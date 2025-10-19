@@ -321,21 +321,19 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     textures.forEach(texturePath => {
       const img = new Image();
       img.onload = () => {
-        console.log(`✅ Texture preloaded: ${texturePath}`);
+        // Texture preloaded silently
       };
       img.onerror = () => {
-        console.warn(`❌ Failed to preload texture: ${texturePath}`);
+        // Failed to preload texture silently
       };
       img.src = texturePath;
     });
     
-    console.log(`🚀 Started preloading ${textures.length} textures for faster 3D loading`);
   }
   
   // פונקציה לבדיקת נראות כרטיסיות
   private checkCardVisibility() {
     if (!this.productCards || this.productCards.length === 0) {
-      console.log('❌ No product cards found');
       return;
     }
 
@@ -374,14 +372,12 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
       
       // הדפסת השינויים
       if (addedIndices.length > 0 || removedIndices.length > 0) {
-        console.log('🔄 Visibility changed:');
         if (addedIndices.length > 0) {
           console.log(`  ➕ Added: [${addedIndices.join(', ')}]`);
         }
         if (removedIndices.length > 0) {
           console.log(`  ➖ Removed: [${removedIndices.join(', ')}]`);
         }
-        console.log(`  📊 Current visible: [${visibleIndices.join(', ')}]`);
       }
       
       // עדכון הערך הישן
@@ -531,41 +527,10 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
       });
     
     
-    // לוג מפורט של כל ה-borders אחרי 3 שניות
-    setTimeout(() => {
-      console.log('=== BORDER DEBUG LOG ===');
-      console.log(`n (elementsPerRow) = ${this.elementsPerRow}`);
-      this.groupedProducts.forEach((group, groupIndex) => {
-        console.log(`\n📦 Group ${groupIndex + 1}: ${group.productTypeName}`);
-        group.items.forEach((product, productIndex) => {
-          const globalIndex = this.getGlobalProductIndex(groupIndex, productIndex);
-          const s = globalIndex + 1;
-          const r = (globalIndex % this.elementsPerRow) + 1;
-          const x = groupIndex + 1; // מספר קבוצה
-          
-          const hasTop = this.shouldShowTopBorder(groupIndex, productIndex);
-          const hasRight = this.shouldShowRightBorder(groupIndex, productIndex);
-          const hasBottom = this.shouldShowBottomBorder(groupIndex, productIndex);
-          const hasLeft = this.shouldShowLeftBorder(groupIndex, productIndex);
-          
-          const borders = [];
-          if (hasTop) borders.push('top');
-          if (hasRight) borders.push('right');
-          if (hasBottom) borders.push('bottom');
-          if (hasLeft) borders.push('left');
-          
-          const borderStr = borders.length > 0 ? borders.join('-') : 'none';
-          console.log(`  x-${x}-r-${r}-s-${s}-${borderStr} | ${product.translatedName}`);
-        });
-      });
-      console.log('\n=== END BORDER LOG ===');
-    }, 3000);
   }
   
 
   ngAfterViewInit() {
-    console.log('🚀 ngAfterViewInit - Starting visibility checker');
-    
     // עקוב אחרי שינויים ב-productCards
     this.productCards.changes.subscribe(() => {
       // אם יש שינוי בכרטיסיות, הפעל מחדש את הבדיקה
