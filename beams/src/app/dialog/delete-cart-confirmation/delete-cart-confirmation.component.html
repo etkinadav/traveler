@@ -25,17 +25,21 @@
             <!-- Action buttons -->
             <div class="d-flex flex-column flex-lg-row justify-content-center align-items-stretch w-100 gap-3 mt-2 mb-3 mb-lg-4 pb-2 pb-lg-0">
                 <!-- Delete button (red) -->
-                <button color="warn" mat-raised-button (click)="onConfirm()"
-                    class="text-white zx-btn-single fw-bold flex-fill">
-                    <mat-icon>delete</mat-icon>
-                    {{ getDeleteButtonText() }}
+                <button color="warn" mat-stroked-button (click)="onConfirm()"
+                    class="zx-btn-single flex-fill">
+                    <div class="w-100 d-flex justify-content-center align-items-center">
+                        <mat-icon>delete</mat-icon>
+                        <span>{{ getDeleteButtonText() }}</span>
+                    </div>
                 </button>
                 
                 <!-- Cancel button (blue) -->
-                <button (click)="onCancel()" color="primary" mat-button
-                    class="zx-btn-single fw-bold flex-fill">
-                    <mat-icon>cancel</mat-icon>
-                    {{ getCancelButtonText() }}
+                <button (click)="onCancel()" color="primary" mat-stroked-button
+                    class="zx-btn-single flex-fill">
+                    <div class="w-100 d-flex justify-content-center align-items-center">
+                        <mat-icon>cancel</mat-icon>
+                        <span>{{ getCancelButtonText() }}</span>
+                    </div>
                 </button>
             </div>
         </div>

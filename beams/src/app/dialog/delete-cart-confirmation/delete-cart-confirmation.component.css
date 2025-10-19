@@ -48,54 +48,77 @@
     flex-grow: 1;
 }
 
-/* עיצוב לכפתורים */
+/* עיצוב לכפתורים - בסגנון דיאלוג הלוג-אין */
 .zx-btn-single {
     min-height: 48px;
     font-size: 16px;
-    font-weight: 600;
-    border-radius: 0 !important; /* פינות חדות לגמרי */
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: none !important;
+    font-weight: 500;
+    border-radius: 0 !important; /* פינות חדות */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid !important;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     padding: 12px 24px;
-    width: 100%; /* תופס את כל הרוחב הזמין */
+    width: 100%;
+    background: white !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(0);
 }
 
 .zx-btn-single:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    background: rgba(33, 150, 243, 0.04) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-2px);
 }
 
 .zx-btn-single:active {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+    background: rgba(33, 150, 243, 0.08) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(0);
 }
 
-/* כפתור מחיקה (אדום עדין) */
+/* כפתור מחיקה (קו אדום) */
 button[color="warn"].zx-btn-single {
-    background: linear-gradient(135deg, #e57373, #d32f2f) !important;
-    color: white !important;
+    border-color: #f44336 !important;
+    color: #f44336 !important;
 }
 
 button[color="warn"].zx-btn-single:hover {
-    background: linear-gradient(135deg, #d32f2f, #c62828) !important;
+    background: rgba(244, 67, 54, 0.04) !important;
+    border-color: #d32f2f !important;
 }
 
-/* כפתור ביטול (כחול עדין) */
+button[color="warn"].zx-btn-single span {
+    color: #f44336 !important;
+}
+
+button[color="warn"].zx-btn-single:hover span {
+    color: #d32f2f !important;
+}
+
+/* כפתור ביטול (קו כחול) */
 button[color="primary"].zx-btn-single {
-    background: linear-gradient(135deg, #64b5f6, #1976d2) !important;
-    color: white !important;
+    border-color: #2196f3 !important;
+    color: #2196f3 !important;
 }
 
 button[color="primary"].zx-btn-single:hover {
-    background: linear-gradient(135deg, #1976d2, #1565c0) !important;
+    background: rgba(33, 150, 243, 0.04) !important;
+    border-color: #1976d2 !important;
 }
 
-/* אייקונים בכפתורים */
+button[color="primary"].zx-btn-single span {
+    color: #2196f3 !important;
+}
+
+button[color="primary"].zx-btn-single:hover span {
+    color: #1976d2 !important;
+}
+
+/* אייקונים בכפתורים - בצד ימין */
 .zx-btn-single mat-icon {
-    margin-left: 8px;
+    margin-right: 8px;
+    margin-left: 0;
     font-size: 20px;
     width: 20px;
     height: 20px;
@@ -152,38 +175,7 @@ span {
     }
 }
 
-/* אנימציה לכניסה */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* אנימציה לכפתורים */
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-.zx-btn-single {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-.zx-btn-single:hover {
-    animation: pulse 0.6s ease-in-out;
-}
+/* אין אנימציות מוגזמות - רק מעברים עדינים */
 
 /* רקע הדיאלוג */
 ::ng-deep .mat-mdc-dialog-container {
