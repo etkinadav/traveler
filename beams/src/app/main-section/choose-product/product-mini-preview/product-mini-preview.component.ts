@@ -243,6 +243,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-init-completed')) {
         this.miniPreviewLogsShown.add('chack01-init-completed');
       }
+      
+      // Emit load complete event
+      this.loadComplete.emit();
     } catch (error) {
     }
   }
