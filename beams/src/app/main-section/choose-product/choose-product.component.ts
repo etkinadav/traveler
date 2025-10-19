@@ -78,6 +78,7 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   private visibilityCheckInterval: any = null;
   private previousVisibleIndices: number[] = []; // שמירת הערך הישן
   private visibleProductIndices = new Set<number>(); // אינדקסים נראים כרגע
+  private loadedProductIndices = new Set<number>(); // אינדקסים של מוצרים שהתלת מימד שלהם נטען
   @ViewChildren('productCard', { read: ElementRef }) productCards!: QueryList<ElementRef>;
   
 
@@ -295,6 +296,17 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     const isVisible = this.visibleProductIndices.has(index);
     // console.log(`🔍 isProductVisible(${index}): ${isVisible}`);
     return isVisible;
+  }
+  
+  // פונקציה לבדיקה אם מוצר נטען (לשימוש ב-HTML)
+  isProductLoaded(index: number): boolean {
+    return this.loadedProductIndices.has(index);
+  }
+  
+  // פונקציה לסימון מוצר כנטען
+  markProductAsLoaded(index: number): void {
+    this.loadedProductIndices.add(index);
+    this.changeDetectorRef.detectChanges();
   }
   
   // פונקציה לבדיקת נראות כרטיסיות

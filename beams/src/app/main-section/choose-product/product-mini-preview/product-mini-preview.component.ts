@@ -1,4 +1,4 @@
-import { Component, Input, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import * as THREE from 'three';
 
 @Component({
@@ -12,6 +12,8 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private miniPreviewLogsShown = new Set<string>();
   @Input() product: any;
   @Input() configurationIndex: number = 0;
+  @Output() loadComplete = new EventEmitter<void>();
+  
   @ViewChild('miniPreviewContainer', { static: true }) container!: ElementRef;
 
   private scene!: THREE.Scene;

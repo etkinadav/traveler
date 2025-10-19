@@ -159,12 +159,24 @@
                                                         <div class="product-icon zx-big-icon-size-trans d-flex align-items-center justify-content-center rounded position-relative">
                                                             <!-- רנדור 3D רק למוצרים שנראים במסך -->
                                                             <ng-container *ngIf="isProductVisible(getGlobalProductIndex(groupIndex, i))">
+                                                                <!-- מצב טעינה עד שהתלת מימד נטען -->
+                                                                <div *ngIf="!isProductLoaded(getGlobalProductIndex(groupIndex, i))" 
+                                                                     class="loading-shimmer" 
+                                                                     style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;">
+                                                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                                                        <div class="spinner-border text-primary" role="status">
+                                                                            <span class="visually-hidden">טוען...</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                
                                                                 <app-product-mini-preview 
                                                                     #miniPreview 
                                                                     [product]="product" 
                                                                     [configurationIndex]="product.configurationIndex || 0" 
-                                                                    style="width: 100%; height: 100%;" 
-                                                                    (ngOnInit)="logProductCreation(product)">
+                                                                    style="width: 100%; height: 100%; position: relative; z-index: 2;" 
+                                                                    (ngOnInit)="logProductCreation(product)"
+                                                                    (loadComplete)="markProductAsLoaded(getGlobalProductIndex(groupIndex, i))">
                                                                 </app-product-mini-preview>
                                                                 
                                                             <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
