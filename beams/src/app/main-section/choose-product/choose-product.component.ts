@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener, AfterViewInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, AfterViewInit, ViewChildren, QueryList, ElementRef, ChangeDetectorRef, NgZone } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -85,6 +85,11 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   // Debug logs control for CHACK_01
   private chack01LogsShown = new Set<string>();
   private chack01LogsEnabled = true;
+  private lastLogTimes = new Map<string, number>();
+  
+  // Cache for visibility checks to avoid repeated calculations
+  private visibilityCache = new Map<number, boolean>();
+  private lastCacheUpdate = 0;
   
   @ViewChildren('productCard', { read: ElementRef }) productCards!: QueryList<ElementRef>;
 
@@ -247,7 +252,9 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     private authService: AuthService,
     private dialogService: DialogService,
     private translateService: TranslateService,
-    private http: HttpClient) {
+    private http: HttpClient,
+    private changeDetectorRef: ChangeDetectorRef,
+    private ngZone: NgZone) {
     this.translateService.onLangChange.subscribe(() => {
       this.updatecontinueToServiceText();
     });
@@ -295,30 +302,51 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     }
   }
   
-  // פונקציה לבדוק אם מוצר נראה במסך
+  // פונקציה לבדוק אם מוצר נראה במסך - עם cache לביצועים טובים יותר
   isProductVisible(index: number): boolean {
-    const logKey = `isProductVisible-${index}`;
-    if (this.chack01LogsEnabled && !this.chack01LogsShown.has(logKey)) {
-      console.log('CHACK_01 - isProductVisible called:', { index, visibleCount: this.visibleProductIndices.size, visibleIndices: Array.from(this.visibleProductIndices) });
-      this.chack01LogsShown.add(logKey);
+    const now = Date.now();
+    
+    // אם ה-cache עדכני (פחות מ-100ms), השתמש בו
+    if (now - this.lastCacheUpdate < 100 && this.visibilityCache.has(index)) {
+      return this.visibilityCache.get(index)!;
     }
+    
+    // עדכן את ה-cache אם הוא לא עדכני
+    if (now - this.lastCacheUpdate >= 100) {
+      this.updateVisibilityCache();
+      this.lastCacheUpdate = now;
+    }
+    
+    // החזר את הערך מה-cache
+    return this.visibilityCache.get(index) || false;
+  }
+  
+  // פונקציה לעדכון ה-cache של הנראות
+  private updateVisibilityCache(): void {
+    this.visibilityCache.clear();
     
     // אם ה-Observer עדיין לא רץ, נניח שהמוצרים הראשונים נראים
     if (this.visibleProductIndices.size === 0) {
-      const isVisible = index < 5; // 5 מוצרים ראשונים כברירת מחדל
-      if (this.chack01LogsEnabled && !this.chack01LogsShown.has('default-visibility')) {
-        console.log('CHACK_01 - Observer not ready, using default visibility:', { index, isVisible });
-        this.chack01LogsShown.add('default-visibility');
+      for (let i = 0; i < 3; i++) {
+        this.visibilityCache.set(i, true);
       }
-      return isVisible;
+      return;
     }
     
-    const isVisible = this.visibleProductIndices.has(index);
-    if (this.chack01LogsEnabled && !this.chack01LogsShown.has('visibility-result')) {
-      console.log('CHACK_01 - Visibility check result:', { index, isVisible });
-      this.chack01LogsShown.add('visibility-result');
+    // עדכן את ה-cache עם כל המוצרים הנראים
+    this.visibleProductIndices.forEach(index => {
+      this.visibilityCache.set(index, true);
+    });
+    
+    // לוג מפורט רק פעם אחת לעדכון
+    if (this.chack01LogsEnabled && !this.chack01LogsShown.has('cache-update')) {
+      console.log('CHACK_01 - Visibility cache updated:', { 
+        visibleCount: this.visibleProductIndices.size,
+        visibleIndices: Array.from(this.visibleProductIndices),
+        cacheSize: this.visibilityCache.size
+      });
+      this.chack01LogsShown.add('cache-update');
     }
-    return isVisible;
   }
 
   // Fallback visibility checker - runs every 0.5 seconds to catch fast scrolling
@@ -413,8 +441,13 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
       this.visibleProductIndices = new Set(currentVisibleIndices);
       this.lastVisibleIndices = new Set(currentVisibleIndices);
       
-      // Trigger change detection
-      this.visibleProductIndices = new Set(this.visibleProductIndices);
+      // Update the cache
+      this.updateVisibilityCache();
+      
+      // Trigger change detection within Angular zone
+      this.ngZone.run(() => {
+        this.changeDetectorRef.detectChanges();
+      });
       
       console.log('CHACK_01 - Updated visibleProductIndices:', Array.from(this.visibleProductIndices));
     }
@@ -602,8 +635,14 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
         // אם יש שינויים, נעדכן את ה-UI
         if (hasChanges) {
           console.log('CHACK_01 - IntersectionObserver detected changes, updating UI');
+          
+          // Update the cache
+          this.updateVisibilityCache();
+          
           // Angular change detection יזהה את השינוי
-          this.visibleProductIndices = new Set(this.visibleProductIndices);
+          this.ngZone.run(() => {
+            this.changeDetectorRef.detectChanges();
+          });
           console.log('CHACK_01 - Updated visibleProductIndices from IntersectionObserver:', Array.from(this.visibleProductIndices));
         }
       },
@@ -641,6 +680,17 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
         console.log('CHACK_01 - Starting initial observation after DOM update');
         this.chack01LogsShown.add('initial-observation');
       }
+      
+      // אתחול ראשוני - רק המוצרים הראשונים נראים
+      this.visibleProductIndices = new Set([0, 1, 2]); // רק 3 מוצרים ראשונים
+      
+      // Update the cache
+      this.updateVisibilityCache();
+      
+      this.ngZone.run(() => {
+        this.changeDetectorRef.detectChanges();
+      });
+      
       this.observeProductCards();
       // Start fallback visibility checker
       this.startFallbackVisibilityChecker();
