@@ -298,14 +298,6 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     // החזרת המוצר המקורי כמו בקובץ בחירת המוצר
     // עדכון הפרמטרים עם הערכים שנשמרו
     if (originalData && originalData.params) {
-      if (!this.debugLogsShown.has(logKey + '_originalParams')) {
-        console.log('ROTATEMINI - originalData.params:', JSON.stringify(originalData.params.map(p => ({
-          name: p.name,
-          selectedTypeIndex: p.selectedTypeIndex,
-          selectedBeamIndex: p.selectedBeamIndex
-        })), null, 2));
-        this.debugLogsShown.add(logKey + '_originalParams');
-      }
       
                const updatedParams = originalData.params.map(param => {
                  const configParam = item.productConfiguration.inputConfigurations.find(
@@ -335,64 +327,13 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
                  return param;
                });
       
-      if (!this.debugLogsShown.has(logKey + '_inputConfigurations')) {
-        console.log('ROTATEMINI - inputConfigurations:', JSON.stringify(item.productConfiguration.inputConfigurations.map(c => ({
-          inputName: c.inputName,
-          value: c.value,
-          selectedBeamIndex: c.selectedBeamIndex,
-          selectedTypeIndex: c.selectedTypeIndex
-        })), null, 2));
-        this.debugLogsShown.add(logKey + '_inputConfigurations');
-      }
       
-      if (!this.debugLogsShown.has(logKey + '_updatedParams')) {
-        console.log('ROTATEMINI - updatedParams:', JSON.stringify(updatedParams.map(p => ({
-          name: p.name,
-          selectedBeamTypeIndex: p.selectedBeamTypeIndex,
-          debug_selectedTypeIndex: p.debug_selectedTypeIndex,
-          debug_selectedBeamIndex: p.debug_selectedBeamIndex
-        })), null, 2));
-        this.debugLogsShown.add(logKey + '_updatedParams');
-      }
       
       const updatedProduct = {
         ...originalData,
         params: updatedParams
       };
     
-      // לוג מפורט חד פעמי
-      if (!this.debugLogsShown.has(logKey + '_detailed')) {
-        console.log('ROTATEMINI - DETAILED-BASKET-LOG:', JSON.stringify({
-        itemId: item.id,
-        productName: updatedProduct.name,
-        productId: updatedProduct._id || updatedProduct.id,
-        updatedProductKeys: Object.keys(updatedProduct),
-        updatedParamsCount: updatedProduct.params?.length || 0,
-        updatedParams: updatedProduct.params?.map(p => ({ 
-          name: p.name, 
-          type: p.type, 
-          value: p.value,
-          selectedBeamIndex: p.selectedBeamIndex,
-          selectedBeamTypeIndex: p.selectedBeamTypeIndex,
-          hasBeams: !!p.beams,
-          beamsCount: p.beams?.length || 0,
-          beamTypes: p.beams?.map(b => ({ name: b.name, types: b.types?.length || 0 })) || []
-        })) || [],
-        hasBeams: updatedProduct.params?.some(p => p.beams) || false,
-        beamTypes: updatedProduct.params?.filter(p => p.beams).map(p => ({ 
-          name: p.name, 
-          beamsCount: p.beams?.length,
-          selectedBeamIndex: p.selectedBeamIndex,
-          selectedBeamTypeIndex: p.selectedBeamTypeIndex,
-          firstBeam: p.beams?.[0] ? {
-            name: p.beams[0].name,
-            types: p.beams[0].types?.map(t => ({ name: t.name, texture: t.texture })) || []
-          } : null
-        })) || [],
-        configurationIndex: updatedProduct.configurationIndex || 0
-        }, null, 2));
-        this.debugLogsShown.add(logKey + '_detailed');
-      }
       
       // שמירה ב-cache
       this.productPreviewCache.set(cacheKey, updatedProduct);
