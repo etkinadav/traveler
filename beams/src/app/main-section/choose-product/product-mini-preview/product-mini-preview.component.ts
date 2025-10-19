@@ -176,6 +176,42 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.miniPreviewLogsShown.add('chack01-ngAfterViewInit');
     }
     
+    // Delay 3D initialization until component is visible
+    this.delayedInit();
+  }
+
+  private delayedInit() {
+    // Check if component is visible immediately
+    if (this.isElementVisible()) {
+      this.initializeThreeJS();
+    } else {
+      // If not visible, use Intersection Observer to wait for visibility
+      this.setupIntersectionObserver();
+    }
+  }
+
+  private setupIntersectionObserver() {
+    if (!this.container || !this.container.nativeElement) {
+      // Fallback: initialize after a short delay
+      setTimeout(() => this.initializeThreeJS(), 100);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.initializeThreeJS();
+          observer.disconnect(); // Stop observing once visible
+        }
+      });
+    }, {
+      threshold: 0.1 // Trigger when 10% of the element is visible
+    });
+
+    observer.observe(this.container.nativeElement);
+  }
+
+  private initializeThreeJS() {
     try {
       if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('ngAfterViewInit_started')) {
         // ngAfterViewInit started

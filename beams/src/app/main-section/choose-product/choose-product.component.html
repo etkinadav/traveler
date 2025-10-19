@@ -96,6 +96,12 @@
                                                 <ng-container *ngIf="product.isEmpty">
                                                     <div class="step-item-trans-product step-item position-relative empty-card"
                                                          [class.step-item-dark]="isDarkMode">
+                                                        
+                                                        <!-- מספר הכרטיסיה בפינה -->
+                                                        <div class="card-number-badge">
+                                                            {{ getGlobalProductIndex(groupIndex, i) }}
+                                                        </div>
+                                                        
                                                         <!-- ערכי כרטיסיות - comment out
                                                         <div class="mega-card-number">
                                                             x: {{groupIndex + 1}}, y: {{i + 1}}, r: {{(getGlobalProductIndex(groupIndex, i) % elementsPerRow) + 1}}, s: {{getGlobalProductIndex(groupIndex, i) + 1}}
@@ -112,6 +118,11 @@
                                                 <div [class.zx-step-choosen]="selectedProduct?._id === product._id" 
                                                      class="step-item-trans-product step-item position-relative"
                                                      [class.step-item-dark]="isDarkMode">
+                                                    
+                                                    <!-- מספר הכרטיסיה בפינה -->
+                                                    <div class="card-number-badge">
+                                                        {{ getGlobalProductIndex(groupIndex, i) }}
+                                                    </div>
                                                     
                                                     <!-- כותרת קטגוריה - רק בכרטיסייה הראשונה -->
                                                     <div *ngIf="i === 0" class="category-title-container">
@@ -170,11 +181,15 @@
                                                                 </div>
                                                             </ng-container>
                                                             
-                                                            <!-- placeholder עבור מוצרים שלא נראים במסך - זהה לכרטיסיות דמה -->
-                                                            <div 
-                                                                *ngIf="!isProductVisible(getGlobalProductIndex(groupIndex, i))"
-                                                                class="loading-shimmer"
-                                                                (click)="navigateToProduct(product)">
+                                                            <!-- placeholder עבור מוצרים שלא נראים במסך -->
+                                                            <div *ngIf="!isProductVisible(getGlobalProductIndex(groupIndex, i))" 
+                                                                 class="loading-shimmer"
+                                                                 (click)="navigateToProduct(product)">
+                                                                <div class="d-flex align-items-center justify-content-center h-100">
+                                                                    <div class="spinner-border text-primary" role="status">
+                                                                        <span class="visually-hidden">טוען...</span>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                             
                                                             <!-- קונטיינר לכפתור בחירה מרחף -->

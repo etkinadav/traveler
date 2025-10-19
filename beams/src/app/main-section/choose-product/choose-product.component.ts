@@ -74,26 +74,12 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   // מפה להצגת טקסט ההוראה בריחוף לכל מוצר
   showHintMap: { [key: string]: boolean } = {};
   
-  // Intersection Observer למעקב אחר מוצרים נראים
-  private intersectionObserver: IntersectionObserver | null = null;
-  visibleProductIndices: Set<number> = new Set();
-  
-  // Single unified visibility checker
-  private isVisibilityCheckRunning = false;
-  private visibilityCheckScheduled = false;
-  private lastVisibleIndices: Set<number> = new Set();
+  // מערכת בדיקת נראות כרטיסיות
   private visibilityCheckInterval: any = null;
-  
-  // Debug logs control for CHACK_01
-  private chack01LogsShown = new Set<string>();
-  private chack01LogsEnabled = true;
-  private lastLogTimes = new Map<string, number>();
-  
-  // Cache for visibility checks to avoid repeated calculations
-  private visibilityCache = new Map<number, boolean>();
-  private lastCacheUpdate = 0;
-  
+  private previousVisibleIndices: number[] = []; // שמירת הערך הישן
+  private visibleProductIndices = new Set<number>(); // אינדקסים נראים כרגע
   @ViewChildren('productCard', { read: ElementRef }) productCards!: QueryList<ElementRef>;
+  
 
   // משתנה לעקיבה אחרי כמות האלמנטים ברוחב המסך
   elementsPerRow: number = 1; // ברירת מחדל - מובייל
@@ -304,199 +290,128 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     }
   }
   
-  // פונקציה לבדוק אם מוצר נראה במסך - עם cache לביצועים טובים יותר
+  // פונקציה לבדיקה אם מוצר נראה (לשימוש ב-HTML)
   isProductVisible(index: number): boolean {
-    const now = Date.now();
-    
-    // אם ה-cache עדכני (פחות מ-100ms), השתמש בו
-    if (now - this.lastCacheUpdate < 100 && this.visibilityCache.has(index)) {
-      const result = this.visibilityCache.get(index)!;
-      return result;
-    }
-    
-    // עדכן את ה-cache אם הוא לא עדכני
-    if (now - this.lastCacheUpdate >= 100) {
-      this.updateVisibilityCache();
-      this.lastCacheUpdate = now;
-    }
-    
-    // החזר את הערך מה-cache
-    const result = this.visibilityCache.get(index) || false;
-    return result;
+    const isVisible = this.visibleProductIndices.has(index);
+    // console.log(`🔍 isProductVisible(${index}): ${isVisible}`);
+    return isVisible;
   }
   
-  // פונקציה לעדכון ה-cache של הנראות
-  private updateVisibilityCache(): void {
-    this.visibilityCache.clear();
-    
-    // אם ה-Observer עדיין לא רץ, נניח שהמוצרים הראשונים נראים
-    if (this.visibleProductIndices.size === 0) {
-      for (let i = 0; i < 3; i++) {
-        this.visibilityCache.set(i, true);
-      }
-      return;
-    }
-    
-    // עדכן את ה-cache עם כל המוצרים הנראים
-    this.visibleProductIndices.forEach(index => {
-      this.visibilityCache.set(index, true);
-    });
-    
-  }
-  
-  // מנגנון אחיד לבדיקת נראות - פועל רק פעם אחת בכל זמן
-  private scheduleVisibilityCheck(): void {
-    
-    // אם כבר רץ או מתוזמן, אל תעשה כלום
-    if (this.isVisibilityCheckRunning || this.visibilityCheckScheduled) {
-      return;
-    }
-    
-    // תזמן בדיקה
-    this.visibilityCheckScheduled = true;
-    
-    // הפעל את הבדיקה
-    setTimeout(() => {
-      this.performVisibilityCheck();
-    }, 0);
-  }
-  
-  // הפונקציה הראשית שבודקת נראות ועדכון
-  private performVisibilityCheck(): void {
-    console.log('CHACK_01 - performVisibilityCheck started');
-    
-    // אם כבר רץ, אל תעשה כלום
-    if (this.isVisibilityCheckRunning) {
-      this.visibilityCheckScheduled = false;
-      return;
-    }
-    
-    this.isVisibilityCheckRunning = true;
-    this.visibilityCheckScheduled = false;
-    
-    try {
-      // שלב 1: בדוק איזה כרטיסיות כרגע מופיעות על המסך
-      const currentVisibleIndices = this.getCurrentlyVisibleIndices();
-      
-      // שלב 2: השווה עם המצב הישן
-      const hasChanges = this.setsAreDifferent(this.lastVisibleIndices, currentVisibleIndices);
-      
-      if (hasChanges || this.lastVisibleIndices.size === 0) {
-        // שלב 3: זהה מה צריך לשנות
-        const toAdd = Array.from(currentVisibleIndices).filter(i => !this.lastVisibleIndices.has(i));
-        const toRemove = Array.from(this.lastVisibleIndices).filter(i => !currentVisibleIndices.has(i));
-        
-        
-        // שלב 4: עדכן את המצב הנוכחי
-        this.visibleProductIndices = new Set(currentVisibleIndices);
-        
-        // שלב 5: עדכן את ה-cache
-        this.updateVisibilityCache();
-        
-        // שלב 6: הפעל change detection
-        this.ngZone.run(() => {
-          this.changeDetectorRef.detectChanges();
-        });
-        
-        // שלב 7: עדכן את המצב הישן לקראת הבדיקה הבאה
-        this.lastVisibleIndices = new Set(currentVisibleIndices);
-        
-        
-        // שלב 8: בדוק אם צריך לבדוק שוב (אם יש שינויים נוספים)
-        if (this.setsAreDifferent(this.lastVisibleIndices, this.getCurrentlyVisibleIndices())) {
-          this.scheduleVisibilityCheck();
-        }
-      } else {
-      }
-    } finally {
-      this.isVisibilityCheckRunning = false;
-    }
-  }
-  
-  // פונקציה לבדיקת איזה כרטיסיות כרגע נראות על המסך
-  private getCurrentlyVisibleIndices(): Set<number> {
-    const visibleIndices = new Set<number>();
-    
+  // פונקציה לבדיקת נראות כרטיסיות
+  private checkCardVisibility() {
     if (!this.productCards || this.productCards.length === 0) {
-      return visibleIndices;
+      console.log('❌ No product cards found');
+      return;
     }
-    
+
+    const visibleIndices: number[] = [];
     const viewportHeight = window.innerHeight;
-    const margin = 200; // מרחק נוסף כדי לטעון מעט לפני שהמוצר נכנס למסך
-    
-    this.productCards.forEach((card, index) => {
-      if (card && card.nativeElement) {
-        const rect = card.nativeElement.getBoundingClientRect();
+    const margin = 200; // Extra margin for better UX
+
+    this.productCards.forEach((cardRef, localIndex) => {
+      if (cardRef && cardRef.nativeElement) {
+        const rect = cardRef.nativeElement.getBoundingClientRect();
         const isVisible = rect.top < viewportHeight + margin && rect.bottom > -margin;
         
         if (isVisible) {
-          visibleIndices.add(index);
+          // קבל את האינדקס הגלובלי מהתכונה data-product-index
+          const globalIndexAttr = cardRef.nativeElement.getAttribute('data-product-index');
+          if (globalIndexAttr !== null) {
+            const globalIndex = parseInt(globalIndexAttr);
+            if (!isNaN(globalIndex)) {
+              visibleIndices.push(globalIndex);
+            }
+          }
         }
-        
       }
     });
+
+    // מיון האינדקסים כדי להשוות בצורה נכונה
+    visibleIndices.sort((a, b) => a - b);
+
+    // בדיקה אם יש שינוי מהפעם הקודמת
+    const hasChanged = this.arraysAreDifferent(this.previousVisibleIndices, visibleIndices);
     
-    return visibleIndices;
+    if (hasChanged) {
+      // מציאת האינדקסים שנוספו והוסרו
+      const addedIndices = visibleIndices.filter(index => !this.previousVisibleIndices.includes(index));
+      const removedIndices = this.previousVisibleIndices.filter(index => !visibleIndices.includes(index));
+      
+      // הדפסת השינויים
+      if (addedIndices.length > 0 || removedIndices.length > 0) {
+        console.log('🔄 Visibility changed:');
+        if (addedIndices.length > 0) {
+          console.log(`  ➕ Added: [${addedIndices.join(', ')}]`);
+        }
+        if (removedIndices.length > 0) {
+          console.log(`  ➖ Removed: [${removedIndices.join(', ')}]`);
+        }
+        console.log(`  📊 Current visible: [${visibleIndices.join(', ')}]`);
+      }
+      
+      // עדכון הערך הישן
+      this.previousVisibleIndices = [...visibleIndices];
+    }
+    
+    // עדכון ה-Set של האינדקסים הנראים
+    this.visibleProductIndices = new Set(visibleIndices);
+    
+    // הפעלת change detection כדי לעדכן את ה-DOM
+    this.ngZone.run(() => {
+      this.changeDetectorRef.detectChanges();
+    });
   }
 
-  // מנגנון בדיקת נראות כל 0.5 שניות
-  private startUnifiedVisibilityChecker() {
+  // פונקציה לבדיקה אם שני arrays שונים
+  private arraysAreDifferent(arr1: number[], arr2: number[]): boolean {
+    if (arr1.length !== arr2.length) {
+      return true;
+    }
     
+    // מיון שני ה-arrays להשוואה
+    const sorted1 = [...arr1].sort((a, b) => a - b);
+    const sorted2 = [...arr2].sort((a, b) => a - b);
+    
+    for (let i = 0; i < sorted1.length; i++) {
+      if (sorted1[i] !== sorted2[i]) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  // הפעלת מערכת בדיקת נראות
+  private startVisibilityChecker() {
     // Clear any existing interval
     if (this.visibilityCheckInterval) {
       clearInterval(this.visibilityCheckInterval);
     }
     
     this.visibilityCheckInterval = setInterval(() => {
-      this.scheduleVisibilityCheck();
+      this.checkCardVisibility();
     }, 500); // Check every 0.5 seconds
-    
   }
 
-  private stopFallbackVisibilityChecker() {
+  private stopVisibilityChecker() {
     if (this.visibilityCheckInterval) {
       clearInterval(this.visibilityCheckInterval);
       this.visibilityCheckInterval = null;
     }
   }
 
-  private checkVisibilityFallback() {
-    if (!this.productCards || this.productCards.length === 0) {
-      return;
-    }
-
-    const currentVisibleIndices = new Set<number>();
-    const viewportHeight = window.innerHeight;
-    const margin = 200; // Extra margin for better UX
-
-    this.productCards.forEach((cardRef, index) => {
-      if (cardRef && cardRef.nativeElement) {
-        const rect = cardRef.nativeElement.getBoundingClientRect();
-        const isVisible = rect.top < viewportHeight + margin && rect.bottom > -margin;
-        
-        if (isVisible) {
-          currentVisibleIndices.add(index);
-        }
-      }
-    });
-
-    // Check if there are changes
-    const hasChanges = this.setsAreDifferent(this.lastVisibleIndices, currentVisibleIndices);
-    
-    if (hasChanges) {
-      // תזמן בדיקה במנגנון האחיד
-      this.scheduleVisibilityCheck();
-    }
+  // Event listeners for scroll and resize
+  @HostListener('window:scroll', ['$event'])
+  onScroll(event: Event) {
+    this.checkCardVisibility();
   }
 
-  private setsAreDifferent(set1: Set<number>, set2: Set<number>): boolean {
-    if (set1.size !== set2.size) return true;
-    for (const item of set1) {
-      if (!set2.has(item)) return true;
-    }
-    return false;
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    this.updateElementsPerRow();
+    this.checkCardVisibility();
   }
-
+  
   // פונקציה לחישוב אינדקס גלובלי של מוצר בקבוצה
   getGlobalProductIndex(groupIndex: number, itemIndex: number): number {
     let globalIndex = 0;
@@ -577,8 +492,6 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
         this.userId = this.authService.getUserId();
       });
     
-    // אתחול Intersection Observer
-    this.initIntersectionObserver();
     
     // לוג מפורט של כל ה-borders אחרי 3 שניות
     setTimeout(() => {
@@ -611,91 +524,28 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     }, 3000);
   }
   
-  private initIntersectionObserver() {
-    // יצירת observer שמזהה כשאלמנט נכנס או יוצא מהמסך
-    this.intersectionObserver = new IntersectionObserver(
-      (entries) => {
-        let hasChanges = false;
-        entries.forEach((entry) => {
-          const index = parseInt(entry.target.getAttribute('data-product-index') || '-1');
-          
-          if (index >= 0) {
-            // בדיקה יותר מדויקת - רק אם האלמנט באמת נראה (יותר מ-10%)
-            const isReallyVisible = entry.isIntersecting && entry.intersectionRatio > 0.1;
-            
-            if (isReallyVisible) {
-              // המוצר נראה במסך
-              if (!this.visibleProductIndices.has(index)) {
-                this.visibleProductIndices.add(index);
-                hasChanges = true;
-              }
-            } else {
-              // המוצר לא נראה במסך
-              if (this.visibleProductIndices.has(index)) {
-                this.visibleProductIndices.delete(index);
-                hasChanges = true;
-              }
-            }
-          }
-        });
-        
-        // אם יש שינויים, תזמן בדיקה במנגנון האחיד
-        if (hasChanges) {
-          this.scheduleVisibilityCheck();
-        }
-      },
-      {
-        root: null, // viewport
-        rootMargin: '100px', // מרחק נוסף כדי לטעון מעט לפני שהמוצר נכנס למסך
-        threshold: [0, 0.1, 0.5, 1.0] // בדיקה במספר נקודות כדי להיות יותר מדויק
-      }
-    );
-  }
 
   ngAfterViewInit() {
-    // עקוב אחרי שינויים ב-productCards והרשם ל-Observer
+    console.log('🚀 ngAfterViewInit - Starting visibility checker');
+    
+    // עקוב אחרי שינויים ב-productCards
     this.productCards.changes.subscribe(() => {
-      this.observeProductCards();
+      // אם יש שינוי בכרטיסיות, הפעל מחדש את הבדיקה
+      setTimeout(() => {
+        this.checkCardVisibility();
+      }, 100);
     });
     
     // רישום ראשוני - עם setTimeout כדי לתת ל-DOM להתעדכן
     setTimeout(() => {
-      // אתחול ראשוני - רק המוצרים הראשונים נראים
-      const initialVisibleIndices = new Set([0, 1, 2]); // רק 3 מוצרים ראשונים
-      this.visibleProductIndices = new Set(initialVisibleIndices);
-      this.lastVisibleIndices = new Set(initialVisibleIndices);
-      this.updateVisibilityCache();
-      
-      // הפעל את המנגנון האחיד
-      this.startUnifiedVisibilityChecker();
-      
-      // הפעל גם IntersectionObserver כגיבוי
-      this.observeProductCards();
+      // הפעל את מערכת הבדיקה
+      this.startVisibilityChecker();
     }, 0);
   }
-  
-  private observeProductCards() {
-    if (!this.intersectionObserver) {
-      return;
-    }
-    
-    this.productCards.forEach((card: ElementRef, index) => {
-      this.intersectionObserver!.observe(card.nativeElement);
-    });
-  }
-  
+
   ngOnDestroy() {
-    // this.authStatusSub.unsubscribe();
-    // הוסר - עצירת החלפת התמונות נמחקה
-    
-    // Stop fallback visibility checker
-    this.stopFallbackVisibilityChecker();
-    
-    // ניקוי Intersection Observer
-    if (this.intersectionObserver) {
-      this.intersectionObserver.disconnect();
-      this.intersectionObserver = null;
-    }
+    // ניקוי subscriptions אם יש
+    this.stopVisibilityChecker();
   }
 
   onHoverPrintingService(value: string) {

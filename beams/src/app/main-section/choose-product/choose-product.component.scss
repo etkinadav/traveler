@@ -1396,3 +1396,30 @@
 
 // הספינר המרובע עבר לקובץ styles.scss הראשי
 
+// עיצוב מספר הכרטיסיה בפינה
+.card-number-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  
+  // אפקט hover
+  &:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+  }
+}
+
