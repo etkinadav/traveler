@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ElementRef, AfterViewInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { ProductBasketService, BasketItem } from '../../services/product-basket.service';
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -24,7 +24,7 @@ import { DialogService } from '../../dialog/dialog.service';
     ])
   ]
 })
-export class ShoppingCartComponent implements OnInit, OnDestroy {
+export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   basketItems: BasketItem[] = [];
   totalPrice: number = 0;
   
@@ -46,15 +46,27 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   // Cache למוצרים מעובדים כדי למנוע יצירה מחדש כל הזמן
   private productPreviewCache = new Map<string, any>();
   
+  // מערכת lazy loading לתלת מימד
+  @ViewChildren('cartItem') cartItems!: QueryList<ElementRef>;
+  private visibleItemIndices = new Set<number>(); // אינדקסים נראים כרגע
+  private loadedItemIndices = new Set<number>(); // אינדקסים של מוצרים שהתלת מימד שלהם נטען
+  private previousVisibleIndices: number[] = []; // אינדקסים נראים בפעם הקודמת
+  private visibilityCheckInterval: any;
+  
   constructor(
     private basketService: ProductBasketService,
     private router: Router,
     private dialogService: DialogService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private changeDetectorRef: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
     this.loadBasket();
+    
+    // Preload טקסטורות לתלת מימד
+    this.preloadTextures();
     
     // הפעלת טיימר לכיבוי לוגים אחרי 3 שניות
     this.debugLogsTimer = setTimeout(() => {
@@ -69,6 +81,43 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
   loadBasket(): void {
     this.basketItems = this.basketService.getBasketItems();
     this.calculateTotalPrice();
+  }
+
+  // פונקציה לטעינה מוקדמת של טקסטורות
+  private preloadTextures(): void {
+    // רשימת טקסטורות שמושתמשות בתלת מימד
+    const textures = [
+      'assets/textures/pine.jpg',
+      'assets/textures/oak.jpg'
+    ];
+    
+    // טעינת כל טקסטורה
+    textures.forEach(texturePath => {
+      const img = new Image();
+      img.onload = () => {
+        // Texture preloaded silently
+      };
+      img.onerror = () => {
+        // Failed to preload texture silently
+      };
+      img.src = texturePath;
+    });
+  }
+
+  // פונקציה לבדיקה אם מוצר נראה (לשימוש ב-HTML)
+  isItemVisible(index: number): boolean {
+    return this.visibleItemIndices.has(index);
+  }
+
+  // פונקציה לבדיקה אם מוצר נטען (לשימוש ב-HTML)
+  isItemLoaded(index: number): boolean {
+    return this.loadedItemIndices.has(index);
+  }
+
+  // פונקציה לסימון מוצר כנטען
+  markItemAsLoaded(index: number): void {
+    this.loadedItemIndices.add(index);
+    this.changeDetectorRef.detectChanges();
   }
 
   /**
@@ -634,6 +683,98 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
     }
   }
 
+  ngAfterViewInit(): void {
+    // עקוב אחרי שינויים ב-cartItems
+    this.cartItems.changes.subscribe(() => {
+      // אם יש שינוי בפריטים, הפעל מחדש את הבדיקה
+      setTimeout(() => {
+        this.checkItemVisibility();
+      }, 100);
+    });
+    
+    // רישום ראשוני - עם setTimeout כדי לתת ל-DOM להתעדכן
+    setTimeout(() => {
+      // הפעל את מערכת הבדיקה
+      this.startVisibilityChecker();
+    }, 500);
+  }
+
+  // פונקציה לבדיקת נראות פריטים
+  private checkItemVisibility() {
+    if (!this.cartItems || this.cartItems.length === 0) {
+      return;
+    }
+
+    const visibleIndices: number[] = [];
+    const viewportHeight = window.innerHeight;
+    const margin = 200; // Extra margin for better UX
+
+    this.cartItems.forEach((itemRef, index) => {
+      if (itemRef && itemRef.nativeElement) {
+        const rect = itemRef.nativeElement.getBoundingClientRect();
+        const isVisible = rect.top < viewportHeight + margin && rect.bottom > -margin;
+        
+        if (isVisible) {
+          visibleIndices.push(index);
+        }
+      }
+    });
+
+    // מיון האינדקסים כדי להשוות בצורה נכונה
+    visibleIndices.sort((a, b) => a - b);
+
+    // בדיקה אם יש שינוי מהפעם הקודמת
+    const hasChanged = this.arraysAreDifferent(this.previousVisibleIndices, visibleIndices);
+    
+    if (hasChanged) {
+      // מציאת האינדקסים שנוספו והוסרו
+      const addedIndices = visibleIndices.filter(index => !this.previousVisibleIndices.includes(index));
+      const removedIndices = this.previousVisibleIndices.filter(index => !visibleIndices.includes(index));
+      
+      // הדפסת השינויים
+      if (addedIndices.length > 0 || removedIndices.length > 0) {
+        if (addedIndices.length > 0) {
+          console.log(`  ➕ Added: [${addedIndices.join(', ')}]`);
+        }
+        if (removedIndices.length > 0) {
+          console.log(`  ➖ Removed: [${removedIndices.join(', ')}]`);
+        }
+      }
+      
+      // עדכון הערך הישן
+      this.previousVisibleIndices = [...visibleIndices];
+      
+      // עדכון ה-Set של האינדקסים הנראים
+      this.visibleItemIndices = new Set(visibleIndices);
+      
+      // הפעלת change detection כדי לעדכן את ה-DOM
+      this.ngZone.run(() => {
+        this.changeDetectorRef.detectChanges();
+      });
+    }
+  }
+
+  // פונקציה להשוואת מערכים
+  private arraysAreDifferent(arr1: number[], arr2: number[]): boolean {
+    if (arr1.length !== arr2.length) return true;
+    return arr1.some((val, index) => val !== arr2[index]);
+  }
+
+  // הפעלת מערכת בדיקת הנראות
+  private startVisibilityChecker(): void {
+    // בדיקה ראשונית
+    this.checkItemVisibility();
+    
+    // בדיקה כל 500ms
+    this.visibilityCheckInterval = setInterval(() => {
+      this.checkItemVisibility();
+    }, 500);
+    
+    // בדיקה גם על scroll ו-resize
+    window.addEventListener('scroll', () => this.checkItemVisibility());
+    window.addEventListener('resize', () => this.checkItemVisibility());
+  }
+
   ngOnDestroy(): void {
     this.basketSubscription.unsubscribe();
     
@@ -641,5 +782,14 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
     if (this.debugLogsTimer) {
       clearTimeout(this.debugLogsTimer);
     }
+    
+    // ניקוי מערכת בדיקת הנראות
+    if (this.visibilityCheckInterval) {
+      clearInterval(this.visibilityCheckInterval);
+    }
+    
+    // הסרת event listeners
+    window.removeEventListener('scroll', () => this.checkItemVisibility());
+    window.removeEventListener('resize', () => this.checkItemVisibility());
   }
 }

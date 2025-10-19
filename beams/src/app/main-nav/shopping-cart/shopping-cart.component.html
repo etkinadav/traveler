@@ -31,7 +31,7 @@
   <div *ngIf="!isBasketEmpty()" class="cart-content">
     <div class="row">
       <div class="col-12 col-md-6 col-lg-4" *ngFor="let item of basketItems; let i = index">
-        <div class="cart-item-card">
+        <div class="cart-item-card" #cartItem>
           <!-- כותרת המוצר -->
           <div class="item-header">
             <h3 class="item-title">{{ getProductDescription(item) }}</h3>
@@ -47,23 +47,46 @@
 
           <!-- תצוגת מוצר מיני -->
           <div class="product-mini-preview">
-            <app-product-mini-preview 
-              #miniPreview
-              [product]="getProductForPreview(item)"
-              [configurationIndex]="getConfigurationIndex(item)">
-            </app-product-mini-preview>
-            <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
-            <div *ngIf="!isOverlayRemoved(item.id)"
-                 class="product-3d-overlay" 
-                 [class.hidden]="isOverlayRemoved(item.id)"
-                 (click)="removeOverlay($event, miniPreview, item.id)"
-                 (mouseenter)="showHintForProduct(item.id)"
-                 (mouseleave)="hideHintForProduct(item.id)">
-              <!-- טקסט הוראה בריחוף -->
-              <div *ngIf="showHintMap[item.id]" 
-                   class="overlay-hint show"
-                   [@fadeInOut]>
-                לחץ לשינוי המבט
+            <!-- מצב טעינה עד שהתלת מימד נטען -->
+            <div *ngIf="!isItemLoaded(i)" 
+                 class="loading-shimmer" 
+                 style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;">
+              <div class="d-flex align-items-center justify-content-center h-100">
+                <span class="loading-text-pulse">טוען...</span>
+              </div>
+            </div>
+            
+            <ng-container *ngIf="isItemVisible(i)">
+              <app-product-mini-preview 
+                #miniPreview
+                [product]="getProductForPreview(item)"
+                [configurationIndex]="getConfigurationIndex(item)"
+                style="width: 100%; height: 100%; position: relative; z-index: 2;"
+                (loadComplete)="markItemAsLoaded(i)">
+              </app-product-mini-preview>
+              
+              <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
+              <div *ngIf="!isOverlayRemoved(item.id)"
+                   class="product-3d-overlay" 
+                   [class.hidden]="isOverlayRemoved(item.id)"
+                   (click)="removeOverlay($event, miniPreview, item.id)"
+                   (mouseenter)="showHintForProduct(item.id)"
+                   (mouseleave)="hideHintForProduct(item.id)">
+                <!-- טקסט הוראה בריחוף -->
+                <div *ngIf="showHintMap[item.id]" 
+                     class="overlay-hint show"
+                     [@fadeInOut]>
+                  לחץ לשינוי המבט
+                </div>
+              </div>
+            </ng-container>
+            
+            <!-- placeholder לפריטים שלא נראים -->
+            <div *ngIf="!isItemVisible(i)" 
+                 class="loading-shimmer"
+                 style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;">
+              <div class="d-flex align-items-center justify-content-center h-100">
+                <span class="loading-text-pulse">טוען...</span>
               </div>
             </div>
           </div>
