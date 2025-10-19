@@ -173,7 +173,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   ngAfterViewInit() {
     if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-ngAfterViewInit')) {
-      console.log('CHACK_01 - ngAfterViewInit called in mini preview');
       this.miniPreviewLogsShown.add('chack01-ngAfterViewInit');
     }
     
@@ -204,11 +203,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       }, 3000);
       
       if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-init-completed')) {
-        console.log('CHACK_01 - Mini preview initialization completed');
         this.miniPreviewLogsShown.add('chack01-init-completed');
       }
     } catch (error) {
-      console.error('CHACK_01 - Error initializing 3D preview:', error);
     }
   }
 
@@ -2784,7 +2781,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     
     if (!this.container || !this.container.nativeElement) {
       if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-no-container')) {
-        console.log('CHACK_01 - No container element available');
         this.miniPreviewLogsShown.add('chack01-no-container');
       }
       return false;
@@ -2802,11 +2798,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     );
     
     if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-visibility-check')) {
-      console.log('CHACK_01 - Element visibility check:', {
-        rect: { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right, height: rect.height, width: rect.width },
-        window: { height: windowHeight, width: windowWidth },
-        isVisible
-      });
       this.miniPreviewLogsShown.add('chack01-visibility-check');
     }
     
