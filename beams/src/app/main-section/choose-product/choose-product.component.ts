@@ -82,6 +82,10 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   private visibilityCheckInterval: any = null;
   private lastVisibleIndices: Set<number> = new Set();
   
+  // Debug logs control for CHACK_01
+  private chack01LogsShown = new Set<string>();
+  private chack01LogsEnabled = true;
+  
   @ViewChildren('productCard', { read: ElementRef }) productCards!: QueryList<ElementRef>;
 
   // משתנה לעקיבה אחרי כמות האלמנטים ברוחב המסך
@@ -293,15 +297,144 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   
   // פונקציה לבדוק אם מוצר נראה במסך
   isProductVisible(index: number): boolean {
+    const logKey = `isProductVisible-${index}`;
+    if (this.chack01LogsEnabled && !this.chack01LogsShown.has(logKey)) {
+      console.log('CHACK_01 - isProductVisible called:', { index, visibleCount: this.visibleProductIndices.size, visibleIndices: Array.from(this.visibleProductIndices) });
+      this.chack01LogsShown.add(logKey);
+    }
+    
     // אם ה-Observer עדיין לא רץ, נניח שהמוצרים הראשונים נראים
     if (this.visibleProductIndices.size === 0) {
-      return index < 5; // 5 מוצרים ראשונים כברירת מחדל
+      const isVisible = index < 5; // 5 מוצרים ראשונים כברירת מחדל
+      if (this.chack01LogsEnabled && !this.chack01LogsShown.has('default-visibility')) {
+        console.log('CHACK_01 - Observer not ready, using default visibility:', { index, isVisible });
+        this.chack01LogsShown.add('default-visibility');
+      }
+      return isVisible;
     }
-    return this.visibleProductIndices.has(index);
+    
+    const isVisible = this.visibleProductIndices.has(index);
+    if (this.chack01LogsEnabled && !this.chack01LogsShown.has('visibility-result')) {
+      console.log('CHACK_01 - Visibility check result:', { index, isVisible });
+      this.chack01LogsShown.add('visibility-result');
+    }
+    return isVisible;
+  }
+
+  // Fallback visibility checker - runs every 0.5 seconds to catch fast scrolling
+  private startFallbackVisibilityChecker() {
+    if (!this.chack01LogsShown.has('start-fallback')) {
+      console.log('CHACK_01 - Starting fallback visibility checker');
+      this.chack01LogsShown.add('start-fallback');
+    }
+    
+    if (this.visibilityCheckInterval) {
+      clearInterval(this.visibilityCheckInterval);
+    }
+    
+    this.visibilityCheckInterval = setInterval(() => {
+      this.checkVisibilityFallback();
+    }, 500); // Check every 0.5 seconds
+  }
+
+  private stopFallbackVisibilityChecker() {
+    if (this.visibilityCheckInterval) {
+      clearInterval(this.visibilityCheckInterval);
+      this.visibilityCheckInterval = null;
+    }
+  }
+
+  private checkVisibilityFallback() {
+    if (!this.chack01LogsShown.has('fallback-check')) {
+      console.log('CHACK_01 - checkVisibilityFallback called');
+      this.chack01LogsShown.add('fallback-check');
+    }
+    
+    if (!this.productCards || this.productCards.length === 0) {
+      if (!this.chack01LogsShown.has('no-cards')) {
+        console.log('CHACK_01 - No product cards available');
+        this.chack01LogsShown.add('no-cards');
+      }
+      return;
+    }
+
+    const currentVisibleIndices = new Set<number>();
+    const viewportHeight = window.innerHeight;
+    const margin = 200; // Extra margin for better UX
+
+    if (!this.chack01LogsShown.has('viewport-info')) {
+      console.log('CHACK_01 - Checking visibility with viewport height:', viewportHeight, 'margin:', margin);
+      this.chack01LogsShown.add('viewport-info');
+    }
+
+    this.productCards.forEach((cardRef, index) => {
+      if (cardRef && cardRef.nativeElement) {
+        const rect = cardRef.nativeElement.getBoundingClientRect();
+        const isVisible = rect.top < viewportHeight + margin && rect.bottom > -margin;
+        
+        if (!this.chack01LogsShown.has(`card-check-${index}`)) {
+          console.log('CHACK_01 - Card visibility check:', { 
+            index, 
+            rect: { top: rect.top, bottom: rect.bottom, height: rect.height },
+            isVisible,
+            viewportHeight,
+            margin
+          });
+          this.chack01LogsShown.add(`card-check-${index}`);
+        }
+        
+        if (isVisible) {
+          currentVisibleIndices.add(index);
+        }
+      }
+    });
+
+    // Check if there are changes
+    const hasChanges = this.setsAreDifferent(this.lastVisibleIndices, currentVisibleIndices);
+    
+    if (!this.chack01LogsShown.has('visibility-comparison')) {
+      console.log('CHACK_01 - Visibility comparison:', {
+        previous: Array.from(this.lastVisibleIndices),
+        current: Array.from(currentVisibleIndices),
+        hasChanges
+      });
+      this.chack01LogsShown.add('visibility-comparison');
+    }
+    
+    if (hasChanges) {
+      console.log('CHACK_01 - FALLBACK-VISIBILITY - Detected changes:', {
+        previous: Array.from(this.lastVisibleIndices),
+        current: Array.from(currentVisibleIndices),
+        added: Array.from(currentVisibleIndices).filter(i => !this.lastVisibleIndices.has(i)),
+        removed: Array.from(this.lastVisibleIndices).filter(i => !currentVisibleIndices.has(i))
+      });
+
+      // Update the visible indices
+      this.visibleProductIndices = new Set(currentVisibleIndices);
+      this.lastVisibleIndices = new Set(currentVisibleIndices);
+      
+      // Trigger change detection
+      this.visibleProductIndices = new Set(this.visibleProductIndices);
+      
+      console.log('CHACK_01 - Updated visibleProductIndices:', Array.from(this.visibleProductIndices));
+    }
+  }
+
+  private setsAreDifferent(set1: Set<number>, set2: Set<number>): boolean {
+    if (set1.size !== set2.size) return true;
+    for (const item of set1) {
+      if (!set2.has(item)) return true;
+    }
+    return false;
   }
 
   // פונקציה לחישוב אינדקס גלובלי של מוצר בקבוצה
   getGlobalProductIndex(groupIndex: number, itemIndex: number): number {
+    if (!this.chack01LogsShown.has(`global-index-${groupIndex}-${itemIndex}`)) {
+      console.log('CHACK_01 - getGlobalProductIndex called:', { groupIndex, itemIndex });
+      this.chack01LogsShown.add(`global-index-${groupIndex}-${itemIndex}`);
+    }
+    
     let globalIndex = 0;
     
     // סכימת כל המוצרים בקבוצות הקודמות
@@ -311,6 +444,11 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     
     // הוספת האינדקס בקבוצה הנוכחית
     globalIndex += itemIndex;
+    
+    if (!this.chack01LogsShown.has(`calculated-global-${globalIndex}`)) {
+      console.log('CHACK_01 - Calculated global index:', globalIndex);
+      this.chack01LogsShown.add(`calculated-global-${globalIndex}`);
+    }
     
     return globalIndex;
   }
@@ -415,22 +553,45 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   }
   
   private initIntersectionObserver() {
+    if (!this.chack01LogsShown.has('init-observer')) {
+      console.log('CHACK_01 - Initializing IntersectionObserver');
+      this.chack01LogsShown.add('init-observer');
+    }
+    
     // יצירת observer שמזהה כשאלמנט נכנס או יוצא מהמסך
     this.intersectionObserver = new IntersectionObserver(
       (entries) => {
+        if (!this.chack01LogsShown.has('observer-callback')) {
+          console.log('CHACK_01 - IntersectionObserver callback triggered with', entries.length, 'entries');
+          this.chack01LogsShown.add('observer-callback');
+        }
+        
         let hasChanges = false;
         entries.forEach((entry) => {
           const index = parseInt(entry.target.getAttribute('data-product-index') || '-1');
+          
+          if (!this.chack01LogsShown.has(`entry-${index}`)) {
+            console.log('CHACK_01 - Processing entry:', { 
+              index, 
+              isIntersecting: entry.isIntersecting,
+              intersectionRatio: entry.intersectionRatio,
+              boundingClientRect: entry.boundingClientRect
+            });
+            this.chack01LogsShown.add(`entry-${index}`);
+          }
+          
           if (index >= 0) {
             if (entry.isIntersecting) {
               // המוצר נראה במסך
               if (!this.visibleProductIndices.has(index)) {
+                console.log('CHACK_01 - Adding product to visible set:', index);
                 this.visibleProductIndices.add(index);
                 hasChanges = true;
               }
             } else {
               // המוצר לא נראה במסך
               if (this.visibleProductIndices.has(index)) {
+                console.log('CHACK_01 - Removing product from visible set:', index);
                 this.visibleProductIndices.delete(index);
                 hasChanges = true;
               }
@@ -440,8 +601,10 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
         
         // אם יש שינויים, נעדכן את ה-UI
         if (hasChanges) {
+          console.log('CHACK_01 - IntersectionObserver detected changes, updating UI');
           // Angular change detection יזהה את השינוי
           this.visibleProductIndices = new Set(this.visibleProductIndices);
+          console.log('CHACK_01 - Updated visibleProductIndices from IntersectionObserver:', Array.from(this.visibleProductIndices));
         }
       },
       {
@@ -450,24 +613,64 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
         threshold: 0.1 // 10% מהאלמנט צריך להיות נראה
       }
     );
+    
+    if (!this.chack01LogsShown.has('observer-created')) {
+      console.log('CHACK_01 - IntersectionObserver created successfully');
+      this.chack01LogsShown.add('observer-created');
+    }
   }
 
   ngAfterViewInit() {
+    if (!this.chack01LogsShown.has('ngAfterViewInit')) {
+      console.log('CHACK_01 - ngAfterViewInit called');
+      this.chack01LogsShown.add('ngAfterViewInit');
+    }
+    
     // עקוב אחרי שינויים ב-productCards והרשם ל-Observer
     this.productCards.changes.subscribe(() => {
+      if (!this.chack01LogsShown.has('cards-changed')) {
+        console.log('CHACK_01 - Product cards changed, re-observing');
+        this.chack01LogsShown.add('cards-changed');
+      }
       this.observeProductCards();
     });
     
     // רישום ראשוני - עם setTimeout כדי לתת ל-DOM להתעדכן
     setTimeout(() => {
+      if (!this.chack01LogsShown.has('initial-observation')) {
+        console.log('CHACK_01 - Starting initial observation after DOM update');
+        this.chack01LogsShown.add('initial-observation');
+      }
       this.observeProductCards();
+      // Start fallback visibility checker
+      this.startFallbackVisibilityChecker();
     }, 0);
   }
   
   private observeProductCards() {
-    if (!this.intersectionObserver) return;
+    if (!this.chack01LogsShown.has('observe-cards')) {
+      console.log('CHACK_01 - observeProductCards called');
+      this.chack01LogsShown.add('observe-cards');
+    }
     
-    this.productCards.forEach((card: ElementRef) => {
+    if (!this.intersectionObserver) {
+      if (!this.chack01LogsShown.has('no-observer')) {
+        console.log('CHACK_01 - No intersection observer available');
+        this.chack01LogsShown.add('no-observer');
+      }
+      return;
+    }
+    
+    if (!this.chack01LogsShown.has('observing-cards')) {
+      console.log('CHACK_01 - Observing', this.productCards.length, 'product cards');
+      this.chack01LogsShown.add('observing-cards');
+    }
+    
+    this.productCards.forEach((card: ElementRef, index) => {
+      if (!this.chack01LogsShown.has(`observing-card-${index}`)) {
+        console.log('CHACK_01 - Observing card', index, 'with element:', card.nativeElement);
+        this.chack01LogsShown.add(`observing-card-${index}`);
+      }
       this.intersectionObserver!.observe(card.nativeElement);
     });
   }
@@ -475,6 +678,9 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   ngOnDestroy() {
     // this.authStatusSub.unsubscribe();
     // הוסר - עצירת החלפת התמונות נמחקה
+    
+    // Stop fallback visibility checker
+    this.stopFallbackVisibilityChecker();
     
     // ניקוי Intersection Observer
     if (this.intersectionObserver) {

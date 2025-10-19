@@ -172,6 +172,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private dynamicBeams: Array<{length: number, quantity: number}> = [];
 
   ngAfterViewInit() {
+    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-ngAfterViewInit')) {
+      console.log('CHACK_01 - ngAfterViewInit called in mini preview');
+      this.miniPreviewLogsShown.add('chack01-ngAfterViewInit');
+    }
+    
     try {
       if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('ngAfterViewInit_started')) {
         // ngAfterViewInit started
@@ -197,8 +202,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         // וידוא שהאנימציה ממשיכה לרוץ גם אחרי כיבוי הלוגים
         // Animation should continue running
       }, 3000);
+      
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-init-completed')) {
+        console.log('CHACK_01 - Mini preview initialization completed');
+        this.miniPreviewLogsShown.add('chack01-init-completed');
+      }
     } catch (error) {
-      console.error('Error initializing 3D preview:', error);
+      console.error('CHACK_01 - Error initializing 3D preview:', error);
     }
   }
 
@@ -2767,7 +2777,16 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
 
   // בדיקה אם הקומפוננט נראה במסך
   private isElementVisible(): boolean {
+    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-isElementVisible')) {
+      console.log('CHACK_01 - isElementVisible called in mini preview');
+      this.miniPreviewLogsShown.add('chack01-isElementVisible');
+    }
+    
     if (!this.container || !this.container.nativeElement) {
+      if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-no-container')) {
+        console.log('CHACK_01 - No container element available');
+        this.miniPreviewLogsShown.add('chack01-no-container');
+      }
       return false;
     }
     
@@ -2775,12 +2794,23 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const windowHeight = window.innerHeight || document.documentElement.clientHeight;
     const windowWidth = window.innerWidth || document.documentElement.clientWidth;
     
-    return (
+    const isVisible = (
       rect.top < windowHeight &&
       rect.bottom > 0 &&
       rect.left < windowWidth &&
       rect.right > 0
     );
+    
+    if (this.debugLogsEnabled && !this.miniPreviewLogsShown.has('chack01-visibility-check')) {
+      console.log('CHACK_01 - Element visibility check:', {
+        rect: { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right, height: rect.height, width: rect.width },
+        window: { height: windowHeight, width: windowWidth },
+        isVisible
+      });
+      this.miniPreviewLogsShown.add('chack01-visibility-check');
+    }
+    
+    return isVisible;
   }
 }
 
