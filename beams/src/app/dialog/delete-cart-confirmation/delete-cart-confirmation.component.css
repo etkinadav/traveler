@@ -213,7 +213,6 @@ span {
 .h-100.w-100.d-flex.flex-column.flex-grow-1.overflow-auto {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     position: relative;
-    padding-top: 20px !important; /* רווח למעלה */
 }
 
 .h-100.w-100.d-flex.flex-column.flex-grow-1.overflow-auto::before {
