@@ -93,10 +93,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       if (image.complete) {
         texture = new THREE.Texture(image);
         texture.needsUpdate = true;
-        // Texture loaded synchronously
+        // Texture loaded synchronously (preloaded)
+        console.log(`✅ Using preloaded texture: ${texturePath}`);
       } else {
         // אם התמונה לא נטענה, נסה עם נתיב אחר
         texture = this.textureLoader.load(texturePath);
+        console.log(`⏳ Loading texture async: ${texturePath}`);
       }
     } catch (error) {
       console.warn('Sync loading failed, using async:', error);

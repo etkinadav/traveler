@@ -309,6 +309,29 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     this.changeDetectorRef.detectChanges();
   }
   
+  // פונקציה לטעינה מוקדמת של טקסטורות
+  private preloadTextures(): void {
+    // רשימת טקסטורות שמושתמשות בתלת מימד
+    const textures = [
+      'assets/textures/pine.jpg',
+      'assets/textures/oak.jpg'
+    ];
+    
+    // טעינת כל טקסטורה
+    textures.forEach(texturePath => {
+      const img = new Image();
+      img.onload = () => {
+        console.log(`✅ Texture preloaded: ${texturePath}`);
+      };
+      img.onerror = () => {
+        console.warn(`❌ Failed to preload texture: ${texturePath}`);
+      };
+      img.src = texturePath;
+    });
+    
+    console.log(`🚀 Started preloading ${textures.length} textures for faster 3D loading`);
+  }
+  
   // פונקציה לבדיקת נראות כרטיסיות
   private checkCardVisibility() {
     if (!this.productCards || this.productCards.length === 0) {
@@ -454,6 +477,9 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     this.displayedTitle = this.defaultTitle;
     this.displayedText = this.defaultText;
     this.displayedSubtitle = this.defaultSubtitle;
+    
+    // Preload טקסטורות לתלת מימד
+    this.preloadTextures();
     
     this.directionService.direction$.subscribe(direction => {
       this.isRTL = direction === 'rtl';
