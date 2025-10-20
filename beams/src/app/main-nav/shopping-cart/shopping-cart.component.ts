@@ -145,6 +145,9 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   // פונקציה לסימון מוצר כנטען
   markItemAsLoaded(index: number): void {
     this.loadedItemIndices.add(index);
+    try {
+      console.log('CHACK_ROT_BAS - markItemAsLoaded:', JSON.stringify({ index, loaded: true }, null, 2));
+    } catch {}
     this.changeDetectorRef.detectChanges();
   }
 
@@ -713,12 +716,22 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const visibleIndices: number[] = [];
     const viewportHeight = window.innerHeight;
-    const margin = 200; // Extra margin for better UX
+    const margin = 0; // zero margin to avoid counting offscreen items as visible
 
     this.cartItems.forEach((itemRef, index) => {
       if (itemRef && itemRef.nativeElement) {
         const rect = itemRef.nativeElement.getBoundingClientRect();
-        const isVisible = rect.top < viewportHeight + margin && rect.bottom > -margin;
+        // Strict intersection with viewport (no margin)
+        const isVisible = rect.top < viewportHeight && rect.bottom > 0;
+        try {
+          console.log('CHACK_ROT_BAS - item rect check:', JSON.stringify({
+            index,
+            rect: { top: rect.top, bottom: rect.bottom, height: rect.height },
+            viewportHeight,
+            margin,
+            isVisible
+          }, null, 2));
+        } catch {}
         
         if (isVisible) {
           visibleIndices.push(index);
@@ -738,20 +751,18 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
       const removedIndices = this.previousVisibleIndices.filter(index => !visibleIndices.includes(index));
       
       // הדפסת השינויים
-      if (addedIndices.length > 0 || removedIndices.length > 0) {
-        if (addedIndices.length > 0) {
-          console.log(`  ➕ Added: [${addedIndices.join(', ')}]`);
-        }
-        if (removedIndices.length > 0) {
-          console.log(`  ➖ Removed: [${removedIndices.join(', ')}]`);
-        }
-      }
+      try {
+        console.log('CHACK_ROT_BAS - visibility change:', JSON.stringify({ addedIndices, removedIndices, newVisible: visibleIndices }, null, 2));
+      } catch {}
       
       // עדכון הערך הישן
       this.previousVisibleIndices = [...visibleIndices];
       
       // עדכון ה-Set של האינדקסים הנראים
       this.visibleItemIndices = new Set(visibleIndices);
+      try {
+        console.log('CHACK_ROT_BAS - visibleItemIndices size:', JSON.stringify({ size: this.visibleItemIndices.size }, null, 2));
+      } catch {}
       
       // הפעלת change detection כדי לעדכן את ה-DOM
       this.ngZone.run(() => {
@@ -769,6 +780,7 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   // הפעלת מערכת בדיקת הנראות
   private startVisibilityChecker(): void {
     // בדיקה ראשונית
+    try { console.log('CHACK_ROT_BAS - startVisibilityChecker: init'); } catch {}
     this.checkItemVisibility();
     
     // בדיקה כל 500ms
@@ -777,8 +789,14 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 500);
     
     // בדיקה גם על scroll ו-resize
-    window.addEventListener('scroll', () => this.checkItemVisibility());
-    window.addEventListener('resize', () => this.checkItemVisibility());
+    window.addEventListener('scroll', () => {
+      try { console.log('CHACK_ROT_BAS - scroll event'); } catch {}
+      this.checkItemVisibility();
+    });
+    window.addEventListener('resize', () => {
+      try { console.log('CHACK_ROT_BAS - resize event'); } catch {}
+      this.checkItemVisibility();
+    });
   }
 
   ngOnDestroy(): void {
