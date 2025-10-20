@@ -133,7 +133,10 @@ export class ProductBasketService {
    * Calculate final product dimensions based on configuration
    */
   calculateProductDimensions(productConfiguration: ProductConfiguration): ProductDimensions {
+    console.log('CHACK_DIM SERVICE - Starting calculateProductDimensions');
     const params = productConfiguration.inputConfigurations;
+    
+    console.log('CHACK_DIM SERVICE - Input parameters:', JSON.stringify(params, null, 2));
     
     // חיפוש פרמטרים של מידות
     let width = 0;
@@ -208,6 +211,12 @@ export class ProductBasketService {
       height: Math.round(height * 10) / 10
     };
     
+    console.log('CHACK_DIM SERVICE - Final calculated dimensions:', JSON.stringify({
+      result: result,
+      productName: productConfiguration.productName,
+      translatedProductName: productConfiguration.translatedProductName
+    }, null, 2));
+    
     console.log(`🔍 DIMENSIONS DEBUG - final result:`, result);
     
     return result;
@@ -224,8 +233,19 @@ export class ProductBasketService {
     pricingInfo: PricingInfo,
     dimensions?: ProductDimensions
   ): void {
+    console.log('CHACK_DIM SERVICE - Starting addToBasket');
+    console.log('CHACK_DIM SERVICE - Input dimensions:', JSON.stringify(dimensions, null, 2));
+    console.log('CHACK_DIM SERVICE - Product configuration:', JSON.stringify({
+      productName: productConfiguration.productName,
+      translatedProductName: productConfiguration.translatedProductName,
+      inputConfigurationsCount: productConfiguration.inputConfigurations.length,
+      inputConfigurations: productConfiguration.inputConfigurations
+    }, null, 2));
+    
     // אם לא סופקו מידות, נחשב אותן
     const finalDimensions = dimensions || this.calculateProductDimensions(productConfiguration);
+    
+    console.log('CHACK_DIM SERVICE - Final dimensions to save:', JSON.stringify(finalDimensions, null, 2));
     
     const basketItem: BasketItem = {
       id: this.generateUniqueId(),

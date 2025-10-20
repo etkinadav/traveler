@@ -131,12 +131,20 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
    * קבלת המידות של מוצר בסל
    */
   getProductDimensions(item: BasketItem): string {
+    console.log('CHACK_DIM CART - Getting product dimensions for display');
+    console.log('CHACK_DIM CART - Item dimensions:', JSON.stringify(item.dimensions, null, 2));
+    
     if (!item.dimensions) {
+      console.log('CHACK_DIM CART - No dimensions found, returning default');
       return 'מידות לא זמינות';
     }
     
     const { length, width, height } = item.dimensions;
-    return `${length} × ${width} × ${height} ס"מ`;
+    const dimensionsString = `${length} × ${width} × ${height} ס"מ`;
+    
+    console.log('CHACK_DIM CART - Final dimensions string:', dimensionsString);
+    
+    return dimensionsString;
   }
 
   /**
@@ -245,14 +253,6 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
-  /**
-   * קבלת מספר הברגים במוצר
-   */
-  getScrewsCount(item: BasketItem): number {
-    return item.pricingInfo.editingInfo.updatedQuantities.screws.reduce(
-      (sum, screw) => sum + screw.editedQuantity, 0
-    );
-  }
 
   /**
    * עיצוב תאריך להוספה לסל
