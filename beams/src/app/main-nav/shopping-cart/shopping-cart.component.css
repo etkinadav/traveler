@@ -413,13 +413,7 @@
   border-radius: 8px;
 }
 
-.dims-title {
-  margin: 0 0 6px 0;
-  color: #333;
-  font-size: 14px;
-  font-weight: 400; /* ללא bold */
-  text-align: right;
-}
+/* הוסר כותרת מידות - לא נדרש */
 
 .summary-item {
   display: flex;
@@ -451,27 +445,18 @@
 }
 
 /* פריסת מידות כ-3 שורות עדינות בצד שמאל */
-.dims-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  width: 100%;
-}
-
-.dim-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+/* בוטל: משתמשים בדיוק ב-summary-item כמו תאריך/מחיר */
 
 .dim-label {
   color: #6b7280; /* אפור עדין */
   font-weight: 400; /* ללא bold */
+  text-align: right;
 }
 
 .dim-value {
   color: #374151; /* כהה עדין */
   font-weight: 400; /* ללא bold */
+  text-align: left;
 }
 
 /* פעולות עריכה הוסרו */

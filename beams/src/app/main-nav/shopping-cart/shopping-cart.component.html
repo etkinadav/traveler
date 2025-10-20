@@ -100,27 +100,24 @@
 
           <!-- סיכום מהיר -->
           <div class="item-quick-summary">
-            <div class="dims-title">מידות</div>
-            <div class="summary-item dims-grid">
-              <div class="dim-line">
-                <span class="label dim-label">אורך</span>
-                <span class="value dim-value">{{ item.dimensions?.length }} ס"מ</span>
-              </div>
-              <div class="dim-line">
-                <span class="label dim-label">רוחב</span>
-                <span class="value dim-value">{{ item.dimensions?.width }} ס"מ</span>
-              </div>
-              <div class="dim-line">
-                <span class="label dim-label">גובה</span>
-                <span class="value dim-value">{{ item.dimensions?.height }} ס"מ</span>
-              </div>
+            <div class="summary-item">
+              <span class="label dim-label">אורך</span>
+              <span class="value dim-value">{{ item.dimensions?.length }} ס"מ</span>
             </div>
             <div class="summary-item">
-              <span class="label">תאריך:</span>
+              <span class="label dim-label">רוחב</span>
+              <span class="value dim-value">{{ item.dimensions?.width }} ס"מ</span>
+            </div>
+            <div class="summary-item">
+              <span class="label dim-label">גובה</span>
+              <span class="value dim-value">{{ item.dimensions?.height }} ס"מ</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">תאריך</span>
               <span class="value">{{ formatDate(item.addedToBasketAt) }}</span>
             </div>
             <div class="summary-item">
-              <span class="label">מחיר:</span>
+              <span class="label">מחיר</span>
               <span class="value price">{{ item.pricingInfo.totalPrice }} ₪</span>
             </div>
           </div>
