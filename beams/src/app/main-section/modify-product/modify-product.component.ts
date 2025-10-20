@@ -8541,6 +8541,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 continue;
             }
 
+            // דילוג על פרמטרים ויזואליים בלבד (לא משפיעים על סטטוס "מקורי")
+            if (originalParam.isVisual === true || currentParam.isVisual === true) {
+                console.log(`CHACK_ORIGINAL PARAMETER_CHECK - ${originalParam.name} is visual-only (isVisual=true), skipping in comparison`);
+                continue;
+            }
+
             // בדיקת ערך פרמטר - עם המרה למספרים לבדיקה מדויקת יותר
             const originalValue = parseFloat(originalParam.default) || originalParam.default;
             const currentValue = parseFloat(currentParam.default) || currentParam.default;
