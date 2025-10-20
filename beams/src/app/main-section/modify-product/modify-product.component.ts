@@ -2360,12 +2360,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }
             }
             const tableHeight = baseTableHeight - plataBeamHeight; // הפחתת גובה קורות הפלטה
+            
+            // לוגים לבדיקת מיקומי השולחן
+            console.log('CHACK_TABLE_LEG - baseTableHeight:', baseTableHeight);
+            console.log('CHACK_TABLE_LEG - plataBeamHeight:', plataBeamHeight);
+            console.log('CHACK_TABLE_LEG - tableHeight:', tableHeight);
+            
             // Surface beams (קורת משטח) - מדף אחד בלבד
+            // שימוש במידות הנכונות של הפלטה שנבחרה
+            // רוחב הפלטה = width של הקורה, עובי הפלטה = height של הקורה
+            const plataBeam = plataParam && plataParam.beams && plataParam.beams.length ? 
+                plataParam.beams[plataParam.selectedBeamIndex || 0] : null;
+            const plataBeamWidth = plataBeam ? plataBeam.width / 10 : beamWidth;
+            const plataBeamDepth = plataBeam ? plataBeam.height / 10 : beamHeight;
+            
+            console.log('CHACK_TABLE_LEG - plataBeam:', JSON.stringify(plataBeam));
+            console.log('CHACK_TABLE_LEG - plataBeamWidth:', plataBeamWidth);
+            console.log('CHACK_TABLE_LEG - plataBeamDepth:', plataBeamDepth);
             const surfaceBeams = this.createSurfaceBeams(
                 this.surfaceWidth,
                 this.surfaceLength,
-                beamWidth,
-                beamHeight,
+                plataBeamWidth,
+                plataBeamDepth,
                 this.minGap
             );
             for (let i = 0; i < surfaceBeams.length; i++) {
@@ -2381,16 +2397,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 mesh.receiveShadow = true;
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 mesh.position.set(beam.x, tableHeight + beam.height / 2, 0);
+                
+                // לוגים לבדיקת מיקום הפלטה
+                console.log('CHACK_TABLE_LEG - Plata beam:', JSON.stringify(beam));
+                console.log('CHACK_TABLE_LEG - Plata position Y:', tableHeight + beam.height / 2);
+                console.log('CHACK_TABLE_LEG - Plata bottom Y:', tableHeight + beam.height / 2 - beam.height);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
-                // הוספת ברגים לקורת המדף
-                this.addScrewsToShelfBeam(
-                    beam,
-                    tableHeight,
-                    beamHeight,
-                    frameBeamWidth,
-                    'top'
-                );
+                // הוספת ברגים לקורת המדף - הפונקציה לא קיימת כרגע
+                // TODO: להוסיף ברגים לפלטה
             }
             // Get leg beam dimensions for frame beams positioning
             const tableLegParam = this.getParam('leg');
@@ -2448,6 +2463,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     tableHeight - beam.height / 2,
                     beam.z
                 );
+                
+                // לוגים לבדיקת מיקום קורות החיזוק
+                console.log('CHACK_TABLE_LEG - Frame beam:', JSON.stringify(beam));
+                console.log('CHACK_TABLE_LEG - Frame position Y:', tableHeight - beam.height / 2);
+                console.log('CHACK_TABLE_LEG - Frame top Y:', tableHeight - beam.height / 2 + beam.height);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
@@ -2512,6 +2532,22 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const tableHeightParam = this.getParam('height');
             const totalY = tableHeightParam ? tableHeightParam.default : 80;
             
+            // קבלת עובי קורת הפלטה כדי לחשב את המיקום הנכון של הרגליים
+            let shelfBeamHeight = this.beamHeight;
+            const shelfsParam = this.product?.params?.find(
+                (p: any) => p.type === 'beamSingle' && p.name === 'plata'
+            );
+            if (
+                shelfsParam &&
+                Array.isArray(shelfsParam.beams) &&
+                shelfsParam.beams.length
+            ) {
+                const shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+                if (shelfBeam) {
+                    shelfBeamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
             const legs = this.createLegBeams(
                 this.surfaceWidth,
                 this.surfaceLength,
@@ -2530,7 +2566,22 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
-                mesh.position.set(leg.x, leg.height / 2, leg.z);
+                // הרגליים צריכות להיות ממוקמות כך שהחלק העליון שלהן יהיה בגובה tableHeight (48.5)
+                // העליון של הרגליים: legY + leg.height / 2
+                // אז: legY + leg.height / 2 = tableHeight
+                // לכן: legY = tableHeight - leg.height / 2
+                const legY = tableHeight - leg.height / 2;
+                
+                // לוגים לבדיקת מיקום הרגליים
+                console.log('CHACK_TABLE_LEG - Leg:', JSON.stringify(leg));
+                console.log('CHACK_TABLE_LEG - Leg calculation - tableHeight:', tableHeight);
+                console.log('CHACK_TABLE_LEG - Leg calculation - leg.height:', leg.height);
+                console.log('CHACK_TABLE_LEG - Leg calculation - legY:', legY);
+                console.log('CHACK_TABLE_LEG - Leg position Y:', legY);
+                console.log('CHACK_TABLE_LEG - Leg top Y:', legY + leg.height / 2);
+                console.log('CHACK_TABLE_LEG - Should be tableHeight (48.5):', tableHeight);
+                
+                mesh.position.set(leg.x, legY, leg.z);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
@@ -2923,17 +2974,33 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
             // Surface beams (קורת משטח)
             this.startTimer(`CABINET - Create Surface Beams for Shelf ${shelfIndex + 1}`);
+            // קבלת מידות המדף הנכונות
+            const shelfsParam = this.getParam('shelfs');
+            let shelfBeam = null;
+            let shelfBeamWidth = beamWidth;
+            let shelfBeamHeight = beamHeight;
+            if (
+                shelfsParam &&
+                Array.isArray(shelfsParam.beams) &&
+                shelfsParam.beams.length
+            ) {
+                shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+                if (shelfBeam) {
+                    shelfBeamWidth = shelfBeam.width / 10; // המרה ממ"מ לס"מ
+                    shelfBeamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
+                }
+            }
             const surfaceBeams = this.createSurfaceBeams(
                 this.surfaceWidth,
                 this.surfaceLength,
-                beamWidth,
-                beamHeight,
+                shelfBeamWidth,
+                shelfBeamHeight,
                 this.minGap
             );
             this.endTimer(`CABINET - Create Surface Beams for Shelf ${shelfIndex + 1}`);
 
                 // חישוב רווח בין קורות
-                const totalBeamWidth = surfaceBeams.length * beamWidth;
+                const totalBeamWidth = surfaceBeams.length * shelfBeamWidth;
                 const remainingSpace = this.surfaceWidth - totalBeamWidth;
                 const gapsCount = surfaceBeams.length - 1;
                 const gapBetweenBeams =
@@ -2948,8 +3015,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
                 // 1. בדיקת רוחב וגובה של קורת מדף בודדת
                 this.debugLog('1. קורת מדף בודדת:');
-                this.debugLog('   - רוחב:', beamWidth, 'ס"מ');
-                this.debugLog('   - גובה:', beamHeight, 'ס"מ');
+                this.debugLog('   - רוחב:', shelfBeamWidth, 'ס"מ');
+                this.debugLog('   - גובה:', shelfBeamHeight, 'ס"מ');
 
                 // 2. בדיקת הרווח בין הקורות במדף
                 this.debugLog('2. רווח בין הקורות במדף:');
@@ -5954,7 +6021,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 );
             }
         }
-        // קיצור הרגליים בעובי קורות המדפים - הרגליים צריכות להגיע רק עד לתחתית המדף העליון
+        // עבור שולחן, הרגליים צריכות להיות בגובה המלא של השולחן פחות גובה הפלטה
+        // המיקום שלהן ייקבע בקוד הראשי בהתבסס על גובה הפלטה
         this.debugLog('DEBUG - topHeight:', topHeight);
         this.debugLog('DEBUG - shelfBeamHeight:', shelfBeamHeight);
         legHeight = topHeight - shelfBeamHeight;
