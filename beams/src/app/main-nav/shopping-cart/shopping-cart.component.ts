@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ElementRef, AfterViewInit, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ElementRef, AfterViewInit, ChangeDetectorRef, NgZone, HostListener } from '@angular/core';
 import { ProductBasketService, BasketItem } from '../../services/product-basket.service';
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -49,7 +49,7 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   private visibleItemIndices = new Set<number>(); // אינדקסים נראים כרגע
   private loadedItemIndices = new Set<number>(); // אינדקסים של מוצרים שהתלת מימד שלהם נטען
   private previousVisibleIndices: number[] = []; // אינדקסים נראים בפעם הקודמת
-  private visibilityCheckInterval: any;
+  private visibilityCheckInterval: any = null;
   
   constructor(
     private basketService: ProductBasketService,
@@ -689,9 +689,9 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // רישום ראשוני - עם setTimeout כדי לתת ל-DOM להתעדכן
     setTimeout(() => {
-      // הפעל את מערכת הבדיקה
+      // הפעל את מערכת הבדיקה מיד לאחר הרינדור הראשוני
       this.startVisibilityChecker();
-    }, 500);
+    }, 0);
   }
 
   // פונקציה לבדיקת נראות פריטים
@@ -765,24 +765,35 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // הפעלת מערכת בדיקת הנראות
   private startVisibilityChecker(): void {
+    // נקה אינטרוול קודם אם קיים
+    if (this.visibilityCheckInterval) {
+      clearInterval(this.visibilityCheckInterval);
+      this.visibilityCheckInterval = null;
+    }
     // בדיקה ראשונית
     try { console.log('CHACK_ROT_BAS - startVisibilityChecker: init'); } catch {}
     this.checkItemVisibility();
-    
-    // בדיקה כל 500ms
+    // בדיקה מחזורית
     this.visibilityCheckInterval = setInterval(() => {
       this.checkItemVisibility();
     }, 500);
-    
-    // בדיקה גם על scroll ו-resize
-    window.addEventListener('scroll', () => {
-      try { console.log('CHACK_ROT_BAS - scroll event'); } catch {}
-      this.checkItemVisibility();
-    });
-    window.addEventListener('resize', () => {
-      try { console.log('CHACK_ROT_BAS - resize event'); } catch {}
-      this.checkItemVisibility();
-    });
+  }
+
+  private stopVisibilityChecker(): void {
+    if (this.visibilityCheckInterval) {
+      clearInterval(this.visibilityCheckInterval);
+      this.visibilityCheckInterval = null;
+    }
+  }
+
+  @HostListener('window:scroll', ['$event'])
+  onWindowScroll(): void {
+    this.checkItemVisibility();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(): void {
+    this.checkItemVisibility();
   }
 
   ngOnDestroy(): void {
@@ -794,12 +805,6 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     
     // ניקוי מערכת בדיקת הנראות
-    if (this.visibilityCheckInterval) {
-      clearInterval(this.visibilityCheckInterval);
-    }
-    
-    // הסרת event listeners
-    window.removeEventListener('scroll', () => this.checkItemVisibility());
-    window.removeEventListener('resize', () => this.checkItemVisibility());
+    this.stopVisibilityChecker();
   }
 }
