@@ -217,6 +217,22 @@
   }
 }
 
+/* מסכים גדולים מאוד - 4 כרטיסיות בשורה */
+@media (min-width: 1200px) {
+  .col-lg-4 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+}
+
+/* מסכים אולטרה-רחבים - 5 כרטיסיות בשורה */
+@media (min-width: 1600px) {
+  .col-lg-4 {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+}
+
 /* כרטיס מוצר */
 .cart-item-card {
   background: transparent; /* החיצוני שקוף */
