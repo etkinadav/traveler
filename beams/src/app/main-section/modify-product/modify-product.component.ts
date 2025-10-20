@@ -2572,11 +2572,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
-                // הרגליים צריכות להיות ממוקמות כך שהחלק העליון שלהן יהיה בגובה tableHeight (48.5)
-                // העליון של הרגליים: legY + leg.height / 2
-                // אז: legY + leg.height / 2 = tableHeight
-                // לכן: legY = tableHeight - leg.height / 2
-                const legY = tableHeight - leg.height / 2;
+                // הרגליים צריכות להיות ממוקמות כך שהחלק התחתון שלהן יהיה בריצפה (Y=0)
+                // והחלק העליון שלהן יהיה בגובה tableHeight
+                // התחתון של הרגליים: legY - leg.height / 2 = 0
+                // לכן: legY = leg.height / 2
+                const legY = leg.height / 2;
                 
                 // לוגים לבדיקת מיקום הרגליים
                 console.log('CHACK_TABLE_LEG - Leg:', JSON.stringify(leg));
@@ -2585,7 +2585,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 console.log('CHACK_TABLE_LEG - Leg calculation - legY:', legY);
                 console.log('CHACK_TABLE_LEG - Leg position Y:', legY);
                 console.log('CHACK_TABLE_LEG - Leg top Y:', legY + leg.height / 2);
+                console.log('CHACK_TABLE_LEG - Leg bottom Y:', legY - leg.height / 2);
                 console.log('CHACK_TABLE_LEG - Should be tableHeight (48.5):', tableHeight);
+                console.log('CHACK_TABLE_LEG - Floor should be at Y=0');
                 
                 mesh.position.set(leg.x, legY, leg.z);
                 this.scene.add(mesh);
@@ -6027,18 +6029,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 );
             }
         }
-        // עבור שולחן, הרגליים צריכות להיות בגובה המלא של השולחן פחות גובה הפלטה
+        // עבור שולחן, הרגליים צריכות להיות בגובה המלא של השולחן כדי להגיע לריצפה
         // המיקום שלהן ייקבע בקוד הראשי בהתבסס על גובה הפלטה
         this.debugLog('DEBUG - topHeight:', topHeight);
         this.debugLog('DEBUG - shelfBeamHeight:', shelfBeamHeight);
-        legHeight = topHeight - shelfBeamHeight;
+        legHeight = topHeight; // הרגל צריכה להיות בגובה המלא של השולחן
         this.debugLog(
             'DEBUG - legHeight calculation:',
             topHeight,
-            '-',
-            shelfBeamHeight,
-            '=',
-            legHeight
+            '(full table height for legs to reach floor)'
         );
         // 4 פינות - מיקום צמוד לקצה בהתאם לעובי הרגל בפועל
         const xVals = [
