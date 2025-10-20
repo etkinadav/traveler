@@ -247,8 +247,8 @@
 }
 
 .cart-item-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 102, 204, 0.15);
-  transform: translateY(-4px);
+  box-shadow: none;
+  transform: none;
 }
 
 /* כותרת הפריט */
