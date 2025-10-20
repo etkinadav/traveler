@@ -81,6 +81,34 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   loadBasket(): void {
     this.basketItems = this.basketService.getBasketItems();
     this.calculateTotalPrice();
+    
+    // לוג עם כל הפרמטרים של כל המוצרים בסל
+    console.log('PRODUCTS_IN_B - All products in basket:', JSON.stringify({
+      totalItems: this.basketItems.length,
+      products: this.basketItems.map(item => ({
+        id: item.id,
+        productName: item.productConfiguration.productName,
+        translatedProductName: item.productConfiguration.translatedProductName,
+        dimensions: item.dimensions,
+        inputConfigurations: item.productConfiguration.inputConfigurations,
+        originalProductData: {
+          name: item.productConfiguration.originalProductData?.name,
+          model: item.productConfiguration.originalProductData?.model,
+          params: item.productConfiguration.originalProductData?.params?.map(p => ({
+            name: p.name,
+            type: p.type,
+            default: p.default,
+            value: p.value,
+            selectedBeamIndex: p.selectedBeamIndex,
+            selectedTypeIndex: p.selectedTypeIndex
+          }))
+        },
+        pricingInfo: {
+          totalPrice: item.pricingInfo.totalPrice,
+          wasEdited: item.pricingInfo.editingInfo.wasEdited
+        }
+      }))
+    }, null, 2));
   }
 
   // פונקציה לטעינה מוקדמת של טקסטורות
@@ -131,20 +159,12 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
    * קבלת המידות של מוצר בסל
    */
   getProductDimensions(item: BasketItem): string {
-    console.log('CHACK_DIM CART - Getting product dimensions for display');
-    console.log('CHACK_DIM CART - Item dimensions:', JSON.stringify(item.dimensions, null, 2));
-    
     if (!item.dimensions) {
-      console.log('CHACK_DIM CART - No dimensions found, returning default');
       return 'מידות לא זמינות';
     }
     
     const { length, width, height } = item.dimensions;
-    const dimensionsString = `${length} × ${width} × ${height} ס"מ`;
-    
-    console.log('CHACK_DIM CART - Final dimensions string:', dimensionsString);
-    
-    return dimensionsString;
+    return `${length} × ${width} × ${height} ס"מ`;
   }
 
   /**
@@ -274,26 +294,6 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     // מחזיר את המוצר המקורי מהקונפיגורציה
     const originalData = item.productConfiguration.originalProductData;
     
-    // לוג חד פעמי לכל מוצר (רק ב-3 השניות הראשונות)
-    const logKey = `getProductForPreview_${item.id}`;
-    if (this.debugLogsEnabled && !this.debugLogsShown.has(logKey)) {
-      console.log('CHECK-MINI-BASKET - getProductForPreview:', {
-        itemId: item.id,
-        originalDataExists: !!originalData,
-        originalDataKeys: originalData ? Object.keys(originalData) : [],
-        originalParams: originalData?.params || [],
-        originalParamsCount: originalData?.params?.length || 0,
-        originalParamsWithBeams: originalData?.params?.map(p => ({
-          name: p.name,
-          type: p.type,
-          hasBeams: !!p.beams,
-          beamsCount: p.beams?.length || 0
-        })) || [],
-        inputConfigurations: item.productConfiguration.inputConfigurations,
-        inputConfigurationsCount: item.productConfiguration.inputConfigurations.length
-      });
-      this.debugLogsShown.add(logKey);
-    }
     
     // החזרת המוצר המקורי כמו בקובץ בחירת המוצר
     // עדכון הפרמטרים עם הערכים שנשמרו
@@ -304,9 +304,14 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
                    config => config.inputName === param.name
                  );
                  if (configParam) {
+                   // אם יש ערך ב-configParam, נשתמש בו
+                   const currentValue = configParam.value !== undefined ? configParam.value : param.default;
+                   
                    const updatedParam = {
                      ...param,
-                     value: configParam.value,
+                     value: currentValue,
+                     // עדכון ה-default עם הערך הנוכחי - זה חשוב למידות!
+                     default: currentValue,
                      // שימור selectedBeamIndex ו-selectedTypeIndex שחיוניים לבחירת הקורה והטקסטורה
                      selectedBeamIndex: configParam.selectedBeamIndex !== undefined ? configParam.selectedBeamIndex : param.selectedBeamIndex,
                      // לוג לבדיקה
@@ -328,12 +333,37 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
                });
       
       
-      
+      // התאמת פרמטרים למידות שנשמרו בסל במקרה שאין value ב-inputConfigurations
+      const patchedParams = updatedParams.map(p => {
+        if (!item.dimensions) return p;
+        const name = (p.name || '').toLowerCase();
+        // מיפוי ישיר: width -> dimensions.width, depth -> dimensions.length, height -> dimensions.height
+        if (name === 'width' && typeof item.dimensions.width === 'number') {
+          return { ...p, default: item.dimensions.width, value: item.dimensions.width };
+        }
+        if ((name === 'depth' || name === 'length') && typeof item.dimensions.length === 'number') {
+          return { ...p, default: item.dimensions.length, value: item.dimensions.length };
+        }
+        if (name === 'height' && typeof item.dimensions.height === 'number') {
+          return { ...p, default: item.dimensions.height, value: item.dimensions.height };
+        }
+        return p;
+      });
+
       const updatedProduct = {
         ...originalData,
-        params: updatedParams
+        params: patchedParams
       };
     
+      // לוג מפורט לבדיקת עדכון המידות
+      console.log('PRODUCTS_IN_B - Updated product for 3D display:', JSON.stringify({
+        itemId: item.id,
+        productName: originalData.name,
+        originalParams: originalData.params.map(p => ({ name: p.name, default: p.default, value: p.value })),
+        updatedParams: patchedParams.map(p => ({ name: p.name, default: p.default, value: p.value })),
+        inputConfigurations: item.productConfiguration.inputConfigurations,
+        dimensions: item.dimensions
+      }, null, 2));
       
       // שמירה ב-cache
       this.productPreviewCache.set(cacheKey, updatedProduct);
@@ -553,15 +583,18 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     // מחזיר את האינדקס של הקונפיגורציה שנבחרה מהמוצר המקורי
     const configurationIndex = item.productConfiguration.originalProductData?.configurationIndex || 0;
     
-    // לוג חד פעמי לכל מוצר (רק ב-3 השניות הראשונות)
-    const logKey = `getConfigurationIndex_${item.id}`;
-    if (this.debugLogsEnabled && !this.debugLogsShown.has(logKey)) {
-      console.log('🔍 DEBUG - getConfigurationIndex:', {
-        itemId: item.id,
-        configurationIndex: configurationIndex,
-        originalProductDataExists: !!item.productConfiguration.originalProductData
-      });
-      this.debugLogsShown.add(logKey);
+    // לוג חד-פעמי לכל מוצר למניעת ספאם
+    const onceKey = `PRODUCTS_IN_B_configIndex_${item.id}`;
+    // @ts-ignore - using runtime Set guard map declared above
+    if (!(this as any).debugLogsShown?.has(onceKey)) {
+    console.log('PRODUCTS_IN_B - Configuration index for 3D display:', JSON.stringify({
+      itemId: item.id,
+      productName: item.productConfiguration.productName,
+      configurationIndex: configurationIndex,
+      originalProductDataExists: !!item.productConfiguration.originalProductData
+    }, null, 2));
+      // @ts-ignore
+      (this as any).debugLogsShown?.add(onceKey);
     }
     
     return configurationIndex;

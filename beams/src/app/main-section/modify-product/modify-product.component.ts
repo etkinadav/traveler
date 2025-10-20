@@ -234,7 +234,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 translatedProductName: this.selectedProductName || 'Unknown Product',
                 inputConfigurations: this.params.map(param => ({
                     inputName: param.name,
-                    value: param.value,
+                    // שולחים את הערך האמיתי שהמשתמש עובד איתו (default הוא הערך המעודכן אצלנו)
+                    value: param?.default,
                     selectedBeamIndex: param.selectedBeamIndex,
                     selectedTypeIndex: param.selectedTypeIndex
                 })),

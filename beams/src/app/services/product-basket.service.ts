@@ -164,6 +164,31 @@ export class ProductBasketService {
       }
     });
     
+    // אם לא מצאנו ערכים ב-inputConfigurations, ננסה לחפש בפרמטרים המקוריים
+    if (width === 0 || height === 0 || length === 0) {
+      console.log('CHACK_DIM SERVICE - No values found in inputConfigurations, checking originalProductData');
+      
+      if (productConfiguration.originalProductData && productConfiguration.originalProductData.params) {
+        productConfiguration.originalProductData.params.forEach(param => {
+          const paramName = param.name.toLowerCase();
+          const value = param.default; // נשתמש ב-default במקום ב-value
+          
+          console.log(`🔍 DIMENSIONS DEBUG - original param: ${paramName}, default: ${value}, type: ${typeof value}`);
+          
+          if (paramName.includes('width') || paramName.includes('רוחב')) {
+            width = typeof value === 'number' ? value : parseFloat(value) || 0;
+            console.log(`🔍 DIMENSIONS DEBUG - width set to: ${width}`);
+          } else if (paramName.includes('height') || paramName.includes('גובה')) {
+            height = typeof value === 'number' ? value : parseFloat(value) || 0;
+            console.log(`🔍 DIMENSIONS DEBUG - height set to: ${height}`);
+          } else if (paramName.includes('length') || paramName.includes('אורך') || paramName.includes('depth') || paramName.includes('עומק')) {
+            length = typeof value === 'number' ? value : parseFloat(value) || 0;
+            console.log(`🔍 DIMENSIONS DEBUG - length set to: ${length}`);
+          }
+        });
+      }
+    }
+    
     // חיפוש שני - לפי שמות נפוצים
     if (width === 0 || height === 0 || length === 0) {
       params.forEach(param => {
