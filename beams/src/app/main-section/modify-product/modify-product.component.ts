@@ -2404,8 +2404,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 console.log('CHACK_TABLE_LEG - Plata bottom Y:', tableHeight + beam.height / 2 - beam.height);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
-                // הוספת ברגים לקורת המדף - הפונקציה לא קיימת כרגע
-                // TODO: להוסיף ברגים לפלטה
+                // הוספת ברגים לפלטה של השולחן
+                this.addScrewsToShelfBeam(
+                    beam,
+                    tableHeight,
+                    beam.height,
+                    frameBeamWidth,
+                    'top'
+                );
             }
             // Get leg beam dimensions for frame beams positioning
             const tableLegParam = this.getParam('leg');
