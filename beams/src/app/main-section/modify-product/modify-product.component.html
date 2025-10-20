@@ -227,15 +227,20 @@
                     <!-- טיפול בשולחן - פרמטר height -->
                     <div *ngIf="isTable && param.name === 'height'">
                         <label style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
-                        <mat-form-field appearance="outline">
+                        <mat-form-field appearance="outline" class="with-quick-commit">
                             <mat-label>{{param.translatedName}} ({{param.min}} < {{param.max}})</mat-label>
-                            <input matInput type="number"
+                            <input #heightInput matInput type="number"
                                    [ngModel]="param.editingValue ?? param.default"
                                    (ngModelChange)="param.editingValue = $event"
                                    [min]="param.min" [max]="param.max"
                                    (focus)="onNumberFocus(param)"
                                    (blur)="onNumberCommit(param)"
                                    (keyup.enter)="onNumberCommit(param)">
+                            <button type="button" class="quick-commit-btn" *ngIf="shouldShowCommit(param)" (click)="onNumberQuickCommit(param, heightInput)">
+                                <svg width="12" height="12" viewBox="0 0 12 12">
+                                    <path d="M2 6l2 2 6-6" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
                         </mat-form-field>
                     </div>
                     
@@ -299,12 +304,17 @@
                                 <div class="shelf-gap-field-wrapper">
                                     <mat-form-field appearance="outline" class="shelf-gap-field">
                                         <mat-label>מידה {{param.default.length - idx}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
-                                        <input matInput type="number" [min]="param.min" [max]="param.max" [step]="1"
+                                        <input #shelfInput matInput type="number" [min]="param.min" [max]="param.max" [step]="1"
                                             [ngModel]="param._editingValues?.[param.default.length - 1 - idx] ?? param.default[param.default.length - 1 - idx]"
                                             (ngModelChange)="(param._editingValues = param._editingValues || []); param._editingValues[param.default.length - 1 - idx] = $event"
                                             (focus)="onShelfNumberFocus(param, param.default.length - 1 - idx)"
                                             (blur)="onShelfNumberCommit(param, param.default.length - 1 - idx)"
                                             (keyup.enter)="onShelfNumberCommit(param, param.default.length - 1 - idx)">
+                                        <button type="button" class="quick-commit-btn" *ngIf="shouldShowShelfCommit(param, param.default.length - 1 - idx)" (click)="onShelfQuickCommit(param, param.default.length - 1 - idx, shelfInput)">
+                                            <svg width="12" height="12" viewBox="0 0 12 12">
+                                                <path d="M2 6l2 2 6-6" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
                                     </mat-form-field>
                                     <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn" 
                                         [class.remove-shelf-btn-with-amount]="param.setAmount === true"
@@ -525,15 +535,20 @@
                     <div *ngIf="isTable && param.name === 'extraBeam'">
                         <label style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="param-box non-beam">
-                            <mat-form-field appearance="outline">
+                            <mat-form-field appearance="outline" class="with-quick-commit">
                                 <mat-label>{{param.translatedName}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
-                                <input matInput type="number" [min]="param.min" [max]="param.max"
+                                <input #extraInput matInput type="number" [min]="param.min" [max]="param.max"
                                     [step]="getStep(param.type)"
                                     [ngModel]="param.editingValue ?? param.default"
                                     (ngModelChange)="param.editingValue = $event"
                                     (focus)="onNumberFocus(param)"
                                     (blur)="onGenericNumberCommit(param)"
                                     (keyup.enter)="onGenericNumberCommit(param)">
+                                <button type="button" class="quick-commit-btn" *ngIf="shouldShowCommit(param)" (click)="onNumberQuickCommit(param, extraInput)">
+                                    <svg width="12" height="12" viewBox="0 0 12 12">
+                                        <path d="M2 6l2 2 6-6" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
                             </mat-form-field>
                         </div>
                     </div>
@@ -553,15 +568,20 @@
                         <label
                             style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="param-box non-beam">
-                            <mat-form-field appearance="outline">
+                            <mat-form-field appearance="outline" class="with-quick-commit">
                                 <mat-label>{{param.translatedName}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
-                                <input matInput type="number" [min]="param.min" [max]="param.max"
+                                <input #genericInput matInput type="number" [min]="param.min" [max]="param.max"
                                     [step]="getStep(param.type)"
                                     [ngModel]="param.editingValue ?? param.default"
                                     (ngModelChange)="param.editingValue = $event"
                                     (focus)="onNumberFocus(param)"
                                     (blur)="onGenericNumberCommit(param)"
                                     (keyup.enter)="onGenericNumberCommit(param)">
+                                <button type="button" class="quick-commit-btn" *ngIf="shouldShowCommit(param)" (click)="onNumberQuickCommit(param, genericInput)">
+                                    <svg width="12" height="12" viewBox="0 0 12 12">
+                                        <path d="M2 6l2 2 6-6" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
                             </mat-form-field>
                         </div>
                     </div>

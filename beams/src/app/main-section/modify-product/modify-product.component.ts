@@ -464,6 +464,35 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (typeof max === 'number') num = Math.min(max, num);
         return num;
     }
+
+    // האם יש שינוי בערך העריכה לעומת ערך קיים
+    shouldShowCommit(param: any): boolean {
+        if (param && param.editingValue !== undefined) {
+            const parsed = this.parseNumberWithinBounds(param.editingValue, param.min, param.max, param.default);
+            return parsed !== param.default;
+        }
+        return false;
+    }
+
+    // לחצן עדכון מהיר לאינפוט בודד
+    onNumberQuickCommit(param: any, inputEl?: HTMLInputElement) {
+        this.onNumberCommit(param);
+        try { inputEl && inputEl.blur && inputEl.blur(); } catch {}
+    }
+
+    // לחצן עדכון מהיר לערך במערך (מדפים וכו')
+    shouldShowShelfCommit(param: any, index: number): boolean {
+        const logicalIndex = index;
+        const hasEditing = param && param._editingValues && param._editingValues[logicalIndex] !== undefined;
+        if (!hasEditing) return false;
+        const parsed = this.parseNumberWithinBounds(param._editingValues[logicalIndex], param.min, param.max, param.default[logicalIndex]);
+        return parsed !== param.default[logicalIndex];
+    }
+
+    onShelfQuickCommit(param: any, index: number, inputEl?: HTMLInputElement) {
+        this.onShelfNumberCommit(param, index);
+        try { inputEl && inputEl.blur && inputEl.blur(); } catch {}
+    }
     
     /**
      * פתיחת דיאלוג סל המוצרים
