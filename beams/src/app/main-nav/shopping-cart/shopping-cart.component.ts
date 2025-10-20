@@ -196,6 +196,38 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
+   * כותרת הכרטיסיה לפי מצב: מקורי -> שם הדגם המלא; מותאם -> singleNames + " בהתאמה אישית"
+   */
+  getCardTitle(item: BasketItem): string {
+    const isModified = this.isProductModified(item);
+    const original = item.productConfiguration.originalProductData || {} as any;
+
+    if (!isModified) {
+      // מציגים את שם הקונפיגורציה (לדוגמה: "שולחן קפה קטן")
+      const configIndex = original.configurationIndex || 0;
+      const configs = original.configurations || [];
+      const configName = configs[configIndex]?.translatedName;
+      return configName || item.productConfiguration.translatedProductName || original.translatedName || item.productConfiguration.productName || '';
+    }
+
+    // מותאם אישית: קובעים טיפוס יחיד מתוך singleNames לפי המפתח product בקונפיגורציה הנוכחית
+    const configIndex = original.configurationIndex || 0;
+    const configs = original.configurations || [];
+    const singleNames = original.singleNames || {};
+    const productKey = configs[configIndex]?.product;
+    const single = (productKey && singleNames[productKey]) ? singleNames[productKey] : (original.translatedName || item.productConfiguration.translatedProductName || item.productConfiguration.productName || '');
+    return single ? `${single} בהתאמה אישית` : 'בהתאמה אישית';
+  }
+
+  /**
+   * החזרת שם המודל (model) להצגה בשורה השנייה
+   */
+  getProductModel(item: BasketItem): string {
+    const original = item.productConfiguration.originalProductData as any;
+    return (original && original.model) ? original.model : '';
+  }
+
+  /**
    * עדכון כמות קורה
    */
   updateBeamQuantity(item: BasketItem, beamIndex: number, newQuantity: number): void {
