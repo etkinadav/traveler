@@ -100,15 +100,20 @@
 
           <!-- סיכום מהיר -->
           <div class="item-quick-summary">
-            <div class="summary-item">
-              <span class="label">סטטוס:</span>
-              <span class="value status" [class.modified]="isProductModified(item)" [class.original]="!isProductModified(item)">
-                {{ getProductStatus(item) }}
-              </span>
-            </div>
-            <div class="summary-item">
-              <span class="label">מידות:</span>
-              <span class="value dimensions">{{ getProductDimensions(item) }}</span>
+            <div class="dims-title">מידות</div>
+            <div class="summary-item dims-grid">
+              <div class="dim-line">
+                <span class="label dim-label">אורך</span>
+                <span class="value dim-value">{{ item.dimensions?.length }} ס"מ</span>
+              </div>
+              <div class="dim-line">
+                <span class="label dim-label">רוחב</span>
+                <span class="value dim-value">{{ item.dimensions?.width }} ס"מ</span>
+              </div>
+              <div class="dim-line">
+                <span class="label dim-label">גובה</span>
+                <span class="value dim-value">{{ item.dimensions?.height }} ס"מ</span>
+              </div>
             </div>
             <div class="summary-item">
               <span class="label">תאריך:</span>
@@ -120,12 +125,7 @@
             </div>
           </div>
 
-          <!-- כפתורי פעולה -->
-          <div class="item-actions">
-            <button class="edit-btn" (click)="toggleEditMode(item.id)">
-              {{ isEditing(item.id) ? 'סיים עריכה' : 'ערוך מוצר' }}
-            </button>
-          </div>
+          
             </div>
           </div>
         </div>

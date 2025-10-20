@@ -28,8 +28,6 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   basketItems: BasketItem[] = [];
   totalPrice: number = 0;
   
-  // מצב עריכה עבור כל מוצר
-  editingStates: { [key: string]: boolean } = {};
   
   // למניעת לוגים חוזרים
   private debugLogsShown = new Set<string>();
@@ -170,19 +168,7 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     return `${length} × ${width} × ${height} ס"מ`;
   }
 
-  /**
-   * פתיחת/סגירת מצב עריכה למוצר
-   */
-  toggleEditMode(itemId: string): void {
-    this.editingStates[itemId] = !this.editingStates[itemId];
-  }
-
-  /**
-   * בדיקה האם מוצר במצב עריכה
-   */
-  isEditing(itemId: string): boolean {
-    return this.editingStates[itemId] || false;
-  }
+  
 
   /**
    * בדיקה האם המוצר עבר שינויים קבועים (לא במצב המקורי)

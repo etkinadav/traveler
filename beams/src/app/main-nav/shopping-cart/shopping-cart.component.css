@@ -116,24 +116,7 @@
 }
 
 /* עיצוב למידות המוצר */
-.summary-item .status {
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-.summary-item .status.modified {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
-}
-
-.summary-item .status.original {
-  background: #d1ecf1;
-  color: #0c5460;
-  border: 1px solid #bee5eb;
-}
+/* סטטוס הוסר */
 
 .back-btn {
   background: none !important; /* ללא רקע */
@@ -430,6 +413,14 @@
   border-radius: 8px;
 }
 
+.dims-title {
+  margin: 0 0 6px 0;
+  color: #333;
+  font-size: 14px;
+  font-weight: 400; /* ללא bold */
+  text-align: right;
+}
+
 .summary-item {
   display: flex;
   justify-content: space-between;
@@ -450,7 +441,7 @@
 .summary-item .value {
   color: #333;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .summary-item .value.price {
@@ -459,28 +450,31 @@
   font-weight: 700;
 }
 
-/* פעולות על הפריט */
-.item-actions {
-  margin-top: auto;
-  padding-top: 15px;
-}
-
-.edit-btn {
+/* פריסת מידות כ-3 שורות עדינות בצד שמאל */
+.dims-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   width: 100%;
-  padding: 10px 20px;
-  background: #0066cc;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.3s;
 }
 
-.edit-btn:hover {
-  background: #0052a3;
+.dim-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
+
+.dim-label {
+  color: #6b7280; /* אפור עדין */
+  font-weight: 400; /* ללא bold */
+}
+
+.dim-value {
+  color: #374151; /* כהה עדין */
+  font-weight: 400; /* ללא bold */
+}
+
+/* פעולות עריכה הוסרו */
 
 /* סיכום סופי */
 .cart-footer {
