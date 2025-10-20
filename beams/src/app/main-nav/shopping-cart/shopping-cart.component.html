@@ -32,6 +32,8 @@
     <div class="row">
       <div class="col-12 col-md-6 col-lg-4" *ngFor="let item of basketItems; let i = index">
         <div class="cart-item-card" #cartItem>
+          <div class="cart-item-outer">
+            <div class="cart-item-inner">
           <!-- כותרת המוצר -->
           <div class="item-header">
             <h3 class="item-title">{{ getProductDescription(item) }}</h3>
@@ -118,6 +120,8 @@
             <button class="edit-btn" (click)="toggleEditMode(item.id)">
               {{ isEditing(item.id) ? 'סיים עריכה' : 'ערוך מוצר' }}
             </button>
+          </div>
+            </div>
           </div>
         </div>
       </div>

@@ -236,10 +236,10 @@
 
 /* כרטיס מוצר */
 .cart-item-card {
-  background: white;
+  background: transparent; /* החיצוני שקוף */
   border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  box-shadow: none;
   transition: all 0.3s ease;
   height: 100%;
   display: flex;
@@ -252,6 +252,35 @@
 }
 
 /* כותרת הפריט */
+.cart-item-outer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 0; /* רווח אנכי עדין */
+}
+
+.cart-item-inner {
+  background: #ffffff; /* רקע לבן רק לפנימי */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  padding: 20px;
+  display: inline-block; /* יתפוס רק את תוכנו */
+}
+
+@media (min-width: 768px) {
+  .cart-item-outer {
+    padding: 12px 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .cart-item-outer {
+    padding: 14px 0;
+  }
+}
+
 .item-header {
   display: flex;
   justify-content: space-between;
