@@ -93,7 +93,7 @@
 .remove-item-btn {
   background: none !important;
   background-color: transparent !important;
-  color: #2196f3 !important;
+  color: var(--zx-green) !important; /* צבע המותג */
   border: none !important;
   padding: 4px !important;
   margin: 0 !important;
@@ -109,7 +109,7 @@
 }
 
 .remove-item-btn:hover {
-  color: #1976d2 !important;
+  color: var(--zx-green) !important; /* שמירה על אותו גוון בריחוף */
   background: none !important;
   background-color: transparent !important;
   transform: scale(1.1);
@@ -120,7 +120,7 @@
 
 .back-btn {
   background: none !important; /* ללא רקע */
-  color: var(--zx-green) !important; /* כחול כמו בקובץ בחירת המוצר */
+  color: var(--zx-green) !important; /* צבע המותג */
   border: none !important;
   padding: 0 !important;
   margin: 0 !important; /* ללא margin */
@@ -140,7 +140,7 @@
 .clear-cart-btn {
   background: none !important; /* ללא רקע */
   background-color: transparent !important; /* ללא רקע */
-  color: #2196f3 !important; /* כחול כמו בקובץ בחירת המוצר */
+  color: var(--zx-green) !important; /* צבע המותג */
   border: none !important;
   padding: 0 !important;
   margin: 0 0 0 5px !important; /* רווח משמאל לכפתור השני */
@@ -159,7 +159,7 @@
 }
 
 .clear-cart-btn:hover {
-  color: #1976d2 !important; /* כחול כהה יותר בריחוף */
+  color: var(--zx-green) !important; /* שמירה על צבע המותג בריחוף */
   background: none !important; /* ללא רקע בריחוף */
   background-color: transparent !important; /* ללא רקע בריחוף */
   transform: scale(1.1);
@@ -306,6 +306,7 @@
   color: #0066cc;
   font-size: 18px;
   font-weight: 700;
+  padding-bottom: 5px; /* רווח מתחת לכותרת הראשית */
 }
 
 .item-title-row--secondary {
@@ -313,7 +314,7 @@
 }
 
 .item-title--secondary {
-  color: #6b7280; /* אפור עדין */
+  color: var(--zx-green); /* צבע המותג לשם הדגם */
   font-size: 13px;
   font-weight: 500;
 }
@@ -397,7 +398,7 @@
     left: 50%;
     transform: translateX(-50%);
     background: none; /* ללא רקע */
-    color: #2196f3; /* כחול כמו בבחירת המוצר */
+    color: var(--zx-green); /* צבע המותג לטקסט ההנחיה */
     padding: 0; /* ללא padding */
     font-size: 12px; /* גודל זהה לבחירת המוצר */
     font-weight: bold; /* משקל זהה לבחירת המוצר */
