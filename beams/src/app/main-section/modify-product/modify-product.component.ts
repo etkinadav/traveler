@@ -391,6 +391,79 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             console.error('❌ Error adding product to basket:', error);
         }
     }
+
+    // =====================
+    // Input editing handlers
+    // =====================
+
+    onNumberFocus(param: any) {
+        // שמירת ערך התחלה לעריכה כדי לזהות שינוי אמיתי
+        if (param._editStartValue === undefined) {
+            param._editStartValue = param.default;
+        } else {
+            param._editStartValue = param.default;
+        }
+        if (param.editingValue === undefined) {
+            param.editingValue = param.default;
+        }
+    }
+
+    onNumberCommit(param: any) {
+        const raw = param.editingValue;
+        const start = param._editStartValue;
+        const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default);
+        const changed = parsed !== start;
+        if (changed) {
+            param.default = parsed;
+            this.updateModel();
+        }
+        // איפוס ערכי עזר
+        param._editStartValue = undefined;
+    }
+
+    onGenericNumberCommit(param: any) {
+        const raw = param.editingValue;
+        const start = param._editStartValue;
+        const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default);
+        const changed = parsed !== start;
+        if (changed) {
+            param.default = parsed;
+            // עדכון דרך הפונקציה הכללית כדי לשמר לוגיקת צד-שרת/אימות קיימת
+            this.updateParameterValue(param, parsed);
+        }
+        param._editStartValue = undefined;
+    }
+
+    onShelfNumberFocus(param: any, index: number) {
+        param._editStartArray = param._editStartArray || {};
+        const logicalIndex = index;
+        param._editStartArray[logicalIndex] = param.default[logicalIndex];
+        if (!param._editingValues) param._editingValues = [];
+        if (param._editingValues[logicalIndex] === undefined) {
+            param._editingValues[logicalIndex] = param.default[logicalIndex];
+        }
+    }
+
+    onShelfNumberCommit(param: any, index: number) {
+        const logicalIndex = index;
+        const start = param._editStartArray ? param._editStartArray[logicalIndex] : param.default[logicalIndex];
+        const raw = param._editingValues ? param._editingValues[logicalIndex] : param.default[logicalIndex];
+        const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default[logicalIndex]);
+        const changed = parsed !== start;
+        if (changed) {
+            param.default[logicalIndex] = parsed;
+            this.updateBeams();
+        }
+        if (param._editStartArray) delete param._editStartArray[logicalIndex];
+    }
+
+    private parseNumberWithinBounds(value: any, min: number, max: number, fallback: number): number {
+        let num = typeof value === 'number' ? value : parseFloat(value);
+        if (isNaN(num)) num = fallback;
+        if (typeof min === 'number') num = Math.max(min, num);
+        if (typeof max === 'number') num = Math.min(max, num);
+        return num;
+    }
     
     /**
      * פתיחת דיאלוג סל המוצרים
