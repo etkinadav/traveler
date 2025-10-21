@@ -2907,6 +2907,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // העדנית תשתמש בפונקציה centerCameraOnWireframe() כמו שאר המוצרים
         } else {
+            // הגדרת משתנים נכונים עבור ארון - לפני כל הבלוקים
+            let frameBeamHeightCorrect = frameBeamHeight;
+            let beamHeightCorrect = beamHeight;
+            
+            // קריאת גובה קורת החיזוק מהפרמטרים
+            const frameParam = this.getParam('frame');
+            if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
+                const frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
+                if (frameBeam) {
+                    frameBeamHeightCorrect = frameBeam.width / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
+            // קריאת גובה קורת המדף מהפרמטרים
+            const shelfsParam = this.getParam('shelfs');
+            if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
+                const shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+                if (shelfBeam) {
+                    beamHeightCorrect = shelfBeam.height / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
             // רגליים (legs) - עבור ארון
             const legParam = this.getParam('leg');
             let legBeam = null;
@@ -2935,39 +2957,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 shelvesLength: this.shelves.length
             }, null, 2));
             
-            // קריאת הערכים הנכונים מהפרמטרים של המוצר
-            let frameBeamHeightCorrect = frameBeamHeight;
-            let beamHeightCorrect = beamHeight;
             let legHeight = 0; // הגדרה ראשונית
-            
-            // קריאת גובה קורת החיזוק מהפרמטרים
-            const frameParam = this.getParam('frame');
-            console.log('CHACK_CABINET - Frame param check:', JSON.stringify({
-                frameParam: frameParam,
-                availableParams: this.params.map(p => ({name: p.name, type: p.type}))
-            }, null, 2));
-            
-            if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
-                const frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
-                if (frameBeam) {
-                    frameBeamHeightCorrect = frameBeam.width / 10; // המרה ממ"מ לס"מ
-                }
-            }
-            
-            // קריאת גובה קורת המדף מהפרמטרים
-            const shelfsParam = this.getParam('shelfs');
-            console.log('CHACK_CABINET - Shelfs param check:', JSON.stringify({
-                shelfsParam: shelfsParam,
-                selectedBeamIndex: shelfsParam?.selectedBeamIndex,
-                beams: shelfsParam?.beams
-            }, null, 2));
-            
-            if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
-                const shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
-                if (shelfBeam) {
-                    beamHeightCorrect = shelfBeam.height / 10; // המרה ממ"מ לס"מ
-                }
-            }
             
             console.log('CHACK_CABINET - Corrected values:', JSON.stringify({
                 frameBeamHeightCorrect: frameBeamHeightCorrect,
@@ -3052,7 +3042,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.beamMeshes.push(mesh);
             }
             // הוספת ברגים לרגליים עבור ארון
-            this.addScrewsToLegs(totalShelves, legs, frameBeamHeight, 0);
+            this.addScrewsToLegs(totalShelves, legs, frameBeamHeightCorrect, 0);
         }
         
         // עבור ארון - הקוד המקורי
@@ -3066,6 +3056,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 isBox: this.isBox,
                 shelvesLength: this.shelves.length
             });
+            
+            // הגדרת משתנים נכונים עבור ארון
+            let frameBeamHeightCorrect = frameBeamHeight;
+            let beamHeightCorrect = beamHeight;
+            
+            // קריאת גובה קורת החיזוק מהפרמטרים
+            const frameParam = this.getParam('frame');
+            if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
+                const frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
+                if (frameBeam) {
+                    frameBeamHeightCorrect = frameBeam.width / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
+            // קריאת גובה קורת המדף מהפרמטרים
+            const shelfsParam = this.getParam('shelfs');
+            if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
+                const shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+                if (shelfBeam) {
+                    beamHeightCorrect = shelfBeam.height / 10; // המרה ממ"מ לס"מ
+                }
+            }
             
             // הגדרת currentY עבור ארון - מתחיל מ-0 ומתעדכן עם כל מדף
             let currentY = 0;
@@ -3241,7 +3253,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }
                     const geometry = new THREE.BoxGeometry(
                         beam.width,
-                        beam.height,
+                        beamHeightCorrect,
                         beam.depth
                     );
                     const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
@@ -3251,7 +3263,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                     mesh.position.set(
                         beam.x,
-                        currentY + frameBeamHeight + beam.height / 2,
+                        currentY + frameBeamHeightCorrect + beamHeightCorrect / 2,
                         0
                     );
                 this.scene.add(mesh);
@@ -3292,7 +3304,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             for (const beam of frameBeams) {
                     const geometry = new THREE.BoxGeometry(
                         beam.width,
-                        beam.height,
+                        frameBeamHeightCorrect,
                         beam.depth
                     );
                     const material = this.getWoodMaterial(frameType ? frameType.name : '');
@@ -3300,7 +3312,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
-                const frameY = currentY + beam.height / 2;
+                const frameY = currentY + frameBeamHeightCorrect / 2;
                 mesh.position.set(beam.x, frameY, beam.z);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
@@ -3308,7 +3320,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.endTimer(`CABINET - Create and Render Frame Beams for Shelf ${shelfIndex + 1}`);
             
             // Add the height of the shelf itself for the next shelf
-            currentY += frameBeamHeight + beamHeight;
+            currentY += frameBeamHeightCorrect + beamHeightCorrect;
             this.endTimer(`CABINET - Shelf ${shelfIndex + 1}`);
         }
         this.endTimer('CABINET - Total Rendering');
