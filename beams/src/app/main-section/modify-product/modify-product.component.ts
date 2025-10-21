@@ -3008,6 +3008,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 beamHeightCorrect: beamHeightCorrect
             });
             
+            console.log('CHACK_CABINET_LEG - Creating cabinet legs:', JSON.stringify({
+                surfaceWidth: this.surfaceWidth,
+                surfaceLength: this.surfaceLength,
+                frameBeamWidth: frameBeamWidth,
+                frameBeamHeight: frameBeamHeight,
+                legHeight: legHeight,
+                legType: legType ? legType.name : 'none',
+                totalShelves: totalShelves,
+                calculation: `legHeight = ${legHeight} (calculated from totalY - beamHeightCorrect)`
+            }, null, 2));
+            
             const legs = this.createLegBeams(
                 this.surfaceWidth,
                 this.surfaceLength,
@@ -3016,9 +3027,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 legHeight
             );
             for (const leg of legs) {
+                console.log('CHACK_CABINET_LEG - Creating leg mesh:', JSON.stringify({
+                    legX: leg.x,
+                    legY: legHeight / 2,
+                    legZ: leg.z,
+                    legWidth: leg.width,
+                    legHeight: legHeight,
+                    legDepth: leg.depth,
+                    positionCalculation: `mesh.position.set(${leg.x}, ${legHeight / 2}, ${leg.z})`
+                }, null, 2));
+                
                 const geometry = new THREE.BoxGeometry(
                     leg.width,
-                    leg.height,
+                    legHeight,
                     leg.depth
                 );
                 const material = this.getWoodMaterial(legType ? legType.name : '');
@@ -3046,7 +3067,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 shelvesLength: this.shelves.length
             });
             
-            // הגדרת currentY עבור ארון
+            // הגדרת currentY עבור ארון - מתחיל מ-0 ומתעדכן עם כל מדף
             let currentY = 0;
             
             this.logCabinet('CHACK_CABINET - Starting cabinet rendering:', {
