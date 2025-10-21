@@ -3847,11 +3847,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     
                     this.debugLog('🔍 AFTER DEBUG - Continuing execution');
                     
-                // עבור ארון, אם הקורה רחבה מדי, נשתמש ברוחב קטן יותר
-                    if (!this.isTable && !this.isPlanter && !this.isBox && beamWidth > 5) {
-                        this.debugLog('🔍 ARMOIRE - Beam width adjustment for armoire');
-                    beamWidth = 4; // רוחב קטן יותר עבור ארון
-                }
+                // עבור ארון, נשתמש ברוחב הנכון של הקורה מהפרמטרים
+                // אין צורך לשנות את beamWidth - הוא כבר נכון!
                     
                     this.debugLog('🔍 CHECKPOINT 1 - After armoire check:', {
                         isPlanter: this.isPlanter,
@@ -4088,12 +4085,34 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         legBeamName: legBeamSelected?.name
                     });
                     
-                    // יצירת קורות מדף נפרדות לארון (6 קורות לכל מדף)
-                    const cabinetShelfBeams = this.createCabinetShelfBeams(
-                        this.surfaceLength, // אורך המדף
-                        beamWidth,
-                        beamHeight
-                    );
+                    // יצירת קורות מדף נפרדות לארון
+                    // חישוב כמות קורות במדף: floor((surfaceWidth + minGap) / (beamWidth + minGap))
+                    // צריך להשתמש בbeamWidth הנכון של קורת המדף, לא של קורת הרגל!
+                    const shelfBeamWidth = beamWidth; // זה כבר מחושב נכון מהפרמטרים
+                    const beamsInShelf = Math.floor((this.surfaceWidth + this.minGap) / (shelfBeamWidth + this.minGap));
+                    
+                    console.log('CHACK_CABINET_DIMS - CABINET SHELF BEAMS CALCULATION:', JSON.stringify({
+                        surfaceWidth: this.surfaceWidth,
+                        shelfBeamWidth: shelfBeamWidth,
+                        beamHeight: beamHeight,
+                        minGap: this.minGap,
+                        beamsInShelf: beamsInShelf,
+                        originalBeamWidth: beamWidth,
+                        calculation: `floor((${this.surfaceWidth} + ${this.minGap}) / (${shelfBeamWidth} + ${this.minGap})) = floor(${this.surfaceWidth + this.minGap} / ${shelfBeamWidth + this.minGap}) = ${beamsInShelf}`
+                    }, null, 2));
+                    
+                    // יצירת קורות המדף
+                    const cabinetShelfBeams = [];
+                    for (let i = 0; i < beamsInShelf; i++) {
+                        cabinetShelfBeams.push({
+                            width: beamWidth,
+                            height: beamHeight,
+                            depth: this.surfaceLength, // אורך המדף
+                            x: 0, // ייקבע מאוחר יותר
+                            y: 0, // ייקבע מאוחר יותר
+                            z: 0  // ייקבע מאוחר יותר
+                        });
+                    }
                     
                     this.shelves.forEach((shelf, index) => {
                         const isTopShelf = index === totalShelves - 1; // המדף העליון
