@@ -2559,7 +2559,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.surfaceLength,
                 frameBeamWidth,
                 frameBeamHeight,
-                totalY
+                totalY,
+                plataBeamHeight
             );
             for (const leg of legs) {
                 const geometry = new THREE.BoxGeometry(
@@ -3224,7 +3225,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.surfaceLength,
                 frameBeamWidth,
                 frameBeamHeight,
-                totalY
+                totalY,
+                beamHeight
             );
             for (const leg of legs) {
                     const geometry = new THREE.BoxGeometry(
@@ -5969,7 +5971,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         totalLength: number,
         frameWidth: number,
         frameHeight: number,
-        topHeight: number
+        topHeight: number,
+        shelfBeamHeightParam: number = 0
     ): {
         x: number;
         y: number;
@@ -6032,11 +6035,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // עבור שולחן, הרגליים צריכות להיות בגובה המלא של השולחן פחות עובי הפלטה
         // המיקום שלהן ייקבע בקוד הראשי בהתבסס על גובה הפלטה
         this.debugLog('DEBUG - topHeight:', topHeight);
-        this.debugLog('DEBUG - shelfBeamHeight:', shelfBeamHeight);
-        legHeight = topHeight - shelfBeamHeight; // הרגל צריכה להיות בגובה המלא של השולחן פחות עובי הפלטה
+        this.debugLog('DEBUG - shelfBeamHeightParam:', shelfBeamHeightParam);
+        legHeight = topHeight - shelfBeamHeightParam; // הרגל צריכה להיות בגובה המלא של השולחן פחות עובי הפלטה
         this.debugLog(
             'DEBUG - legHeight calculation:',
-            topHeight - shelfBeamHeight,
+            topHeight - shelfBeamHeightParam,
             '(table height minus plata beam height)'
         );
         // 4 פינות - מיקום צמוד לקצה בהתאם לעובי הרגל בפועל
