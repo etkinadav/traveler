@@ -2116,6 +2116,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     updateBeams(isInitialLoad: boolean = false) {
         this.startTimer('TOTAL_UPDATE_BEAMS');
         
+        // לוג לבדיקת סוג המוצר
+        console.log('CHACK_CABINET - Product type check at start:', {
+            isTable: this.isTable,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            shelvesLength: this.shelves.length
+        });
+        
         // איפוס מחיר להצגת "מחשב מחיר..."
         this.calculatedPrice = 0;
         
@@ -2917,19 +2925,30 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const legWoodTexture = this.getWoodTexture(
                 legType ? legType.name : ''
             );
-            // עבור ארון, נוסיף את גובה קורות המדפים לגובה הרגליים
+            // עבור ארון, הרגליים צריכות להגיע עד לנקודה התחתונה של המדף העליון
+            // כלומר: totalY פחות עובי המדף העליון
             const shelfBeamHeight = beamHeight; // זה כבר מחושב למעלה
             // חישוב גובה כולל לארון
             let totalY = 0;
             for (const shelf of this.shelves) {
                 totalY += shelf.gap + frameBeamHeight + beamHeight;
             }
+            // הרגליים צריכות להגיע עד לנקודה התחתונה של המדף העליון
+            const legHeight = totalY - shelfBeamHeight;
+            
+            this.logCabinet('CHACK_CABINET - Cabinet leg height calculation:', {
+                totalY: totalY,
+                shelfBeamHeight: shelfBeamHeight,
+                legHeight: legHeight,
+                calculation: `${totalY} - ${shelfBeamHeight} = ${legHeight}`
+            });
+            
             const legs = this.createLegBeams(
                 this.surfaceWidth,
                 this.surfaceLength,
                 frameBeamWidth,
                 frameBeamHeight,
-                totalY
+                legHeight
             );
             for (const leg of legs) {
                 const geometry = new THREE.BoxGeometry(
@@ -2955,6 +2974,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.startTimer('CABINET - Total Rendering');
             console.log(`DEBUG-THE-CABINET 📦 Starting cabinet rendering - ${this.shelves.length} shelves`);
             
+            this.logCabinet('CHACK_CABINET - Cabinet rendering check:', {
+                isTable: this.isTable,
+                isPlanter: this.isPlanter,
+                isBox: this.isBox,
+                shelvesLength: this.shelves.length
+            });
+            
+            // הגדרת currentY עבור ארון
+            let currentY = 0;
+            
+            this.logCabinet('CHACK_CABINET - Starting cabinet rendering:', {
+                shelvesCount: this.shelves.length,
+                initialCurrentY: currentY
+            });
+            
             // עבור ארון - הקוד המקורי
             for (
                 let shelfIndex = 0;
@@ -2963,7 +2997,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             ) {
             this.startTimer(`CABINET - Shelf ${shelfIndex + 1}`);
             const shelf = this.shelves[shelfIndex];
+            
+            this.logCabinet(`CHACK_CABINET - Before shelf ${shelfIndex + 1}:`, {
+                currentY: currentY,
+                shelfGap: shelf.gap
+            });
+            
             currentY += shelf.gap;
+            
+            this.logCabinet(`CHACK_CABINET - After adding gap for shelf ${shelfIndex + 1}:`, {
+                currentY: currentY
+            });
                 // Get leg beam dimensions for frame beams positioning
                 const legParam = this.getParam('leg');
                 let legWidth = frameBeamWidth;
@@ -3220,13 +3264,36 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     totalY += shelf.gap + frameBeamHeight + beamHeight;
                 }
             }
+            
+            // חישוב shelfBeamHeight לארון
+            let shelfBeamHeight = beamHeight; // ברירת מחדל
+            const shelfsParam = this.getParam('shelfs');
+            if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length > 0) {
+                const shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+                if (shelfBeam) {
+                    shelfBeamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
+            this.logCabinet('CHACK_CABINET - Cabinet leg calculation:', {
+                surfaceWidth: this.surfaceWidth,
+                surfaceLength: this.surfaceLength,
+                frameBeamWidth: frameBeamWidth,
+                frameBeamHeight: frameBeamHeight,
+                totalY: totalY,
+                beamHeight: beamHeight,
+                shelfBeamHeight: shelfBeamHeight,
+                expectedLegHeight: totalY - shelfBeamHeight,
+                calculation: `${totalY} - ${shelfBeamHeight} = ${totalY - shelfBeamHeight}`
+            });
+            
             const legs = this.createLegBeams(
                 this.surfaceWidth,
                 this.surfaceLength,
                 frameBeamWidth,
                 frameBeamHeight,
                 totalY,
-                beamHeight
+                shelfBeamHeight // בארון הרגליים צריכות להיות בגובה המלא של הארון פחות עובי המדף העליון
             );
             for (const leg of legs) {
                     const geometry = new THREE.BoxGeometry(
@@ -6023,50 +6090,68 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
         }
         // קבלת עובי קורות המדפים כדי לקצר את הרגליים
-        let shelfsParam = null;
-        if (this.isTable) {
-            // עבור שולחן, נשתמש בפרמטר plata במקום shelfs
-            shelfsParam = this.product?.params?.find(
-                (p: any) => p.type === 'beamSingle' && p.name === 'plata'
-            );
-        } else {
-            // עבור ארון, נשתמש בפרמטר shelfs
-            shelfsParam = this.getParam('shelfs');
-        }
-        let shelfBeamHeight = this.beamHeight;
-        if (
-            shelfsParam &&
-            Array.isArray(shelfsParam.beams) &&
-            shelfsParam.beams.length
-        ) {
-            const shelfBeam =
-                shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
-            if (shelfBeam) {
-                this.debugLog(
-                    'DEBUG - shelfBeam.height (raw):',
-                    shelfBeam.height
+        // אם shelfBeamHeightParam מועבר, נשתמש בו (לארון)
+        // אחרת נחשב אותו (לשולחן)
+        let shelfBeamHeight = shelfBeamHeightParam || this.beamHeight;
+        
+        if (shelfBeamHeightParam === 0) {
+            // עבור שולחן, נחשב את shelfBeamHeight
+            let shelfsParam = null;
+            if (this.isTable) {
+                // עבור שולחן, נשתמש בפרמטר plata במקום shelfs
+                shelfsParam = this.product?.params?.find(
+                    (p: any) => p.type === 'beamSingle' && p.name === 'plata'
                 );
-                this.debugLog(
-                    'DEBUG - shelfBeam.height / 10:',
-                    shelfBeam.height / 10
-                );
-                shelfBeamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
-                this.debugLog(
-                    'DEBUG - shelfBeamHeight (final):',
-                    shelfBeamHeight
-                );
+            } else {
+                // עבור ארון, נשתמש בפרמטר shelfs
+                shelfsParam = this.getParam('shelfs');
+            }
+            
+            if (
+                shelfsParam &&
+                Array.isArray(shelfsParam.beams) &&
+                shelfsParam.beams.length
+            ) {
+                const shelfBeam =
+                    shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+                if (shelfBeam) {
+                    this.debugLog(
+                        'DEBUG - shelfBeam.height (raw):',
+                        shelfBeam.height
+                    );
+                    this.debugLog(
+                        'DEBUG - shelfBeam.height / 10:',
+                        shelfBeam.height / 10
+                    );
+                    shelfBeamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
+                    this.debugLog(
+                        'DEBUG - shelfBeamHeight (final):',
+                        shelfBeamHeight
+                    );
+                }
             }
         }
         // עבור שולחן, הרגליים צריכות להיות בגובה המלא של השולחן פחות עובי הפלטה
         // המיקום שלהן ייקבע בקוד הראשי בהתבסס על גובה הפלטה
         this.debugLog('DEBUG - topHeight:', topHeight);
         this.debugLog('DEBUG - shelfBeamHeightParam:', shelfBeamHeightParam);
-        legHeight = topHeight - shelfBeamHeightParam; // הרגל צריכה להיות בגובה המלא של השולחן פחות עובי הפלטה
+        legHeight = topHeight - shelfBeamHeight; // הרגל צריכה להיות בגובה המלא של השולחן פחות עובי הפלטה
         this.debugLog(
             'DEBUG - legHeight calculation:',
-            topHeight - shelfBeamHeightParam,
+            topHeight - shelfBeamHeight,
             '(table height minus plata beam height)'
         );
+        
+        // לוגים לארון בלבד
+        if (!this.isTable) {
+            this.logCabinet('CHACK_CABINET - createLegBeams calculation:', {
+                topHeight: topHeight,
+                shelfBeamHeightParam: shelfBeamHeightParam,
+                shelfBeamHeight: shelfBeamHeight,
+                legHeight: legHeight,
+                calculation: `${topHeight} - ${shelfBeamHeight} = ${legHeight}`
+            });
+        }
         // 4 פינות - מיקום צמוד לקצה בהתאם לעובי הרגל בפועל
         const xVals = [
             -totalWidth / 2 + legWidth / 2, // פינה שמאלית - צמודה לקצה
@@ -6360,7 +6445,22 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
             // עבור המדף הנוכחי, הברגים צריכים להיות במרכז קורת החיזוק
             // קורת החיזוק נמצאת בגובה: currentY + frameHeight/2
-            return currentY + this.frameHeight / 2;
+            const result = currentY + this.frameHeight / 2;
+            
+            this.logCabinet('CHACK_CABINET - getShelfHeight calculation:', {
+                shelfIndex: shelfIndex,
+                currentY: currentY,
+                frameHeight: this.frameHeight,
+                beamHeight: this.beamHeight,
+                result: result,
+                calculation: `${currentY} + ${this.frameHeight}/2 = ${result}`,
+                shelfGap: this.shelves[shelfIndex]?.gap,
+                expectedY: shelfIndex === 0 ? this.shelves[0].gap : 
+                          shelfIndex === 1 ? this.shelves[0].gap + this.frameHeight + this.beamHeight + this.shelves[1].gap :
+                          this.shelves[0].gap + this.frameHeight + this.beamHeight + this.shelves[1].gap + this.frameHeight + this.beamHeight + this.shelves[2].gap
+            });
+            
+            return result;
         }
     }
     // פרמטרים של הבורג (מידות אמיתיות)
@@ -6371,11 +6471,25 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // מניעת לוגים חוזרים
     private lastDimensionsLogTime: number = 0;
+    private lastCabinetLogTime: number = 0;
     
     // פונקציה עזר ללוגים עם מניעת חזרות
     private logDimensions(message: string, data?: any): void {
         const now = Date.now();
         if (!this.lastDimensionsLogTime || now - this.lastDimensionsLogTime > 1000) {
+            if (data) {
+                console.log(message, JSON.stringify(data, null, 2));
+            } else {
+                console.log(message);
+            }
+        }
+    }
+    
+    // פונקציה עזר ללוגים של הארון עם מניעת חזרות
+    private logCabinet(message: string, data?: any): void {
+        const now = Date.now();
+        if (!this.lastCabinetLogTime || now - this.lastCabinetLogTime > 2000) { // כל 2 שניות
+            this.lastCabinetLogTime = now;
             if (data) {
                 console.log(message, JSON.stringify(data, null, 2));
             } else {
@@ -6616,11 +6730,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     beamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
                 }
             }
-            // חישוב totalY - זהה לחישוב בפונקציה updateBeams
-            let totalY = 0;
-            for (const shelf of this.shelves) {
-                totalY += shelf.gap + frameBeamHeight + beamHeight;
-            }
+            // חישוב totalY לפי הנוסחה: S + ((J + K) * N)
+            // S = סכום כל ה-gaps
+            // J = frameBeamHeight (גובה קורת החיזוק)
+            // K = beamHeight (גובה קורת המדף)
+            // N = כמות המדפים
+            const S = this.shelves.reduce((sum, shelf) => sum + shelf.gap, 0);
+            const J = frameBeamHeight;
+            const K = beamHeight;
+            const N = this.shelves.length;
+            const totalY = S + ((J + K) * N);
             // חישוב shelfBeamHeight - זהה לחישוב בפונקציה createLegBeams
             let shelfBeamHeight = this.beamHeight;
             if (
@@ -6634,12 +6753,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     shelfBeamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
                 }
             }
-            // הגובה הכולל = גובה הרגל המחושב (totalY - shelfBeamHeight) - זהה לחישוב בפונקציה createLegBeams
+            // הגובה הכולל = totalY (כי totalY כבר מחושב נכון לפי הנוסחה: S + ((J + K) * N))
             totalHeight = totalY;
+            
+            this.logCabinet('CHACK_CABINET - getProductDimensionsRaw calculation:', {
+                S: S,
+                J: J,
+                K: K,
+                N: N,
+                totalY: totalY,
+                shelfBeamHeight: shelfBeamHeight,
+                totalHeight: totalHeight,
+                calculation: `S + ((J + K) * N) = ${S} + ((${J} + ${K}) * ${N}) = ${S} + (${J + K} * ${N}) = ${S} + ${(J + K) * N} = ${totalY}`,
+                shelves: this.shelves.map(s => ({ gap: s.gap })),
+                frameBeamHeight: frameBeamHeight,
+                beamHeight: beamHeight
+            });
             
             this.logDimensions('CHACK_DIM CALCULATION - CABINET final height calculation:', {
                 totalY: totalY,
-                totalHeight: totalHeight
+                shelfBeamHeight: shelfBeamHeight,
+                totalHeight: totalHeight,
+                calculation: `${totalY} + ${shelfBeamHeight} = ${totalHeight}`
             });
         }
         // חישוב כמות קורות המדף
