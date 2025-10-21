@@ -3283,8 +3283,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     }
                     this.addScrewsToShelfBeam(
                         beam,
-                        currentY + frameBeamHeight,
-                        beamHeight,
+                        currentY + frameBeamHeightCorrect,
+                        beamHeightCorrect,
                         frameBeamWidth,
                         isShortenedBeam
                     );
