@@ -953,6 +953,14 @@
             <!-- כותרת ראשית -->
             <div class="main-header-title">תחשיבים</div>
             
+            <!-- מצב loading -->
+            <div class="pricing-menu-loading" *ngIf="isModelLoading">
+                <div class="simple-spinner always-tiny"></div>
+                <span class="calculating-text">מחשב מחיר...</span>
+            </div>
+            
+            <!-- תוכן התפריט - מוסתר בזמן loading -->
+            <ng-container *ngIf="!isModelLoading">
             <!-- כותרת דינמית -->
             <span class="thinking-text" *ngIf="!BeamsDataForPricing || BeamsDataForPricing.length === 0">{{ 'price-calculation.first-title' | translate }}...</span>
             
@@ -1053,6 +1061,7 @@
                     </div>
                 </div>
             </div>
+            </ng-container>
         </div>
     </div>
 </div>

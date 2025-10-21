@@ -3867,3 +3867,19 @@ mat-form-field {
         }
     }
 }
+
+// מצב loading לתפריט המחיר
+.pricing-menu-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 200px;
+    
+    .calculating-text {
+        margin-top: 12px;
+        color: #666;
+        font-size: 14px;
+    }
+}
