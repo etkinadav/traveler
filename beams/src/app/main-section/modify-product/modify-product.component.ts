@@ -3743,6 +3743,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.startTimer('CABINET - Calculate Beams Data');
         this.BeamsDataForPricing = [];
         
+        console.log('CHACK_CABINET_DIMS - START calculateBeamsData:', JSON.stringify({
+            isBelams: this.isBelams,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isTable: this.isTable,
+            isFuton: this.isFuton,
+            isCabinet: !this.isTable && !this.isPlanter && !this.isBox && !this.isFuton && !this.isBelams
+        }, null, 2));
+        
         this.debugLog('🔍 START - calculateBeamsData:', {
             isBelams: this.isBelams,
             isPlanter: this.isPlanter,
@@ -3759,27 +3768,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // איסוף כל הקורות מהמודל התלת מימדי
         const allBeams: any[] = [];
-        // קבלת נתוני הקורות מהפרמטרים
+        // קבלת נתוני הקורות מהפרמטרים הנכונים
         const shelfParam = this.isTable || this.isFuton
-            ? this.product?.params?.find(
-                  (p: any) => p.type === 'beamSingle' && p.name === 'plata'
-              )
+            ? this.getParam('plata')
             : (this.isPlanter || this.isBox)
-            ? this.product?.params?.find(
-                  (p: any) => p.type === 'beamSingle' && p.name === 'beam'
-              )
-            : this.product?.params?.find(
-                  (p: any) => p.type === 'beamArray' && p.name === 'shelfs'
-              );
-        const frameParam = this.product?.params?.find(
-            (p: any) => p.type === 'beamSingle' && p.name === 'frame'
-        );
-        const legParam = this.product?.params?.find(
-            (p: any) => p.type === 'beamSingle' && p.name === 'leg'
-        );
-        const extraParam = this.product?.params?.find(
-            (p: any) => p.type === 'beamSingle' && p.name === 'extraBeam'
-        );
+            ? this.getParam('beam')
+            : this.getParam('shelfs');
+        const frameParam = this.getParam('frame');
+        const legParam = this.getParam('leg');
+        const extraParam = this.getParam('extraBeam');
+        
+        console.log('CHACK_CABINET_DIMS - PARAMS Found:', JSON.stringify({
+            shelfParam: shelfParam,
+            frameParam: frameParam,
+            legParam: legParam,
+            extraParam: extraParam,
+            surfaceWidth: this.surfaceWidth,
+            surfaceLength: this.surfaceLength,
+            condition1: this.surfaceWidth && this.surfaceLength && shelfParam,
+            condition2: (this.isPlanter || this.isBox) && shelfParam,
+            finalCondition: (this.surfaceWidth && this.surfaceLength && shelfParam) || ((this.isPlanter || this.isBox) && shelfParam)
+        }, null, 2));
         
         this.debugLog('🔍 PARAMS - Found parameters:', {
             shelfParam: shelfParam,
@@ -3800,8 +3809,25 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 selectedBeam?.types?.[shelfParam.selectedTypeIndex || 0];
             if (selectedBeam && selectedType) {
                     this.debugLog('🔍 ENTERED - selectedBeam && selectedType block');
-                    let beamWidth = selectedBeam.height / 10 || this.beamWidth; // המרה ממ"מ לס"מ (height של הקורה)
-                    const beamHeight = selectedBeam.width / 10 || this.beamHeight; // width של הקורה
+                    let beamWidth = selectedBeam.width / 10 || this.beamWidth; // המרה ממ"מ לס"מ (width של הקורה)
+                    const beamHeight = selectedBeam.height / 10 || this.beamHeight; // height של הקורה
+                    
+                    console.log('CHACK_CABINET_DIMS - BEAM DIMENSIONS:', JSON.stringify({
+                        selectedType: selectedType,
+                        selectedBeam: selectedBeam,
+                        originalWidth: selectedType.width,
+                        originalHeight: selectedType.height,
+                        selectedBeamWidth: selectedBeam.width,
+                        selectedBeamHeight: selectedBeam.height,
+                        calculatedBeamWidth: beamWidth,
+                        calculatedBeamHeight: beamHeight,
+                        isPlanter: this.isPlanter,
+                        isBox: this.isBox,
+                        isTable: this.isTable,
+                        isFuton: this.isFuton,
+                        isBelams: this.isBelams,
+                        isCabinet: !this.isTable && !this.isPlanter && !this.isBox && !this.isFuton && !this.isBelams
+                    }, null, 2));
                     
                     this.debugLog('🔍 DEBUG - Beam dimensions calculation:', {
                         selectedType: selectedType,
@@ -4211,6 +4237,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         // עבור בסיס מיטה - אין קורות חיזוק, רק פלטה ורגליים
                         this.debugLog('Futon: No frame beams needed - only platform and legs');
                     } else {
+                        console.log('CHACK_CABINET_DIMS - CABINET SECTION START:', JSON.stringify({
+                            shorteningAmount: shorteningAmount,
+                            shorteningAmountEx: shorteningAmountEx,
+                            shelvesCount: this.shelves.length,
+                            surfaceWidth: this.surfaceWidth,
+                            surfaceLength: this.surfaceLength,
+                            frameWidth: frameWidth,
+                            frameHeight: frameHeight,
+                            selectedType: selectedType,
+                            selectedBeam: selectedBeam
+                        }, null, 2));
+                        
                         this.debugLog(
                             'DEBUG - shorteningAmount:',
                             shorteningAmount
@@ -4490,6 +4528,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 count: beamData.count,
             });
         });
+        console.log('CHACK_CABINET_DIMS - FINAL BEAMS DATA:', JSON.stringify({
+            totalBeamTypes: this.BeamsDataForPricing.length,
+            beamsData: this.BeamsDataForPricing.map((beamData, index) => ({
+                index: index + 1,
+                type: beamData.type,
+                beamName: beamData.beamName,
+                beamTranslatedName: beamData.beamTranslatedName,
+                material: beamData.material,
+                totalSizes: beamData.totalSizes,
+                totalLength: beamData.totalLength,
+                count: beamData.count,
+            }))
+        }, null, 2));
+        
         this.debugLog('*** === END BEAMS DATA ===', this.BeamsDataForPricing);
         // חישוב ברגים
         await this.calculateForgingData();
