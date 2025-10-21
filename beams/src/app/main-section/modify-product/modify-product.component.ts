@@ -3045,7 +3045,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
                 // 4. בדיקת חסימת קורות על ידי רגליים
                 this.debugLog('4. בדיקת חסימת קורות:');
-                const beamAndGapWidth = beamWidth + gapBetweenBeams;
+                const beamAndGapWidth = shelfBeamWidth + gapBetweenBeams;
                 const isTopShelf = shelfIndex === totalShelves - 1;
                 const shouldHideBeams =
                     beamAndGapWidth < legWidth && !isTopShelf;
@@ -3088,7 +3088,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const isTopShelf = shelfIndex === totalShelves - 1;
 
                     // בדיקה אם להסתיר קורות בגלל חסימת רגליים
-                    const beamAndGapWidth = beamWidth + gapBetweenBeams;
+                    const beamAndGapWidth = shelfBeamWidth + gapBetweenBeams;
                     const shouldHideBeams =
                         beamAndGapWidth < legWidth && !isTopShelf;
                     const shouldSkipThisBeam =
@@ -6029,15 +6029,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 );
             }
         }
-        // עבור שולחן, הרגליים צריכות להיות בגובה המלא של השולחן כדי להגיע לריצפה
+        // עבור שולחן, הרגליים צריכות להיות בגובה המלא של השולחן פחות עובי הפלטה
         // המיקום שלהן ייקבע בקוד הראשי בהתבסס על גובה הפלטה
         this.debugLog('DEBUG - topHeight:', topHeight);
         this.debugLog('DEBUG - shelfBeamHeight:', shelfBeamHeight);
-        legHeight = topHeight; // הרגל צריכה להיות בגובה המלא של השולחן
+        legHeight = topHeight - shelfBeamHeight; // הרגל צריכה להיות בגובה המלא של השולחן פחות עובי הפלטה
         this.debugLog(
             'DEBUG - legHeight calculation:',
-            topHeight,
-            '(full table height for legs to reach floor)'
+            topHeight - shelfBeamHeight,
+            '(table height minus plata beam height)'
         );
         // 4 פינות - מיקום צמוד לקצה בהתאם לעובי הרגל בפועל
         const xVals = [

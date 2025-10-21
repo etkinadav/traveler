@@ -950,6 +950,9 @@
         <div class="price-menu-box" 
              [class.with-warning]="hasHiddenBeams || hasNoMiddleBeams"
              *ngIf="isPriceManuOpen">
+            <!-- כותרת ראשית -->
+            <div class="main-header-title">תחשיבים</div>
+            
             <!-- כותרת דינמית -->
             <span class="thinking-text" *ngIf="!BeamsDataForPricing || BeamsDataForPricing.length === 0">{{ 'price-calculation.first-title' | translate }}...</span>
             
