@@ -1280,14 +1280,22 @@ mat-form-field {
             .price-label {
                 font-weight: 600;
                 color: #333;
-                font-size: 14px;
+                font-size: 12px; // אותו גודל כמו המחיר
+                
+                @media (min-width: 992px) { // LG ומעלה
+                    font-size: 16px; // אותו גודל כמו המחיר במסכים גדולים
+                }
             }
             
             .price-value-inline {
-                font-size: 16px;
+                font-size: 12px; // הוקטן מ-16px ל-12px
                 font-weight: bold;
                 color: var(--zx-green);
                 padding: 0 4px;
+                
+                @media (min-width: 992px) { // LG ומעלה
+                    font-size: 16px; // גודל מקורי במסכים גדולים
+                }
             }
         }
     }
@@ -2269,7 +2277,7 @@ mat-form-field {
 .size-value {
     color: #333;
     font-weight: normal;
-    font-size: 12px !important;
+    font-size: 12px !important; // חזרה למצב המקורי
     flex-shrink: 0;
     white-space: nowrap;
 }
@@ -2286,7 +2294,7 @@ mat-form-field {
 
 .size-count {
     color: #666;
-    font-size: 12px !important;
+    font-size: 12px !important; // חזרה למצב המקורי
     flex-shrink: 0;
     white-space: nowrap;
 }
@@ -2507,18 +2515,18 @@ mat-form-field {
         }
         
         .capsule-label {
-            font-size: 18px; // הוגדל מ-16px ל-18px בדסקטופ
+            font-size: 14px; // הוקטן מ-18px ל-14px בדסקטופ
             color: #666;
             font-weight: 600;
             margin-bottom: 0px;
             
             @media (max-width: 576px) {
-                font-size: 14px; // הוגדל מ-12px ל-14px במובייל
+                font-size: 12px; // הוקטן מ-14px ל-12px במובייל
             }
         }
         
         .capsule-value {
-            font-size: 16px; // הוגדל מ-14px ל-16px בדסקטופ
+            font-size: 12px; // הוקטן מ-16px ל-12px בדסקטופ
             font-weight: 600;
             color: #0066cc;
         }
