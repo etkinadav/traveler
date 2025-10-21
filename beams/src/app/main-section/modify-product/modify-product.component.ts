@@ -6425,26 +6425,40 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.debugLog('Leg positions for calculation:', legPositions[0]);
                 // הוספת גובה קורות הפלטה
             } else {
-                // עבור ארון, השתמש באותו חישוב כמו הברגים של המדפים
-                // הברגים של המדפים מוצבים ב: currentY + frameBeamHeight
-                // אז הברגים של הרגליים צריכים להיות באותו גובה
-                const shelfHeight = this.getShelfHeight(shelfIndex);
-                const beamHeight = this.beamHeight;
-                const frameHeight = this.frameHeight;
-                // חישוב ידני של הגובה כמו ב-3D model
-            let manualCurrentY = 0;
-            for (let i = 0; i <= shelfIndex; i++) {
-                manualCurrentY += this.shelves[i].gap;
-                if (i < shelfIndex) {
-                    manualCurrentY += this.frameHeight + this.beamHeight;
+                // עבור ארון, חישוב נכון של הגובה
+                // קריאת גובה קורת המדף מהפרמטרים
+                let beamHeightCorrect = this.beamHeight; // ברירת מחדל
+                const shelfsParam = this.getParam('shelfs');
+                if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
+                    const shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+                    if (shelfBeam) {
+                        beamHeightCorrect = shelfBeam.height / 10; // המרה ממ"מ לס"מ
+                    }
                 }
-            }
-            const shelfHeightFromFunction = this.getShelfHeight(shelfIndex);
-                const expectedManualY = manualCurrentY + this.frameHeight / 2;
-                // עכשיו נציב את הברגים במרכז קורת החיזוק
-                // getShelfHeight מחזיר כעת את המרכז של קורת החיזוק
-                // אז אנחנו יכולים להשתמש בו ישירות
-                currentShelfY = shelfHeightFromFunction;
+                
+                // חישוב הקפיצה בין שכבה לשכבה
+                // הקפיצה = שלב המדף (shelfGap) + רוחב קורת הרגל (frameBeamHeight) + גובה קורת המדף (beamHeightCorrect)
+                let cumulativeY = 0;
+                for (let i = 0; i <= shelfIndex; i++) {
+                    const shelf = this.shelves[i];
+                    cumulativeY += shelf.gap;
+                    if (i < shelfIndex) {
+                        cumulativeY += frameBeamHeight + beamHeightCorrect;
+                    }
+                }
+                
+                // הברגים צריכים להיות במרכז קורת החיזוק
+                currentShelfY = cumulativeY + frameBeamHeight / 2;
+                
+                console.log(`CHACK_SCREWS_LEGS - Cabinet Layer ${shelfIndex + 1}:`, JSON.stringify({
+                    shelfIndex: shelfIndex,
+                    shelfGap: this.shelves[shelfIndex].gap,
+                    frameBeamHeight: frameBeamHeight,
+                    beamHeightCorrect: beamHeightCorrect,
+                    cumulativeY: cumulativeY,
+                    currentShelfY: currentShelfY,
+                    calculation: `cumulativeY (${cumulativeY}) + frameBeamHeight/2 (${frameBeamHeight}/2) = ${currentShelfY}`
+                }, null, 2));
             }
             legPositions.forEach((leg, legIndex) => {
                 const isEven = legIndex % 2 === 0;
