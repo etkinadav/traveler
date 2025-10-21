@@ -3283,7 +3283,32 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         setTimeout(() => {
             this.calculatePricing();
         }, 0);
+        
+        // הפעלת קובית המידות ומצב שקוף 2 שניות אחרי הטעינה
+        if (isInitialLoad) {
+            setTimeout(() => {
+                this.autoEnableWireframeAndTransparent();
+            }, 2000);
+        }
     }
+    
+    // פונקציה להפעלה אוטומטית של קובית המידות ומצב שקוף
+    private autoEnableWireframeAndTransparent() {
+        console.log('🎯 AUTO-ENABLE: הפעלת קובית המידות ומצב שקוף אוטומטית');
+        
+        // 1. הפעלת קובית המידות
+        if (!this.showWireframe) {
+            this.toggleWireframe();
+            console.log('🎯 AUTO-ENABLE: קובית המידות הופעלה');
+        }
+        
+        // 2. הפעלת מצב שקוף
+        if (!this.isTransparentMode) {
+            this.toggleTransparentMode();
+            console.log('🎯 AUTO-ENABLE: מצב שקוף הופעל');
+        }
+    }
+    
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
     private addWireframeCube() {
         // Remove existing wireframe cube if it exists
