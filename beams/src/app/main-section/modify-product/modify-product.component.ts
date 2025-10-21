@@ -4074,9 +4074,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const legBeamSelected =
                         legParam?.beams?.[legParam.selectedBeamIndex || 0];
                     const legBeamWidth = legBeamSelected?.width / 10 || 0; // רוחב קורת הרגל
+                    const legBeamHeight = legBeamSelected?.height / 10 || 0; // גובה קורת הרגל
                     
                     console.log('CHACK_CABINET_DIMS - LEG BEAM FOR CALCULATION:', JSON.stringify({
                         legBeamWidth: legBeamWidth,
+                        legBeamHeight: legBeamHeight,
                         legBeamSelected: legBeamSelected
                     }, null, 2));
                     
@@ -4126,7 +4128,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             if (!isTopShelf) {
                                 // קורות בקצוות (ראשונה ואחרונה) מקוצרות
                                 if (beamIndex === 0 || beamIndex === cabinetShelfBeams.length - 1) {
-                                    beamLength = beamLength - legBeamWidth; // מורידים רק רוחב קורת הרגל (5 ס"מ)
+                                    beamLength = beamLength - (legBeamHeight * 2); // מורידים פעמיים גובה קורת הרגל
                                     isShortened = true;
                                 }
                             }
@@ -4197,17 +4199,24 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         selectedType.height / 10 || this.frameWidth; // המרה ממ"מ לס"מ
                     const frameHeight =
                         selectedType.width / 10 || this.frameHeight;
-                    // חישוב קיצור קורות החיזוק - פעמיים גובה קורות הרגל
+                    // חישוב קיצור קורות החיזוק - פעמיים רוחב קורות הרגל
                     // מציאת קורת הרגל לחישוב הקיצור
-                    const legParam = this.product?.params?.find(
-                        (p: any) => p.type === 'beamSingle' && p.name === 'leg'
-                    );
+                    const legParam = this.getParam('leg');
                     const legBeamSelected =
                         legParam?.beams?.[legParam.selectedBeamIndex || 0];
                     const legBeamHeight = legBeamSelected?.height / 10 || 0;
                     const legBeamWidth = legBeamSelected?.width / 10 || 0;
-                    const shorteningAmount = legBeamHeight * 2; // פעמיים גובה קורת הרגל
-                    const shorteningAmountEx = legBeamWidth * 2; // פעמיים גובה קורת הרגל
+                    const shorteningAmount = legBeamHeight * 2; // פעמיים גובה קורת הרגל - לקורות לכיוון האורך
+                    const shorteningAmountEx = legBeamWidth * 2; // פעמיים רוחב קורת הרגל - לקורות לכיוון הרוחב
+                    
+                    console.log('CHACK_CABINET_DIMS - SHORTENING CALCULATION:', JSON.stringify({
+                        legBeamSelected: legBeamSelected,
+                        legBeamHeight: legBeamHeight,
+                        legBeamWidth: legBeamWidth,
+                        shorteningAmount: shorteningAmount,
+                        shorteningAmountEx: shorteningAmountEx,
+                        calculation: `legBeamHeight (${legBeamHeight}) * 2 = ${shorteningAmount}, legBeamWidth (${legBeamWidth}) * 2 = ${shorteningAmountEx}`
+                    }, null, 2));
                     if (this.isTable) {
                         // עבור שולחן - 4 קורות חיזוק מקוצרות
                         // קורות רוחב מקוצרות
