@@ -951,7 +951,7 @@
              [class.with-warning]="hasHiddenBeams || hasNoMiddleBeams"
              *ngIf="isPriceManuOpen">
             <!-- כותרת ראשית -->
-            <div class="main-header-title">תחשיבים</div>
+            <div class="main-header-title" style="text-align: center;">תחשיבים</div>
             
             <!-- מצב loading -->
             <div class="pricing-menu-loading" *ngIf="isModelLoading">
@@ -967,10 +967,13 @@
             <!-- הוראות חיתוך והרכבה (תמיד מוצגות) -->
             <div class="instructions-section">
                 <div class="main-title">הוראות חיתוך והרכבה</div>
-                <div class="menu-capsules">
-                    <div class="menu-capsule">
-                        <div class="menu-capsule-label">שרטוט</div>
-                        <div class="menu-capsule-value">{{ drawingPrice }} ₪</div>
+                <div class="materials-summary required-lengths-summary">
+                    <div class="beam-type-section">
+                        <div class="size-item">
+                            <span class="size-value">שרטוט</span>
+                            <span class="size-separator"></span>
+                            <span class="size-count">{{ drawingPrice }} ₪</span>
+                        </div>
                     </div>
                 </div>
             </div>
