@@ -3365,20 +3365,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
     
     
-     // פונקציה להפעלה אוטומטית של קובית המידות ומצב שקוף
+     // פונקציה להפעלה אוטומטית של קובית המידות בלבד
      private autoEnableWireframeAndTransparent() {
-        console.log('🎯 AUTO-ENABLE: הפעלת קובית המידות ומצב שקוף אוטומטית');
+        console.log('🎯 AUTO-ENABLE: הפעלת קובית המידות אוטומטית');
         
-        // 1. הפעלת קובית המידות
+        // הפעלת קובית המידות
         if (!this.showWireframe) {
             this.toggleWireframe();
             console.log('🎯 AUTO-ENABLE: קובית המידות הופעלה');
-        }
-        
-        // 2. הפעלת מצב שקוף
-        if (!this.isTransparentMode) {
-            this.toggleTransparentMode();
-            console.log('🎯 AUTO-ENABLE: מצב שקוף הופעל');
         }
     }
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
