@@ -4073,12 +4073,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     });
                     
                     // מציאת קורת הרגל/החיזוק לחישוב הקיצור
-                    const legParam = this.product?.params?.find(
-                        (p: any) => p.type === 'beamSingle' && p.name === 'leg'
-                    );
+                    const legParam = this.getParam('leg');
                     const legBeamSelected =
                         legParam?.beams?.[legParam.selectedBeamIndex || 0];
                     const legBeamWidth = legBeamSelected?.width / 10 || 0; // רוחב קורת הרגל
+                    
+                    console.log('CHACK_CABINET_DIMS - LEG BEAM FOR CALCULATION:', JSON.stringify({
+                        legBeamWidth: legBeamWidth,
+                        legBeamSelected: legBeamSelected
+                    }, null, 2));
                     
                     this.debugLog('🔍 LEG BEAM:', {
                         legBeamWidth: legBeamWidth,
@@ -4342,9 +4345,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 shelfBeamHeight = shelfBeamSelected?.height / 10 || 0;
             } else {
                 // עבור ארון - רק גובה קורת המדף עצמה
-                const shelfParam = this.product?.params?.find(
-                    (p: any) => p.type === 'beamArray' && p.name === 'shelfs'
-                );
+                const shelfParam = this.getParam('shelfs');
                 const shelfBeamSelected =
                     shelfParam?.beams?.[shelfParam.selectedBeamIndex || 0];
                 shelfBeamHeight = shelfBeamSelected?.height / 10 || 0;
