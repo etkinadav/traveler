@@ -432,8 +432,22 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const start = param._editStartValue;
         const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default);
         const changed = parsed !== start;
+        
         if (changed) {
+            console.log('UPDATE_NUM - onNumberCommit updating model:', JSON.stringify({
+                paramName: param.name,
+                rawValue: raw,
+                parsedValue: parsed,
+                wasClamped: parsed !== raw,
+                min: param.min,
+                max: param.max
+            }, null, 2));
+            
+            // עדכון הערך במודל
             param.default = parsed;
+            // עדכון הערך הזמני גם כן
+            param.editingValue = parsed;
+            
             this.updateModel();
         }
         // איפוס ערכי עזר
@@ -445,8 +459,22 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const start = param._editStartValue;
         const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default);
         const changed = parsed !== start;
+        
         if (changed) {
+            console.log('UPDATE_NUM - onGenericNumberCommit updating model:', JSON.stringify({
+                paramName: param.name,
+                rawValue: raw,
+                parsedValue: parsed,
+                wasClamped: parsed !== raw,
+                min: param.min,
+                max: param.max
+            }, null, 2));
+            
+            // עדכון הערך במודל
             param.default = parsed;
+            // עדכון הערך הזמני גם כן
+            param.editingValue = parsed;
+            
             // עדכון דרך הפונקציה הכללית כדי לשמר לוגיקת צד-שרת/אימות קיימת
             this.updateParameterValue(param, parsed);
         }
@@ -469,8 +497,24 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const raw = param._editingValues ? param._editingValues[logicalIndex] : param.default[logicalIndex];
         const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default[logicalIndex]);
         const changed = parsed !== start;
+        
         if (changed) {
+            console.log('UPDATE_NUM - onShelfNumberCommit updating model:', JSON.stringify({
+                paramName: param.name,
+                index: index,
+                rawValue: raw,
+                parsedValue: parsed,
+                wasClamped: parsed !== raw,
+                min: param.min,
+                max: param.max
+            }, null, 2));
+            
+            // עדכון הערך במודל
             param.default[logicalIndex] = parsed;
+            // עדכון הערך הזמני גם כן
+            if (!param._editingValues) param._editingValues = [];
+            param._editingValues[logicalIndex] = parsed;
+            
             this.updateBeams();
         }
         if (param._editStartArray) delete param._editStartArray[logicalIndex];
@@ -487,12 +531,30 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // האם יש שינוי בערך העריכה לעומת ערך קיים
     shouldShowCommit(param: any): boolean {
         if (param && param.editingValue !== undefined) {
-            const parsed = this.parseNumberWithinBounds(param.editingValue, param.min, param.max, param.default);
-            return parsed !== param.default;
+            // בדיקה אם הערך הגולמי שונה מהערך הנוכחי (ללא הגבלה)
+            return param.editingValue !== param.default;
         }
         return false;
     }
 
+    // טיפול ב-input event - רק מאחסן ערך זמני, ללא קלמפינג בזמן הקלדה
+    onNumberInput(param: any, event: any) {
+        const value = parseFloat(event.target.value);
+        if (!isNaN(value)) {
+            param.editingValue = value;
+        }
+    }
+    
+    // טיפול ב-input event למדפים - רק מאחסן ערך זמני למיקום המתאים
+    onShelfNumberInput(param: any, event: any, index: number) {
+        const value = parseFloat(event.target.value);
+        if (!isNaN(value)) {
+            const logicalIndex = index;
+            if (!param._editingValues) param._editingValues = [];
+            param._editingValues[logicalIndex] = value;
+        }
+    }
+    
     // לחצן עדכון מהיר לאינפוט בודד
     onNumberQuickCommit(param: any, inputEl?: HTMLInputElement) {
         this.onNumberCommit(param);
@@ -504,8 +566,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const logicalIndex = index;
         const hasEditing = param && param._editingValues && param._editingValues[logicalIndex] !== undefined;
         if (!hasEditing) return false;
-        const parsed = this.parseNumberWithinBounds(param._editingValues[logicalIndex], param.min, param.max, param.default[logicalIndex]);
-        return parsed !== param.default[logicalIndex];
+        // בדיקה אם הערך הגולמי שונה מהערך הנוכחי (ללא הגבלה)
+        return param._editingValues[logicalIndex] !== param.default[logicalIndex];
     }
 
     onShelfQuickCommit(param: any, index: number, inputEl?: HTMLInputElement) {
@@ -3429,12 +3491,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.calculatePricing();
         }, 0);
         
-        // הפעלת קובית המידות ומצב שקוף 2 שניות אחרי הטעינה
-        if (isInitialLoad) {
-            setTimeout(() => {
-                this.autoEnableWireframeAndTransparent();
-            }, 2000);
-        }
+  // הפעלת קובית המידות ומצב שקוף 2 שניות אחרי הטעינה
+  if (isInitialLoad) {
+    setTimeout(() => {
+        this.autoEnableWireframeAndTransparent();
+    }, 2000);
+    }
     }
     
     
