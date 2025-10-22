@@ -66,6 +66,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     private isUserAuthenticated = false;
     private authToken: string | null = null;
+    
     // Validation messages (הוסרו - משתמשים ב-SnackBar)
     // Helper for numeric step
     getStep(type: number): number {
@@ -690,7 +691,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             param._editingValues[logicalIndex] = value;
         }
     }
-    
+
     // לחצן עדכון מהיר לאינפוט בודד
     onNumberQuickCommit(param: any, inputEl?: HTMLInputElement) {
         this.onNumberCommit(param);
@@ -763,6 +764,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     toggleDropdown(type: string, param: any) {
         const key = `${type}_${param.name}`;
         this.openDropdowns[key] = !this.openDropdowns[key];
+        
+        console.log('BEAM_PLANTER_BOX - toggleDropdown called:', JSON.stringify({
+            type: type,
+            paramName: param.name,
+            paramType: param.type,
+            key: key,
+            isOpen: this.openDropdowns[key],
+            isPlanter: this.isPlanter,
+            isBox: this.isBox
+        }, null, 2));
     }
 
     isDropdownOpen(type: string, param: any): boolean {
@@ -771,14 +782,120 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
 
     selectBeam(index: number, param: any) {
+        console.log('BEAM_PLANTER_BOX - selectBeam called:', JSON.stringify({
+            paramName: param.name,
+            paramType: param.type,
+            oldBeamIndex: param.selectedBeamIndex,
+            newBeamIndex: index,
+            selectedBeam: param.beams[index] ? {
+                name: param.beams[index].name,
+                translatedName: param.beams[index].translatedName,
+                width: param.beams[index].width,
+                height: param.beams[index].height
+            } : null,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isTable: this.isTable,
+            isFuton: this.isFuton,
+            isBelams: this.isBelams
+        }, null, 2));
+        
+        // Update the parameter object directly in this.product.params by name to ensure we modify the right object
+        const beamParamIndex = this.product?.params?.findIndex((p: any) => 
+            p.name === param.name && p.type === param.type
+        );
+        
+        console.log('BEAM_PLANTER_BOX - Finding param by name/type:', {
+            paramName: param.name,
+            paramType: param.type,
+            foundIndex: beamParamIndex,
+            currentValueInArray: beamParamIndex >= 0 ? this.product.params[beamParamIndex].selectedBeamIndex : 'not found'
+        });
+        
+        if (beamParamIndex !== undefined && beamParamIndex >= 0) {
+            this.product.params[beamParamIndex].selectedBeamIndex = index;
+            this.product.params[beamParamIndex].selectedTypeIndex = 0; // איפוס בחירת סוג העץ לסוג הראשון
+            
+            console.log('BEAM_PLANTER_BOX - Updated param in product.params:', {
+                index: beamParamIndex,
+                newSelectedBeamIndex: this.product.params[beamParamIndex].selectedBeamIndex,
+                newSelectedTypeIndex: this.product.params[beamParamIndex].selectedTypeIndex
+            });
+        } else {
+            console.error('BEAM_PLANTER_BOX - Could not find param in product.params!', {
+                paramName: param.name,
+                paramType: param.type,
+                allParams: this.product?.params?.map(p => ({ name: p.name, type: p.type }))
+            });
+        }
+        
         param.selectedBeamIndex = index;
         param.selectedTypeIndex = 0; // איפוס בחירת סוג העץ לסוג הראשון
+        
+        // Save the selection to localStorage so it persists across page refreshes
+        const storageKey = `selectedBeamIndex_${this.product?.name}_${param.name}`;
+        localStorage.setItem(storageKey, index.toString());
+        console.log('BEAM_PLANTER_BOX - Saved to localStorage:', { 
+            key: storageKey, 
+            value: index,
+            productName: this.product?.name,
+            paramName: param.name,
+            allKeys: Object.keys(localStorage).filter(k => k.includes('selectedBeamIndex'))
+        });
+        
+        console.log('BEAM_PLANTER_BOX - selectBeam updated:', JSON.stringify({
+            paramName: param.name,
+            newBeamIndex: param.selectedBeamIndex,
+            newTypeIndex: param.selectedTypeIndex,
+            selectedBeam: param.beams[param.selectedBeamIndex] ? {
+                name: param.beams[param.selectedBeamIndex].name,
+                translatedName: param.beams[param.selectedBeamIndex].translatedName,
+                width: param.beams[param.selectedBeamIndex].width,
+                height: param.beams[param.selectedBeamIndex].height
+            } : null,
+            selectedType: param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex] ? {
+                name: param.beams[param.selectedBeamIndex].types[param.selectedTypeIndex].name,
+                translatedName: param.beams[param.selectedBeamIndex].types[param.selectedTypeIndex].translatedName
+            } : null
+        }, null, 2));
+        
+        console.log('BEAM_PLANTER_BOX - About to call updateBeams after selectBeam');
+        console.log('BEAM_PLANTER_BOX - Param state before updateBeams:', {
+            paramName: param.name,
+            selectedBeamIndex: param.selectedBeamIndex,
+            selectedTypeIndex: param.selectedTypeIndex,
+            selectedBeam: param.beams[param.selectedBeamIndex]?.translatedName
+        });
         this.updateBeams();
         this.closeDropdown('beam', param);
     }
 
     selectType(index: number, param: any) {
+        console.log('BEAM_PLANTER_BOX - selectType called:', JSON.stringify({
+            paramName: param.name,
+            paramType: param.type,
+            beamIndex: param.selectedBeamIndex,
+            oldTypeIndex: param.selectedTypeIndex,
+            newTypeIndex: index,
+            selectedBeam: param.beams[param.selectedBeamIndex],
+            selectedType: param.beams[param.selectedBeamIndex]?.types[index],
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isTable: this.isTable,
+            isFuton: this.isFuton,
+            isBelams: this.isBelams
+        }, null, 2));
+        
         param.selectedTypeIndex = index;
+        
+        console.log('BEAM_PLANTER_BOX - selectType updated:', JSON.stringify({
+            paramName: param.name,
+            beamIndex: param.selectedBeamIndex,
+            newTypeIndex: param.selectedTypeIndex,
+            selectedBeam: param.beams[param.selectedBeamIndex],
+            selectedType: param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex]
+        }, null, 2));
+        
         this.updateBeams();
         this.closeDropdown('type', param);
     }
@@ -1360,14 +1477,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         param.beams.length
                     ) {
                         this.debugLog('Setting default beam for beamSingle parameter:', param.name);
-                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
-                        param.selectedBeamIndex = defaultBeamIndex;
-                        param.selectedTypeIndex =
-                            Array.isArray(param.beams[defaultBeamIndex].types) &&
-                            param.beams[defaultBeamIndex].types.length
-                                ? 0
-                                : null;
-                        this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        // Only set default if selectedBeamIndex is not already set (same as shelfs)
+                        if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
+                            const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                            param.selectedBeamIndex = defaultBeamIndex;
+                            param.selectedTypeIndex =
+                                Array.isArray(param.beams[defaultBeamIndex].types) &&
+                                param.beams[defaultBeamIndex].types.length
+                                    ? 0
+                                    : null;
+                            this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        } else {
+                            this.debugLog('BeamSingle parameter', param.name, 'already has selectedBeamIndex:', param.selectedBeamIndex);
+                        }
                     }
                     // טיפול בפרמטר beamArray עם setAmount עבור מוצר קורות
                     if (
@@ -1482,14 +1604,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         param.beams.length
                     ) {
                         this.debugLog('Setting default beam for beamSingle parameter:', param.name);
-                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
-                        param.selectedBeamIndex = defaultBeamIndex;
-                        param.selectedTypeIndex =
-                            Array.isArray(param.beams[defaultBeamIndex].types) &&
-                            param.beams[defaultBeamIndex].types.length
-                                ? 0
-                                : null;
-                        this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        // Only set default if selectedBeamIndex is not already set (same as shelfs)
+                        if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
+                            const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                            param.selectedBeamIndex = defaultBeamIndex;
+                            param.selectedTypeIndex =
+                                Array.isArray(param.beams[defaultBeamIndex].types) &&
+                                param.beams[defaultBeamIndex].types.length
+                                    ? 0
+                                    : null;
+                            this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        } else {
+                            this.debugLog('BeamSingle parameter', param.name, 'already has selectedBeamIndex:', param.selectedBeamIndex);
+                        }
                     }
                     // טיפול בפרמטר beamArray עם setAmount עבור מוצר קורות
                     if (
@@ -2331,6 +2458,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     updateBeams(isInitialLoad: boolean = false) {
+        console.log('BEAM_PLANTER_BOX - updateBeams called');
         this.startTimer('TOTAL_UPDATE_BEAMS');
         
         // לוג לבדיקת סוג המוצר
@@ -2445,19 +2573,115 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 (p: any) => p.type === 'beamSingle' && p.name === 'plata'
             );
         } else if (this.isPlanter || this.isBox) {
-            // עבור עדנית, נשתמש בפרמטר beam
+            // עבור עדנית/קופסא, נשתמש בפרמטר beam
+            console.log('BEAM_PLANTER_BOX - Looking for beam param for planter/box');
             this.debugLog('מחפש פרמטר beam לעדנית...');
             this.debugLog('פרמטרים זמינים:', this.product?.params?.map(p => ({name: p.name, type: p.type})));
-            shelfsParam = this.product?.params?.find(
+            
+            // Find the parameter by reference, not by creating a new object
+            const beamParamIndex = this.product?.params?.findIndex(
                 (p: any) => p.type === 'beamSingle' && p.name === 'beam'
             );
+            shelfsParam = beamParamIndex !== undefined && beamParamIndex >= 0 ? 
+                this.product.params[beamParamIndex] : null;
+            
             this.debugLog('shelfsParam נמצא:', shelfsParam);
+            
+            console.log('BEAM_PLANTER_BOX - Found beam param for planter/box:', JSON.stringify({
+                paramName: shelfsParam?.name,
+                paramType: shelfsParam?.type,
+                selectedBeamIndex: shelfsParam?.selectedBeamIndex,
+                selectedTypeIndex: shelfsParam?.selectedTypeIndex,
+                beams: shelfsParam?.beams?.map(b => ({
+                    name: b.name,
+                    translatedName: b.translatedName,
+                    width: b.width,
+                    height: b.height
+                }))
+            }, null, 2));
+            
+            // Add detailed log to check if this is the same parameter object
+            console.log('BEAM_PLANTER_BOX - Parameter object reference check:', {
+                shelfsParamExists: !!shelfsParam,
+                isArray: Array.isArray(this.product?.params),
+                allParams: this.product?.params?.map(p => ({
+                    name: p.name,
+                    type: p.type,
+                    selectedBeamIndex: p.selectedBeamIndex,
+                    selectedTypeIndex: p.selectedTypeIndex,
+                    hasBeams: !!p.beams
+                }))
+            });
+            
+            // CRITICAL FIX: Force refresh the parameter object to get the latest selectedBeamIndex
+            if (shelfsParam && beamParamIndex !== undefined && beamParamIndex >= 0) {
+                // Get the latest parameter object from the array
+                const latestParam = this.product.params[beamParamIndex];
+                if (latestParam && latestParam.selectedBeamIndex !== undefined) {
+                    shelfsParam.selectedBeamIndex = latestParam.selectedBeamIndex;
+                    shelfsParam.selectedTypeIndex = latestParam.selectedTypeIndex;
+                    console.log('BEAM_PLANTER_BOX - REFRESHED parameter object with latest values:', {
+                        selectedBeamIndex: shelfsParam.selectedBeamIndex,
+                        selectedTypeIndex: shelfsParam.selectedTypeIndex
+                    });
+                }
+            }
         } else {
             // עבור ארון, נשתמש בפרמטר shelfs
-            shelfsParam = this.product?.params?.find(
+            const shelfsParamIndex = this.product?.params?.findIndex(
                 (p: any) => p.type === 'beamArray' && p.name === 'shelfs'
             );
+            shelfsParam = shelfsParamIndex !== undefined && shelfsParamIndex >= 0 ? 
+                this.product.params[shelfsParamIndex] : null;
         }
+        
+        // Only initialize selectedBeamIndex if it's truly undefined (not just 0)
+        console.log('BEAM_PLANTER_BOX - Before initialization check:', {
+            shelfsParamExists: !!shelfsParam,
+            currentSelectedBeamIndex: shelfsParam?.selectedBeamIndex,
+            isUndefined: shelfsParam?.selectedBeamIndex === undefined,
+            isNull: shelfsParam?.selectedBeamIndex === null,
+            type: typeof shelfsParam?.selectedBeamIndex
+        });
+        
+        if (shelfsParam && shelfsParam.selectedBeamIndex === undefined) {
+            // Try to load from localStorage first
+            const storageKey = `selectedBeamIndex_${this.product?.name}_${shelfsParam.name}`;
+            const savedIndex = localStorage.getItem(storageKey);
+            console.log('BEAM_PLANTER_BOX - localStorage check:', { 
+                key: storageKey, 
+                savedIndex: savedIndex,
+                allKeys: Object.keys(localStorage).filter(k => k.includes('selectedBeamIndex'))
+            });
+            if (savedIndex !== null) {
+                shelfsParam.selectedBeamIndex = parseInt(savedIndex, 10);
+                console.log('BEAM_PLANTER_BOX - Loaded from localStorage:', { key: storageKey, value: savedIndex });
+            } else {
+                shelfsParam.selectedBeamIndex = 0;
+                console.log('BEAM_PLANTER_BOX - No saved value in localStorage, defaulting to 0');
+            }
+        } else if (shelfsParam && shelfsParam.selectedBeamIndex !== undefined) {
+            console.log('BEAM_PLANTER_BOX - selectedBeamIndex already set, keeping value:', shelfsParam.selectedBeamIndex);
+        } else {
+            console.log('BEAM_PLANTER_BOX - selectedBeamIndex already set, not initializing:', shelfsParam?.selectedBeamIndex);
+        }
+        if (shelfsParam && shelfsParam.selectedTypeIndex === undefined) {
+            shelfsParam.selectedTypeIndex = 0;
+        }
+        
+        console.log('BEAM_PLANTER_BOX - About to select beam:', JSON.stringify({
+            shelfsParamExists: !!shelfsParam,
+            selectedBeamIndex: shelfsParam?.selectedBeamIndex,
+            selectedTypeIndex: shelfsParam?.selectedTypeIndex,
+            beamsCount: shelfsParam?.beams?.length,
+            availableBeams: shelfsParam?.beams?.map(b => ({
+                name: b.name,
+                translatedName: b.translatedName,
+                width: b.width,
+                height: b.height
+            }))
+        }, null, 2));
+        
         let shelfBeam = null;
         let shelfType = null;
         if (
@@ -2465,13 +2689,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             Array.isArray(shelfsParam.beams) &&
             shelfsParam.beams.length
         ) {
-            shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+            shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex];
             shelfType =
                 shelfBeam.types && shelfBeam.types.length
-                    ? shelfBeam.types[shelfsParam.selectedTypeIndex || 0]
+                    ? shelfBeam.types[shelfsParam.selectedTypeIndex]
                     : null;
             this.debugLog('shelfBeam נמצא:', shelfBeam);
             this.debugLog('shelfType נמצא:', shelfType);
+            
+            console.log('BEAM_PLANTER_BOX - Selected beam and type:', JSON.stringify({
+                shelfBeam: shelfBeam ? {
+                    name: shelfBeam.name,
+                    translatedName: shelfBeam.translatedName,
+                    width: shelfBeam.width,
+                    height: shelfBeam.height
+                } : null,
+                shelfType: shelfType ? {
+                    name: shelfType.name,
+                    translatedName: shelfType.translatedName
+                } : null,
+                selectedBeamIndex: shelfsParam.selectedBeamIndex,
+                selectedTypeIndex: shelfsParam.selectedTypeIndex
+            }, null, 2));
         } else {
             this.debugLog('shelfsParam לא תקין:', shelfsParam);
             this.debugLog('beams array:', shelfsParam?.beams);
@@ -2873,6 +3112,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
         
         if (this.isPlanter || this.isBox) {
+            console.log('BEAM_PLANTER_BOX - Starting 3D beam creation for planter/box:', JSON.stringify({
+                isPlanter: this.isPlanter,
+                isBox: this.isBox,
+                shelfBeam: shelfBeam,
+                shelfType: shelfType,
+                beamWidth: beamWidth,
+                beamHeight: beamHeight,
+                selectedBeamIndex: shelfsParam?.selectedBeamIndex,
+                selectedTypeIndex: shelfsParam?.selectedTypeIndex
+            }, null, 2));
+            
             // עבור עדנית, נציג רצפה של קורות
             const heightParam = this.getParam('height');
             const depthParam = this.getParam('depth');
@@ -2881,6 +3131,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const planterHeight = heightParam ? heightParam.default : 50;
             const planterDepth = widthParam ? widthParam.default : 50;  // depth input -> planterDepth
             const planterWidth = depthParam ? depthParam.default : 40;  // width input -> planterWidth
+            
+            console.log('BEAM_PLANTER_BOX - Planter/Box dimensions:', JSON.stringify({
+                planterHeight: planterHeight,
+                planterDepth: planterDepth,
+                planterWidth: planterWidth,
+                beamWidth: beamWidth,
+                beamHeight: beamHeight
+            }, null, 2));
             
             this.debugLog('יצירת עדנית - גובה:', planterHeight, 'עומק:', planterDepth, 'רוחב:', planterWidth);
             this.debugLog('מידות קורה - רוחב:', beamWidth, 'עומק:', beamHeight);
@@ -2899,12 +3157,47 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.debugLog('רווח ויזואלי:', visualGap, 'רוחב קורה מותאם:', adjustedBeamWidth);
             
             // יצירת רצפת הקורות
+            console.log('BEAM_PLANTER_BOX - Creating floor beams:', JSON.stringify({
+                beamsInDepth: beamsInDepth,
+                beamWidth: beamWidth,
+                beamHeight: beamHeight,
+                planterDepth: planterDepth,
+                shelfType: shelfType,
+                shelfTypeName: shelfType ? shelfType.name : 'none'
+            }, null, 2));
+            
             for (let i = 0; i < beamsInDepth; i++) {
+                console.log(`BEAM_PLANTER_BOX - BEFORE Creating floor beam ${i + 1}/${beamsInDepth} - VALUES:`, JSON.stringify({
+                    beamIndex: i,
+                    shelfBeam: shelfBeam,
+                    beamWidth: beamWidth,
+                    beamHeight: beamHeight,
+                    planterDepth: planterDepth,
+                    adjustedBeamWidth: adjustedBeamWidth,
+                    aboutToCreateGeometry: {
+                        lengthParam: planterDepth,
+                        heightParam: beamHeight,
+                        widthParam: adjustedBeamWidth
+                    }
+                }, null, 2));
+                
                 const geometry = new THREE.BoxGeometry(
                     planterDepth, // אורך הקורה = עומק העדנית (70)
                     beamHeight,    // גובה הקורה = גובה הקורה (2.5)
                     adjustedBeamWidth    // רוחב קורה מותאם עם רווחים
                 );
+                
+                console.log(`BEAM_PLANTER_BOX - Creating floor beam ${i + 1}/${beamsInDepth}:`, JSON.stringify({
+                    beamIndex: i,
+                    geometry: {
+                        length: planterDepth,
+                        height: beamHeight,
+                        width: adjustedBeamWidth
+                    },
+                    shelfType: shelfType,
+                    materialType: shelfType ? shelfType.name : 'default'
+                }, null, 2));
+                
                 const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
@@ -3060,6 +3353,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.addScrewsToSideWallsAtFloor(planterDepth, planterWidth, beamHeight, widthParam.default);
             
             // יצירת הקירות - החישוב כבר נעשה למעלה
+            console.log('BEAM_PLANTER_BOX - Creating walls:', JSON.stringify({
+                beamsInHeight: beamsInHeight,
+                actualWallHeight: actualWallHeight,
+                beamWidth: beamWidth,
+                beamHeight: beamHeight,
+                shelfType: shelfType,
+                shelfTypeName: shelfType ? shelfType.name : 'none'
+            }, null, 2));
+            
             if (beamsInHeight > 0) {
                 // חישוב רווחים ויזואליים לקירות
                 const wallVisualGap = 0.1; // רווח של 0.1 ס"מ בין קורות
@@ -3067,6 +3369,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const wallTotalGapHeight = wallTotalGaps * wallVisualGap; // גובה כולל של כל הרווחים
                 const availableHeight = actualWallHeight - wallTotalGapHeight; // גובה זמין לקורות
                 const adjustedBeamHeight = availableHeight / beamsInHeight; // גובה קורה מותאם
+                
+                console.log('BEAM_PLANTER_BOX - Wall calculations:', JSON.stringify({
+                    wallVisualGap: wallVisualGap,
+                    wallTotalGaps: wallTotalGaps,
+                    wallTotalGapHeight: wallTotalGapHeight,
+                    availableHeight: availableHeight,
+                    adjustedBeamHeight: adjustedBeamHeight
+                }, null, 2));
                 
                 for (let wallIndex = 0; wallIndex < 4; wallIndex++) {
                     let wallX = 0, wallZ = 0;
@@ -3096,6 +3406,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         wallName = 'אחורי';
                     }
                     
+                    console.log(`BEAM_PLANTER_BOX - Creating wall ${wallIndex} (${wallName}):`, JSON.stringify({
+                        wallIndex: wallIndex,
+                        wallName: wallName,
+                        wallX: wallX,
+                        wallZ: wallZ,
+                        wallLength: wallLength,
+                        beamsInHeight: beamsInHeight
+                    }, null, 2));
+                    
                     for (let i = 0; i < beamsInHeight; i++) {
                         // העלאת הקורות התחתונות ב-0.1 ס"מ ליצירת רווח ויזואלי מהרצפה
                         const isBottomBeam = i === 0; // הקורה הראשונה (התחתונה) בכל קיר
@@ -3103,11 +3422,41 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         // סיבוב הקירות הקדמיים והאחוריים ב-90 מעלות סביב ציר Y
                         const isFrontBackWall = wallIndex === 2 || wallIndex === 3;
                         
+                        console.log(`BEAM_PLANTER_BOX - BEFORE Creating wall ${wallIndex} (${wallName}) beam ${i + 1}/${beamsInHeight} - VALUES:`, JSON.stringify({
+                            wallIndex: wallIndex,
+                            wallName: wallName,
+                            beamIndex: i,
+                            shelfBeam: shelfBeam,
+                            beamWidth: beamWidth,
+                            beamHeight: beamHeight,
+                            wallLength: wallLength,
+                            adjustedBeamHeight: adjustedBeamHeight,
+                            aboutToCreateGeometry: {
+                                lengthParam: wallLength,
+                                heightParam: adjustedBeamHeight,
+                                depthParam: beamHeight
+                            }
+                        }, null, 2));
+                        
                         const geometry = new THREE.BoxGeometry(
                             wallLength, // אורך הקורה לפי סוג הקיר
                             adjustedBeamHeight, // גובה קורה מותאם עם רווחים
                             beamHeight // עומק הקורה = גובה הקורה
                         );
+                        
+                        console.log(`BEAM_PLANTER_BOX - Creating wall ${wallIndex} beam ${i + 1}/${beamsInHeight}:`, JSON.stringify({
+                            wallIndex: wallIndex,
+                            wallName: wallName,
+                            beamIndex: i,
+                            geometry: {
+                                length: wallLength,
+                                height: adjustedBeamHeight,
+                                depth: beamHeight
+                            },
+                            shelfType: shelfType,
+                            materialType: shelfType ? shelfType.name : 'default'
+                        }, null, 2));
+                        
                         const material = this.getWoodMaterial(shelfType ? shelfType.name : '');
                         const mesh = new THREE.Mesh(geometry, material);
                         mesh.castShadow = true;

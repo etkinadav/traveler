@@ -489,7 +489,7 @@
                         </div>
                     </div>
                     
-                    <div *ngIf="param.type === 'beamSingle' && (!isTable || param.name !== 'plata')">
+                    <div *ngIf="param.type === 'beamSingle' && (!isTable || param.name !== 'plata' || isPlanter || isBox)">
                         <label
                             style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="custom-select-wrapper">
