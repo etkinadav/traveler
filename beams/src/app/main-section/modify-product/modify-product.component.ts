@@ -434,11 +434,29 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             editStartValue: param._editStartValue,
             currentDefault: param.default,
             min: param.min,
-            max: param.max
+            max: param.max,
+            type: param.type
         }, null, 2));
         
         const raw = param.editingValue;
         const start = param._editStartValue;
+        
+        // בדיקה אם הערך תקין
+        if (!this.isValidValue(raw, param)) {
+            console.log('UPDATE_NUM - Invalid value detected, resetting to previous value:', JSON.stringify({
+                paramName: param.name,
+                invalidValue: raw,
+                resetToValue: start,
+                reason: 'Invalid decimal places or not a number'
+            }, null, 2));
+            
+            // איפוס הערך הזמני לערך הקודם
+            param.editingValue = start;
+            // איפוס ערכי עזר
+            param._editStartValue = undefined;
+            return;
+        }
+        
         const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default);
         const changed = parsed !== start;
         
@@ -478,11 +496,29 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             editStartValue: param._editStartValue,
             currentDefault: param.default,
             min: param.min,
-            max: param.max
+            max: param.max,
+            type: param.type
         }, null, 2));
         
         const raw = param.editingValue;
         const start = param._editStartValue;
+        
+        // בדיקה אם הערך תקין
+        if (!this.isValidValue(raw, param)) {
+            console.log('UPDATE_NUM - Invalid value detected, resetting to previous value:', JSON.stringify({
+                paramName: param.name,
+                invalidValue: raw,
+                resetToValue: start,
+                reason: 'Invalid decimal places or not a number'
+            }, null, 2));
+            
+            // איפוס הערך הזמני לערך הקודם
+            param.editingValue = start;
+            // איפוס ערכי עזר
+            param._editStartValue = undefined;
+            return;
+        }
+        
         const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default);
         const changed = parsed !== start;
         
@@ -526,11 +562,49 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
 
     onShelfNumberCommit(param: any, index: number) {
+        console.log('UPDATE_NUM - onShelfNumberCommit called (blur/enter):', JSON.stringify({
+            paramName: param.name,
+            index: index,
+            editingValue: param._editingValues ? param._editingValues[index] : 'undefined',
+            editStartValue: param._editStartArray ? param._editStartArray[index] : 'undefined',
+            currentDefault: param.default[index],
+            min: param.min,
+            max: param.max,
+            type: param.type
+        }, null, 2));
+        
         const logicalIndex = index;
         const start = param._editStartArray ? param._editStartArray[logicalIndex] : param.default[logicalIndex];
         const raw = param._editingValues ? param._editingValues[logicalIndex] : param.default[logicalIndex];
+        
+        // בדיקה אם הערך תקין
+        if (!this.isValidValue(raw, param)) {
+            console.log('UPDATE_NUM - Invalid value detected, resetting to previous value:', JSON.stringify({
+                paramName: param.name,
+                index: index,
+                invalidValue: raw,
+                resetToValue: start,
+                reason: 'Invalid decimal places or not a number'
+            }, null, 2));
+            
+            // איפוס הערך הזמני לערך הקודם
+            if (!param._editingValues) param._editingValues = [];
+            param._editingValues[logicalIndex] = start;
+            // איפוס ערכי עזר
+            if (param._editStartArray) delete param._editStartArray[logicalIndex];
+            return;
+        }
+        
         const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default[logicalIndex]);
         const changed = parsed !== start;
+        
+        console.log('UPDATE_NUM - onShelfNumberCommit calculation:', JSON.stringify({
+            raw: raw,
+            start: start,
+            parsed: parsed,
+            changed: changed,
+            willUpdate: changed
+        }, null, 2));
         
         if (changed) {
             console.log('UPDATE_NUM - onShelfNumberCommit updating model:', JSON.stringify({
@@ -560,6 +634,34 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (typeof min === 'number') num = Math.max(min, num);
         if (typeof max === 'number') num = Math.min(max, num);
         return num;
+    }
+    
+    // בדיקה אם הערך תקין לפי ה-type (כמות הספרות אחרי הנקודה)
+    private isValidDecimalPlaces(value: any, type: number): boolean {
+        if (value === null || value === undefined || value === '') return false;
+        
+        const num = parseFloat(value);
+        if (isNaN(num)) return false;
+        
+        // בדיקה אם יש יותר ספרות אחרי הנקודה מה-type המותר
+        const decimalPart = value.toString().split('.')[1];
+        if (decimalPart && decimalPart.length > type) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // פונקציה לבדיקת תקינות ערך כוללת
+    private isValidValue(value: any, param: any): boolean {
+        // בדיקה אם זה מספר תקין
+        const num = parseFloat(value);
+        if (isNaN(num)) return false;
+        
+        // בדיקה אם זה תקין לפי ה-type
+        if (!this.isValidDecimalPlaces(value, param.type)) return false;
+        
+        return true;
     }
 
     // האם יש שינוי בערך העריכה לעומת ערך קיים
