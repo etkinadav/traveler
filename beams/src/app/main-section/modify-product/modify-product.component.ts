@@ -428,10 +428,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
 
     onNumberCommit(param: any) {
+        console.log('UPDATE_NUM - onNumberCommit called (blur/enter):', JSON.stringify({
+            paramName: param.name,
+            editingValue: param.editingValue,
+            editStartValue: param._editStartValue,
+            currentDefault: param.default,
+            min: param.min,
+            max: param.max
+        }, null, 2));
+        
         const raw = param.editingValue;
         const start = param._editStartValue;
         const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default);
         const changed = parsed !== start;
+        
+        console.log('UPDATE_NUM - onNumberCommit calculation:', JSON.stringify({
+            raw: raw,
+            start: start,
+            parsed: parsed,
+            changed: changed,
+            willUpdate: changed
+        }, null, 2));
         
         if (changed) {
             console.log('UPDATE_NUM - onNumberCommit updating model:', JSON.stringify({
@@ -455,10 +472,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
 
     onGenericNumberCommit(param: any) {
+        console.log('UPDATE_NUM - onGenericNumberCommit called (blur/enter):', JSON.stringify({
+            paramName: param.name,
+            editingValue: param.editingValue,
+            editStartValue: param._editStartValue,
+            currentDefault: param.default,
+            min: param.min,
+            max: param.max
+        }, null, 2));
+        
         const raw = param.editingValue;
         const start = param._editStartValue;
         const parsed = this.parseNumberWithinBounds(raw, param.min, param.max, param.default);
         const changed = parsed !== start;
+        
+        console.log('UPDATE_NUM - onGenericNumberCommit calculation:', JSON.stringify({
+            raw: raw,
+            start: start,
+            parsed: parsed,
+            changed: changed,
+            willUpdate: changed
+        }, null, 2));
         
         if (changed) {
             console.log('UPDATE_NUM - onGenericNumberCommit updating model:', JSON.stringify({
