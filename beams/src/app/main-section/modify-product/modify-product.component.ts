@@ -36,6 +36,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // Debug mode - set to true to enable console logs
     private enableDebugLogs = false;
     
+    // משתנה למניעת לוגים חוזרים של animate
+    private animationLogged = false;
+    
     // Performance tracking
     private performanceTimers: Map<string, number> = new Map();
     
@@ -120,18 +123,34 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }, 310); // Wait for transition to finish
     }
     toggleWireframe() {
+        console.log('LOAD_TABLE - toggleWireframe called:', JSON.stringify({
+            currentShowWireframe: this.showWireframe,
+            windowWidth: window.innerWidth,
+            isMobile: window.innerWidth <= 576,
+            isTable: this.isTable,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isFuton: this.isFuton,
+            productName: this.product?.name || 'Unknown'
+        }, null, 2));
+        
         // במובייל (sm ומטה, רוחב <= 576px) לא לאפשר הפעלת הקוביה בכלל
         const isMobile = window.innerWidth <= 576;
         
         if (isMobile) {
+            console.log('LOAD_TABLE - Mobile detected, skipping wireframe toggle');
             // במובייל - לא לעשות כלום, הקוביה לא תופיע
             return;
         }
         
         this.showWireframe = !this.showWireframe;
+        console.log('LOAD_TABLE - Wireframe toggled to:', this.showWireframe);
+        
         if (this.showWireframe) {
+            console.log('LOAD_TABLE - Adding wireframe cube');
             this.addWireframeCube();
         } else {
+            console.log('LOAD_TABLE - Removing wireframe cube');
             this.removeWireframeCube();
         }
     }
@@ -2631,10 +2650,31 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             this.debugLog('Adding lower frame screws - tableHeight:', tableHeight, 'extraBeamDistance:', extraBeamDistance, 'totalDistance:', totalDistanceForLower, 'lowerFrameY:', lowerFrameY, 'frameBeamHeight:', calculatedFrameBeamHeightForLower);
             this.addScrewsToLowerFrameBeams(legs, lowerFrameY, frameBeamHeight);
-        } else if (this.isFuton) {
+            
+            console.log('LOAD_TABLE - Table rendering completed, proceeding to normal completion flow:', JSON.stringify({
+                isTable: this.isTable,
+                isInitialLoad: isInitialLoad,
+                isLoading: this.isLoading,
+                isModelLoading: this.isModelLoading,
+                productName: this.product?.name || 'Unknown'
+            }, null, 2));
+            // לא לחזור כאן - לתת לפונקציה להמשיך לסיום הרגיל
+        }
+        
+        if (this.isFuton) {
             // עבור בסיס מיטה - דומה לשולחן אבל עם גובה שונה
             this.createFutonBeams();
-        } else if (this.isPlanter || this.isBox) {
+            
+            console.log('LOAD_TABLE - Futon rendering completed, proceeding to normal completion flow:', JSON.stringify({
+                isFuton: this.isFuton,
+                isInitialLoad: isInitialLoad,
+                isLoading: this.isLoading,
+                isModelLoading: this.isModelLoading,
+                productName: this.product?.name || 'Unknown'
+            }, null, 2));
+        }
+        
+        if (this.isPlanter || this.isBox) {
             // עבור עדנית, נציג רצפה של קורות
             const heightParam = this.getParam('height');
             const depthParam = this.getParam('depth');
@@ -2905,8 +2945,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // יצירת קורות חיזוק פנימיות
             this.createPlanterInternalSupportBeams(planterDepth, planterWidth, actualWallHeight, beamHeight, beamWidth, shelfType ? shelfType.name : '');
             
-            // העדנית תשתמש בפונקציה centerCameraOnWireframe() כמו שאר המוצרים
-        } else {
+            console.log('LOAD_TABLE - Planter/Box rendering completed, proceeding to normal completion flow:', JSON.stringify({
+                isPlanter: this.isPlanter,
+                isBox: this.isBox,
+                isInitialLoad: isInitialLoad,
+                isLoading: this.isLoading,
+                isModelLoading: this.isModelLoading,
+                productName: this.product?.name || 'Unknown'
+            }, null, 2));
+            // לא לחזור כאן - לתת לפונקציה להמשיך לסיום הרגיל
+        }
+        
+        if (!this.isTable && !this.isFuton && !this.isPlanter && !this.isBox) {
             // הגדרת משתנים נכונים עבור ארון - לפני כל הבלוקים
             let frameBeamHeightCorrect = frameBeamHeight;
             let beamHeightCorrect = beamHeight;
@@ -3324,6 +3374,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.endTimer(`CABINET - Shelf ${shelfIndex + 1}`);
         }
         this.endTimer('CABINET - Total Rendering');
+            
+            console.log('LOAD_TABLE - Cabinet rendering completed, proceeding to normal completion flow:', JSON.stringify({
+                isTable: this.isTable,
+                isPlanter: this.isPlanter,
+                isBox: this.isBox,
+                isFuton: this.isFuton,
+                isInitialLoad: isInitialLoad,
+                isLoading: this.isLoading,
+                isModelLoading: this.isModelLoading,
+                productName: this.product?.name || 'Unknown'
+            }, null, 2));
+        }
+        
         // לא מעדכן מיקום מצלמה/zoom אחרי עדכון אלמנטים
         // Ensure scene rotation is maintained after updates
         this.scene.rotation.y = Math.PI / 6; // 30 degrees rotation
@@ -3348,44 +3411,81 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
         
         this.endTimer('TOTAL_UPDATE_BEAMS');
-        console.log('DEBUG-THE-CABINET ✅ UpdateBeams completed');
+        console.log('LOAD_TABLE - UpdateBeams completed (normal flow):', JSON.stringify({
+            isInitialLoad: isInitialLoad,
+            isLoading: this.isLoading,
+            isModelLoading: this.isModelLoading,
+            showWireframe: this.showWireframe,
+            calculatedPrice: this.calculatedPrice,
+            productName: this.product?.name || 'Unknown',
+            isTable: this.isTable,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isFuton: this.isFuton
+        }, null, 2));
         
         // חישוב מחיר ברקע אחרי הרינדור
         setTimeout(() => {
             this.calculatePricing();
         }, 0);
         
-  // הפעלת קובית המידות ומצב שקוף 2 שניות אחרי הטעינה
-  if (isInitialLoad) {
-    setTimeout(() => {
-        this.autoEnableWireframeAndTransparent();
-    }, 2000);
-}
-    }
+        // הפעלת קובית המידות ומצב שקוף 2 שניות אחרי הטעינה
+        if (isInitialLoad) {
+            setTimeout(() => {
+                this.autoEnableWireframeAndTransparent();
+            }, 2000);
+        }
     }
     
     
      // פונקציה להפעלה אוטומטית של קובית המידות בלבד
      private autoEnableWireframeAndTransparent() {
+        console.log('LOAD_TABLE - autoEnableWireframeAndTransparent called:', JSON.stringify({
+            showWireframe: this.showWireframe,
+            isTable: this.isTable,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isFuton: this.isFuton,
+            productName: this.product?.name || 'Unknown'
+        }, null, 2));
+        
         console.log('🎯 AUTO-ENABLE: הפעלת קובית המידות אוטומטית');
         
         // הפעלת קובית המידות
         if (!this.showWireframe) {
+            console.log('LOAD_TABLE - Enabling wireframe (was disabled)');
             this.toggleWireframe();
             console.log('🎯 AUTO-ENABLE: קובית המידות הופעלה');
+        } else {
+            console.log('LOAD_TABLE - Wireframe already enabled, skipping');
         }
     }
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
     private addWireframeCube() {
+        console.log('LOAD_TABLE - addWireframeCube called');
+        
         // Remove existing wireframe cube if it exists
         const existingWireframe =
             this.scene.getObjectByName('productWireframe');
         if (existingWireframe) {
+            console.log('LOAD_TABLE - Removing existing wireframe cube');
             this.scene.remove(existingWireframe);
+        } else {
+            console.log('LOAD_TABLE - No existing wireframe cube found');
         }
+        
         // Get product dimensions
         const dimensions = this.getProductDimensionsRaw();
         const { length, width, height } = dimensions;
+        
+        console.log('LOAD_TABLE - Product dimensions for wireframe:', JSON.stringify({
+            dimensions: dimensions,
+            length: length,
+            width: width,
+            height: height,
+            productName: this.product?.name || 'Unknown',
+            productType: this.product?.model || 'Unknown'
+        }, null, 2));
         
         console.log('CHACK_DIM WIREFRAME - Product dimensions calculated:', JSON.stringify({
             dimensions: dimensions,
@@ -3666,6 +3766,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             wireframeGroup.add(textPosition);
         });
         this.debugLog('Added dimension texts for all 12 edges');
+        
+        // Add the wireframe group to the scene
+        wireframeGroup.name = 'productWireframe';
+        this.scene.add(wireframeGroup);
+        
+        console.log('LOAD_TABLE - Wireframe cube added to scene successfully:', JSON.stringify({
+            wireframeGroupName: wireframeGroup.name,
+            childrenCount: wireframeGroup.children.length,
+            sceneChildrenCount: this.scene.children.length
+        }, null, 2));
     }
     // Update model when any parameter changes (alias for updateBeams)
     updateModel() {
@@ -3688,6 +3798,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
     // פונקציה לחישוב חומרים (קורות) לחישוב מחיר
     async calculatePricing() {
+        console.log('LOAD_TABLE - calculatePricing called:', JSON.stringify({
+            isTable: this.isTable,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isFuton: this.isFuton,
+            productName: this.product?.name || 'Unknown',
+            currentCalculatedPrice: this.calculatedPrice
+        }, null, 2));
+        
         // איפוס המחיר למצב "מחשב..." (0 מציג את הספינר)
         this.calculatedPrice = 0;
         
@@ -5494,6 +5613,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.debugLog('=== DIFFERENCE ===', this.calculatedPrice - totalExpectedPrice);
         
         this.endTimer('CABINET - Calculate Forging Data');
+        
+        console.log('LOAD_TABLE - calculatePricing completed successfully:', JSON.stringify({
+            isTable: this.isTable,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isFuton: this.isFuton,
+            productName: this.product?.name || 'Unknown',
+            finalCalculatedPrice: this.calculatedPrice,
+            totalBeamPrices: totalBeamPrices,
+            totalForgingPrices: totalForgingPrices,
+            totalExpectedPrice: totalExpectedPrice,
+            difference: this.calculatedPrice - totalExpectedPrice
+        }, null, 2));
     }
     // פונקציה לקבוצת חתיכות לפי גודל
     getCutGroups(cuts: number[]): { length: number; count: number }[] {
@@ -5513,6 +5645,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.endTimer('CABINET - Calculate Beams Data');
     }
     animate() {
+        // לוג רק פעם אחת כדי לא לסתום את הקונסולה
+        if (!this.animationLogged) {
+            console.log('LOAD_TABLE - animate() function called:', JSON.stringify({
+                isTable: this.isTable,
+                isPlanter: this.isPlanter,
+                isBox: this.isBox,
+                isFuton: this.isFuton,
+                productName: this.product?.name || 'Unknown',
+                cameraPosition: this.camera.position,
+                sceneChildrenCount: this.scene.children.length
+            }, null, 2));
+            this.animationLogged = true;
+        }
+        
         requestAnimationFrame(() => this.animate());
         this.camera.lookAt(0, 0, 0);
         this.renderer.render(this.scene, this.camera);
