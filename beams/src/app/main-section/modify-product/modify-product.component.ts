@@ -4014,26 +4014,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         // length3: קירות קצרים (קדמי ואחורי) - אורך מלא של planterWidth
                         const length3 = planterWidth;
                         
-                        // length4: קורות חיזוק אנכיות - חישוב נכון לפי מכסה
+                        // length4: קורות חיזוק אנכיות - תמיד H - 2X
                         // H = planterHeight (גובה כולל), X = beamHeight (גובה הקורה)
-                        // אם אין מכסה: H - X, אם יש מכסה: H - 2X
-                        const isCoverParam = this.getParam('isCover');
-                        const hasCover = this.isBox && isCoverParam && isCoverParam.default === true;
-                        const length4 = hasCover 
-                            ? planterHeight - (beamHeight * 2)  // יש מכסה: H - 2X
-                            : planterHeight - beamHeight;       // אין מכסה: H - X
+                        // תמיד: H - 2X (ללא קשר למכסה)
+                        const length4 = planterHeight - (beamHeight * 2);
                         
                         console.log('DIM_BOX - Support beam length calculation:', JSON.stringify({
                             isBox: this.isBox,
                             isPlanter: this.isPlanter,
-                            isCoverParam: isCoverParam ? isCoverParam.default : 'undefined',
-                            hasCover: hasCover,
                             planterHeight: planterHeight,
                             beamHeight: beamHeight,
                             length4: length4,
-                            calculation: hasCover 
-                                ? `planterHeight - (beamHeight * 2) = ${planterHeight} - (${beamHeight} * 2) = ${planterHeight} - ${beamHeight * 2} = ${length4} (with cover)`
-                                : `planterHeight - beamHeight = ${planterHeight} - ${beamHeight} = ${length4} (without cover)`
+                            calculation: `planterHeight - (beamHeight * 2) = ${planterHeight} - (${beamHeight} * 2) = ${planterHeight} - ${beamHeight * 2} = ${length4} (always H - 2X)`,
+                            note: 'Always H - 2X regardless of cover status'
                         }, null, 2));
                         
                         console.log('DIM_BOX - Calculated beam lengths:', JSON.stringify({
@@ -4044,12 +4037,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             length3_shortWalls: length3,
                             length3_calculation: `planterWidth = ${planterWidth}`,
                             length4_supportBeams: length4,
-                            length4_calculation: hasCover 
-                                ? `planterHeight - (beamHeight * 2) = ${planterHeight} - (${beamHeight} * 2) = ${planterHeight} - ${beamHeight * 2} = ${length4} (with cover)`
-                                : `planterHeight - beamHeight = ${planterHeight} - ${beamHeight} = ${length4} (without cover)`,
-                            hasCover: hasCover,
-                            H: planterHeight,
-                            X: beamHeight
+                            length4_calculation: `planterHeight - (beamHeight * 2) = ${planterHeight} - (${beamHeight} * 2) = ${planterHeight} - ${beamHeight * 2} = ${length4} (always H - 2X)`,
+                            note: 'Always H - 2X regardless of cover status'
                         }, null, 2));
                         
                         this.debugLog('DEBUG-DEBUG-DEBUG: Planter/Box Raw Data:', {
@@ -4159,6 +4148,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         }
                         
                         // הוספת קורות מכסה לקופסא בלבד - רק אם הפרמטר isCover מופעל
+                        const isCoverParam = this.getParam('isCover');
                         const shouldAddCover = this.isBox && isCoverParam && isCoverParam.default === true;
                         
                         console.log('DIM_BOX - Cover status:', JSON.stringify({
