@@ -3981,9 +3981,76 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         const planterWidth = depthParam ? depthParam.default : 40;
                         const planterHeight = heightParam ? heightParam.default : 50;
                         
+                        console.log('DIM_BOX - Product dimensions:', JSON.stringify({
+                            isPlanter: this.isPlanter,
+                            isBox: this.isBox,
+                            planterDepth: planterDepth,
+                            planterWidth: planterWidth,
+                            planterHeight: planterHeight,
+                            note: 'planterDepth = widthParam (input depth becomes planterDepth), planterWidth = depthParam (input width becomes planterWidth)'
+                        }, null, 2));
+                        
                         // חישוב כמות הקורות ברצפה ובקיר
-                        const beamsInDepth = Math.floor(planterWidth / beamHeight); // כמות קורות ברצפה
-                        const beamsInHeight = Math.floor(planterHeight / beamHeight); // כמות קורות בקיר (W)
+                        const beamsInDepth = Math.floor(planterWidth / beamWidth); // כמות קורות ברצפה
+                        const beamsInHeight = Math.floor(planterHeight / beamWidth); // כמות קורות בקיר (W)
+                        
+                        console.log('DIM_BOX - Beam dimensions:', JSON.stringify({
+                            beamWidth: beamWidth,
+                            beamHeight: beamHeight,
+                            beamsInDepth: beamsInDepth,
+                            beamsInHeight: beamsInHeight,
+                            note: 'beamWidth is the width of the beam, beamHeight is the height of the beam'
+                        }, null, 2));
+                        
+                        // חישוב אורכי הקורות
+                        // length1: קורות הרצפה - אורך מלא של planterDepth
+                        const length1 = planterDepth;
+                        
+                        // length2: קירות ארוכים (שמאלי וימני) - planterDepth מקוצר ב-beamHeight משני הצדדים
+                        // בתלת-מימד: wallLength = widthParam.default - (2 * beamHeight)
+                        // widthParam.default = planterDepth, אז: length2 = planterDepth - (2 * beamHeight)
+                        const length2 = planterDepth - (beamHeight * 2);
+                        
+                        // length3: קירות קצרים (קדמי ואחורי) - אורך מלא של planterWidth
+                        const length3 = planterWidth;
+                        
+                        // length4: קורות חיזוק אנכיות - חישוב נכון לפי מכסה
+                        // H = planterHeight (גובה כולל), X = beamHeight (גובה הקורה)
+                        // אם אין מכסה: H - X, אם יש מכסה: H - 2X
+                        const isCoverParam = this.getParam('isCover');
+                        const hasCover = this.isBox && isCoverParam && isCoverParam.default === true;
+                        const length4 = hasCover 
+                            ? planterHeight - (beamHeight * 2)  // יש מכסה: H - 2X
+                            : planterHeight - beamHeight;       // אין מכסה: H - X
+                        
+                        console.log('DIM_BOX - Support beam length calculation:', JSON.stringify({
+                            isBox: this.isBox,
+                            isPlanter: this.isPlanter,
+                            isCoverParam: isCoverParam ? isCoverParam.default : 'undefined',
+                            hasCover: hasCover,
+                            planterHeight: planterHeight,
+                            beamHeight: beamHeight,
+                            length4: length4,
+                            calculation: hasCover 
+                                ? `planterHeight - (beamHeight * 2) = ${planterHeight} - (${beamHeight} * 2) = ${planterHeight} - ${beamHeight * 2} = ${length4} (with cover)`
+                                : `planterHeight - beamHeight = ${planterHeight} - ${beamHeight} = ${length4} (without cover)`
+                        }, null, 2));
+                        
+                        console.log('DIM_BOX - Calculated beam lengths:', JSON.stringify({
+                            length1_floorBeams: length1,
+                            length1_calculation: `planterDepth = ${planterDepth}`,
+                            length2_longWalls: length2,
+                            length2_calculation: `planterDepth - (beamHeight * 2) = ${planterDepth} - (${beamHeight} * 2) = ${planterDepth} - ${beamHeight * 2} = ${length2}`,
+                            length3_shortWalls: length3,
+                            length3_calculation: `planterWidth = ${planterWidth}`,
+                            length4_supportBeams: length4,
+                            length4_calculation: hasCover 
+                                ? `planterHeight - (beamHeight * 2) = ${planterHeight} - (${beamHeight} * 2) = ${planterHeight} - ${beamHeight * 2} = ${length4} (with cover)`
+                                : `planterHeight - beamHeight = ${planterHeight} - ${beamHeight} = ${length4} (without cover)`,
+                            hasCover: hasCover,
+                            H: planterHeight,
+                            X: beamHeight
+                        }, null, 2));
                         
                         this.debugLog('DEBUG-DEBUG-DEBUG: Planter/Box Raw Data:', {
                             // מידות המוצר הגולמיות
@@ -4000,13 +4067,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             beamsInHeight: beamsInHeight // כמות קורות בקיר (W)
                         });
                         
-                        // חישוב אורכי הקורות
-                        const length1 = planterDepth; // אורך 1: planterDepth
-                        const length2 = planterDepth - (beamWidth * 2); // אורך 2: planterDepth פחות (beamWidth כפול 2)
-                        const length3 = planterWidth; // אורך 3: planterWidth
-                        const length4 = planterHeight; // אורך 4: planterHeight
-                        
                         // הוספת קורות אורך 1 (רצפה)
+                        console.log('DIM_BOX - Adding floor beams:', JSON.stringify({
+                            beamType: 'Floor beams',
+                            count: beamsInDepth,
+                            length: length1,
+                            width: beamHeight,
+                            height: beamWidth
+                        }, null, 2));
+                        
                         for (let i = 0; i < beamsInDepth; i++) {
                             allBeams.push({
                                 type: selectedType,
@@ -4021,6 +4090,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         }
                         
                         // הוספת קורות אורך 2 (קירות ארוכים) - כמות: beamsInHeight * 2
+                        console.log('DIM_BOX - Adding long wall beams:', JSON.stringify({
+                            beamType: 'Long wall beams (left and right)',
+                            count: beamsInHeight * 2,
+                            length: length2,
+                            width: beamHeight,
+                            height: beamWidth,
+                            note: 'These beams are shortened by beamHeight on both sides'
+                        }, null, 2));
+                        
                         for (let i = 0; i < beamsInHeight * 2; i++) {
                             allBeams.push({
                                 type: selectedType,
@@ -4035,6 +4113,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         }
                         
                         // הוספת קורות אורך 3 (קירות קצרים) - כמות: beamsInHeight * 2
+                        console.log('DIM_BOX - Adding short wall beams:', JSON.stringify({
+                            beamType: 'Short wall beams (front and back)',
+                            count: beamsInHeight * 2,
+                            length: length3,
+                            width: beamHeight,
+                            height: beamWidth,
+                            note: 'These beams have full length'
+                        }, null, 2));
+                        
                         for (let i = 0; i < beamsInHeight * 2; i++) {
                             allBeams.push({
                                 type: selectedType,
@@ -4048,7 +4135,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             });
                         }
                         
-                        // הוספת קורות אורך 4 (קורות חיזוק) - כמות: 4
+                        // הוספת קורות אורך 4 (קורות חיזוק) - כמות: 4 (4 בפינות)
+                        console.log('DIM_BOX - Adding support beams:', JSON.stringify({
+                            beamType: 'Vertical support beams',
+                            count: 4,
+                            length: length4,
+                            width: beamHeight,
+                            height: beamWidth,
+                            note: 'These are the 4 corner vertical support beams'
+                        }, null, 2));
+                        
                         for (let i = 0; i < 4; i++) {
                             allBeams.push({
                                 type: selectedType,
@@ -4063,13 +4159,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         }
                         
                         // הוספת קורות מכסה לקופסא בלבד - רק אם הפרמטר isCover מופעל
-                        const isCoverParam = this.getParam('isCover');
                         const shouldAddCover = this.isBox && isCoverParam && isCoverParam.default === true;
+                        
+                        console.log('DIM_BOX - Cover status:', JSON.stringify({
+                            isBox: this.isBox,
+                            isCoverEnabled: isCoverParam ? isCoverParam.default : false,
+                            shouldAddCover: shouldAddCover
+                        }, null, 2));
                         
                         if (shouldAddCover) {
                             this.debugLog('מוסיף קורות מכסה לחישוב מחיר');
                             
                             // קורות רצפת המכסה - כפילות של קורות הרצפה
+                            console.log('DIM_BOX - Adding cover floor beams:', JSON.stringify({
+                                beamType: 'Cover floor beams',
+                                count: beamsInDepth,
+                                length: length1,
+                                width: beamHeight,
+                                height: beamWidth,
+                                note: 'Same as regular floor beams'
+                            }, null, 2));
+                            
                             for (let i = 0; i < beamsInDepth; i++) {
                                 allBeams.push({
                                     type: selectedType,
@@ -4083,8 +4193,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                                 });
                             }
                             
-                            // קורות חיזוק המכסה - 2 קורות (מקוצרות ב-0.2 ס"מ = 2 מ"מ נוספים)
-                            const coverSupportLength = planterWidth - (beamWidth * 4) - 0.2;
+                            // קורות חיזוק המכסה - 2 קורות (מקוצרות ב-0.6 ס"מ = 6 מ"מ נוספים)
+                            const coverSupportLength = planterWidth - (beamHeight * 4) - 0.6;
+                            
+                            console.log('DIM_BOX - Adding cover support beams:', JSON.stringify({
+                                beamType: 'Cover support beams',
+                                count: 2,
+                                length: coverSupportLength,
+                                calculation: `planterWidth - (beamHeight * 4) - 0.6 = ${planterWidth} - (${beamHeight} * 4) - 0.6 = ${planterWidth} - ${beamHeight * 4} - 0.6 = ${coverSupportLength}`,
+                                width: beamHeight,
+                                height: beamWidth,
+                                note: 'These beams support the cover from below'
+                            }, null, 2));
+                            
                             for (let i = 0; i < 2; i++) {
                                 allBeams.push({
                                     type: selectedType,
@@ -4098,6 +4219,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                                 });
                             }
                         } else if (this.isBox) {
+                            console.log('DIM_BOX - Cover disabled, not adding cover beams');
                             this.debugLog('לא מוסיף קורות מכסה - המכסה מבוטל');
                         }
                 } else if (this.isFuton) {
