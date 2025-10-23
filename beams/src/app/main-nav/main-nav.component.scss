@@ -655,6 +655,11 @@ img.zx-profile-default,
   width: 250px !important;
 }
 
+// רווח עליון לתפריט ההמבורגר כדי שההמבורגר לא יסתיר את הפריטים
+mat-nav-list {
+  padding-top: 48px !important;
+}
+
 ::ng-deep .mat-drawer-inner-container {
   padding: 0 !important;
   overflow: hidden !important;

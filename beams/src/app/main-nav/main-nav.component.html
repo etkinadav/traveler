@@ -36,18 +36,6 @@
 
     <span class="spacer"></span>
 
-    <!-- כפתור סל המוצרים -->
-    <button class="custom-cart-btn" 
-            type="button" 
-            aria-label="Open shopping cart"
-            (click)="openCartDialog()">
-      <div class="cart-icon">
-        <img src="assets/images/cart-icon.svg" alt="Shopping Cart" class="cart-svg">
-      </div>
-    </button>
-
-    <span class="spacer"></span>
-
     <div class="d-flex align-items-center gap-2 h-100">
 
 
@@ -142,8 +130,19 @@
 
     <mat-nav-list class="d-flex flex-column vh-100 pb-5">
 
-
       <div class="d-sm-none w-100 zx-border-gray-top-v-v-light my-1" [class.zx-low-opp]="isDarkMode"></div>
+
+      <!-- עגלת הקניות - ממש לפני שאלות ותשובות -->
+      <a mat-list-item (click)="openCartDialog()">
+        <div class="d-flex align-items-center">
+          <img src="assets/images/cart-icon.svg" alt="Shopping Cart" class="menu-icon me-2" style="width: 20px; height: 20px;">
+          <span class="mat-list-item-small" style="color: var(--zx-green) !important; font-size: 13px !important; font-weight: 600 !important;">
+            עגלת הקניות
+          </span>
+        </div>
+      </a>
+
+      <div class="w-100 zx-border-gray-top-v-v-light my-1" [class.zx-low-opp]="isDarkMode"></div>
 
       <a mat-list-item (click)="goToQAndA()">
         <span class="mat-list-item-small" style="color: var(--zx-green) !important; font-size: 13px !important; font-weight: 600 !important;">
