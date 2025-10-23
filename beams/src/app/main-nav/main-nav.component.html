@@ -133,13 +133,13 @@
       <div class="d-sm-none w-100 zx-border-gray-top-v-v-light my-1" [class.zx-low-opp]="isDarkMode"></div>
 
       <!-- עגלת הקניות - ממש לפני שאלות ותשובות -->
-      <a mat-list-item (click)="openCartDialog()">
-        <div class="d-flex align-items-center">
-          <img src="assets/images/cart-icon.svg" alt="Shopping Cart" class="menu-icon me-2" style="width: 20px; height: 20px;">
+      <a mat-list-item (click)="openCartDialog(); closeDrawer()">
+        <div class="d-flex align-items-center gap-2">
+          <mat-icon style="color: var(--zx-green) !important;">shopping_cart</mat-icon>
           <span class="mat-list-item-small" style="color: var(--zx-green) !important; font-size: 13px !important; font-weight: 600 !important;">
             עגלת הקניות
           </span>
-          <span *ngIf="cartItemsCount > 0" style="width: 10px; display: inline-block;"></span>
+          <span *ngIf="cartItemsCount > 0" style="width: 13px; display: inline-block;"></span>
           <span *ngIf="cartItemsCount > 0" class="cart-counter-badge" style="color: white !important; background-color: #007bff !important;">
             {{ cartItemsCount }}
           </span>
