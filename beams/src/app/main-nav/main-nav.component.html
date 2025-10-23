@@ -139,6 +139,10 @@
           <span class="mat-list-item-small" style="color: var(--zx-green) !important; font-size: 13px !important; font-weight: 600 !important;">
             עגלת הקניות
           </span>
+          <span *ngIf="cartItemsCount > 0" style="width: 10px; display: inline-block;"></span>
+          <span *ngIf="cartItemsCount > 0" class="cart-counter-badge" style="color: white !important; background-color: #007bff !important;">
+            {{ cartItemsCount }}
+          </span>
         </div>
       </a>
 

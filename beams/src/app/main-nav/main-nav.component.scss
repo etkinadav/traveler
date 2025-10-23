@@ -660,6 +660,45 @@ mat-nav-list {
   padding-top: 48px !important;
 }
 
+// עיצוב מונה פריטים בעגלת הקניות
+.cart-counter-badge {
+  background-color: #007bff !important; // כחול
+  color: white !important; // לבן - קריטי!
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 20px;
+}
+
+// עקיפת Angular Material - כפיית צבע לבן עם specificity גבוה
+::ng-deep mat-nav-list .cart-counter-badge {
+  color: white !important;
+  background-color: #007bff !important;
+}
+
+::ng-deep mat-nav-list .cart-counter-badge * {
+  color: white !important;
+}
+
+::ng-deep mat-nav-list .cart-counter-badge span {
+  color: white !important;
+}
+
+// עוד עקיפה עם specificity גבוה יותר
+::ng-deep .mat-mdc-nav-list .cart-counter-badge {
+  color: white !important;
+  background-color: #007bff !important;
+}
+
+::ng-deep .mat-mdc-nav-list .cart-counter-badge * {
+  color: white !important;
+}
+
 ::ng-deep .mat-drawer-inner-container {
   padding: 0 !important;
   overflow: hidden !important;

@@ -10,6 +10,7 @@ import { DialogService } from '../dialog/dialog.service';
 
 import { UsersService } from '../services/users.service';
 import { OrdersService } from "../other-pages/my-orders/orders-service";
+import { ProductBasketService } from '../services/product-basket.service';
 
 import { delay, switchMap, filter } from 'rxjs/operators';
 import { BranchesService } from 'src/app/services/branches.service';
@@ -56,6 +57,9 @@ export class MainNavComponent implements OnInit, OnDestroy {
   // משתנים להמבורגר מותאם אישית
   isHamburgerHovered: boolean = false;
   isHamburgerOpen: boolean = false;
+  
+  // מונה פריטים בעגלת הקניות
+  cartItemsCount: number = 0;
 
   constructor(
     public translateService: TranslateService,
@@ -70,7 +74,8 @@ export class MainNavComponent implements OnInit, OnDestroy {
     private ordersService: OrdersService,
     private elementRef: ElementRef,
     private branchesService: BranchesService,
-    private constantsService: ConstantsService
+    private constantsService: ConstantsService,
+    private productBasketService: ProductBasketService
   ) {
     this.translateService.onLangChange.subscribe(() => {
       this.updateTranslation();
@@ -95,6 +100,9 @@ export class MainNavComponent implements OnInit, OnDestroy {
     // localStorage.removeItem("printingService");
     // localStorage.removeItem("branch");
     this.userIsAuthenticated = this.authService.getIsAuth();
+    
+    // עדכון מונה פריטים בעגלת הקניות
+    this.updateCartItemsCount();
     if (this.userIsAuthenticated) {
       this.getOrders();
     } else {
@@ -466,6 +474,11 @@ export class MainNavComponent implements OnInit, OnDestroy {
       return email;
     }
     return email.split('@')[0];
+  }
+
+  // עדכון מונה פריטים בעגלת הקניות
+  updateCartItemsCount(): void {
+    this.cartItemsCount = this.productBasketService.getBasketItemsCount();
   }
   // ====================
 }
