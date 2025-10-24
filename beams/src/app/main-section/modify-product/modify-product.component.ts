@@ -3139,13 +3139,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const legParamTable = this.getParam('leg');
             const legWidthTable = legParamTable?.beams?.[legParamTable.selectedBeamIndex || 0]?.width || 0;
             const dubbleThreshold = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
-            console.log('DUBBLE_LEG_SCREWS - Table leg screws data:', JSON.stringify({
-                productName: this.product?.name,
-                legWidth: legWidthTable,
-                legWidthCm: legWidthTable / 10,
-                dubbleThreshold: dubbleThreshold,
-                frameBeamHeight: frameBeamHeight
-            }));
             
             this.addScrewsToLegs(
                 1, // שולחן = 1 מדף
@@ -3739,14 +3732,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const legParamCabinet = this.getParam('leg');
             const legWidthCabinet = legParamCabinet?.beams?.[legParamCabinet.selectedBeamIndex || 0]?.width || 0;
             const dubbleThresholdCabinet = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
-            console.log('DUBBLE_LEG_SCREWS - Cabinet leg screws data:', JSON.stringify({
-                productName: this.product?.name,
-                legWidth: legWidthCabinet,
-                legWidthCm: legWidthCabinet / 10,
-                dubbleThreshold: dubbleThresholdCabinet,
-                frameBeamHeight: frameBeamHeightCorrect,
-                totalShelves: totalShelves
-            }));
             
             this.addScrewsToLegs(totalShelves, legs, frameBeamHeightCorrect, 0);
         }
@@ -5722,12 +5707,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 if (shouldDuplicateScrews) {
                     totalScrews = totalScrews * 2; // Double the screws (UP + DOWN instead of original)
-                    console.log('DUBBLE_LEG_SCREWS - Doubling screw count for pricing:', JSON.stringify({
-                        originalScrews: totalScrews / 2,
-                        doubledScrews: totalScrews,
-                        frameBeamHeight: frameBeamHeight,
-                        dubbleThreshold: dubbleThreshold
-                    }));
                 }
                 // חלוקה לשתי קבוצות שוות - חצי לכל קבוצה
                 const halfScrews = Math.floor(totalScrews / 2);
@@ -7391,15 +7370,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // DUBBLE_LEG_SCREWS - Check if we need to duplicate screws
                 const dubbleThreshold = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
                 const shouldDuplicateScrews = dubbleThreshold && frameBeamHeight > dubbleThreshold;
-                
-                if (shouldDuplicateScrews) {
-                    console.log('DUBBLE_LEG_SCREWS - Duplicating screws:', JSON.stringify({
-                        frameBeamHeight: frameBeamHeight,
-                        dubbleThreshold: dubbleThreshold,
-                        legIndex: legIndex,
-                        shelfIndex: shelfIndex
-                    }));
-                }
                 
                 screwPositions.forEach((pos, screwIndex) => {
                     // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
