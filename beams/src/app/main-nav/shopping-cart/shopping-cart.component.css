@@ -345,7 +345,7 @@
 /* תצוגת מוצר מיני */
 .product-mini-preview {
   position: relative;
-  margin: 0 auto 4px auto; /* מירכוז אוטומטי */
+  margin: 0 auto 20px auto; /* מירכוז אוטומטי */
   text-align: center;
   width: 220px; /* גודל זהה לבחירת המוצר */
   height: 220px; /* גודל זהה לבחירת המוצר */
