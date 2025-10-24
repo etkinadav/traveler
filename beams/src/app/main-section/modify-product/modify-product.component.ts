@@ -49,17 +49,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     
-    // Performance timing helper - always enabled for critical performance tracking
+    // Performance timing helper - disabled for cleaner logs
     private startTimer(label: string): void {
         this.performanceTimers.set(label, performance.now());
-        console.log(`DEBUG-THE-CABINET ⏱️ START: ${label}`);
     }
     
     private endTimer(label: string): void {
         const startTime = this.performanceTimers.get(label);
         if (startTime) {
             const duration = performance.now() - startTime;
-            console.log(`DEBUG-THE-CABINET ⏱️ END: ${label} - Duration: ${duration.toFixed(2)}ms`);
             this.performanceTimers.delete(label);
         }
     }
@@ -782,50 +780,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
 
     selectBeam(index: number, param: any) {
-        console.log('BEAM_PLANTER_BOX - selectBeam called:', JSON.stringify({
+        console.log('CRITICAL - selectBeam called:', JSON.stringify({
             paramName: param.name,
-            paramType: param.type,
-            oldBeamIndex: param.selectedBeamIndex,
             newBeamIndex: index,
             selectedBeam: param.beams[index] ? {
                 name: param.beams[index].name,
-                translatedName: param.beams[index].translatedName,
-                width: param.beams[index].width,
-                height: param.beams[index].height
-            } : null,
-            isPlanter: this.isPlanter,
-            isBox: this.isBox,
-            isTable: this.isTable,
-            isFuton: this.isFuton,
-            isBelams: this.isBelams
-        }, null, 2));
+                translatedName: param.beams[index].translatedName
+            } : null
+        }));
         
         // Update the parameter object directly in this.product.params by name to ensure we modify the right object
         const beamParamIndex = this.product?.params?.findIndex((p: any) => 
             p.name === param.name && p.type === param.type
         );
         
-        console.log('BEAM_PLANTER_BOX - Finding param by name/type:', {
-            paramName: param.name,
-            paramType: param.type,
-            foundIndex: beamParamIndex,
-            currentValueInArray: beamParamIndex >= 0 ? this.product.params[beamParamIndex].selectedBeamIndex : 'not found'
-        });
-        
         if (beamParamIndex !== undefined && beamParamIndex >= 0) {
             this.product.params[beamParamIndex].selectedBeamIndex = index;
             this.product.params[beamParamIndex].selectedTypeIndex = 0; // איפוס בחירת סוג העץ לסוג הראשון
-            
-            console.log('BEAM_PLANTER_BOX - Updated param in product.params:', {
-                index: beamParamIndex,
-                newSelectedBeamIndex: this.product.params[beamParamIndex].selectedBeamIndex,
-                newSelectedTypeIndex: this.product.params[beamParamIndex].selectedTypeIndex
-            });
         } else {
-            console.error('BEAM_PLANTER_BOX - Could not find param in product.params!', {
+            console.error('CRITICAL - Could not find param in product.params!', {
                 paramName: param.name,
-                paramType: param.type,
-                allParams: this.product?.params?.map(p => ({ name: p.name, type: p.type }))
+                paramType: param.type
             });
         }
         
@@ -835,96 +810,34 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // Save the selection to localStorage so it persists across page refreshes
         const storageKey = `selectedBeamIndex_${this.product?.name}_${param.name}`;
         localStorage.setItem(storageKey, index.toString());
-        console.log('BEAM_PLANTER_BOX - Saved to localStorage:', { 
-            key: storageKey, 
-            value: index,
-            productName: this.product?.name,
-            paramName: param.name,
-            allKeys: Object.keys(localStorage).filter(k => k.includes('selectedBeamIndex'))
-        });
         
-        console.log('BEAM_PLANTER_BOX - selectBeam updated:', JSON.stringify({
-            paramName: param.name,
-            newBeamIndex: param.selectedBeamIndex,
-            newTypeIndex: param.selectedTypeIndex,
-            selectedBeam: param.beams[param.selectedBeamIndex] ? {
-                name: param.beams[param.selectedBeamIndex].name,
-                translatedName: param.beams[param.selectedBeamIndex].translatedName,
-                width: param.beams[param.selectedBeamIndex].width,
-                height: param.beams[param.selectedBeamIndex].height
-            } : null,
-            selectedType: param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex] ? {
-                name: param.beams[param.selectedBeamIndex].types[param.selectedTypeIndex].name,
-                translatedName: param.beams[param.selectedBeamIndex].types[param.selectedTypeIndex].translatedName
-            } : null
-        }, null, 2));
-        
-        console.log('BEAM_PLANTER_BOX - About to call updateBeams after selectBeam');
-        console.log('BEAM_PLANTER_BOX - Param state before updateBeams:', {
-            paramName: param.name,
-            selectedBeamIndex: param.selectedBeamIndex,
-            selectedTypeIndex: param.selectedTypeIndex,
-            selectedBeam: param.beams[param.selectedBeamIndex]?.translatedName
-        });
         this.updateBeams();
         this.closeDropdown('beam', param);
     }
 
     selectType(index: number, param: any) {
-        console.log('CHECH_TEXTURE - selectType called:', JSON.stringify({
+        console.log('CRITICAL - selectType called:', JSON.stringify({
             paramName: param.name,
-            paramType: param.type,
-            beamIndex: param.selectedBeamIndex,
-            oldTypeIndex: param.selectedTypeIndex,
             newTypeIndex: index,
-            selectedBeam: param.beams[param.selectedBeamIndex],
-            selectedType: param.beams[param.selectedBeamIndex]?.types[index],
-            isPlanter: this.isPlanter,
-            isBox: this.isBox,
-            isTable: this.isTable,
-            isFuton: this.isFuton,
-            isBelams: this.isBelams
-        }, null, 2));
+            selectedType: param.beams[param.selectedBeamIndex]?.types[index]?.name
+        }));
         
         // Update the parameter object directly in this.product.params by name to ensure we modify the right object
         const typeParamIndex = this.product?.params?.findIndex((p: any) => 
             p.name === param.name && p.type === param.type
         );
         
-        console.log('CHECH_TEXTURE - Finding param by name/type:', {
-            paramName: param.name,
-            paramType: param.type,
-            foundIndex: typeParamIndex,
-            currentTypeIndexInArray: typeParamIndex >= 0 ? this.product.params[typeParamIndex].selectedTypeIndex : 'not found'
-        });
-        
         if (typeParamIndex !== undefined && typeParamIndex >= 0) {
             this.product.params[typeParamIndex].selectedTypeIndex = index;
-            
-            console.log('CHECH_TEXTURE - Updated param in product.params:', {
-                index: typeParamIndex,
-                newSelectedTypeIndex: this.product.params[typeParamIndex].selectedTypeIndex,
-                newSelectedType: this.product.params[typeParamIndex].beams[this.product.params[typeParamIndex].selectedBeamIndex]?.types[index]
-            });
         } else {
-            console.error('CHECH_TEXTURE - Could not find param in product.params!', {
+            console.error('CRITICAL - Could not find param in product.params!', {
                 paramName: param.name,
-                paramType: param.type,
-                allParams: this.product?.params?.map(p => ({ name: p.name, type: p.type }))
+                paramType: param.type
             });
         }
         
         param.selectedTypeIndex = index;
         
-        console.log('CHECH_TEXTURE - selectType updated:', JSON.stringify({
-            paramName: param.name,
-            beamIndex: param.selectedBeamIndex,
-            newTypeIndex: param.selectedTypeIndex,
-            selectedBeam: param.beams[param.selectedBeamIndex],
-            selectedType: param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex]
-        }, null, 2));
-        
-        console.log('CHECH_TEXTURE - About to call updateBeams after selectType');
         this.updateBeams();
         this.closeDropdown('type', param);
     }
@@ -1286,25 +1199,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const lastFullId = lastConfigIndex !== null ? `${lastProductId}_config${lastConfigIndex}` : lastProductId;
                 const currentFullId = currentConfigIndex !== undefined ? `${currentProductId}_config${currentConfigIndex}` : currentProductId;
                 
-                this.debugLog(
-                    'CHACK-BEAM-MINI: Last full ID from localStorage:',
-                    lastFullId,
-                    'Current full ID:',
-                    currentFullId
-                );
-                
                 if (lastFullId && lastFullId !== currentFullId) {
-                    this.debugLog(
-                        'CHACK-BEAM-MINI: תת-מוצר שונה נבחר, מנקה ערכים:',
-                        lastFullId,
-                        '->',
-                        currentFullId
-                    );
                     this.clearUserConfiguration();
-                } else {
-                    this.debugLog(
-                        'CHACK-BEAM-MINI: Same sub-product or first time, no need to clear configuration'
-                    );
                 }
                 
                 // שמירת המוצר והתת-מוצר הנוכחיים
@@ -1314,11 +1210,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 } else {
                     localStorage.removeItem('lastConfigIndex');
                 }
-                
-                this.debugLog(
-                    'CHACK-BEAM-MINI: Saved to localStorage:',
-                    { productId: currentProductId, configIndex: currentConfigIndex }
-                );
                 
                 // טעינת המוצר הנכון לפי ID או שם
                 if (params['productId']) {
@@ -2487,16 +2378,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     updateBeams(isInitialLoad: boolean = false) {
-        console.log('BEAM_PLANTER_BOX - updateBeams called');
-        this.startTimer('TOTAL_UPDATE_BEAMS');
-        
-        // לוג לבדיקת סוג המוצר
-        console.log('CHACK_CABINET - Product type check at start:', {
-            isTable: this.isTable,
-            isPlanter: this.isPlanter,
-            isBox: this.isBox,
-            shelvesLength: this.shelves.length
-        });
+        console.log('CRITICAL - updateBeams called:', JSON.stringify({
+            isInitialLoad,
+            productType: this.isTable ? 'table' : this.isPlanter ? 'planter' : this.isBox ? 'box' : this.isBelams ? 'beams' : this.isFuton ? 'futon' : 'cabinet'
+        }));
         
         // איפוס מחיר להצגת "מחשב מחיר..."
         this.calculatedPrice = 0;
@@ -2505,10 +2390,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.isLoading = true;
         this.isModelLoading = true;
         
-        this.startTimer('Save Configuration');
         // Save current configuration to localStorage
         this.saveConfiguration();
-        this.endTimer('Save Configuration');
         
         // איפוס המשתנים הבוליאניים לבדיקת קורות מוסתרות
         this.hasHiddenBeams = false;
@@ -2517,7 +2400,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // חישוב מחיר יבוצע ברקע אחרי הרינדור
         
-        this.startTimer('Clear Old Meshes');
         // ניקוי קורות
         this.beamMeshes.forEach((mesh) => {
             this.scene.remove(mesh);
@@ -2548,27 +2430,22 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             });
         });
         this.screwGroups = [];
-        this.endTimer('Clear Old Meshes');
         
         // Defensive checks
         if (!this.isTable && !this.isPlanter && !this.isBox && !this.isBelams && !this.isFuton && (!this.shelves || !this.shelves.length)) {
             console.warn('No shelves found, cannot render model.');
-            this.endTimer('TOTAL_UPDATE_BEAMS');
             return;
         }
         
         // טיפול במוצר קורות לפי מידה (beams)
         if (this.isBelams) {
-            this.startTimer('Update Beams Model');
             this.updateBeamsModel();
-            this.endTimer('Update Beams Model');
             // הגדרת מיקום הסצנה כמו בשאר המוצרים
             this.scene.position.y = -120;
             // אתחול המצלמה עם אנימציה - רק בטעינה ראשונית
             if (isInitialLoad) {
                 this.centerCameraOnBeams();
             }
-            this.endTimer('TOTAL_UPDATE_BEAMS');
             return;
         }
         if (this.isTable && !this.getParam('height')) {
@@ -2699,36 +2576,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (shelfsParam && shelfsParam.selectedTypeIndex === undefined) {
             const typeStorageKey = `selectedTypeIndex_${this.product?.name}_${shelfsParam.name}`;
             const savedTypeIndex = localStorage.getItem(typeStorageKey);
-            console.log('CHECH_TEXTURE - localStorage check for type index:', { 
-                key: typeStorageKey, 
-                savedTypeIndex: savedTypeIndex,
-                productName: this.product?.name,
-                paramName: shelfsParam.name,
-                allKeys: Object.keys(localStorage).filter(k => k.includes('selectedTypeIndex'))
-            });
             if (savedTypeIndex !== null) {
                 shelfsParam.selectedTypeIndex = parseInt(savedTypeIndex, 10);
-                console.log('CHECH_TEXTURE - Loaded type index from localStorage:', { key: typeStorageKey, value: savedTypeIndex });
             } else {
                 shelfsParam.selectedTypeIndex = 0;
-                console.log('CHECH_TEXTURE - No saved type index in localStorage, defaulting to 0');
             }
-        } else if (shelfsParam && shelfsParam.selectedTypeIndex !== undefined) {
-            console.log('CHECH_TEXTURE - selectedTypeIndex already set, keeping value:', shelfsParam.selectedTypeIndex);
         }
-        
-        console.log('BEAM_PLANTER_BOX - About to select beam:', JSON.stringify({
-            shelfsParamExists: !!shelfsParam,
-            selectedBeamIndex: shelfsParam?.selectedBeamIndex,
-            selectedTypeIndex: shelfsParam?.selectedTypeIndex,
-            beamsCount: shelfsParam?.beams?.length,
-            availableBeams: shelfsParam?.beams?.map(b => ({
-                name: b.name,
-                translatedName: b.translatedName,
-                width: b.width,
-                height: b.height
-            }))
-        }, null, 2));
         
         let shelfBeam = null;
         let shelfType = null;
@@ -2742,26 +2595,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 shelfBeam.types && shelfBeam.types.length
                     ? shelfBeam.types[shelfsParam.selectedTypeIndex]
                     : null;
-            this.debugLog('shelfBeam נמצא:', shelfBeam);
-            this.debugLog('shelfType נמצא:', shelfType);
-            
-            console.log('BEAM_PLANTER_BOX - Selected beam and type:', JSON.stringify({
-                shelfBeam: shelfBeam ? {
-                    name: shelfBeam.name,
-                    translatedName: shelfBeam.translatedName,
-                    width: shelfBeam.width,
-                    height: shelfBeam.height
-                } : null,
-                shelfType: shelfType ? {
-                    name: shelfType.name,
-                    translatedName: shelfType.translatedName
-                } : null,
-                selectedBeamIndex: shelfsParam.selectedBeamIndex,
-                selectedTypeIndex: shelfsParam.selectedTypeIndex
-            }, null, 2));
-        } else {
-            this.debugLog('shelfsParam לא תקין:', shelfsParam);
-            this.debugLog('beams array:', shelfsParam?.beams);
         }
         // Get wood texture for shelf beams
         const shelfWoodTexture = this.getWoodTexture(
@@ -2982,10 +2815,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     beam.z
                 );
                 
-                // לוגים לבדיקת מיקום קורות החיזוק
-                console.log('CHACK_TABLE_LEG - Frame beam:', JSON.stringify(beam));
-                console.log('CHACK_TABLE_LEG - Frame position Y:', tableHeight - beam.height / 2);
-                console.log('CHACK_TABLE_LEG - Frame top Y:', tableHeight - beam.height / 2 + beam.height);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
@@ -3090,17 +2919,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // התחתון של הרגליים: legY - leg.height / 2 = 0
                 // לכן: legY = leg.height / 2
                 const legY = leg.height / 2;
-                
-                // לוגים לבדיקת מיקום הרגליים
-                console.log('CHACK_TABLE_LEG - Leg:', JSON.stringify(leg));
-                console.log('CHACK_TABLE_LEG - Leg calculation - tableHeight:', tableHeight);
-                console.log('CHACK_TABLE_LEG - Leg calculation - leg.height:', leg.height);
-                console.log('CHACK_TABLE_LEG - Leg calculation - legY:', legY);
-                console.log('CHACK_TABLE_LEG - Leg position Y:', legY);
-                console.log('CHACK_TABLE_LEG - Leg top Y:', legY + leg.height / 2);
-                console.log('CHACK_TABLE_LEG - Leg bottom Y:', legY - leg.height / 2);
-                console.log('CHACK_TABLE_LEG - Should be tableHeight (48.5):', tableHeight);
-                console.log('CHACK_TABLE_LEG - Floor should be at Y=0');
                 
                 mesh.position.set(leg.x, legY, leg.z);
                 this.scene.add(mesh);
@@ -5238,12 +5056,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const futonDepth = widthParam ? widthParam.default : 120;   // החלפה: depth = width
                     
                     for (let i = 0; i < legCount; i++) {
-                        this.debugLog(
-                            'DEBUG - Adding futon leg',
-                            i + 1,
-                            'with length:',
-                            futonWidth
-                        );
                         allBeams.push({
                             type: selectedType,
                             length: futonWidth, // אורך הרגל = רוחב המיטה
@@ -5259,12 +5071,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     // עבור שולחן או ארון - 4 רגליים
                 const numLegs = 4;
                 for (let i = 0; i < numLegs; i++) {
-                    this.debugLog(
-                        'DEBUG - Adding leg',
-                        i + 1,
-                        'with length:',
-                        legHeight
-                    );
                     allBeams.push({
                         type: selectedType,
                         length: legHeight, // גובה הרגל המחושב (totalHeight - shelfBeamHeight)
@@ -6360,20 +6166,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.endTimer('CABINET - Calculate Beams Data');
     }
     animate() {
-        // לוג רק פעם אחת כדי לא לסתום את הקונסולה
-        if (!this.animationLogged) {
-            console.log('LOAD_TABLE - animate() function called:', JSON.stringify({
-                isTable: this.isTable,
-                isPlanter: this.isPlanter,
-                isBox: this.isBox,
-                isFuton: this.isFuton,
-                productName: this.product?.name || 'Unknown',
-                cameraPosition: this.camera.position,
-                sceneChildrenCount: this.scene.children.length
-            }, null, 2));
-            this.animationLogged = true;
-        }
-        
         requestAnimationFrame(() => this.animate());
         this.camera.lookAt(0, 0, 0);
         this.renderer.render(this.scene, this.camera);
@@ -6969,16 +6761,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
             if (progress < 1) {
                 requestAnimationFrame(animate);
-            } else {
-                this.debugLog('AUTO ZOOM IN COMPLETED:', {
-                    startDistance: currentDistance,
-                    targetDistance: targetDistance,
-                    finalDistance: this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0)),
-                    rotateAngle: rotateAngle,
-                    panAmount: panAmount,
-                    azimuthalRotateAmount: azimuthalRotateAmount,
-                    duration: elapsed
-                });
             }
         };
 
@@ -7568,10 +7350,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }
             }
             
-            this.logDimensions('CHACK_DIM CALCULATION - PLANTER/BOX beam height calculation:', {
-                beamHeight: beamHeight
-            });
-            
             totalWidth = planterDepth;  // תיקון: planterDepth -> totalWidth
             totalLength = planterWidth; // תיקון: planterWidth -> totalLength
             
@@ -7580,39 +7358,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const hasCover = this.isBox && isCoverParam && isCoverParam.default === true;
             
             totalHeight = actualHeight + beamHeight + (hasCover ? beamHeight : 0); // גובה אמיתי + גובה הריצפה + גובה מכסה (אם יש)
-            
-            this.logDimensions('CHACK_DIM CALCULATION - PLANTER/BOX final dimensions:', {
-                isCoverParam: isCoverParam,
-                hasCover: hasCover,
-                totalWidth: totalWidth,
-                totalLength: totalLength,
-                totalHeight: totalHeight,
-                calculation: `${actualHeight} + ${beamHeight} + ${hasCover ? beamHeight : 0} = ${totalHeight}`
-            });
         } else if (this.isFuton) {
-            this.logDimensions('CHACK_DIM CALCULATION - Processing FUTON product');
             // עבור בסיס מיטה - דומה לשולחן
             const widthParam = this.getParam('width');
             const depthParam = this.getParam('depth');
             const legParam = this.getParam('leg');
             const extraBeamParam = this.getParam('extraBeam');
             
-            this.logDimensions('CHACK_DIM CALCULATION - FUTON parameters:', {
-                widthParam: widthParam,
-                depthParam: depthParam,
-                legParam: legParam,
-                extraBeamParam: extraBeamParam,
-                widthParamDefault: widthParam?.default,
-                depthParamDefault: depthParam?.default
-            });
-            
             totalWidth = depthParam ? depthParam.default : 200;  // החלפה: width = depth
             totalLength = widthParam ? widthParam.default : 120;  // החלפה: length = width
-            
-            this.logDimensions('CHACK_DIM CALCULATION - FUTON dimension mapping:', {
-                totalWidth: totalWidth,
-                totalLength: totalLength
-            });
             
             // חישוב גובה - רוחב קורת הרגל + גובה קורת הפלטה
             let legBeamWidth = 5; // ברירת מחדל
@@ -8008,94 +7762,35 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // רק לקורות רחבות (>4) נבצע את החישוב המתקדם של מיקומי הברגים
             const startPositions = screwPositions[0];
             const endPositions = screwPositions[1];
-                this.debugLog('CHECKSCREWS === COMPREHENSIVE SCREW POSITION ANALYSIS ===');
-                this.debugLog('CHECKSCREWS === BASIC INFO ===');
-                this.debugLog('CHECKSCREWS isShortenedBeam:', isShortenedBeam);
-                this.debugLog('CHECKSCREWS beam.x (center):', beam.x);
-                this.debugLog('CHECKSCREWS beam.width (רוחב):', beam.width);
-                this.debugLog('CHECKSCREWS beam.height (גובה):', beam.height);
-                this.debugLog('CHECKSCREWS beam.depth (עומק):', beam.depth);
-                this.debugLog('CHECKSCREWS === FRAME BEAM INFO ===');
-                this.debugLog('CHECKSCREWS frameBeamWidth (רוחב קורות הרגל/חיזוק):', frameBeamWidth);
-                this.debugLog('CHECKSCREWS frameBeamHeight (גובה קורות הרגל/חיזוק):', this.frameHeight);
-                this.debugLog('CHECKSCREWS === SCREW POSITIONS AFTER FILTERING ===');
-                this.debugLog('CHECKSCREWS Remaining screws after filtering:');
-                this.debugLog('CHECKSCREWS   startPositions:', startPositions);
-                this.debugLog('CHECKSCREWS   endPositions:', endPositions);
-
-                // חישוב הפרמטרים לפי הלוגיקה החדשה
-                const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
-                const X = this.frameHeight; // frameBeamHeight
-                const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
-                const Q = beam.width; // beam.width
-
-                this.debugLog('CHECKSCREWS === CALCULATION PARAMETERS ===');
-                this.debugLog('CHECKSCREWS A (רוחב כולל חלקי 2):', A);
-                this.debugLog('CHECKSCREWS X (frameBeamHeight):', X);
-                this.debugLog('CHECKSCREWS Y (frameBeamWidth):', Y);
-                this.debugLog('CHECKSCREWS Q (beam.width):', Q);
-
-                // חישוב Z ו-R ו-L
-                const Z = (X - Y) / 2;
-                const R = (Q - Z) / 2;
-                const L = R + Z;
-
-                this.debugLog('CHECKSCREWS === INTERMEDIATE CALCULATIONS ===');
-                this.debugLog('CHECKSCREWS Z ((X-Y)/2):', Z);
-                this.debugLog('CHECKSCREWS R ((Q-Z)/2):', R);
-                this.debugLog('CHECKSCREWS L (R+Z):', L);
-
-                // המרחק הסופי של הברגים מהמרכז
-                let finalDistance;
-                if (Q > X) {
-                    // מקרה קצה: Q > X
-                    finalDistance = A - X / 2;
-                    this.debugLog('CHECKSCREWS מקרה קצה: Q > X');
-                    this.debugLog(
-                        'CHECKSCREWS finalDistance (A - X/2):',
-                        finalDistance
-                    );
-                } else {
-                    // מקרה רגיל: Q <= X
-                    finalDistance = A - L;
-                    this.debugLog('CHECKSCREWS מקרה רגיל: Q <= X');
-                    this.debugLog(
-                        'CHECKSCREWS finalDistance (A-L):',
-                        finalDistance
-                    );
-                }
-
-                // חישוב הרווח מהקצה השמאלי של הקורה לבורג השמאלי
-                const leftEdgeX = beam.x - beam.width / 2;
-                const rightEdgeX = beam.x + beam.width / 2;
-                const leftScrewX = Math.min(startPositions.x, endPositions.x);
-                const rightScrewX = Math.max(startPositions.x, endPositions.x);
-                const leftGap = leftScrewX - leftEdgeX;
-                const rightGap = rightEdgeX - rightScrewX;
-                this.debugLog('CHECKSCREWS Gap analysis:');
-                this.debugLog('CHECKSCREWS   Left edge X:', leftEdgeX);
-                this.debugLog('CHECKSCREWS   Right edge X:', rightEdgeX);
-                this.debugLog('CHECKSCREWS   Left screw X:', leftScrewX);
-                this.debugLog('CHECKSCREWS   Right screw X:', rightScrewX);
-                this.debugLog(
-                    'CHECKSCREWS   Gap from left edge to left screw:',
-                    leftGap
-                );
-                this.debugLog(
-                    'CHECKSCREWS   Gap from right screw to right edge:',
-                    rightGap
-                );
-                this.debugLog(
-                    'CHECKSCREWS   Total gap (left + right):',
-                    leftGap + rightGap
-                );
-                this.debugLog(
-                    'CHECKSCREWS   Gap percentage of beam width:',
-                    (((leftGap + rightGap) / beam.width) * 100).toFixed(1) + '%'
-                );
-                this.debugLog('CHECKSCREWS === FINAL RESULT ===');
-                this.debugLog('CHECKSCREWS Final screw positions:', screwPositions);
-                this.debugLog('CHECKSCREWS === END COMPREHENSIVE SCREW POSITION ANALYSIS ===');
+            
+            // חישוב הפרמטרים לפי הלוגיקה החדשה
+            const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
+            const X = this.frameHeight; // frameBeamHeight
+            const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
+            const Q = beam.width; // beam.width
+            
+            // חישוב Z ו-R ו-L
+            const Z = (X - Y) / 2;
+            const R = (Q - Z) / 2;
+            const L = R + Z;
+            
+            // המרחק הסופי של הברגים מהמרכז
+            let finalDistance;
+            if (Q > X) {
+                // מקרה קצה: Q > X
+                finalDistance = A - X / 2;
+            } else {
+                // מקרה רגיל: Q <= X
+                finalDistance = A - L;
+            }
+            
+            // חישוב הרווח מהקצה השמאלי של הקורה לבורג השמאלי
+            const leftEdgeX = beam.x - beam.width / 2;
+            const rightEdgeX = beam.x + beam.width / 2;
+            const leftScrewX = Math.min(startPositions.x, endPositions.x);
+            const rightScrewX = Math.max(startPositions.x, endPositions.x);
+            const leftGap = leftScrewX - leftEdgeX;
+            const rightGap = rightEdgeX - rightScrewX;
             // create 2 new positions between start and end - 1/3 from start and 2/3 from end and the opposite
                 // חישוב המיקומים החדשים של כל הברגים לפי המרחק הסופי מהמרכז
                 const adjustedStartPositions = {
