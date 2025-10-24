@@ -530,16 +530,48 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border: 1px solid #e0e0e0;
   z-index: 1000;
-  min-width: 120px;
-  padding: 8px;
+  min-width: 160px;
+  padding: 4px;
   margin-top: 4px;
 }
 
-.menu-item {
+.custom-menu .menu-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
   padding: 8px 12px;
-  font-size: 14px;
-  color: #333;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0066cc;
+  transition: all 0.2s ease;
+  margin: 2px 0;
+  gap: 8px;
   text-align: right;
+}
+
+.custom-menu .menu-option:hover:not([disabled]) {
+  background: rgba(0, 102, 204, 0.1);
+  border-radius: 0;
+}
+
+.custom-menu .menu-option.active {
+  background: #0066cc;
+  color: white;
+  border-radius: 0;
+}
+
+.custom-menu .menu-option svg {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.custom-menu .menu-option span {
+  flex-shrink: 0;
 }
 
 /* פעולות עריכה הוסרו */

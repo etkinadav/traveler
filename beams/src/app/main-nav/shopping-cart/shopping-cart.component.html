@@ -53,7 +53,26 @@
                 
                 <!-- תפריט אפשרויות נוספות -->
                 <div class="custom-menu" *ngIf="isItemMenuOpen(item.id)">
-                  <div class="menu-item">text</div>
+                  <!-- אפשרות עריכת מוצר -->
+                  <button class="menu-option" (click)="editItem(item); closeItemMenu(item.id)">
+                    <svg width="18" height="18" viewBox="0 0 16 16">
+                      <!-- עיפרון פשוט -->
+                      <path d="M12.146 1.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1 0 .708l-9 9a.5.5 0 0 1-.168.11l-4 1.5a.5.5 0 0 1-.65-.65l1.5-4a.5.5 0 0 1 .11-.168l9-9z" 
+                            stroke="currentColor" stroke-width="0.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M11 2l3 3" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/>
+                    </svg>
+                    <span>עריכת מוצר</span>
+                  </button>
+                  
+                  <!-- אפשרות מחיקת מוצר -->
+                  <button class="menu-option" (click)="removeItem(item.id); closeItemMenu(item.id)">
+                    <svg width="18" height="18" viewBox="0 0 16 16">
+                      <!-- פח זבל פשוט -->
+                      <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" fill="currentColor"/>
+                      <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" fill="currentColor"/>
+                    </svg>
+                    <span>מחיקת מוצר</span>
+                  </button>
                 </div>
               </div>
             </div>

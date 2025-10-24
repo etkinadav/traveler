@@ -68,6 +68,21 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log('Menu toggled for item:', itemId, 'is open:', this.itemMenuOpenMap[itemId]);
   }
 
+  /**
+   * סגירת תפריט מוצר
+   */
+  closeItemMenu(itemId: string): void {
+    this.itemMenuOpenMap[itemId] = false;
+  }
+
+  /**
+   * עריכת מוצר
+   */
+  editItem(item: BasketItem): void {
+    // TODO: ניווט לעמוד עריכת המוצר עם הפרמטרים הנכונים
+    console.log('עריכת מוצר:', item);
+  }
+
 
   // Cache למוצרים מעובדים כדי למנוע יצירה מחדש כל הזמן
   private productPreviewCache = new Map<string, any>();
