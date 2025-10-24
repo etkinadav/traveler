@@ -41,6 +41,34 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   // מעקב אחר overlays שהוסרו
   overlayRemovedMap: { [key: string]: boolean } = {};
 
+  // מעקב אחר תפריטים פתוחים
+  itemMenuOpenMap: { [key: string]: boolean } = {};
+
+  /**
+   * בדיקה אם תפריט מוצר פתוח
+   */
+  isItemMenuOpen(itemId: string): boolean {
+    return this.itemMenuOpenMap[itemId] || false;
+  }
+
+  /**
+   * פתיחה/סגירה של תפריט מוצר
+   */
+  toggleItemMenu(itemId: string): void {
+    // סגירת כל התפריטים האחרים
+    Object.keys(this.itemMenuOpenMap).forEach(id => {
+      if (id !== itemId) {
+        this.itemMenuOpenMap[id] = false;
+      }
+    });
+    
+    // פתיחה/סגירה של התפריט הנוכחי
+    this.itemMenuOpenMap[itemId] = !this.itemMenuOpenMap[itemId];
+    
+    console.log('Menu toggled for item:', itemId, 'is open:', this.itemMenuOpenMap[itemId]);
+  }
+
+
   // Cache למוצרים מעובדים כדי למנוע יצירה מחדש כל הזמן
   private productPreviewCache = new Map<string, any>();
   
@@ -621,23 +649,6 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     return configurationIndex;
   }
 
-  /**
-   * הסרת הכיסוי מהמודל התלת-ממדי
-   */
-  removeOverlay(event: Event, miniPreview: any, itemId: string): void {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    // סימון שה-overlay הוסר עבור המוצר הזה
-    this.overlayRemovedMap[itemId] = true;
-    
-    // הסתרת הטקסט hint
-    this.showHintMap[itemId] = false;
-    
-    if (miniPreview && miniPreview.removeOverlay) {
-      miniPreview.removeOverlay();
-    }
-  }
   
   /**
    * בדיקה האם ה-overlay הוסר עבור מוצר מסוים
@@ -709,15 +720,7 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
         const rect = itemRef.nativeElement.getBoundingClientRect();
         // Strict intersection with viewport (no margin)
         const isVisible = rect.top < viewportHeight && rect.bottom > 0;
-        try {
-          console.log('CHACK_ROT_BAS - item rect check:', JSON.stringify({
-            index,
-            rect: { top: rect.top, bottom: rect.bottom, height: rect.height },
-            viewportHeight,
-            margin,
-            isVisible
-          }, null, 2));
-        } catch {}
+        // לוג הוסר כדי למנוע ספאם
         
         if (isVisible) {
           visibleIndices.push(index);
@@ -736,19 +739,14 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
       const addedIndices = visibleIndices.filter(index => !this.previousVisibleIndices.includes(index));
       const removedIndices = this.previousVisibleIndices.filter(index => !visibleIndices.includes(index));
       
-      // הדפסת השינויים
-      try {
-        console.log('CHACK_ROT_BAS - visibility change:', JSON.stringify({ addedIndices, removedIndices, newVisible: visibleIndices }, null, 2));
-      } catch {}
+      // לוג הוסר כדי למנוע ספאם
       
       // עדכון הערך הישן
       this.previousVisibleIndices = [...visibleIndices];
       
       // עדכון ה-Set של האינדקסים הנראים
       this.visibleItemIndices = new Set(visibleIndices);
-      try {
-        console.log('CHACK_ROT_BAS - visibleItemIndices size:', JSON.stringify({ size: this.visibleItemIndices.size }, null, 2));
-      } catch {}
+      // לוג הוסר כדי למנוע ספאם
       
       // הפעלת change detection כדי לעדכן את ה-DOM
       this.ngZone.run(() => {
@@ -770,8 +768,7 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
       clearInterval(this.visibilityCheckInterval);
       this.visibilityCheckInterval = null;
     }
-    // בדיקה ראשונית
-    try { console.log('CHACK_ROT_BAS - startVisibilityChecker: init'); } catch {}
+    // לוג הוסר כדי למנוע ספאם
     this.checkItemVisibility();
     // בדיקה מחזורית
     this.visibilityCheckInterval = setInterval(() => {
@@ -795,6 +792,23 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   onWindowResize(): void {
     this.checkItemVisibility();
   }
+
+  /**
+   * הסרת overlay ממוצר
+   */
+  removeOverlay(event: Event, miniPreview: any, itemId: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    this.overlayRemovedMap[itemId] = true;
+    this.hideHintForProduct(itemId);
+    
+    // הפעלת אינטראקציה עם המודל התלת-ממדי
+    if (miniPreview && miniPreview.enableInteraction) {
+      miniPreview.enableInteraction();
+    }
+  }
+
 
   ngOnDestroy(): void {
     this.basketSubscription.unsubscribe();

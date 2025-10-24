@@ -298,6 +298,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative; /* הוספת relative positioning לתפריט */
 }
 
 .item-title--primary {
@@ -475,6 +476,70 @@
   font-weight: 400; /* ללא bold */
   font-size: 12px; /* קטן יותר */
   text-align: left;
+}
+
+/* כפתור תפריט אפשרויות נוספות */
+.options-menu-button {
+  min-width: auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: rgba(0, 102, 204, 0.1);
+  color: #0066cc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.options-menu-button:hover {
+  background: rgba(0, 102, 204, 0.2);
+  transform: scale(1.05);
+}
+
+.options-menu-button.active {
+  background: #0066cc;
+  color: white;
+}
+
+.options-menu-button:focus {
+  outline: none;
+}
+
+.options-menu-button svg {
+  display: block;
+}
+
+/* קונטיינר לתפריט */
+.menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* תפריט אפשרויות נוספות */
+.custom-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  z-index: 1000;
+  min-width: 120px;
+  padding: 8px;
+  margin-top: 4px;
+}
+
+.menu-item {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #333;
+  text-align: right;
 }
 
 /* פעולות עריכה הוסרו */
