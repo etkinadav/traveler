@@ -789,6 +789,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             } : null
         }));
         
+        // CHACK_TEXTURE - Log when selectBeam is called
+        if (param.name === 'shelfs' || param.type === 'beamSingle') {
+            console.log('CHACK_TEXTURE - selectBeam called:', JSON.stringify({
+                paramName: param.name,
+                paramType: param.type,
+                oldBeamIndex: param.selectedBeamIndex,
+                newBeamIndex: index,
+                oldTypeIndex: param.selectedTypeIndex,
+                oldBeam: param.beams[param.selectedBeamIndex]?.name,
+                newBeam: param.beams[index]?.name
+            }));
+        }
+        
         // Update the parameter object directly in this.product.params by name to ensure we modify the right object
         const beamParamIndex = this.product?.params?.findIndex((p: any) => 
             p.name === param.name && p.type === param.type
@@ -815,12 +828,24 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.closeDropdown('beam', param);
     }
 
-    selectType(index: number, param: any) {
-        console.log('CRITICAL - selectType called:', JSON.stringify({
-            paramName: param.name,
-            newTypeIndex: index,
-            selectedType: param.beams[param.selectedBeamIndex]?.types[index]?.name
-        }));
+      selectType(index: number, param: any) {
+          console.log('CRITICAL - selectType called:', JSON.stringify({
+              paramName: param.name,
+              newTypeIndex: index,
+              selectedType: param.beams[param.selectedBeamIndex]?.types[index]?.name
+          }));
+          
+          // CHACK_TEXTURE - Log when selectType is called
+          if (param.name === 'shelfs' || param.type === 'beamSingle') {
+              console.log('CHACK_TEXTURE - selectType called:', JSON.stringify({
+                  paramName: param.name,
+                  paramType: param.type,
+                  oldTypeIndex: param.selectedTypeIndex,
+                  newTypeIndex: index,
+                  oldType: param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex]?.name,
+                  newType: param.beams[param.selectedBeamIndex]?.types[index]?.name
+              }));
+          }
         
         // Update the parameter object directly in this.product.params by name to ensure we modify the right object
         const typeParamIndex = this.product?.params?.findIndex((p: any) => 
@@ -1392,6 +1417,26 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             param.beams[defaultBeamIndex].types.length
                                 ? 0
                                 : null;
+                        // CHACK_TEXTURE - Log texture loading information
+                        console.log('CHACK_TEXTURE - Texture loading for shelfs:', JSON.stringify({
+                            paramName: param.name,
+                            defaultBeamIndex: defaultBeamIndex,
+                            selectedBeamIndex: param.selectedBeamIndex,
+                            selectedTypeIndex: param.selectedTypeIndex,
+                            selectedBeam: param.beams[param.selectedBeamIndex]?.name,
+                            selectedType: param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex]?.name,
+                            selectedTypeTranslated: param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex]?.translatedName,
+                            allBeams: param.beams.map((beam: any, index: number) => ({
+                                index: index,
+                                name: beam.name,
+                                types: beam.types.map((type: any, typeIndex: number) => ({
+                                    index: typeIndex,
+                                    name: type.name,
+                                    translatedName: type.translatedName
+                                }))
+                            }))
+                        }));
+                        
                         this.debugLog('Shelfs parameter set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                     }
                     if (
@@ -1476,12 +1521,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 this.debugLog('CHACK-BEAM-MINI: [threejs-box] Checking if same sub-product:', { lastFullId, currentFullId });
                 
+                // Clear potentially incorrect localStorage values before loading configuration
+                this.clearIncorrectLocalStorageValues();
+                
+                // Load saved configuration BEFORE updateBeams to ensure correct values are used for texture loading
                 if (lastFullId === currentFullId) {
                     this.debugLog('CHACK-BEAM-MINI: [threejs-box] Same sub-product, loading saved configuration');
-                this.loadConfiguration();
+                    this.loadConfiguration();
                 } else {
                     this.debugLog('CHACK-BEAM-MINI: [threejs-box] Different sub-product, not loading configuration');
                 }
+                
                 this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
             error: (err) => {
@@ -1519,6 +1569,26 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             param.beams[defaultBeamIndex].types.length
                                 ? 0
                                 : null;
+                        // CHACK_TEXTURE - Log texture loading information
+                        console.log('CHACK_TEXTURE - Texture loading for shelfs:', JSON.stringify({
+                            paramName: param.name,
+                            defaultBeamIndex: defaultBeamIndex,
+                            selectedBeamIndex: param.selectedBeamIndex,
+                            selectedTypeIndex: param.selectedTypeIndex,
+                            selectedBeam: param.beams[param.selectedBeamIndex]?.name,
+                            selectedType: param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex]?.name,
+                            selectedTypeTranslated: param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex]?.translatedName,
+                            allBeams: param.beams.map((beam: any, index: number) => ({
+                                index: index,
+                                name: beam.name,
+                                types: beam.types.map((type: any, typeIndex: number) => ({
+                                    index: typeIndex,
+                                    name: type.name,
+                                    translatedName: type.translatedName
+                                }))
+                            }))
+                        }));
+                        
                         this.debugLog('Shelfs parameter set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                     }
                     if (
@@ -1591,11 +1661,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const plataParam = this.params.find((p) => p.name === 'plata');
                 this.debugLog('פרמטר height:', heightParam);
                 this.debugLog('פרמטר plata:', plataParam);
-                // Load saved configuration after product is loaded (only if same product)
+                // Clear potentially incorrect localStorage values before loading configuration
+                this.clearIncorrectLocalStorageValues();
+                
+                // Load saved configuration BEFORE updateBeams to ensure correct values are used for texture loading
                 const lastProductId = localStorage.getItem('lastSelectedProductId');
                 const currentProductId = this.product?._id || this.selectedProductName;
                 if (lastProductId === currentProductId) {
-                this.loadConfiguration();
+                    this.loadConfiguration();
                 }
                 this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
@@ -2026,6 +2099,25 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
         }
     }
+    // Clear potentially incorrect localStorage values
+    private clearIncorrectLocalStorageValues() {
+        // Clear selectedTypeIndex for shelfs parameter to prevent incorrect texture loading
+        const shelfsTypeKey = `selectedTypeIndex_${this.product?.name}_shelfs`;
+        const savedShelfsType = localStorage.getItem(shelfsTypeKey);
+        
+        console.log('CHACK_TEXTURE - Clearing incorrect localStorage values:', JSON.stringify({
+            shelfsTypeKey: shelfsTypeKey,
+            savedShelfsType: savedShelfsType,
+            productName: this.product?.name
+        }));
+        
+        // If the saved value is 0 (pine) but we want oak, clear it to force fresh selection
+        if (savedShelfsType === '0') {
+            localStorage.removeItem(shelfsTypeKey);
+            console.log('CHACK_TEXTURE - Removed incorrect selectedTypeIndex (pine) from localStorage');
+        }
+    }
+
     // Apply configuration to params
     private applyConfiguration(config: any) {
         if (config.params) {
@@ -2037,8 +2129,35 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     param.default = savedParam.default;
                     param.selectedBeamIndex = savedParam.selectedBeamIndex;
                     param.selectedTypeIndex = savedParam.selectedTypeIndex;
+                    
+                    // CHACK_TEXTURE - Log when localStorage data is applied to inputs
+                    if (param.name === 'shelfs' || param.type === 'beamSingle') {
+                        console.log('CHACK_TEXTURE - localStorage applied to input:', JSON.stringify({
+                            paramName: param.name,
+                            paramType: param.type,
+                            appliedBeamIndex: savedParam.selectedBeamIndex,
+                            appliedTypeIndex: savedParam.selectedTypeIndex,
+                            finalBeamIndex: param.selectedBeamIndex,
+                            finalTypeIndex: param.selectedTypeIndex,
+                            selectedBeam: param.beams?.[param.selectedBeamIndex]?.name,
+                            selectedType: param.beams?.[param.selectedBeamIndex]?.types?.[param.selectedTypeIndex]?.name,
+                            selectedTypeTranslated: param.beams?.[param.selectedBeamIndex]?.types?.[param.selectedTypeIndex]?.translatedName
+                        }));
+                    }
                 }
             });
+            
+            // CHACK_TEXTURE - Log after applyConfiguration to see what happens after localStorage
+            const shelfsParamAfter = this.params.find(p => p.name === 'shelfs');
+            if (shelfsParamAfter) {
+                console.log('CHACK_TEXTURE - After applyConfiguration:', JSON.stringify({
+                    paramName: shelfsParamAfter.name,
+                    selectedBeamIndex: shelfsParamAfter.selectedBeamIndex,
+                    selectedTypeIndex: shelfsParamAfter.selectedTypeIndex,
+                    selectedBeam: shelfsParamAfter.beams?.[shelfsParamAfter.selectedBeamIndex]?.name,
+                    selectedType: shelfsParamAfter.beams?.[shelfsParamAfter.selectedBeamIndex]?.types?.[shelfsParamAfter.selectedTypeIndex]?.name
+                }));
+            }
     }
 
         // כיבוי loading אחרי הטעינה הראשונית
@@ -2417,6 +2536,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             productType: this.isTable ? 'table' : this.isPlanter ? 'planter' : this.isBox ? 'box' : this.isBelams ? 'beams' : this.isFuton ? 'futon' : 'cabinet'
         }));
         
+        // CHACK_TEXTURE - Log parameter state at start of updateBeams
+        const shelfsParamStart = this.params.find(p => p.name === 'shelfs');
+        if (shelfsParamStart) {
+            console.log('CHACK_TEXTURE - Start of updateBeams:', JSON.stringify({
+                paramName: shelfsParamStart.name,
+                selectedBeamIndex: shelfsParamStart.selectedBeamIndex,
+                selectedTypeIndex: shelfsParamStart.selectedTypeIndex,
+                selectedBeam: shelfsParamStart.beams?.[shelfsParamStart.selectedBeamIndex]?.name,
+                selectedType: shelfsParamStart.beams?.[shelfsParamStart.selectedBeamIndex]?.types?.[shelfsParamStart.selectedTypeIndex]?.name,
+                isInitialLoad: isInitialLoad
+            }));
+        }
+        
         // איפוס מחיר להצגת "מחשב מחיר..."
         this.calculatedPrice = 0;
         
@@ -2606,29 +2738,73 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             console.log('CHECH_TEXTURE - selectedBeamIndex already set, not initializing:', shelfsParam?.selectedBeamIndex);
         }
         
-        // Check for saved type index in localStorage
-        if (shelfsParam && shelfsParam.selectedTypeIndex === undefined) {
+        // CHACK_TEXTURE - Debug: Check if shelfsParam is the same object as in this.params
+        const paramsShelfsParam = this.params.find(p => p.name === 'shelfs');
+        console.log('CHACK_TEXTURE - Object comparison:', JSON.stringify({
+            shelfsParamSelectedTypeIndex: shelfsParam?.selectedTypeIndex,
+            paramsShelfsParamSelectedTypeIndex: paramsShelfsParam?.selectedTypeIndex,
+            areSameObject: shelfsParam === paramsShelfsParam,
+            shelfsParamUndefined: shelfsParam?.selectedTypeIndex === undefined,
+            paramsShelfsParamUndefined: paramsShelfsParam?.selectedTypeIndex === undefined
+        }));
+        
+        // FIX: Use the correct object from this.params instead of shelfsParam
+        const correctShelfsParam = paramsShelfsParam || shelfsParam;
+        
+        // Check for saved type index in localStorage ONLY if not already set
+        if (correctShelfsParam && (correctShelfsParam.selectedTypeIndex === undefined || correctShelfsParam.selectedTypeIndex === null)) {
             const typeStorageKey = `selectedTypeIndex_${this.product?.name}_${shelfsParam.name}`;
             const savedTypeIndex = localStorage.getItem(typeStorageKey);
+            
+            // CHACK_TEXTURE - Log when selectedTypeIndex is set from localStorage in updateBeams
+            console.log('CHACK_TEXTURE - Setting selectedTypeIndex in updateBeams:', JSON.stringify({
+                paramName: correctShelfsParam.name,
+                typeStorageKey: typeStorageKey,
+                savedTypeIndex: savedTypeIndex,
+                currentSelectedTypeIndex: correctShelfsParam.selectedTypeIndex,
+                isUndefined: correctShelfsParam.selectedTypeIndex === undefined,
+                isNull: correctShelfsParam.selectedTypeIndex === null
+            }));
+            
             if (savedTypeIndex !== null) {
-                shelfsParam.selectedTypeIndex = parseInt(savedTypeIndex, 10);
+                correctShelfsParam.selectedTypeIndex = parseInt(savedTypeIndex, 10);
+                console.log('CHACK_TEXTURE - Set selectedTypeIndex from localStorage:', correctShelfsParam.selectedTypeIndex);
             } else {
-                shelfsParam.selectedTypeIndex = 0;
+                correctShelfsParam.selectedTypeIndex = 0;
+                console.log('CHACK_TEXTURE - Set selectedTypeIndex to default 0 (no localStorage)');
             }
+        } else if (correctShelfsParam) {
+            // CHACK_TEXTURE - Log when selectedTypeIndex is already set correctly
+            console.log('CHACK_TEXTURE - selectedTypeIndex already set correctly:', JSON.stringify({
+                paramName: correctShelfsParam.name,
+                selectedTypeIndex: correctShelfsParam.selectedTypeIndex,
+                selectedType: correctShelfsParam.beams?.[correctShelfsParam.selectedBeamIndex]?.types?.[correctShelfsParam.selectedTypeIndex]?.name
+            }));
         }
         
         let shelfBeam = null;
         let shelfType = null;
         if (
-            shelfsParam &&
-            Array.isArray(shelfsParam.beams) &&
-            shelfsParam.beams.length
+            correctShelfsParam &&
+            Array.isArray(correctShelfsParam.beams) &&
+            correctShelfsParam.beams.length
         ) {
-            shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex];
+            shelfBeam = correctShelfsParam.beams[correctShelfsParam.selectedBeamIndex];
             shelfType =
                 shelfBeam.types && shelfBeam.types.length
-                    ? shelfBeam.types[shelfsParam.selectedTypeIndex]
+                    ? shelfBeam.types[correctShelfsParam.selectedTypeIndex]
                     : null;
+            
+            // CHACK_TEXTURE - Log actual texture loading for shelfs
+            console.log('CHACK_TEXTURE - Actual texture loading for shelfs:', JSON.stringify({
+                paramName: 'shelfs',
+                selectedBeamIndex: correctShelfsParam.selectedBeamIndex,
+                selectedTypeIndex: correctShelfsParam.selectedTypeIndex,
+                shelfBeam: shelfBeam?.name,
+                shelfType: shelfType?.name,
+                shelfTypeTranslated: shelfType?.translatedName,
+                isInitialLoad: isInitialLoad
+            }));
         }
         // Get wood texture for shelf beams
         const shelfWoodTexture = this.getWoodTexture(
