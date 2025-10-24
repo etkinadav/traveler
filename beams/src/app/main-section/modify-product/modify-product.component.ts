@@ -3135,6 +3135,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.beamMeshes.push(mesh);
             }
             // הוספת ברגים לרגליים (קורות חיזוק עליונות)
+            // DUBBLE_LEG_SCREWS - Log for table leg screws
+            const legParamTable = this.getParam('leg');
+            const legWidthTable = legParamTable?.beams?.[legParamTable.selectedBeamIndex || 0]?.width || 0;
+            const dubbleThreshold = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
+            console.log('DUBBLE_LEG_SCREWS - Table leg screws data:', JSON.stringify({
+                productName: this.product?.name,
+                legWidth: legWidthTable,
+                legWidthCm: legWidthTable / 10,
+                dubbleThreshold: dubbleThreshold,
+                frameBeamHeight: frameBeamHeight
+            }));
+            
             this.addScrewsToLegs(
                 1, // שולחן = 1 מדף
                 legs,
@@ -3723,6 +3735,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.beamMeshes.push(mesh);
             }
             // הוספת ברגים לרגליים עבור ארון
+            // DUBBLE_LEG_SCREWS - Log for cabinet leg screws
+            const legParamCabinet = this.getParam('leg');
+            const legWidthCabinet = legParamCabinet?.beams?.[legParamCabinet.selectedBeamIndex || 0]?.width || 0;
+            const dubbleThresholdCabinet = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
+            console.log('DUBBLE_LEG_SCREWS - Cabinet leg screws data:', JSON.stringify({
+                productName: this.product?.name,
+                legWidth: legWidthCabinet,
+                legWidthCm: legWidthCabinet / 10,
+                dubbleThreshold: dubbleThresholdCabinet,
+                frameBeamHeight: frameBeamHeightCorrect,
+                totalShelves: totalShelves
+            }));
+            
             this.addScrewsToLegs(totalShelves, legs, frameBeamHeightCorrect, 0);
         }
         
@@ -7348,6 +7373,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                                 (leg.depth / 2 + this.headHeight), // צד חיצוני של הרגל (קדמי)
                     },
                 ];
+                // DUBBLE_LEG_SCREWS - Check if we need to duplicate screws
+                const dubbleThreshold = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
+                const shouldDuplicateScrews = dubbleThreshold && frameBeamHeight > dubbleThreshold;
+                
+                if (shouldDuplicateScrews) {
+                    console.log('DUBBLE_LEG_SCREWS - Duplicating screws:', JSON.stringify({
+                        frameBeamHeight: frameBeamHeight,
+                        dubbleThreshold: dubbleThreshold,
+                        legIndex: legIndex,
+                        shelfIndex: shelfIndex
+                    }));
+                }
+                
                 screwPositions.forEach((pos, screwIndex) => {
                     // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
                     const screwType = screwIndex === 0 ? 'leg_height' : 'leg_width';
@@ -7357,20 +7395,53 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         screwIndex === 0 ? legBeamHeight : legBeamWidth,
                         screwIndex === 0 ? legBeamWidth : legBeamHeight
                     );
-                    const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
-                    // הברגים אופקיים ומיושרים ל-X (מאונכים לדופן Z)
-                    screwGroup.position.set(pos.x, pos.y, pos.z);
-                    if (screwIndex === 0) {
-                        screwGroup.rotation.y =
-                            (Math.PI / 2) * (isEven ? 1 : -1);
+                    
+                    // DUBBLE_LEG_SCREWS - Create screws based on condition
+                    if (shouldDuplicateScrews) {
+                        // Screw moved up by 25% of frameBeamHeight
+                        const upOffset = frameBeamHeight * 0.25;
+                        const upScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                        upScrewGroup.position.set(pos.x, pos.y + upOffset, pos.z);
+                        if (screwIndex === 0) {
+                            upScrewGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
+                        } else {
+                            upScrewGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                        }
+                        this.scene.add(upScrewGroup);
+                        this.beamMeshes.push(upScrewGroup);
+                        this.debugLog(
+                            `Leg ${legIndex + 1}, Shelf ${shelfIndex + 1}, Screw ${screwIndex + 1} UP: x=${pos.x.toFixed(1)}, y=${(pos.y + upOffset).toFixed(1)}, z=${pos.z.toFixed(1)}`
+                        );
+                        
+                        // Screw duplicated down by 25% of frameBeamHeight
+                        const downOffset = frameBeamHeight * 0.25;
+                        const downScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                        downScrewGroup.position.set(pos.x, pos.y - downOffset, pos.z);
+                        if (screwIndex === 0) {
+                            downScrewGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
+                        } else {
+                            downScrewGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                        }
+                        this.scene.add(downScrewGroup);
+                        this.beamMeshes.push(downScrewGroup);
+                        this.debugLog(
+                            `Leg ${legIndex + 1}, Shelf ${shelfIndex + 1}, Screw ${screwIndex + 1} DOWN: x=${pos.x.toFixed(1)}, y=${(pos.y - downOffset).toFixed(1)}, z=${pos.z.toFixed(1)}`
+                        );
                     } else {
-                        screwGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                        // Create original screw only if not duplicating
+                        const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                        screwGroup.position.set(pos.x, pos.y, pos.z);
+                        if (screwIndex === 0) {
+                            screwGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
+                        } else {
+                            screwGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                        }
+                        this.scene.add(screwGroup);
+                        this.beamMeshes.push(screwGroup);
+                        this.debugLog(
+                            `Leg ${legIndex + 1}, Shelf ${shelfIndex + 1}, Screw ${screwIndex + 1}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}`
+                        );
                     }
-                    this.scene.add(screwGroup);
-                    this.beamMeshes.push(screwGroup);
-                    this.debugLog(
-                        `Leg ${legIndex + 1}, Shelf ${shelfIndex + 1}, Screw ${screwIndex + 1}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}`
-                    );
                 });
             });
         }
