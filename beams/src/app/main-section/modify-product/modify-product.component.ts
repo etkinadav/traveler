@@ -5714,6 +5714,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const totalShelves = this.shelves.length;
                     totalScrews = totalShelves * 8; // 8 ברגים לכל מדף
                 }
+                
+                // DUBBLE_LEG_SCREWS - Check if we need to multiply screws
+                const dubbleThreshold = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
+                const frameBeamHeight = beamWidth; // frameBeamHeight is the same as beamWidth for legs
+                const shouldDuplicateScrews = dubbleThreshold && frameBeamHeight > dubbleThreshold;
+                
+                if (shouldDuplicateScrews) {
+                    totalScrews = totalScrews * 2; // Double the screws (UP + DOWN instead of original)
+                    console.log('DUBBLE_LEG_SCREWS - Doubling screw count for pricing:', JSON.stringify({
+                        originalScrews: totalScrews / 2,
+                        doubledScrews: totalScrews,
+                        frameBeamHeight: frameBeamHeight,
+                        dubbleThreshold: dubbleThreshold
+                    }));
+                }
                 // חלוקה לשתי קבוצות שוות - חצי לכל קבוצה
                 const halfScrews = Math.floor(totalScrews / 2);
                 const remainingScrews = totalScrews - halfScrews; // לטפל במקרה של מספר אי-זוגי
