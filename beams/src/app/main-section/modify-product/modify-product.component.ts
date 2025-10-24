@@ -2536,6 +2536,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             productType: this.isTable ? 'table' : this.isPlanter ? 'planter' : this.isBox ? 'box' : this.isBelams ? 'beams' : this.isFuton ? 'futon' : 'cabinet'
         }));
         
+        // CHACH_ALLERT - Log when updateBeams is called
+        console.log('CHACH_ALLERT - updateBeams called:', JSON.stringify({
+            isInitialLoad: isInitialLoad,
+            productName: this.product?.name,
+            timestamp: new Date().toISOString()
+        }));
+        
         // CHACK_TEXTURE - Log parameter state at start of updateBeams
         const shelfsParamStart = this.params.find(p => p.name === 'shelfs');
         if (shelfsParamStart) {
@@ -3884,17 +3891,45 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const shouldHideBeams =
                     beamAndGapWidth < legWidth && !isTopShelf;
 
+                // CHACH_ALLERT - Log alert conditions
+                console.log('CHACH_ALLERT - Hidden beams check:', JSON.stringify({
+                    shelfIndex: shelfIndex,
+                    totalShelves: totalShelves,
+                    shelfBeamWidth: shelfBeamWidth,
+                    gapBetweenBeams: gapBetweenBeams,
+                    beamAndGapWidth: beamAndGapWidth,
+                    legWidth: legWidth,
+                    isTopShelf: isTopShelf,
+                    shouldHideBeams: shouldHideBeams,
+                    condition: 'beamAndGapWidth < legWidth && !isTopShelf'
+                }));
+
                 // עדכון המשתנה הבוליאני הגלובלי
                 if (shouldHideBeams) {
                     this.hasHiddenBeams = true;
                     // חישוב כמות הקורות המוסתרות (2 קורות לכל מדף שאיננו עליון)
                     this.hiddenBeamsCount += 2;
                     
+                    // CHACH_ALLERT - Log when beams are hidden
+                    console.log('CHACH_ALLERT - Beams hidden:', JSON.stringify({
+                        shelfIndex: shelfIndex,
+                        hiddenBeamsCount: this.hiddenBeamsCount,
+                        hasHiddenBeams: this.hasHiddenBeams
+                    }));
+                    
                     // בדיקת מקרה קיצון: אם נשארות רק שתי הקורות המקוצרות (ראשונה ואחרונה)
                     // כלומר, אם יש רק 4 קורות בסך הכל ו-2 מוסתרות, נשארות רק 2
                     if (surfaceBeams.length === 4 && this.hiddenBeamsCount >= 2) {
                         this.hasNoMiddleBeams = true;
                         this.debugLog('   - מקרה קיצון: נשארות רק שתי הקורות המקוצרות (אין קורות באמצע)');
+                        
+                        // CHACH_ALLERT - Log critical case
+                        console.log('CHACH_ALLERT - Critical case - no middle beams:', JSON.stringify({
+                            surfaceBeamsLength: surfaceBeams.length,
+                            hiddenBeamsCount: this.hiddenBeamsCount,
+                            hasNoMiddleBeams: this.hasNoMiddleBeams,
+                            condition: 'surfaceBeams.length === 4 && hiddenBeamsCount >= 2'
+                        }));
                     }
                 }
 
@@ -4417,6 +4452,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             childrenCount: wireframeGroup.children.length,
             sceneChildrenCount: this.scene.children.length
         }, null, 2));
+        
+        // CHACH_ALLERT - Log final alert states
+        console.log('CHACH_ALLERT - Final alert states:', JSON.stringify({
+            hasHiddenBeams: this.hasHiddenBeams,
+            hiddenBeamsCount: this.hiddenBeamsCount,
+            hasNoMiddleBeams: this.hasNoMiddleBeams,
+            productName: this.product?.name,
+            timestamp: new Date().toISOString()
+        }));
     }
     // Update model when any parameter changes (alias for updateBeams)
     updateModel() {
