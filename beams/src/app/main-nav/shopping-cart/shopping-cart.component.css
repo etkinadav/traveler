@@ -533,6 +533,7 @@
   min-width: 160px;
   padding: 4px;
   margin-top: 4px;
+  transform: translateX(80%);
 }
 
 .custom-menu .menu-option {
