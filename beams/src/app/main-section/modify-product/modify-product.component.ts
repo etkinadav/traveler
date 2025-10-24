@@ -1156,6 +1156,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         private cdr: ChangeDetectorRef
     ) {}
     ngOnInit() {
+        // מחיקת הגדרות מוצר מ-localStorage כשנכנסים לעמוד
+        this.clearProductSettingsFromStorage();
+        
         // isLoading כבר מוגדר ל-true בברירת המחדל
         this.checkUserAuthentication();
         
@@ -1399,14 +1402,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         this.debugLog('Setting default beam for beamSingle parameter:', param.name);
                         // Only set default if selectedBeamIndex is not already set (same as shelfs)
                         if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
-                            const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
-                            param.selectedBeamIndex = defaultBeamIndex;
-                            param.selectedTypeIndex =
-                                Array.isArray(param.beams[defaultBeamIndex].types) &&
-                                param.beams[defaultBeamIndex].types.length
-                                    ? 0
-                                    : null;
-                            this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                        param.selectedBeamIndex = defaultBeamIndex;
+                        param.selectedTypeIndex =
+                            Array.isArray(param.beams[defaultBeamIndex].types) &&
+                            param.beams[defaultBeamIndex].types.length
+                                ? 0
+                                : null;
+                        this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                         } else {
                             this.debugLog('BeamSingle parameter', param.name, 'already has selectedBeamIndex:', param.selectedBeamIndex);
                         }
@@ -1526,14 +1529,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         this.debugLog('Setting default beam for beamSingle parameter:', param.name);
                         // Only set default if selectedBeamIndex is not already set (same as shelfs)
                         if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
-                            const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
-                            param.selectedBeamIndex = defaultBeamIndex;
-                            param.selectedTypeIndex =
-                                Array.isArray(param.beams[defaultBeamIndex].types) &&
-                                param.beams[defaultBeamIndex].types.length
-                                    ? 0
-                                    : null;
-                            this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                        param.selectedBeamIndex = defaultBeamIndex;
+                        param.selectedTypeIndex =
+                            Array.isArray(param.beams[defaultBeamIndex].types) &&
+                            param.beams[defaultBeamIndex].types.length
+                                ? 0
+                                : null;
+                        this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                         } else {
                             this.debugLog('BeamSingle parameter', param.name, 'already has selectedBeamIndex:', param.selectedBeamIndex);
                         }
@@ -2233,7 +2236,38 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.animate();
     }
     ngOnDestroy() {
+        // מחיקת הגדרות מוצר מ-localStorage כשעוזבים את העמוד
+        this.clearProductSettingsFromStorage();
+        
         window.removeEventListener('resize', this.onResizeBound);
+    }
+    
+    /**
+     * מחיקת כל ההגדרות של המוצר מ-localStorage
+     */
+    private clearProductSettingsFromStorage(): void {
+        try {
+            // מחיקת כל המפתחות הקשורים למוצרים
+            const keysToRemove: string[] = [];
+            
+            // חיפוש כל המפתחות ב-localStorage שמתחילים ב-selectedBeamIndex_
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('selectedBeamIndex_')) {
+                    keysToRemove.push(key);
+                }
+            }
+            
+            // מחיקת כל המפתחות שנמצאו
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                console.log('🗑️ Removed product setting from localStorage:', key);
+            });
+            
+            console.log('✅ Cleared all product settings from localStorage (modify-product)');
+        } catch (error) {
+            console.error('❌ Error clearing product settings from localStorage:', error);
+        }
     }
     initThree() {
         this.scene = new THREE.Scene();
@@ -7762,35 +7796,35 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // רק לקורות רחבות (>4) נבצע את החישוב המתקדם של מיקומי הברגים
             const startPositions = screwPositions[0];
             const endPositions = screwPositions[1];
-            
-            // חישוב הפרמטרים לפי הלוגיקה החדשה
-            const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
-            const X = this.frameHeight; // frameBeamHeight
-            const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
-            const Q = beam.width; // beam.width
-            
-            // חישוב Z ו-R ו-L
-            const Z = (X - Y) / 2;
-            const R = (Q - Z) / 2;
-            const L = R + Z;
-            
-            // המרחק הסופי של הברגים מהמרכז
-            let finalDistance;
-            if (Q > X) {
-                // מקרה קצה: Q > X
-                finalDistance = A - X / 2;
-            } else {
-                // מקרה רגיל: Q <= X
-                finalDistance = A - L;
-            }
-            
-            // חישוב הרווח מהקצה השמאלי של הקורה לבורג השמאלי
-            const leftEdgeX = beam.x - beam.width / 2;
-            const rightEdgeX = beam.x + beam.width / 2;
-            const leftScrewX = Math.min(startPositions.x, endPositions.x);
-            const rightScrewX = Math.max(startPositions.x, endPositions.x);
-            const leftGap = leftScrewX - leftEdgeX;
-            const rightGap = rightEdgeX - rightScrewX;
+
+                // חישוב הפרמטרים לפי הלוגיקה החדשה
+                const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
+                const X = this.frameHeight; // frameBeamHeight
+                const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
+                const Q = beam.width; // beam.width
+
+                // חישוב Z ו-R ו-L
+                const Z = (X - Y) / 2;
+                const R = (Q - Z) / 2;
+                const L = R + Z;
+
+                // המרחק הסופי של הברגים מהמרכז
+                let finalDistance;
+                if (Q > X) {
+                    // מקרה קצה: Q > X
+                    finalDistance = A - X / 2;
+                } else {
+                    // מקרה רגיל: Q <= X
+                    finalDistance = A - L;
+                }
+
+                // חישוב הרווח מהקצה השמאלי של הקורה לבורג השמאלי
+                const leftEdgeX = beam.x - beam.width / 2;
+                const rightEdgeX = beam.x + beam.width / 2;
+                const leftScrewX = Math.min(startPositions.x, endPositions.x);
+                const rightScrewX = Math.max(startPositions.x, endPositions.x);
+                const leftGap = leftScrewX - leftEdgeX;
+                const rightGap = rightEdgeX - rightScrewX;
             // create 2 new positions between start and end - 1/3 from start and 2/3 from end and the opposite
                 // חישוב המיקומים החדשים של כל הברגים לפי המרחק הסופי מהמרכז
                 const adjustedStartPositions = {

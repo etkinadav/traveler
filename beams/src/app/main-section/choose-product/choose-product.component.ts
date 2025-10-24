@@ -244,6 +244,9 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     private http: HttpClient,
     private changeDetectorRef: ChangeDetectorRef,
     private ngZone: NgZone) {
+    // מחיקת הגדרות מוצר מ-localStorage כשנכנסים לעמוד בחירת המוצר
+    this.clearProductSettingsFromStorage();
+    
     this.translateService.onLangChange.subscribe(() => {
       this.updatecontinueToServiceText();
     });
@@ -846,8 +849,36 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     });
     
     // המרה למערך
-    // הכרטיסיות הריקות יתווספו אוטומטית ב-updateEmptyCards שנקראת לאחר מכן
+    // הכרטיסיות הריקות יתווספו אוטומטית ב-updateEmptyCards שנקראת לאחר מכן    
     return Object.values(groups);
+  }
+  
+  /**
+   * מחיקת כל ההגדרות של המוצר מ-localStorage
+   */
+  private clearProductSettingsFromStorage(): void {
+    try {
+      // מחיקת כל המפתחות הקשורים למוצרים
+      const keysToRemove: string[] = [];
+      
+      // חיפוש כל המפתחות ב-localStorage שמתחילים ב-selectedBeamIndex_
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('selectedBeamIndex_')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      // מחיקת כל המפתחות שנמצאו
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        console.log('🗑️ Removed product setting from localStorage:', key);
+      });
+      
+      console.log('✅ Cleared all product settings from localStorage (choose-product)');
+    } catch (error) {
+      console.error('❌ Error clearing product settings from localStorage:', error);
+    }
   }
 }
 
