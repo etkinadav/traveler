@@ -679,12 +679,12 @@
         </button>
         
         <button class="fullscreen-btn" mat-icon-button color="primary" 
-                [matTooltip]="!isPriceManuOpen ? ('price-calculation.tooltip' | translate) : ''" 
+                [matTooltip]="!isPriceManuOpen ? ('price-calculation.tooltip' | translate) : ('צמצם תפריט' | translate)" 
                 matTooltipPosition="above"
                 (click)="togglePriceMenu()"
-                *ngIf="!isPriceMinimized && !isPriceManuOpen && calculatedPrice > 0"
+                *ngIf="!isPriceMinimized && calculatedPrice > 0"
                 aria-label="מסך מלא">
-            <mat-icon>fullscreen</mat-icon>
+            <mat-icon>{{ isPriceManuOpen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
         </button>
         <div class="price-info">
             <div class="price-display-wrapper">
