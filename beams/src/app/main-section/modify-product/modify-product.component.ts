@@ -3059,6 +3059,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const extraBeamParam = this.getParam('extraBeam');
             if (extraBeamParam && extraBeamParam.default > 0) {
                 const extraBeamDistance = extraBeamParam.default;
+                
+                // CHACK_TABLE_GAP - לוג לבדיקת נתונים לקורות חיזוק נוספות
+                const productDimensions = this.getProductDimensionsRaw();
+                console.log('CHACK_TABLE_GAP - Extra beam calculation data:', {
+                    A: plataBeamHeight, // height של קורות הפלטה של השולחן
+                    B: legWidth, // width של קורות הרגל (או החיזוק) של השולחן
+                    C: productDimensions.height, // הגובה הכולל של המוצר
+                    extraBeamDistance: extraBeamDistance,
+                    frameBeamHeight: frameBeamHeight,
+                    tableHeight: tableHeight
+                });
+                
                 // יצירת קורות חיזוק נוספות באותו מיקום אבל יותר נמוך
                 const extraFrameBeams = this.createFrameBeams(
                     this.surfaceWidth,
@@ -3192,6 +3204,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const extraBeamDistance = extraBeamParam && extraBeamParam.default > 0 ? extraBeamParam.default : 0;
             const totalDistanceForLower = extraBeamDistance + calculatedFrameBeamHeightForLower;
             const lowerFrameY = tableHeight - calculatedFrameBeamHeightForLower / 2 - totalDistanceForLower;
+            
+            // CHACK_TABLE_GAP - לוג לבדיקת נתונים לברגים של קורות חיזוק נוספות
+            const productDimensionsForScrews = this.getProductDimensionsRaw();
+            console.log('CHACK_TABLE_GAP - Extra beam screws calculation data:', {
+                A: plataBeamHeight, // height של קורות הפלטה של השולחן
+                B: legWidth, // width של קורות הרגל (או החיזוק) של השולחן
+                C: productDimensionsForScrews.height, // הגובה הכולל של המוצר
+                extraBeamDistance: extraBeamDistance,
+                calculatedFrameBeamHeightForLower: calculatedFrameBeamHeightForLower,
+                totalDistanceForLower: totalDistanceForLower,
+                lowerFrameY: lowerFrameY,
+                tableHeight: tableHeight
+            });
             
             this.debugLog('Adding lower frame screws - tableHeight:', tableHeight, 'extraBeamDistance:', extraBeamDistance, 'totalDistance:', totalDistanceForLower, 'lowerFrameY:', lowerFrameY, 'frameBeamHeight:', calculatedFrameBeamHeightForLower);
             this.addScrewsToLowerFrameBeams(legs, lowerFrameY, frameBeamHeight);
