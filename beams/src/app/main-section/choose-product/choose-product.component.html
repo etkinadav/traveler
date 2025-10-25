@@ -124,7 +124,7 @@
                                                                 {{ group.productTypeName }}
                                                             </h6>
                                                             <span class="opacity-75 text-center text-green" style="margin-top: 4px; font-size: 16px;">
-                                                                דגם {{product.model || product.name || 'מוצר מותאם אישית'}}
+                                                                דגם {{product.model || product.name || ('choose-product.custom-product' | translate)}}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -156,7 +156,7 @@
                                                                      class="loading-shimmer" 
                                                                      style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;">
                                                                     <div class="d-flex align-items-center justify-content-center h-100">
-                                                                        <span class="loading-text-pulse">טוען...</span>
+                                                                        <span class="loading-text-pulse">{{ 'choose-product.loading' | translate }}</span>
                                                                     </div>
                                                                 </div>
                                                                 
@@ -178,7 +178,7 @@
                                                                 <div *ngIf="showHintMap[product._id + '_' + i]" 
                                                                      class="overlay-hint show"
                                                                      [@fadeInOut]>
-                                                                    לחץ לשינוי המבט
+                                                                    {{ 'choose-product.click-to-change-view' | translate }}
                                                                 </div>
                                                                 </div>
                                                             </ng-container>
@@ -188,7 +188,7 @@
                                                                  class="loading-shimmer"
                                                                  (click)="navigateToProduct(product)">
                                                                 <div class="d-flex align-items-center justify-content-center h-100">
-                                                                    <span class="loading-text-pulse">טוען...</span>
+                                                                    <span class="loading-text-pulse">{{ 'choose-product.loading' | translate }}</span>
                                                                 </div>
                                                             </div>
                                                             
@@ -196,7 +196,7 @@
                                                             <div class="button-container">
                                                                 <button class="continue-button" 
                                                                         (click)="navigateToProduct(product); $event.stopPropagation()">
-                                                                    <span class="continue-text">עריכה</span>
+                                                                    <span class="continue-text">{{ 'choose-product.edit' | translate }}</span>
                                                                     <svg class="continue-arrow" width="14" height="14" viewBox="0 0 14 14">
                                                                         <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                                                                     </svg>

@@ -67,9 +67,9 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   currentTransitionKey: string = 'card-' + Math.random();
   
   // טקסט ברירת מחדל עד שהתרגום נטען
-  defaultTitle: string = 'פינות משחקים';
-  defaultText: string = 'צרו פינות משחקים ופנאי עבור ילדים עם מדפים צבעוניים ובטיחותיים';
-  defaultSubtitle: string = 'פינות פנאי לילדים';
+  defaultTitle: string = '';
+  defaultText: string = '';
+  defaultSubtitle: string = '';
   
   // מפה להצגת טקסט ההוראה בריחוף לכל מוצר
   showHintMap: { [key: string]: boolean } = {};
@@ -249,7 +249,11 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     
     this.translateService.onLangChange.subscribe(() => {
       this.updatecontinueToServiceText();
+      this.updateDefaultTexts();
     });
+    
+    // עדכון טקסטים ברירת מחדל
+    this.updateDefaultTexts();
   }
 
   // פונקציה ללוגים מהתבנית
@@ -583,6 +587,12 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
       this.translateService.instant('choose-system.title-short-' + this.printingService);
   }
 
+  updateDefaultTexts() {
+    this.defaultTitle = this.translateService.instant('choose-product.default-title');
+    this.defaultText = this.translateService.instant('choose-product.default-text');
+    this.defaultSubtitle = this.translateService.instant('choose-product.default-subtitle');
+  }
+
   // step-item-trans-plotter
 
 
@@ -649,7 +659,7 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
         this.isLoading = false;
       },
       error: (error) => {
-        this.error = 'שגיאה בטעינת המוצרים';
+        this.error = this.translateService.instant('choose-product.error-loading-products');
         this.isLoading = false;
         console.error('Error loading products:', error);
       }
