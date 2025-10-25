@@ -7390,6 +7390,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
         }
         
+        // DUBBLE_LEG_SCREWS - Check if we need to duplicate screws for lower frame beams
+        const dubbleThreshold = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
+        const shouldDuplicateScrews = dubbleThreshold && frameBeamHeight > dubbleThreshold;
+        
         legPositions.forEach((leg, legIndex) => {
             const isEven = legIndex % 2 === 0;
             
@@ -7423,22 +7427,57 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     screwIndex === 0 ? legBeamHeight : legBeamWidth,
                     screwIndex === 0 ? legBeamWidth : legBeamHeight
                 );
-                const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
                 
-                // הברגים אופקיים ומיושרים כמו ברגי הרגליים הרגילים
-                screwGroup.position.set(pos.x, pos.y, pos.z);
-                if (screwIndex === 0) {
-                    screwGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
+                // DUBBLE_LEG_SCREWS - Create screws based on condition for lower frame beams
+                if (shouldDuplicateScrews) {
+                    // Screw moved up by 25% of frameBeamHeight
+                    const upOffset = frameBeamHeight * 0.25;
+                    const upScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                    upScrewGroup.position.set(pos.x, pos.y + upOffset, pos.z);
+                    if (screwIndex === 0) {
+                        upScrewGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
+                    } else {
+                        upScrewGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                    }
+                    this.scene.add(upScrewGroup);
+                    this.beamMeshes.push(upScrewGroup);
+                    this.debugLog(
+                        `Lower Frame - Leg ${legIndex + 1}, Screw ${screwIndex + 1} UP: x=${pos.x.toFixed(1)}, y=${(pos.y + upOffset).toFixed(1)}, z=${pos.z.toFixed(1)}`
+                    );
+                    
+                    // Screw duplicated down by 25% of frameBeamHeight
+                    const downOffset = frameBeamHeight * 0.25;
+                    const downScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                    downScrewGroup.position.set(pos.x, pos.y - downOffset, pos.z);
+                    if (screwIndex === 0) {
+                        downScrewGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
+                    } else {
+                        downScrewGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                    }
+                    this.scene.add(downScrewGroup);
+                    this.beamMeshes.push(downScrewGroup);
+                    this.debugLog(
+                        `Lower Frame - Leg ${legIndex + 1}, Screw ${screwIndex + 1} DOWN: x=${pos.x.toFixed(1)}, y=${(pos.y - downOffset).toFixed(1)}, z=${pos.z.toFixed(1)}`
+                    );
                 } else {
-                    screwGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                    // Create original screw only if not duplicating
+                    const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                    
+                    // הברגים אופקיים ומיושרים כמו ברגי הרגליים הרגילים
+                    screwGroup.position.set(pos.x, pos.y, pos.z);
+                    if (screwIndex === 0) {
+                        screwGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
+                    } else {
+                        screwGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                    }
+                    
+                    this.scene.add(screwGroup);
+                    this.beamMeshes.push(screwGroup);
+                    
+                    this.debugLog(
+                        `Lower Frame - Leg ${legIndex + 1}, Screw ${screwIndex + 1}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}`
+                    );
                 }
-                
-                this.scene.add(screwGroup);
-                this.beamMeshes.push(screwGroup);
-                
-                this.debugLog(
-                    `Lower Frame - Leg ${legIndex + 1}, Screw ${screwIndex + 1}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}`
-                );
             });
         });
     }
