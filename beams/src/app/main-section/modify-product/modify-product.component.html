@@ -6,7 +6,7 @@
         <!-- כפתור להצגת wireframe - מוסתר במובייל ובמוצר קורות -->
         <button class="wireframe-toggle hide-on-mobile" (click)="toggleWireframe()" 
                 [class.active]="showWireframe" 
-                matTooltip="הצג את מידות המוצר המלאות"
+                matTooltip="{{ 'modify-product.show-dimensions-tooltip' | translate }}"
                 matTooltipPosition="below"
                 *ngIf="!isBelams">
             <!-- SVG Icon -->
@@ -22,7 +22,7 @@
         <button class="options-menu-button" 
                 [class.active]="isOptionsMenuOpen"
                 (click)="toggleOptionsMenu()"
-                matTooltip="אפשרויות נוספות"
+                matTooltip="{{ 'modify-product.additional-options-tooltip' | translate }}"
                 matTooltipPosition="below">
             <svg width="12" height="12" viewBox="0 0 12 12">
                 <circle cx="6" cy="2" r="1.2" fill="currentColor"/>
@@ -35,7 +35,7 @@
         <button class="system-management-button" 
                 [class.active]="isSystemMenuOpen"
                 (click)="toggleSystemMenu()"
-                matTooltip="ניהול מערכת"
+                matTooltip="{{ 'modify-product.system-management-tooltip' | translate }}"
                 matTooltipPosition="below">
             <svg width="12" height="12" viewBox="0 0 12 12">
                 <!-- אייקון ניהול מערכת - גלגל שיניים עדין -->
@@ -147,33 +147,33 @@
     
     <!-- קוביית ניווט במובייל -->
     <div class="mobile-navigation-cube" *ngIf="showNavigationCube" [@fadeInScale]>
-        <div class="nav-cube-title">בחר מבט</div>
+        <div class="nav-cube-title">{{ 'modify-product.choose-view' | translate }}</div>
         
         <!-- קוביה עם כפתורים -->
         <div class="mobile-base-cube">
             <!-- כפתור למעלה -->
             <button class="mobile-nav-button mobile-top-button" (click)="onNavigationClick('top')">
-                <span class="nav-text">למעלה</span>
+                <span class="nav-text">{{ 'modify-product.view-up' | translate }}</span>
             </button>
             
             <!-- כפתור שמאל -->
             <button class="mobile-nav-button mobile-left-button" (click)="onNavigationClick('left')">
-                <span class="nav-text">שמאל</span>
+                <span class="nav-text">{{ 'modify-product.view-left' | translate }}</span>
             </button>
             
             <!-- כפתור קדמי (מרכז) -->
             <button class="mobile-nav-button mobile-front-button" (click)="onNavigationClick('front')">
-                <span class="nav-text">קדמי</span>
+                <span class="nav-text">{{ 'modify-product.view-front' | translate }}</span>
             </button>
             
             <!-- כפתור ימין -->
             <button class="mobile-nav-button mobile-right-button" (click)="onNavigationClick('right')">
-                <span class="nav-text">ימין</span>
+                <span class="nav-text">{{ 'modify-product.view-right' | translate }}</span>
             </button>
             
             <!-- כפתור תחתון -->
             <button class="mobile-nav-button mobile-back-button" (click)="onNavigationClick('bottom')">
-                <span class="nav-text">למטה</span>
+                <span class="nav-text">{{ 'modify-product.view-down' | translate }}</span>
             </button>
         </div>
         
@@ -218,7 +218,7 @@
                 <div class="product-header" *ngIf="selectedProductName" style="margin-bottom: 20px;">
                     <h3 style="margin: 0; padding: 10px; text-align: center;">
                         {{product?.translatedName || selectedProductName}}<br>
-                            <span style="margin-top: 8px; font-weight: normal; font-size: 0.8em; display: block; color: #0066cc;">דגם: {{product?.model || product?.name || selectedProductName}}</span>
+                            <span style="margin-top: 8px; font-weight: normal; font-size: 0.8em; display: block; color: #0066cc;">{{ 'modify-product.model-label' | translate }} {{product?.model || product?.name || selectedProductName}}</span>
                     </h3>
                 </div>
                 
@@ -250,7 +250,7 @@
                             style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="shelf-row">
                             <div class="custom-select-wrapper">
-                                <label class="custom-select-label">סוג קורה</label>
+                                <label class="custom-select-label">{{ 'modify-product.beam-type-label' | translate }}</label>
                                 <div class="custom-dropdown" (click)="toggleDropdown('beam', param)" [class.open]="isDropdownOpen('beam', param)">
                                     <div class="dropdown-selected">
                                         {{param.beams[param.selectedBeamIndex]?.translatedName}}
@@ -269,7 +269,7 @@
                                 </div>
                             </div>
                             <div class="custom-select-wrapper">
-                                <label class="custom-select-label">סוג עץ</label>
+                                <label class="custom-select-label">{{ 'modify-product.wood-type-label' | translate }}</label>
                                 <div class="custom-dropdown" (click)="toggleDropdown('type', param)" [class.open]="isDropdownOpen('type', param)">
                                     <div class="dropdown-selected">
                                         {{param.beams[param.selectedBeamIndex]?.types[param.selectedTypeIndex]?.translatedName}}
@@ -303,7 +303,7 @@
                                 [class.shelf-row-with-amount]="param.setAmount === true">
                                 <div class="shelf-gap-field-wrapper">
                                     <mat-form-field appearance="outline" class="shelf-gap-field">
-                                        <mat-label>מידה {{param.default.length - idx}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
+                                        <mat-label>{{ 'modify-product.measurement-label' | translate }} {{param.default.length - idx}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
                                         <input #shelfInput matInput type="number" [step]="1"
                                             [ngModel]="param._editingValues?.[param.default.length - 1 - idx] ?? param.default[param.default.length - 1 - idx]"
                                             (ngModelChange)="(param._editingValues = param._editingValues || []); param._editingValues[param.default.length - 1 - idx] = $event"
@@ -320,7 +320,7 @@
                                     <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn" 
                                         [class.remove-shelf-btn-with-amount]="param.setAmount === true"
                                         (click)="param.default.splice(param.default.length - 1 - idx,1); updateBeams()"
-                                        [disabled]="param.default.length<=1" aria-label="הסר מדף">
+                                        [disabled]="param.default.length<=1" [attr.aria-label]="'modify-product.remove-shelf-aria' | translate">
                                         <svg width="14" height="14" viewBox="0 0 14 14">
                                             <circle cx="7" cy="7" r="6" fill="#fff" stroke="#d32f2f" stroke-width="1.2" />
                                             <line x1="4.5" y1="4.5" x2="9.5" y2="9.5" stroke="#d32f2f" stroke-width="1.5" />
@@ -338,7 +338,7 @@
                         <label style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="shelf-row">
                             <div class="custom-select-wrapper">
-                                <label class="custom-select-label">סוג קורה</label>
+                                <label class="custom-select-label">{{ 'modify-product.beam-type-label' | translate }}</label>
                                 <div class="custom-dropdown" (click)="toggleDropdown('beam', param)" [class.open]="isDropdownOpen('beam', param)">
                                     <div class="dropdown-selected">
                                         {{param.beams[param.selectedBeamIndex]?.translatedName}}
@@ -357,7 +357,7 @@
                                 </div>
                             </div>
                             <div class="custom-select-wrapper">
-                                <label class="custom-select-label">סוג עץ</label>
+                                <label class="custom-select-label">{{ 'modify-product.wood-type-label' | translate }}</label>
                                 <div class="custom-dropdown" (click)="toggleDropdown('type', param)" [class.open]="isDropdownOpen('type', param)">
                                     <div class="dropdown-selected">
                                         {{param.beams[param.selectedBeamIndex || 0]?.types[param.selectedTypeIndex]?.translatedName}}
@@ -392,7 +392,7 @@
                                 <div class="shelf-gap-field-wrapper">
                                     <div class="beam-entry-container">
                                         <mat-form-field appearance="outline" class="shelf-gap-field-length">
-                                            <mat-label>אורך {{param.default.length - idx}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
+                                            <mat-label>{{ 'modify-product.length-label' | translate }} {{param.default.length - idx}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
                                             <input matInput type="number" [step]="1"
                                                 [(ngModel)]="param.default[param.default.length - 1 - idx].length"
                                                 (blur)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
@@ -400,7 +400,7 @@
                                                 (input)="onShelfInputChange($event, param, idx)">
                                         </mat-form-field>
                                         <div class="quantity-container">
-                                            <div class="quantity-label-above">כמות</div>
+                                            <div class="quantity-label-above">{{ 'modify-product.quantity-label' | translate }}</div>
                                             <div class="quantity-control">
                                                 <!-- במובייל: פלוס למעלה -->
                                                 <button class="quantity-btn plus"
@@ -431,7 +431,7 @@
                                     <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn"
                                         [class.remove-shelf-btn-with-amount]="param.setAmount === true"
                                         (click)="param.default.splice(param.default.length - 1 - idx,1); updateBeams()"
-                                        [disabled]="param.default.length<=1" aria-label="הסר קורה">
+                                        [disabled]="param.default.length<=1" [attr.aria-label]="'modify-product.remove-beam-aria' | translate">
                                         <svg width="14" height="14" viewBox="0 0 14 14">
                                             <circle cx="7" cy="7" r="6" fill="#fff" stroke="#d32f2f" stroke-width="1.2" />
                                             <line x1="4.5" y1="4.5" x2="9.5" y2="9.5" stroke="#d32f2f" stroke-width="1.5" />
@@ -449,7 +449,7 @@
                         <label style="font-weight:bold; display:block; margin-bottom: 1.5em;">{{param.translatedName}}</label>
                         <div class="shelf-row">
                             <div class="custom-select-wrapper">
-                                <label class="custom-select-label">סוג קורה</label>
+                                <label class="custom-select-label">{{ 'modify-product.beam-type-label' | translate }}</label>
                                 <div class="custom-dropdown" (click)="toggleDropdown('beam', param)" [class.open]="isDropdownOpen('beam', param)">
                                     <div class="dropdown-selected">
                                         {{param.beams[param.selectedBeamIndex]?.translatedName}}
@@ -468,7 +468,7 @@
                                 </div>
                             </div>
                             <div class="custom-select-wrapper">
-                                <label class="custom-select-label">סוג עץ</label>
+                                <label class="custom-select-label">{{ 'modify-product.wood-type-label' | translate }}</label>
                                 <div class="custom-dropdown" (click)="toggleDropdown('type', param)" [class.open]="isDropdownOpen('type', param)">
                                     <div class="dropdown-selected">
                                         {{param.beams[param.selectedBeamIndex || 0]?.types[param.selectedTypeIndex]?.translatedName}}
@@ -592,7 +592,7 @@
                 
                 <!-- שדה כמות יחידות -->
                 <div class="quantity-selector" *ngIf="!isLoading || !isModelLoading">
-                    <label class="quantity-label">כמות יחידות:</label>
+                    <label class="quantity-label">{{ 'modify-product.quantity-units' | translate }}</label>
                     <div class="quantity-control">
                         <button class="quantity-btn minus" (click)="decreaseQuantity()" [disabled]="quantity <= 1">
                             <svg width="12" height="12" viewBox="0 0 12 12">
@@ -616,35 +616,35 @@
                 
                 <!-- טבלת מידות המוצר - מוסתר למוצר beams -->
                 <div class="product-dimensions-container" *ngIf="!isLoading && !isBelams">
-                    <h3>מידות המוצר הסופי</h3>
+                    <h3>{{ 'modify-product.product-dimensions-title' | translate }}</h3>
                     <table class="dimensions-table">
                         <!-- מידות כוללות - לכל המוצרים -->
                         <tr>
-                            <td>אורך כולל:</td>
+                            <td>{{ 'modify-product.total-length' | translate }}</td>
                             <td [innerHTML]="getProductDimensions().length"></td>
                         </tr>
                         <tr>
-                            <td>רוחב כולל:</td>
+                            <td>{{ 'modify-product.total-width' | translate }}</td>
                             <td [innerHTML]="getProductDimensions().width"></td>
                         </tr>
                         <tr>
-                            <td>גובה כולל:</td>
+                            <td>{{ 'modify-product.total-height' | translate }}</td>
                             <td [innerHTML]="getProductDimensions().height"></td>
                         </tr>
                         
                         <!-- מידות ספציפיות - רק לארון, שולחן ומיטה -->
                         <tr *ngIf="!isPlanter && !isBox">
-                            <td>{{ (isTable || isFuton) ? 'כמות קורות בפלטה:' : 'כמות קורות במדף:' }}</td>
+                            <td>{{ (isTable || isFuton) ? ('modify-product.platform-beam-count' | translate) : ('modify-product.shelf-beam-count' | translate) }}</td>
                             <td [innerHTML]="getProductDimensions().beamCount"></td>
                         </tr>
                         <tr *ngIf="!isPlanter && !isBox">
-                            <td>{{ (isTable || isFuton) ? 'רווח בין קורות הפלטה:' : 'רווח בין קורות המדף:' }}</td>
+                            <td>{{ (isTable || isFuton) ? ('modify-product.platform-beam-gap' | translate) : ('modify-product.shelf-beam-gap' | translate) }}</td>
                             <td [innerHTML]="getProductDimensions().gapBetweenBeams"></td>
                         </tr>
                         
                         <!-- כמות מדפים - רק לארון -->
                         <tr *ngIf="!isTable && !isFuton && !isPlanter && !isBox">
-                            <td>כמות מדפים:</td>
+                            <td>{{ 'modify-product.shelf-count' | translate }}</td>
                             <td [innerHTML]="getProductDimensions().shelfCount"></td>
                         </tr>
                     </table>
@@ -669,21 +669,21 @@
     <div class="price-calculation-area" [class.minimized]="isPriceMinimized">
         <!-- כפתור צמצום/הרחב -->
         <button class="minimize-btn" mat-icon-button 
-                [matTooltip]="isPriceMinimized ? 'הצג אפשרויות נוספות' : 'צמצם'"
+                [matTooltip]="isPriceMinimized ? ('modify-product.show-additional-options' | translate) : ('modify-product.minimize' | translate)"
                 matTooltipPosition="above"
                 (click)="togglePriceMinimize()"
                 [class.expanded-mode]="isPriceMinimized"
-                aria-label="צמצם/הרחב"
+                [attr.aria-label]="'modify-product.minimize-expand-aria' | translate"
                 *ngIf="calculatedPrice > 0">
             <mat-icon>{{ isPriceMinimized ? 'unfold_more' : 'close' }}</mat-icon>
         </button>
         
         <button class="fullscreen-btn" mat-icon-button color="primary" 
-                [matTooltip]="!isPriceManuOpen ? ('price-calculation.tooltip' | translate) : ('צמצם תפריט' | translate)" 
+                [matTooltip]="!isPriceManuOpen ? ('price-calculation.tooltip' | translate) : ('modify-product.minimize-menu-tooltip' | translate)" 
                 matTooltipPosition="above"
                 (click)="togglePriceMenu()"
                 *ngIf="!isPriceMinimized && calculatedPrice > 0"
-                aria-label="מסך מלא">
+                [attr.aria-label]="'modify-product.fullscreen-aria' | translate">
             <mat-icon>{{ isPriceManuOpen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
         </button>
         <div class="price-info">
@@ -708,17 +708,17 @@
                     <div class="price-capsules">
                         <!-- שרטוט - תמיד מוצג -->
                         <div class="price-capsule">
-                            <div class="capsule-label">שרטוט</div>
+                            <div class="capsule-label">{{ 'modify-product.drawing' | translate }}</div>
                             <div class="capsule-value">{{ drawingPrice }} <span class="currency-symbol">₪</span></div>
                         </div>
                         <!-- קורות - רק אם נבחרו -->
                         <div class="price-capsule" *ngIf="isBeamsEnabled">
-                            <div class="capsule-label">{{ isCuttingEnabled ? 'קורות חתוכות' : 'קורות שלמות' }}</div>
+                            <div class="capsule-label">{{ isCuttingEnabled ? ('pricing_option_cut_short' | translate) : ('pricing_option_full_short' | translate) }}</div>
                             <div class="capsule-value">{{ getBeamsOnlyPrice() + (isCuttingEnabled ? getCuttingPrice() : 0) }} <span class="currency-symbol">₪</span></div>
                         </div>
                         <!-- ברגים - רק אם נבחרו -->
                         <div class="price-capsule" *ngIf="isScrewsEnabled">
-                            <div class="capsule-label">ברגים</div>
+                            <div class="capsule-label">{{ 'modify-product.screws' | translate }}</div>
                             <div class="capsule-value">{{ getScrewsPrice() }} <span class="currency-symbol">₪</span></div>
                         </div>
                     </div>
@@ -726,7 +726,7 @@
                     <div class="price-display">
                         <!-- קונטיינר פנימי למחיר בלבד -->
                         <div class="price-only-wrapper">
-                            <span class="price-label">סה"כ:</span>
+                            <span class="price-label">{{ 'modify-product.total-label' | translate }}</span>
                             <div class="price-value-inline">
                                 {{ getFinalPrice() }} ₪
                             </div>
@@ -737,7 +737,7 @@
                                 (click)="onContinueOrder(); $event.stopPropagation()"
                                 *ngIf="calculatedPrice > 0"
                                 [@fadeInScale]>
-                            <span class="continue-text">הוסף לסל</span>
+                            <span class="continue-text">{{ 'modify-product.add-to-cart' | translate }}</span>
                             <svg class="continue-arrow" width="14" height="14" viewBox="0 0 14 14">
                                 <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
@@ -748,7 +748,7 @@
                 <!-- תצוגת טעינה -->
         <div class="price-loader" *ngIf="calculatedPrice === 0">
             <div class="simple-spinner always-tiny"></div>
-            <span class="calculating-text">מחשב מחיר...</span>
+            <span class="calculating-text">{{ 'modify-product.calculating-price' | translate }}</span>
         </div>
                 
                 <!-- תצוגה מצומצמת - שורת מחיר + כפתור המשך -->
@@ -766,7 +766,7 @@
                     <!-- כפתור המשך -->
                     <button class="minimized-continue-button" 
                             (click)="onContinueOrder(); $event.stopPropagation()">
-                        <span class="continue-text">הוסף לסל</span>
+                        <span class="continue-text">{{ 'modify-product.add-to-cart' | translate }}</span>
                         <svg class="continue-arrow" width="14" height="14" viewBox="0 0 14 14">
                             <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -784,7 +784,7 @@
                     </svg>
                 </button>
                 <div class="header-container">
-                    <div class="header-title" style="font-size: 16px !important; font-weight: bold !important; color: #0066cc !important; text-align: center !important;">מה תרצו להזמין?</div>
+                    <div class="header-title" style="font-size: 16px !important; font-weight: bold !important; color: #0066cc !important; text-align: center !important;">{{ 'modify-product.what-would-you-like' | translate }}</div>
                 </div>
             </div>
             
@@ -796,7 +796,7 @@
                             <div class="checkmark">✓</div>
                         </div>
                     </div>
-                    <div class="category-title">הוראות</div>
+                    <div class="category-title">{{ 'modify-product.instructions' | translate }}</div>
                     <div class="category-price">{{ drawingPrice }} ₪</div>
                 </div>
             </div>
@@ -809,11 +809,11 @@
                             <div class="checkmark">✓</div>
                         </div>
                     </div>
-                    <div class="category-title" (click)="$event.stopPropagation()">קורות</div>
+                    <div class="category-title" (click)="$event.stopPropagation()">{{ 'modify-product.beams' | translate }}</div>
                     <div class="category-price-container">
                         <div class="edit-icon-div" 
                              *ngIf="isBeamsEnabled"
-                             matTooltip="עריכה" 
+                             matTooltip="{{ 'modify-product.edit-tooltip' | translate }}" 
                              matTooltipPosition="above"
                              (click)="toggleBeamsEditOptions(); $event.stopPropagation()">
                             <svg width="12" height="12" viewBox="0 0 12 12" class="edit-icon">
@@ -840,15 +840,15 @@
                     <div class="edit-options-list">
                         <!-- כותרת -->
                         <div class="edit-header-row">
-                            <span class="edit-header-title">עריכת כמות קורות</span>
+                            <span class="edit-header-title">{{ 'modify-product.edit-beam-quantity' | translate }}</span>
                         </div>
                         
                         <!-- רשימת קורות -->
                         <div class="edit-option-row" *ngFor="let beam of getBeamsForEdit(); let i = index">
                             <div class="option-text-container">
                        <div class="option-line-1">{{ beam.beamTranslatedName }}</div>
-                       <div class="option-line-2">{{ beam.type?.translatedName || beam.beamWoodType }} - קורת {{ getBeamLengthInMeters(beam) }} מ'</div>
-                       <div class="option-line-3">מחיר ליח' - {{ getBeamPrice(beam) }} ₪</div>
+                       <div class="option-line-2">{{ beam.type?.translatedName || beam.beamWoodType }} - קורת {{ getBeamLengthInMeters(beam) }} {{ 'modify-product.beam-meter' | translate }}</div>
+                       <div class="option-line-3">{{ 'modify-product.price-per-unit' | translate }} {{ getBeamPrice(beam) }} ₪</div>
                             </div>
                             <div class="quantity-controls">
                                 <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateBeamQuantity(i, getFullBeamsCount(beam) - 1)">-</div>
@@ -875,7 +875,7 @@
                             <div class="checkmark">✓</div>
                         </div>
                     </div>
-                    <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">חיתוך</div>
+                    <div class="category-title" (click)="$event.stopPropagation()" [class.disabled]="!isBeamsEnabled">{{ 'modify-product.cutting' | translate }}</div>
                     <div class="category-price" (click)="$event.stopPropagation()" [class.crossed-out]="!isCuttingEnabled">
                         <span>{{ getCuttingPrice() }} ₪</span>
                     </div>
@@ -892,11 +892,11 @@
                             <div class="checkmark">✓</div>
                         </div>
                     </div>
-                    <div class="category-title" (click)="$event.stopPropagation()">ברגים</div>
+                    <div class="category-title" (click)="$event.stopPropagation()">{{ 'modify-product.screws' | translate }}</div>
                     <div class="category-price-container">
                         <div class="edit-icon-div" 
                              *ngIf="isScrewsEnabled"
-                             matTooltip="עריכה" 
+                             matTooltip="{{ 'modify-product.edit-tooltip' | translate }}" 
                              matTooltipPosition="above"
                              (click)="toggleScrewsEditOptions(); $event.stopPropagation()">
                             <svg width="12" height="12" viewBox="0 0 12 12" class="edit-icon">
@@ -923,7 +923,7 @@
                     <div class="edit-options-list">
                         <!-- כותרת -->
                         <div class="edit-header-row">
-                            <span class="edit-header-title">עריכת כמות ברגים</span>
+                            <span class="edit-header-title">{{ 'modify-product.edit-screw-quantity' | translate }}</span>
                         </div>
                         
                         <!-- רשימת ברגים -->
@@ -931,7 +931,7 @@
                             <div class="option-text-container">
                                 <div class="option-line-1">{{ screw.screwTranslatedName }}</div>
                                 <div class="option-line-2">{{ screw.optimalPackage.translatedName }}</div>
-                                <div class="option-line-3">מחיר ליח' - {{ screw.optimalPackage?.price || 0 }} ₪</div>
+                                <div class="option-line-3">{{ 'modify-product.price-per-unit' | translate }} {{ screw.optimalPackage?.price || 0 }} ₪</div>
                             </div>
                             <div class="quantity-controls">
                                 <div class="qty-btn" (click)="$event.stopPropagation(); $event.preventDefault(); updateScrewQuantity(i, screw.numPackages - 1)">-</div>
@@ -954,12 +954,12 @@
              [class.with-warning]="hasHiddenBeams || hasNoMiddleBeams"
              *ngIf="isPriceManuOpen">
             <!-- כותרת ראשית -->
-            <div class="main-header-title" style="text-align: center;">תחשיבים</div>
+            <div class="main-header-title" style="text-align: center;">{{ 'modify-product.calculations' | translate }}</div>
             
             <!-- מצב loading -->
             <div class="pricing-menu-loading" *ngIf="isModelLoading">
                 <div class="simple-spinner always-tiny"></div>
-                <span class="calculating-text">מחשב מחיר...</span>
+                <span class="calculating-text">{{ 'modify-product.calculating-price' | translate }}</span>
             </div>
             
             <!-- תוכן התפריט - מוסתר בזמן loading -->
@@ -969,11 +969,11 @@
             
             <!-- הוראות חיתוך והרכבה (תמיד מוצגות) -->
             <div class="instructions-section">
-                <div class="main-title">הוראות חיתוך והרכבה</div>
+                <div class="main-title">{{ 'modify-product.cutting-assembly-instructions' | translate }}</div>
                 <div class="materials-summary required-lengths-summary">
                     <div class="beam-type-section">
                         <div class="size-item">
-                            <span class="size-value">שרטוט</span>
+                            <span class="size-value">{{ 'modify-product.drawing' | translate }}</span>
                             <span class="size-separator"></span>
                             <span class="size-count">{{ drawingPrice }} ₪</span>
                         </div>
@@ -983,18 +983,18 @@
             
             <!-- קורות - רק אם מופעלות -->
             <div class="beams-section" *ngIf="isBeamsEnabled && BeamsDataForPricing && BeamsDataForPricing.length > 0">
-                <div class="main-title">קורות</div>
+                <div class="main-title">{{ 'modify-product.beams' | translate }}</div>
                 
                 <!-- אורכים נדרשים -->
-                <div class="sub-title">אורכים נדרשים:</div>
+                <div class="sub-title">{{ 'modify-product.required-lengths' | translate }}</div>
                 <div class="materials-summary required-lengths-summary">
                     <div *ngFor="let beamData of BeamsDataForPricing" class="beam-name">
                         <!-- כותרת סוג הקורה -->
-                        <div class="pricing-title">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type?.translatedName || beamData.beamWoodType }}) - קורת {{ getBeamLengthInMeters(beamData) }} מ'</div>
+                        <div class="pricing-title">{{ beamData.beamTranslatedName || beamData.beamName }} ({{ beamData.type?.translatedName || beamData.beamWoodType }}) - קורת {{ getBeamLengthInMeters(beamData) }} {{ 'modify-product.beam-meter' | translate }}</div>
                         
                         <!-- רשימת המידות -->
                         <div *ngFor="let sizeData of beamData.totalSizes" class="size-item">
-                            <span class="size-value">{{ sizeData.length }} ס"מ</span>
+                            <span class="size-value">{{ sizeData.length }} {{ 'modify-product.cm' | translate }}</span>
                             <span class="size-separator"></span>
                             <span class="size-count">{{ sizeData.count }} {{ 'price-calculation.units' | translate }}</span>
                         </div>
@@ -1002,7 +1002,7 @@
                 </div>
                 
                 <!-- סידור אופטימלי לחיתוך - רק אם חיתוך מופעל -->
-                <div class="sub-title no-border" *ngIf="isCuttingEnabled">סידור אופטימלי לחיתוך:</div>
+                <div class="sub-title no-border" *ngIf="isCuttingEnabled">{{ 'modify-product.optimal-cutting-arrangement' | translate }}</div>
                 <div class="materials-summary" *ngIf="cuttingPlan && cuttingPlan.length > 0">
                     <div *ngFor="let beam of cuttingPlan" class="beam-type-section">
                         <!-- כותרת קורה -->
@@ -1017,27 +1017,27 @@
                         
                         <!-- רשימת החתיכות מקובצות לפי גודל -->
                         <div *ngFor="let cutGroup of getCutGroups(beam.cuts)" class="size-item">
-                            <span class="size-value">{{ cutGroup.length }} ס"מ</span>
+                            <span class="size-value">{{ cutGroup.length }} {{ 'modify-product.cm' | translate }}</span>
                             <span class="size-separator"></span>
                             <span class="size-count">{{ cutGroup.count }} {{ 'price-calculation.units' | translate }}</span>
                         </div>
                     </div>
                 </div>
                 <div class="materials-summary" *ngIf="!cuttingPlan || cuttingPlan.length === 0">
-                    <div class="thinking-text">מחשב...</div>
+                    <div class="thinking-text">{{ 'modify-product.calculating' | translate }}</div>
                 </div>
             </div>
             
             <!-- ברגים - רק אם מופעלים -->
             <div class="screws-section" *ngIf="isScrewsEnabled && ForgingDataForPricing && ForgingDataForPricing.length > 0 && hasActiveScrews()">
-                <div class="main-title">ברגים</div>
+                <div class="main-title">{{ 'modify-product.screws' | translate }}</div>
                 
                 <!-- אורכים נדרשים -->
-                <div class="sub-title">אורכים נדרשים:</div>
+                <div class="sub-title">{{ 'modify-product.required-lengths' | translate }}</div>
                 <div class="materials-summary required-lengths-summary">
                     <div class="beam-type-section">
                         <div *ngFor="let forgingData of getActiveScrews()" class="size-item">
-                            <span class="size-value">{{ forgingData.length }} ס"מ</span>
+                            <span class="size-value">{{ forgingData.length }} {{ 'modify-product.cm' | translate }}</span>
                             <span class="size-separator"></span>
                             <span class="size-count">{{ forgingData.count }} {{ 'price-calculation.units' | translate }}</span>
                         </div>
@@ -1045,7 +1045,7 @@
                 </div>
                 
                 <!-- קופסאות ברגים מומלצות - רק אם ברגים מופעלים -->
-                <div class="sub-title" *ngIf="isScrewsEnabled && screwsPackagingPlan && screwsPackagingPlan.length > 0">קופסאות ברגים מומלצות:</div>
+                <div class="sub-title" *ngIf="isScrewsEnabled && screwsPackagingPlan && screwsPackagingPlan.length > 0">{{ 'modify-product.recommended-screw-packages' | translate }}</div>
                 <div class="materials-summary" *ngIf="screwsPackagingPlan && screwsPackagingPlan.length > 0">
                     <div *ngFor="let package of screwsPackagingPlan; let i = index" class="beam-type-section">
                         <!-- כותרת קופסא עם מספר -->
