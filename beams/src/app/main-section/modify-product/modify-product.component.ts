@@ -729,6 +729,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // משתנה לשליטה בתצוגת תפריט האזהרה
     showWarningMenu = false;
     
+    // משתנים לשליטה בהצגת התרעות
+    showHiddenBeamsWarning = true;
+    showNoMiddleBeamsWarning = true;
+    
+    // פונקציות לסגירת התרעות
+    dismissHiddenBeamsWarning() {
+        this.showHiddenBeamsWarning = false;
+    }
+    
+    dismissNoMiddleBeamsWarning() {
+        this.showNoMiddleBeamsWarning = false;
+    }
+    
     // פונקציה לטיפול בלחיצה על כפתור "המשך"
     onContinueOrder() {
         console.log('🚨 WARNING_MENU - onContinueOrder called');

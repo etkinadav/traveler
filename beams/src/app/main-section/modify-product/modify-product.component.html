@@ -181,21 +181,35 @@
     </div>
     
     <!-- התרעה על קורות מוסתרות -->
-    <div class="hidden-beams-warning" *ngIf="hasHiddenBeams && !hasNoMiddleBeams">
+    <div class="hidden-beams-warning" *ngIf="hasHiddenBeams && !hasNoMiddleBeams && showHiddenBeamsWarning">
         <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left:8px;">
             <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="0.8" fill="none"/>
             <path d="M6 3v3M6 8h.01" stroke="currentColor" stroke-width="0.8" fill="none"/>
         </svg>
         <span class="button-text">{{ 'hidden_beams_warning' | translate: {count: hiddenBeamsCount, beamType: getBeamTypeText()} }}</span>
+        <div class="close-button-spacer"></div>
+        <button class="close-warning-btn" (click)="dismissHiddenBeamsWarning()" [attr.aria-label]="'close-branch.btn' | translate">
+            <svg width="10" height="10" viewBox="0 0 10 10">
+                <line x1="2" y1="2" x2="8" y2="8" stroke="currentColor" stroke-width="1.2"/>
+                <line x1="8" y1="2" x2="2" y2="8" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+        </button>
     </div>
     
     <!-- התרעה על מקרה קיצון - אין קורות באמצע -->
-    <div class="hidden-beams-warning critical" *ngIf="hasNoMiddleBeams">
+    <div class="hidden-beams-warning critical" *ngIf="hasNoMiddleBeams && showNoMiddleBeamsWarning">
         <svg width="12" height="12" viewBox="0 0 12 12" style="margin-left:8px;">
             <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="0.8" fill="none"/>
             <path d="M6 3v3M6 8h.01" stroke="currentColor" stroke-width="0.8" fill="none"/>
         </svg>
         <span class="button-text">{{ 'no_middle_beams_warning' | translate }}</span>
+        <div class="close-button-spacer"></div>
+        <button class="close-warning-btn" (click)="dismissNoMiddleBeamsWarning()" [attr.aria-label]="'close-branch.btn' | translate">
+            <svg width="10" height="10" viewBox="0 0 10 10">
+                <line x1="2" y1="2" x2="8" y2="8" stroke="currentColor" stroke-width="1.2"/>
+                <line x1="8" y1="2" x2="2" y2="8" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+        </button>
     </div>
     
     <div class="main-flex-row">

@@ -341,7 +341,7 @@
     padding: 4px 8px;
     border: none;
     border-radius: 6px;
-    background: rgba(244, 67, 54, 0.1);
+    background: rgba(255, 255, 255, 0.9);
     color: #f44336;
     display: flex;
     align-items: center;
@@ -367,6 +367,35 @@
     .button-text {
         margin-left: 0px;
         font-size: 11px;
+        flex: 1;
+    }
+    
+    .close-button-spacer {
+        width: 20px;
+        flex-shrink: 0;
+    }
+    
+    .close-warning-btn {
+        width: 16px;
+        height: 16px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+        flex-shrink: 0;
+        
+        svg {
+            stroke: #666;
+        }
+        
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
     }
 }
 
@@ -384,7 +413,7 @@
 
 /* Critical warning - no middle beams */
 .hidden-beams-warning.critical {
-    background: rgba(244, 67, 54, 0.1);
+    background: rgba(255, 255, 255, 0.9);
     color: #f44336;
     border: 1px solid rgba(244, 67, 54, 0.3);
     animation: criticalPulse 1.5s infinite;
