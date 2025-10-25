@@ -828,7 +828,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.closeDropdown('beam', param);
     }
 
-      selectType(index: number, param: any) {
+    selectType(index: number, param: any) {
           console.log('CRITICAL - selectType called:', JSON.stringify({
               paramName: param.name,
               newTypeIndex: index,
@@ -1538,7 +1538,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // Load saved configuration BEFORE updateBeams to ensure correct values are used for texture loading
                 if (lastFullId === currentFullId) {
                     this.debugLog('CHACK-BEAM-MINI: [threejs-box] Same sub-product, loading saved configuration');
-                    this.loadConfiguration();
+                this.loadConfiguration();
                 } else {
                     this.debugLog('CHACK-BEAM-MINI: [threejs-box] Different sub-product, not loading configuration');
                 }
@@ -1679,7 +1679,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const lastProductId = localStorage.getItem('lastSelectedProductId');
                 const currentProductId = this.product?._id || this.selectedProductName;
                 if (lastProductId === currentProductId) {
-                    this.loadConfiguration();
+                this.loadConfiguration();
                 }
                 this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
@@ -3901,7 +3901,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const beamAndGapWidth = shelfBeamWidth + gapBetweenBeams; // A + B
                 const isTopShelf = shelfIndex === totalShelves - 1;
                 const shouldHideBeams = beamAndGapWidth < legWidth && !isTopShelf; // A + B < C
-                
+
                 let beamsToHidePerSide = 0; // כמה קורות למחוק מכל צד
                 
                 if (shouldHideBeams) {
@@ -7592,18 +7592,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         );
                     } else {
                         // Create original screw only if not duplicating
-                        const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
-                        screwGroup.position.set(pos.x, pos.y, pos.z);
-                        if (screwIndex === 0) {
+                    const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                    screwGroup.position.set(pos.x, pos.y, pos.z);
+                    if (screwIndex === 0) {
                             screwGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
-                        } else {
-                            screwGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
-                        }
-                        this.scene.add(screwGroup);
-                        this.beamMeshes.push(screwGroup);
-                        this.debugLog(
-                            `Leg ${legIndex + 1}, Shelf ${shelfIndex + 1}, Screw ${screwIndex + 1}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}`
-                        );
+                    } else {
+                        screwGroup.rotation.y = legIndex > 1 ? 0 : Math.PI;
+                    }
+                    this.scene.add(screwGroup);
+                    this.beamMeshes.push(screwGroup);
+                    this.debugLog(
+                        `Leg ${legIndex + 1}, Shelf ${shelfIndex + 1}, Screw ${screwIndex + 1}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}, z=${pos.z.toFixed(1)}`
+                    );
                     }
                 });
             });

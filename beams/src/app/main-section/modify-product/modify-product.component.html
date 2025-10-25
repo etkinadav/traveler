@@ -682,7 +682,7 @@
                 [matTooltip]="!isPriceManuOpen ? ('price-calculation.tooltip' | translate) : ''" 
                 matTooltipPosition="above"
                 (click)="togglePriceMenu()"
-                *ngIf="!isPriceMinimized"
+                *ngIf="!isPriceMinimized && !isPriceManuOpen && calculatedPrice > 0"
                 aria-label="מסך מלא">
             <mat-icon>fullscreen</mat-icon>
         </button>
