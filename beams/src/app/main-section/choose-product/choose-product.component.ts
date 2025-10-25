@@ -869,6 +869,19 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
         }
       }
       
+      // מחיקת מפתחות נוספים הקשורים להגדרות מוצר
+      const additionalKeys = [
+        'lastSelectedProductId',
+        'lastConfigIndex', 
+        'beam-configuration'
+      ];
+      
+      additionalKeys.forEach(key => {
+        if (localStorage.getItem(key)) {
+          keysToRemove.push(key);
+        }
+      });
+      
       // מחיקת כל המפתחות שנמצאו
       keysToRemove.forEach(key => {
         localStorage.removeItem(key);

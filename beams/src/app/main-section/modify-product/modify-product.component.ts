@@ -2659,13 +2659,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // Get shelf beam and type from params (for cabinet) or plata beam (for table) or beam for planter
         let shelfsParam = null;
         if (this.isTable) {
-            // עבור שולחן, נשתמש בפרמטר plata במקום shelfs
-            shelfsParam = this.product?.params?.find(
+            // עבור שולחן, נשתמש בפרמטר plata במקום shelfs - אבל מ-this.params (המעודכנים)
+            shelfsParam = this.params?.find(
                 (p: any) => p.type === 'beamSingle' && p.name === 'plata'
             );
         } else if (this.isFuton) {
-            // עבור בסיס מיטה, נשתמש בפרמטר plata (דומה לשולחן)
-            shelfsParam = this.product?.params?.find(
+            // עבור בסיס מיטה, נשתמש בפרמטר plata (דומה לשולחן) - אבל מ-this.params (המעודכנים)
+            shelfsParam = this.params?.find(
                 (p: any) => p.type === 'beamSingle' && p.name === 'plata'
             );
         } else if (this.isPlanter || this.isBox) {
@@ -2674,12 +2674,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.debugLog('מחפש פרמטר beam לעדנית...');
             this.debugLog('פרמטרים זמינים:', this.product?.params?.map(p => ({name: p.name, type: p.type})));
             
-            // Find the parameter by reference, not by creating a new object
-            const beamParamIndex = this.product?.params?.findIndex(
+            // Find the parameter by reference, not by creating a new object - אבל מ-this.params (המעודכנים)
+            const beamParamIndex = this.params?.findIndex(
                 (p: any) => p.type === 'beamSingle' && p.name === 'beam'
             );
             shelfsParam = beamParamIndex !== undefined && beamParamIndex >= 0 ? 
-                this.product.params[beamParamIndex] : null;
+                this.params[beamParamIndex] : null;
             
             this.debugLog('shelfsParam נמצא:', shelfsParam);
             
@@ -2696,11 +2696,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }))
             }, null, 2));
             
-            // Add detailed log to check if this is the same parameter object
+            // Add detailed log to check if this is the same parameter object - מ-this.params (המעודכנים)
             console.log('BEAM_PLANTER_BOX - Parameter object reference check:', {
                 shelfsParamExists: !!shelfsParam,
-                isArray: Array.isArray(this.product?.params),
-                allParams: this.product?.params?.map(p => ({
+                isArray: Array.isArray(this.params),
+                allParams: this.params?.map(p => ({
                     name: p.name,
                     type: p.type,
                     selectedBeamIndex: p.selectedBeamIndex,
@@ -2711,8 +2711,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // CRITICAL FIX: Force refresh the parameter object to get the latest selectedBeamIndex
             if (shelfsParam && beamParamIndex !== undefined && beamParamIndex >= 0) {
-                // Get the latest parameter object from the array
-                const latestParam = this.product.params[beamParamIndex];
+                // Get the latest parameter object from the array - מ-this.params (המעודכנים)
+                const latestParam = this.params[beamParamIndex];
                 if (latestParam && latestParam.selectedBeamIndex !== undefined) {
                     shelfsParam.selectedBeamIndex = latestParam.selectedBeamIndex;
                     shelfsParam.selectedTypeIndex = latestParam.selectedTypeIndex;
@@ -2723,12 +2723,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }
             }
         } else {
-            // עבור ארון, נשתמש בפרמטר shelfs
-            const shelfsParamIndex = this.product?.params?.findIndex(
+            // עבור ארון, נשתמש בפרמטר shelfs - אבל מ-this.params (המעודכנים) ולא מ-this.product.params
+            const shelfsParamIndex = this.params?.findIndex(
                 (p: any) => p.type === 'beamArray' && p.name === 'shelfs'
             );
             shelfsParam = shelfsParamIndex !== undefined && shelfsParamIndex >= 0 ? 
-                this.product.params[shelfsParamIndex] : null;
+                this.params[shelfsParamIndex] : null;
         }
         
         // Only initialize selectedBeamIndex if it's truly undefined (not just 0)
@@ -2793,9 +2793,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             if (savedTypeIndex !== null) {
                 correctShelfsParam.selectedTypeIndex = parseInt(savedTypeIndex, 10);
                 console.log('CHACK_TEXTURE - Set selectedTypeIndex from localStorage:', correctShelfsParam.selectedTypeIndex);
-            } else {
+            } else if (correctShelfsParam.selectedTypeIndex === undefined || correctShelfsParam.selectedTypeIndex === null) {
+                // Only set default if it's truly undefined/null, don't override existing values
                 correctShelfsParam.selectedTypeIndex = 0;
-                console.log('CHACK_TEXTURE - Set selectedTypeIndex to default 0 (no localStorage)');
+                console.log('CHACK_TEXTURE - Set selectedTypeIndex to default 0 (no localStorage and no existing value)');
+            } else {
+                console.log('CHACK_TEXTURE - Keeping existing selectedTypeIndex:', correctShelfsParam.selectedTypeIndex);
             }
         } else if (correctShelfsParam) {
             // CHACK_TEXTURE - Log when selectedTypeIndex is already set correctly
