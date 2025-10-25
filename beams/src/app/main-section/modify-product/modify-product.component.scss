@@ -1312,7 +1312,7 @@ mat-form-field {
         border: 1px solid #e0e0e0;
         padding: 12px 16px;
         width: 300px; // הקטנה מ-350px ל-300px (50px פחות)
-        max-height: 65vh;
+        max-height: calc(100vh - 305px); // גובה המסך פחות 305px במצב רגיל
         overflow-y: auto;
         overflow-x: hidden;
         min-width: 300px; // הקטנה מ-350px ל-300px
@@ -1326,8 +1326,13 @@ mat-form-field {
             
             // אם יש אזהרה מוצגת - הקטן את הגובה
             &.with-warning {
-                max-height: 50vh;
+                max-height: calc(100vh - 342px); // גובה המסך פחות 342px במובייל עם התרעות
             }
+        }
+        
+        // קיצור הגובה כשיש התרעות (לכל המסכים)
+        &.with-warning {
+            max-height: calc(100vh - 342px); // גובה המסך פחות 342px כשיש התרעות
         }
         z-index: 1002;
         text-align: right;
@@ -3675,6 +3680,11 @@ mat-form-field {
     min-width: 260px !important; // הקטנה מ-310px ל-260px (50px פחות)
     max-width: 260px !important; // הקטנה מ-310px ל-260px
     width: 260px !important; // הקטנה מ-310px ל-260px
+}
+
+// קיצור התפריט כשיש התרעות
+::ng-deep .pricing-options-menu.has-alerts .mat-mdc-menu-panel {
+    max-height: calc(100vh - 300px) !important; // קיצור משמעותי של 150px מהגובה המקסימלי
 }
 
 // עיצוב ה-backdrop השקוף

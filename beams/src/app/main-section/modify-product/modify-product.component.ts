@@ -1129,6 +1129,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
     hasNoMiddleBeams: boolean = false; // האם נשארות רק שתי הקורות המקוצרות (אין קורות באמצע)
     hasShortenedBeamsRemoved: boolean = false; // האם הקורות המקוצרות הוסרו בגלל צרות מדי
+    
+    // האם יש התרעה כלשהי (לשימוש ב-CSS)
+    get hasAnyAlert(): boolean {
+        return this.hasHiddenBeams || this.hasNoMiddleBeams || this.hasShortenedBeamsRemoved;
+    }
 
     getBeamTypeText(): string {
         if (this.isTable) {
