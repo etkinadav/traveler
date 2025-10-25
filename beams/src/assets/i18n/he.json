@@ -1012,7 +1012,7 @@
   "show_dimensions": "הצג מידות",
   "hide_dimensions": "הסתר מידות",
   "edit_product": "עריכת מוצר",
-  "hidden_beams_warning": "קורות המדף קטנות ביחס לרגליים – במדפים התחתונים חסרות 2 קורות",
+  "hidden_beams_warning": "קורות המדף קטנות ביחס לרגליים – במדפים התחתונים חסרות {{count}} קורות {{beamType}}",
   "no_middle_beams_warning": "קורות המדף קטנות מדי – במדפים התחתונים אין קורות באמצע (רק קורות קצה)",
   "view_top": "מבט מלמעלה",
   "view_bottom": "מבט מלמטה",

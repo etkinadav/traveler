@@ -186,7 +186,7 @@
             <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="0.8" fill="none"/>
             <path d="M6 3v3M6 8h.01" stroke="currentColor" stroke-width="0.8" fill="none"/>
         </svg>
-        <span class="button-text">{{ 'hidden_beams_warning' | translate }}</span>
+        <span class="button-text">{{ 'hidden_beams_warning' | translate: {count: hiddenBeamsCount, beamType: getBeamTypeText()} }}</span>
     </div>
     
     <!-- התרעה על מקרה קיצון - אין קורות באמצע -->

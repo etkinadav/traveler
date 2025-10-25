@@ -1128,6 +1128,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
     hasNoMiddleBeams: boolean = false; // האם נשארות רק שתי הקורות המקוצרות (אין קורות באמצע)
+
+    getBeamTypeText(): string {
+        if (this.isTable) {
+            return 'פלטה';
+        } else if (this.isFuton) {
+            return 'פלטת מיטה';
+        } else {
+            return 'מדף';
+        }
+    }
     isLoading: boolean = true; // האם התצוגה נטענת - מתחיל ב-true כדי למנוע הבהוב
     isModelLoading: boolean = true; // האם המודל התלת-מימדי נטען - מתחיל ב-true כדי למנוע הבהוב
     hasDimensionsAlert: boolean = false; // האם למוצר יש מגבלה של התרעת אי התאמה במידות
@@ -3884,51 +3894,70 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.debugLog('   - רוחב:', legWidth, 'ס"מ');
                 this.debugLog('   - גובה:', legDepth, 'ס"מ');
 
-                // 4. בדיקת חסימת קורות על ידי רגליים
+                // 4. בדיקת חסימת קורות על ידי רגליים - לוגיקה חדשה
                 this.debugLog('4. בדיקת חסימת קורות:');
-                const beamAndGapWidth = shelfBeamWidth + gapBetweenBeams;
+                const beamAndGapWidth = shelfBeamWidth + gapBetweenBeams; // A + B
                 const isTopShelf = shelfIndex === totalShelves - 1;
-                const shouldHideBeams =
-                    beamAndGapWidth < legWidth && !isTopShelf;
-
-                // CHACH_ALLERT - Log alert conditions
-                console.log('CHACH_ALLERT - Hidden beams check:', JSON.stringify({
-                    shelfIndex: shelfIndex,
-                    totalShelves: totalShelves,
-                    shelfBeamWidth: shelfBeamWidth,
-                    gapBetweenBeams: gapBetweenBeams,
-                    beamAndGapWidth: beamAndGapWidth,
-                    legWidth: legWidth,
-                    isTopShelf: isTopShelf,
-                    shouldHideBeams: shouldHideBeams,
-                    condition: 'beamAndGapWidth < legWidth && !isTopShelf'
-                }));
-
-                // עדכון המשתנה הבוליאני הגלובלי
+                const shouldHideBeams = beamAndGapWidth < legWidth && !isTopShelf; // A + B < C
+                
+                let beamsToHidePerSide = 0; // כמה קורות למחוק מכל צד
+                
                 if (shouldHideBeams) {
-                    this.hasHiddenBeams = true;
-                    // חישוב כמות הקורות המוסתרות (2 קורות לכל מדף שאיננו עליון)
-                    this.hiddenBeamsCount += 2;
+                    // חישוב כמה כפולות של A+B נכנסות ב-C
+                    const howManyFit = Math.floor(legWidth / beamAndGapWidth);
                     
-                    // CHACH_ALLERT - Log when beams are hidden
-                    console.log('CHACH_ALLERT - Beams hidden:', JSON.stringify({
+                    // כמה קורות צריך למחוק מכל צד
+                    // אם נכנסות 2 כפולות, נמחוק 2 קורות מכל צד
+                    // אם נכנסות 3 כפולות, נמחוק 3 קורות מכל צד
+                    beamsToHidePerSide = Math.max(0, howManyFit);
+                    
+                    // הגבלה: לא למחוק יותר קורות ממה שיש באמצע
+                    const middleBeamsCount = surfaceBeams.length - 2; // קורות באמצע (לא הקורות בקצוות)
+                    beamsToHidePerSide = Math.min(beamsToHidePerSide, Math.floor(middleBeamsCount / 2));
+                    
+                    // עדכון המשתנה הגלובלי
+                    this.hasHiddenBeams = true;
+                    this.hiddenBeamsCount += beamsToHidePerSide * 2; // 2 צדדים
+                    
+                    // CHACH_ALLERT - Log new logic
+                    console.log('CHACH_ALLERT - New hidden beams logic:', JSON.stringify({
                         shelfIndex: shelfIndex,
-                        hiddenBeamsCount: this.hiddenBeamsCount,
-                        hasHiddenBeams: this.hasHiddenBeams
+                        shelfBeamWidth: shelfBeamWidth, // A
+                        gapBetweenBeams: gapBetweenBeams, // B
+                        beamAndGapWidth: beamAndGapWidth, // A + B
+                        legWidth: legWidth, // C
+                        howManyFit: howManyFit, // כמה כפולות של A+B נכנסות ב-C
+                        beamsToHidePerSide: beamsToHidePerSide,
+                        totalBeamsToHide: beamsToHidePerSide * 2,
+                        middleBeamsCount: middleBeamsCount,
+                        surfaceBeamsLength: surfaceBeams.length,
+                        isTopShelf: isTopShelf
                     }));
                     
-                    // בדיקת מקרה קיצון: אם נשארות רק שתי הקורות המקוצרות (ראשונה ואחרונה)
-                    // כלומר, אם יש רק 4 קורות בסך הכל ו-2 מוסתרות, נשארות רק 2
-                    if (surfaceBeams.length === 4 && this.hiddenBeamsCount >= 2) {
+                    // CHECH_MULTI_REMOVE_AL - Log for alert calculation
+                    console.log('CHECH_MULTI_REMOVE_AL - Alert calculation:', JSON.stringify({
+                        shelfIndex: shelfIndex,
+                        A_shelfBeamWidth: shelfBeamWidth,
+                        B_gapBetweenBeams: gapBetweenBeams,
+                        C_legWidth: legWidth,
+                        A_plus_B: beamAndGapWidth,
+                        howManyFit: howManyFit,
+                        beamsToHidePerSide: beamsToHidePerSide,
+                        totalBeamsToHide: beamsToHidePerSide * 2,
+                        calculation: `Math.floor(${legWidth} / ${beamAndGapWidth}) = ${howManyFit}, beamsToHidePerSide = Math.max(0, ${howManyFit}) = ${beamsToHidePerSide}`
+                    }));
+                    
+                    // בדיקת מקרה קיצון: אם נשארות רק הקורות בקצוות
+                    if (beamsToHidePerSide * 2 >= middleBeamsCount) {
                         this.hasNoMiddleBeams = true;
-                        this.debugLog('   - מקרה קיצון: נשארות רק שתי הקורות המקוצרות (אין קורות באמצע)');
+                        this.debugLog('   - מקרה קיצון: נשארות רק הקורות בקצוות (אין קורות באמצע)');
                         
                         // CHACH_ALLERT - Log critical case
                         console.log('CHACH_ALLERT - Critical case - no middle beams:', JSON.stringify({
                             surfaceBeamsLength: surfaceBeams.length,
-                            hiddenBeamsCount: this.hiddenBeamsCount,
-                            hasNoMiddleBeams: this.hasNoMiddleBeams,
-                            condition: 'surfaceBeams.length === 4 && hiddenBeamsCount >= 2'
+                            beamsToHidePerSide: beamsToHidePerSide,
+                            middleBeamsCount: middleBeamsCount,
+                            hasNoMiddleBeams: this.hasNoMiddleBeams
                         }));
                     }
                 }
@@ -3960,9 +3989,42 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const beamAndGapWidth = shelfBeamWidth + gapBetweenBeams;
                     const shouldHideBeams =
                         beamAndGapWidth < legWidth && !isTopShelf;
-                    const shouldSkipThisBeam =
-                        shouldHideBeams &&
-                        (i === 1 || i === surfaceBeams.length - 2);
+                    
+                    // חישוב כמה קורות למחוק מכל צד (לוגיקה חדשה)
+                    let beamsToHidePerSide = 0;
+                    let howManyFit = 0;
+                    if (shouldHideBeams) {
+                        howManyFit = Math.floor(legWidth / beamAndGapWidth);
+                        beamsToHidePerSide = Math.max(0, howManyFit);
+                        const middleBeamsCount = surfaceBeams.length - 2;
+                        beamsToHidePerSide = Math.min(beamsToHidePerSide, Math.floor(middleBeamsCount / 2));
+                    }
+                    
+                    // בדיקה אם הקורה הנוכחית צריכה להיות מוסתרת
+                    const shouldSkipThisBeam = shouldHideBeams && (
+                        (i >= 1 && i < 1 + beamsToHidePerSide) || // קורות מהצד השמאלי
+                        (i >= surfaceBeams.length - 1 - beamsToHidePerSide && i < surfaceBeams.length - 1) // קורות מהצד הימני
+                    );
+
+                    // CHECH_MULTI_REMOVE_3D - Log for 3D model beam removal
+                    if (shouldHideBeams) {
+                        console.log('CHECH_MULTI_REMOVE_3D - 3D model beam removal:', JSON.stringify({
+                            shelfIndex: shelfIndex,
+                            beamIndex: i,
+                            A_shelfBeamWidth: shelfBeamWidth,
+                            B_gapBetweenBeams: gapBetweenBeams,
+                            C_legWidth: legWidth,
+                            A_plus_B: beamAndGapWidth,
+                            howManyFit: howManyFit,
+                            beamsToHidePerSide: beamsToHidePerSide,
+                            leftSideRange: `i >= 1 && i < ${1 + beamsToHidePerSide}`,
+                            rightSideRange: `i >= ${surfaceBeams.length - 1 - beamsToHidePerSide} && i < ${surfaceBeams.length - 1}`,
+                            shouldSkipThisBeam: shouldSkipThisBeam,
+                            isLeftSide: i >= 1 && i < 1 + beamsToHidePerSide,
+                            isRightSide: i >= surfaceBeams.length - 1 - beamsToHidePerSide && i < surfaceBeams.length - 1,
+                            surfaceBeamsLength: surfaceBeams.length
+                        }));
+                    }
 
                     if (shouldSkipThisBeam) {
                         this.debugLog(
@@ -5665,7 +5727,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     );
                     const totalShelves = this.shelves.length;
 
-                    // חישוב קורות מוסתרות (כמו בחישוב הקורות)
+                    // חישוב קורות מוסתרות (לוגיקה חדשה)
                     let totalHiddenBeams = 0;
                     const legParam = this.params.find((p) => p.name === 'leg');
                     const legBeamSelected =
@@ -5683,18 +5745,34 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         const gapBetweenBeams =
                             gapsCount > 0 ? remainingSpace / gapsCount : 0;
 
-                        // בדיקה אם להסתיר קורות (כמו ב-3D model)
+                        // בדיקה אם להסתיר קורות (לוגיקה חדשה)
                         const beamAndGapWidth = beamWidth + gapBetweenBeams;
                         const shouldHideBeams =
                             beamAndGapWidth < legBeamWidth && !isTopShelf;
 
                         if (shouldHideBeams) {
-                            totalHiddenBeams += 2; // 2 קורות מוסתרות לכל מדף שאיננו עליון
+                            // חישוב כמה קורות למחוק מכל צד (לוגיקה חדשה)
+                            const howManyFit = Math.floor(legBeamWidth / beamAndGapWidth);
+                            let beamsToHidePerSide = Math.max(0, howManyFit);
+                            const middleBeamsCount = surfaceBeams.length - 2;
+                            beamsToHidePerSide = Math.min(beamsToHidePerSide, Math.floor(middleBeamsCount / 2));
+                            
+                            totalHiddenBeams += beamsToHidePerSide * 2; // 2 צדדים
                         }
                     });
 
                     const totalBeams =
                         surfaceBeams.length * totalShelves - totalHiddenBeams; // כמות הקורות בפועל פחות הקורות המוסתרות
+
+                    // CHACH_ALLERT - Log pricing calculation
+                    console.log('CHACH_ALLERT - Pricing calculation:', JSON.stringify({
+                        surfaceBeamsLength: surfaceBeams.length,
+                        totalShelves: totalShelves,
+                        totalHiddenBeams: totalHiddenBeams,
+                        totalBeams: totalBeams,
+                        beamWidth: beamWidth,
+                        legBeamWidth: legBeamWidth
+                    }));
 
                     // חישוב כמות ברגים לפי רוחב הקורה
                     let screwsPerBeam = 4; // ברירת מחדל - 4 ברגים לקורה רחבה
