@@ -1122,5 +1122,5 @@
   "shopping-cart.total-to-pay": "סה\"כ לתשלום:",
   "shopping-cart.proceed-to-checkout": "המשך לתשלום",
   "modify-product.warning-title": "שים לב!",
-  "modify-product.dimensions-alert-message": "הגובה שהוגדר אינו הגובה האמיתי של המוצר. הגובה האמיתי הוא {{actualHeight}} ס\"מ"
+  "modify-product.dimensions-alert-message": "מכיוון שהמוצר בנוי מקורות ללא רווח בניהן, גובה המוצר הסופי יהיה {{actualHeight}} ס\"מ, {{heightDifference}} {{heightDifferenceText}} ממה שהגדרת."
 }

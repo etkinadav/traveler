@@ -1239,8 +1239,8 @@ mat-form-field {
             display: flex;
             align-items: center;
             gap: 0; // המרווח מטופל ב-continue-button עם margin-right
-            overflow: hidden; // למנוע גלישה של אלמנטים
-            position: relative;
+            overflow: visible; // לאפשר לתפריט האזהרה להופיע
+            position: relative; // חשוב לתפריט האזהרה עם position: absolute
         }
         
         .price-loader {
@@ -3888,10 +3888,12 @@ mat-form-field {
 
 // תפריט אזהרה
 .warning-menu {
-    position: absolute;
-    bottom: calc(100% + 10px);
-    left: 0;
-    right: 0;
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -3982,5 +3984,90 @@ mat-form-field {
         margin-top: 12px;
         color: #666;
         font-size: 14px;
+    }
+}
+
+// תפריט אזהרה
+.warning-menu {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 2px solid #ff9800;
+    padding: 16px;
+    z-index: 1003;
+    text-align: right;
+    
+    .close-warning-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 24px;
+        height: 24px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+        
+        svg {
+            stroke: #666;
+        }
+        
+        &:hover {
+            background-color: #f5f5f5;
+        }
+    }
+    
+    .warning-title {
+        margin: 0 0 12px 0;
+        font-size: 16px;
+        font-weight: bold;
+        color: #ff9800;
+        text-align: center;
+    }
+    
+    .warning-messages {
+        margin-bottom: 16px;
+        
+        .warning-message {
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+            padding: 8px;
+            background: #fff3e0;
+            border-radius: 4px;
+        }
+    }
+    
+    .confirm-button {
+        width: 100%;
+        padding: 10px;
+        background: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        
+        &:hover {
+            background: #0052a3;
+        }
+        
+        &:active {
+            transform: translateY(1px);
+        }
     }
 }

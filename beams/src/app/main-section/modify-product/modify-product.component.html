@@ -742,46 +742,46 @@
                                 <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        
-                        <!-- תפריט אזהרה -->
-                        <div class="warning-menu" *ngIf="showWarningMenu" [@fadeInOut]>
-                            <!-- כפתור X לסגירה -->
-                            <button class="close-warning-btn" (click)="closeWarningMenu(); $event.stopPropagation()" 
-                                    [attr.aria-label]="'close-branch.btn' | translate">
-                                <svg width="12" height="12" viewBox="0 0 12 12">
-                                    <line x1="2" y1="2" x2="10" y2="10" stroke="currentColor" stroke-width="1.5"/>
-                                    <line x1="10" y1="2" x2="2" y2="10" stroke="currentColor" stroke-width="1.5"/>
-                                </svg>
-                            </button>
-                            
-                            <!-- כותרת -->
-                            <h3 class="warning-title">{{ 'modify-product.warning-title' | translate }}</h3>
-                            
-                            <!-- הודעות אזהרה -->
-                            <div class="warning-messages">
-                                <!-- אזהרת מידות -->
-                                <p *ngIf="checkIfHasDimensionsAlert()" class="warning-message">
-                                    {{ 'modify-product.dimensions-alert-message' | translate: {actualHeight: getActualHeight()} }}
-                                </p>
-                                
-                                <!-- אזהרת קורות חסרות -->
-                                <p *ngIf="hasHiddenBeams" class="warning-message">
-                                    {{ 'hidden_beams_warning' | translate: {count: getHiddenBeamsCount(), beamType: getBeamTypeName()} }}
-                                </p>
-                                
-                                <!-- אזהרת אין קורות באמצע -->
-                                <p *ngIf="hasNoMiddleBeams" class="warning-message">
-                                    {{ 'no_middle_beams_warning' | translate }}
-                                </p>
-                            </div>
-                            
-                            <!-- כפתור אישור -->
-                            <button class="confirm-button" (click)="confirmAddToCart(); $event.stopPropagation()">
-                                {{ 'error-content-ok-btn' | translate }}
-                            </button>
-                        </div>
                     </div>
                 </button>
+                
+                <!-- תפריט אזהרה -->
+                <div class="warning-menu" *ngIf="showWarningMenu" [@fadeInOut]>
+                    <!-- כפתור X לסגירה -->
+                    <button class="close-warning-btn" (click)="closeWarningMenu(); $event.stopPropagation()" 
+                            [attr.aria-label]="'close-branch.btn' | translate">
+                        <svg width="12" height="12" viewBox="0 0 12 12">
+                            <line x1="2" y1="2" x2="10" y2="10" stroke="currentColor" stroke-width="1.5"/>
+                            <line x1="10" y1="2" x2="2" y2="10" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- כותרת -->
+                    <h3 class="warning-title">{{ 'modify-product.warning-title' | translate }}</h3>
+                    
+                    <!-- הודעות אזהרה -->
+                    <div class="warning-messages">
+                        <!-- אזהרת מידות -->
+                        <p *ngIf="checkIfHasDimensionsAlert()" class="warning-message">
+                            {{ 'modify-product.dimensions-alert-message' | translate: {actualHeight: getActualHeight(), heightDifference: getAbsoluteHeightDifference(), heightDifferenceText: getHeightDifferenceText()} }}
+                        </p>
+                        
+                        <!-- אזהרת קורות חסרות -->
+                        <p *ngIf="hasHiddenBeams" class="warning-message">
+                            {{ 'hidden_beams_warning' | translate: {count: getHiddenBeamsCount(), beamType: getBeamTypeName()} }}
+                        </p>
+                        
+                        <!-- אזהרת אין קורות באמצע -->
+                        <p *ngIf="hasNoMiddleBeams" class="warning-message">
+                            {{ 'no_middle_beams_warning' | translate }}
+                        </p>
+                    </div>
+                    
+                    <!-- כפתור אישור -->
+                    <button class="confirm-button" (click)="confirmAddToCart(); $event.stopPropagation()">
+                        {{ 'error-content-ok-btn' | translate }}
+                    </button>
+                </div>
                 
                 <!-- תצוגת טעינה -->
         <div class="price-loader" *ngIf="calculatedPrice === 0">

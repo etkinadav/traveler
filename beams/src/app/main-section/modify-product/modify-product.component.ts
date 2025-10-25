@@ -746,6 +746,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (this.shouldShowWarning()) {
             console.log('🚨 WARNING_MENU - Showing warning menu');
             this.showWarningMenu = true;
+            console.log('🚨 WARNING_MENU - showWarningMenu set to:', this.showWarningMenu);
         } else {
             console.log('🚨 WARNING_MENU - Adding directly to cart');
             // הוספה ישירה לסל
@@ -793,6 +794,53 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const height = dimensions.height;
         console.log('🚨 WARNING_MENU - actual height:', height);
         return height;
+    }
+    
+    // קבלת הגובה שהמשתמש הגדיר
+    getUserDefinedHeight(): number {
+        console.log('🚨 WARNING_MENU - getUserDefinedHeight called');
+        const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
+        if (heightParam && heightParam.default !== undefined) {
+            console.log('🚨 WARNING_MENU - user defined height:', heightParam.default);
+            return heightParam.default;
+        }
+        console.log('🚨 WARNING_MENU - no height param found, returning 0');
+        return 0;
+    }
+    
+    // חישוב ההפרש בין הגובה שהוגדר לגובה האמיתי
+    getHeightDifference(): number {
+        console.log('🚨 WARNING_MENU - getHeightDifference called');
+        const actualHeight = this.getActualHeight();
+        const userHeight = this.getUserDefinedHeight();
+        const difference = actualHeight - userHeight;
+        console.log('🚨 WARNING_MENU - height difference:', difference);
+        return difference;
+    }
+    
+    // קבלת הטקסט המתאים להפרש הגובה
+    getHeightDifferenceText(): string {
+        console.log('🚨 WARNING_MENU - getHeightDifferenceText called');
+        const difference = this.getHeightDifference();
+        if (difference > 0) {
+            console.log('🚨 WARNING_MENU - height is more, returning "יותר"');
+            return 'יותר';
+        } else if (difference < 0) {
+            console.log('🚨 WARNING_MENU - height is less, returning "פחות"');
+            return 'פחות';
+        } else {
+            console.log('🚨 WARNING_MENU - height is same, returning "בדיוק כמו"');
+            return 'בדיוק כמו';
+        }
+    }
+    
+    // קבלת ההפרש המוחלט בין הגובה שהוגדר לגובה האמיתי
+    getAbsoluteHeightDifference(): number {
+        console.log('🚨 WARNING_MENU - getAbsoluteHeightDifference called');
+        const difference = this.getHeightDifference();
+        const absoluteDifference = Math.abs(difference);
+        console.log('🚨 WARNING_MENU - absolute height difference:', absoluteDifference);
+        return absoluteDifference;
     }
     
     // קבלת כמות הקורות החסרות
