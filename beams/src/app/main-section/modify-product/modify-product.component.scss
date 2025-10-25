@@ -696,7 +696,7 @@ mat-form-field {
 /* Shelf measurements container with border */
 .shelf-measurements-container {
     background: #fff;
-    border-radius: 8px;
+    border-radius: 0;
     border: 1px solid #e0e0e0;
     padding: 0.6em;
     margin-bottom: 1em;
@@ -759,7 +759,7 @@ mat-form-field {
 /* Parameter box without shadow and minimal padding */
 .param-box {
     background: #fff;
-    border-radius: 8px;
+    border-radius: 0;
     padding: 0 0.8em;
     margin-bottom: 0.3em;
 }
@@ -973,7 +973,7 @@ mat-form-field {
     margin-top: 20px;
     padding: 16px;
     background: #f8f9fa;
-    border-radius: 8px;
+    border-radius: 0;
     border: 1px solid #e0e0e0;
     width: calc(100% - 20px);
     max-width: 250px;
@@ -1250,7 +1250,7 @@ mat-form-field {
             padding: 6px 10px;
             min-width: 130px;
             background: white;
-            border-radius: 8px;
+            border-radius: 0;
             position: relative;
             z-index: 10;
             
@@ -2123,7 +2123,7 @@ mat-form-field {
 .selection-summary {
     background: #f8f9fa;
     border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    border-radius: 0;
     padding: 16px;
     margin: 12px 0;
     
@@ -2346,7 +2346,7 @@ mat-form-field {
     justify-content: space-between;
     padding: 16px;
     background: rgba(0, 102, 204, 0.05);
-    border-radius: 8px;
+    border-radius: 0;
     margin: 20px 0;
     
     .boolean-label {
@@ -2371,7 +2371,7 @@ mat-form-field {
     gap: 12px;
     padding: 16px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
+    border-radius: 0;
     margin: 20px 0;
 }
 
@@ -3895,7 +3895,7 @@ mat-form-field {
     width: 90%;
     max-width: 400px;
     background: white;
-    border-radius: 8px;
+    border-radius: 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border: none;
     padding: 16px;
@@ -3996,7 +3996,7 @@ mat-form-field {
     width: 90%;
     max-width: 400px;
     background: white;
-    border-radius: 8px;
+    border-radius: 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border: none;
     padding: 16px;
