@@ -745,6 +745,9 @@
                     </div>
                 </button>
                 
+                <!-- Overlay לתפריט אזהרה -->
+                <div class="warning-overlay" *ngIf="showWarningMenu" (click)="closeWarningMenu()"></div>
+                
                 <!-- תפריט אזהרה -->
                 <div class="warning-menu" *ngIf="showWarningMenu" [@fadeInOut]>
                     <!-- כפתור X לסגירה -->
