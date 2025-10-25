@@ -1128,6 +1128,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     hasHiddenBeams: boolean = false; // האם יש קורות מוסתרות בגלל חסימת רגליים
     hiddenBeamsCount: number = 0; // כמות הקורות המוסתרות
     hasNoMiddleBeams: boolean = false; // האם נשארות רק שתי הקורות המקוצרות (אין קורות באמצע)
+    hasShortenedBeamsRemoved: boolean = false; // האם הקורות המקוצרות הוסרו בגלל צרות מדי
 
     getBeamTypeText(): string {
         if (this.isTable) {
@@ -2580,6 +2581,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.hasHiddenBeams = false;
         this.hiddenBeamsCount = 0;
         this.hasNoMiddleBeams = false;
+        this.hasShortenedBeamsRemoved = false;
         
         // חישוב מחיר יבוצע ברקע אחרי הרינדור
         
@@ -3919,6 +3921,25 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     this.hasHiddenBeams = true;
                     this.hiddenBeamsCount += beamsToHidePerSide * 2; // 2 צדדים
                     
+                    // בדיקה נוספת לארון: האם קורות המדף צרות מדי מחצי מקורת הרגל
+                    if (!this.isTable && !this.isFuton) { // רק לארון
+                        const halfLegWidth = legWidth / 2; // חצי מקורת הרגל
+                        const shouldRemoveShortenedBeams = shelfBeamWidth < halfLegWidth;
+                        
+                        console.log('CHECK_SHORTEN_BEAM - Alert calculation:', JSON.stringify({
+                            shelfBeamWidth: shelfBeamWidth,
+                            legWidth: legWidth,
+                            halfLegWidth: halfLegWidth,
+                            result: shouldRemoveShortenedBeams
+                        }));
+                        
+                        if (shouldRemoveShortenedBeams) {
+                            // הקורות המקוצרות צרות מדי - צריך להסיר אותן לחלוטין
+                            this.hasShortenedBeamsRemoved = true;
+                            this.hiddenBeamsCount += 1; // הוספת קורה מקוצרת אחת לכל מדף
+                        }
+                    }
+                    
                     // CHACH_ALLERT - Log new logic
                     console.log('CHACH_ALLERT - New hidden beams logic:', JSON.stringify({
                         shelfIndex: shelfIndex,
@@ -4001,10 +4022,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     }
                     
                     // בדיקה אם הקורה הנוכחית צריכה להיות מוסתרת
-                    const shouldSkipThisBeam = shouldHideBeams && (
+                    let shouldSkipThisBeam = shouldHideBeams && (
                         (i >= 1 && i < 1 + beamsToHidePerSide) || // קורות מהצד השמאלי
                         (i >= surfaceBeams.length - 1 - beamsToHidePerSide && i < surfaceBeams.length - 1) // קורות מהצד הימני
                     );
+                    
+                    // בדיקה נוספת לארון: האם הקורה המקוצרת צרה מדי
+                    if (!this.isTable && !this.isFuton && !isTopShelf) { // רק לארון ולא המדף העליון
+                        const halfLegWidth = legWidth / 2;
+                        const shouldRemoveShortenedBeam = shelfBeamWidth < halfLegWidth && (i === 0 || i === surfaceBeams.length - 1);
+                        
+                        console.log('CHECK_SHORTEN_BEAM - 3D model calculation:', JSON.stringify({
+                            shelfBeamWidth: shelfBeamWidth,
+                            legWidth: legWidth,
+                            halfLegWidth: halfLegWidth,
+                            result: shouldRemoveShortenedBeam
+                        }));
+                        
+                        if (shouldRemoveShortenedBeam) {
+                            // הקורה המקוצרת צרה מדי - הסר אותה
+                            shouldSkipThisBeam = true;
+                        }
+                    }
 
                     // CHECH_MULTI_REMOVE_3D - Log for 3D model beam removal
                     if (shouldHideBeams) {
@@ -5758,6 +5797,23 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             beamsToHidePerSide = Math.min(beamsToHidePerSide, Math.floor(middleBeamsCount / 2));
                             
                             totalHiddenBeams += beamsToHidePerSide * 2; // 2 צדדים
+                        }
+                        
+                        // בדיקה נוספת לארון: האם הקורות המקוצרות צרות מדי
+                        if (!this.isTable && !this.isFuton && !isTopShelf) { // רק לארון ולא המדף העליון
+                            const halfLegWidth = legBeamWidth / 2;
+                            const shouldRemoveShortenedBeams = beamWidth < halfLegWidth;
+                            
+                            console.log('CHECK_SHORTEN_BEAM - Pricing calculation:', JSON.stringify({
+                                beamWidth: beamWidth,
+                                legBeamWidth: legBeamWidth,
+                                halfLegWidth: halfLegWidth,
+                                result: shouldRemoveShortenedBeams
+                            }));
+                            
+                            if (shouldRemoveShortenedBeams) {
+                                totalHiddenBeams += 1; // הוספת קורה מקוצרת אחת לכל מדף
+                            }
                         }
                     });
 
