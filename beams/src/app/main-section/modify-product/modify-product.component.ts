@@ -29,6 +29,15 @@ interface Shelf {
                 style({ opacity: 0, transform: 'scale(0.8)' }),
                 animate('600ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
             ])
+        ]),
+        trigger('fadeInOut', [
+            transition(':enter', [
+                style({ opacity: 0 }),
+                animate('150ms ease-in', style({ opacity: 1 }))
+            ]),
+            transition(':leave', [
+                animate('150ms ease-out', style({ opacity: 0 }))
+            ])
         ])
     ]
 })
@@ -717,11 +726,96 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.router.navigate(['/shopping-cart']);
     }
     
+    // משתנה לשליטה בתצוגת תפריט האזהרה
+    showWarningMenu = false;
+    
     // פונקציה לטיפול בלחיצה על כפתור "המשך"
     onContinueOrder() {
-        // הוספת המוצר לסל ללא צורך בהתחברות
-        console.log('🛒 Adding product to basket without authentication requirement');
-        this.addProductToBasket();
+        console.log('🚨 WARNING_MENU - onContinueOrder called');
+        this.handleAddToCart();
+    }
+    
+    // פונקציה חדשה לטיפול בלחיצה על כפתור "הוסף לסל"
+    handleAddToCart() {
+        console.log('🚨 WARNING_MENU - handleAddToCart called');
+        console.log('🚨 WARNING_MENU - calculatedPrice:', this.calculatedPrice);
+        console.log('🚨 WARNING_MENU - this.product:', this.product);
+        console.log('🚨 WARNING_MENU - this.product.restrictions:', this.product?.restrictions);
+        
+        // בדיקה אם יש צורך בהצגת אזהרה
+        if (this.shouldShowWarning()) {
+            console.log('🚨 WARNING_MENU - Showing warning menu');
+            this.showWarningMenu = true;
+        } else {
+            console.log('🚨 WARNING_MENU - Adding directly to cart');
+            // הוספה ישירה לסל
+            this.addProductToBasket();
+        }
+    }
+    
+    // בדיקה אם יש צורך בהצגת אזהרה
+    shouldShowWarning(): boolean {
+        console.log('🚨 WARNING_MENU - shouldShowWarning called');
+        // בדיקה ישירה של dimensions-alert
+        const hasDimensionsAlertNow = this.checkIfHasDimensionsAlert();
+        console.log('🚨 WARNING_MENU - hasDimensionsAlertNow:', hasDimensionsAlertNow);
+        console.log('🚨 WARNING_MENU - hasHiddenBeams:', this.hasHiddenBeams);
+        console.log('🚨 WARNING_MENU - hasNoMiddleBeams:', this.hasNoMiddleBeams);
+        const result = hasDimensionsAlertNow || this.hasHiddenBeams || this.hasNoMiddleBeams;
+        console.log('🚨 WARNING_MENU - shouldShowWarning result:', result);
+        return result;
+    }
+    
+    // בדיקה ישירה אם יש dimensions-alert במוצר
+    checkIfHasDimensionsAlert(): boolean {
+        console.log('🚨 WARNING_MENU - checkIfHasDimensionsAlert called');
+        console.log('🚨 WARNING_MENU - this.product:', this.product);
+        console.log('🚨 WARNING_MENU - this.product.restrictions:', this.product?.restrictions);
+        
+        if (!this.product || !this.product.restrictions) {
+            console.log('🚨 WARNING_MENU - No product or restrictions found');
+            return false;
+        }
+        
+        const dimensionsAlert = this.product.restrictions.find((r: any) => r.name === 'dimensions-allert' || r.name === 'dimensions-alert');
+        console.log('🚨 WARNING_MENU - dimensionsAlert found:', dimensionsAlert);
+        
+        const result = dimensionsAlert && dimensionsAlert.val === true;
+        console.log('🚨 WARNING_MENU - checkIfHasDimensionsAlert result:', result);
+        return result;
+    }
+    
+    // קבלת הגובה האמיתי של המוצר
+    getActualHeight(): number {
+        console.log('🚨 WARNING_MENU - getActualHeight called');
+        const dimensions = this.getProductDimensionsRaw();
+        console.log('🚨 WARNING_MENU - dimensions:', dimensions);
+        const height = dimensions.height;
+        console.log('🚨 WARNING_MENU - actual height:', height);
+        return height;
+    }
+    
+    // קבלת כמות הקורות החסרות
+    getHiddenBeamsCount(): number {
+        // החישוב מבוסס על הלוגיקה הקיימת של hasHiddenBeams
+        // נצטרך למצוא את המספר המדויק של קורות חסרות
+        return 2; // ברירת מחדל - ניתן לעדכן לפי הלוגיקה המדויקת
+    }
+    
+    // קבלת שם סוג הקורה
+    getBeamTypeName(): string {
+        return 'מדף'; // ברירת מחדל - ניתן לעדכן לפי הלוגיקה המדויקת
+    }
+    
+    // סגירת תפריט האזהרה
+    closeWarningMenu() {
+        this.showWarningMenu = false;
+    }
+    
+    // אישור והוספה לסל
+    confirmAddToCart() {
+        this.showWarningMenu = false;
+        this.onContinueOrder();
     }
     
     // איפוס מבט המצלמה לנקודת ההתחלה
