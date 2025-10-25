@@ -2800,7 +2800,7 @@ mat-form-field {
         position: absolute;
         background: #ffffff; // רקע לבן אטום
         border: 1.5px solid #0066cc;
-        border-radius: 6px;
+        border-radius: 0;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -3996,7 +3996,7 @@ mat-form-field {
         background: #0066cc;
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 0;
         font-size: 14px;
         font-weight: bold;
         cursor: pointer;
@@ -4097,7 +4097,7 @@ mat-form-field {
         background: #0066cc;
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 0;
         font-size: 14px;
         font-weight: bold;
         cursor: pointer;

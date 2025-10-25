@@ -742,6 +742,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.showNoMiddleBeamsWarning = false;
     }
     
+    // פונקציה לאישור הוספה לסל מהתפריט "שימו לב!"
+    confirmAddToCart() {
+        console.log('🚨 WARNING_MENU - confirmAddToCart called');
+        // סגירת תפריט האזהרה
+        this.closeWarningMenu();
+        // הוספת המוצר לסל והעברה לעמוד הסל
+        this.addProductToBasket();
+    }
+    
     // פונקציה לטיפול בלחיצה על כפתור "המשך"
     onContinueOrder() {
         console.log('🚨 WARNING_MENU - onContinueOrder called');
@@ -871,12 +880,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // סגירת תפריט האזהרה
     closeWarningMenu() {
         this.showWarningMenu = false;
-    }
-    
-    // אישור והוספה לסל
-    confirmAddToCart() {
-        this.showWarningMenu = false;
-        this.onContinueOrder();
     }
     
     // איפוס מבט המצלמה לנקודת ההתחלה
