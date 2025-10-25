@@ -3058,15 +3058,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // קורות חיזוק נוספות (extraBeam) - עבור שולחן בלבד
             const extraBeamParam = this.getParam('extraBeam');
             if (extraBeamParam && extraBeamParam.default > 0) {
-                const extraBeamDistance = extraBeamParam.default;
+                let extraBeamDistance = extraBeamParam.default;
+                
+                // בדיקה שהמידה לא תהיה גדולה מ-C פחות (A + B + B) - מגבלה קפדנית יותר
+                const productDimensions = this.getProductDimensionsRaw();
+                const maxAllowedDistance = productDimensions.height - (plataBeamHeight + legWidth + legWidth);
+                
+                if (extraBeamDistance > maxAllowedDistance) {
+                    extraBeamDistance = maxAllowedDistance;
+                    console.log('CHACK_TABLE_GAP - Extra beam distance limited:', {
+                        originalDistance: extraBeamParam.default,
+                        maxAllowedDistance: maxAllowedDistance,
+                        limitedDistance: extraBeamDistance
+                    });
+                }
                 
                 // CHACK_TABLE_GAP - לוג לבדיקת נתונים לקורות חיזוק נוספות
-                const productDimensions = this.getProductDimensionsRaw();
                 console.log('CHACK_TABLE_GAP - Extra beam calculation data:', {
                     A: plataBeamHeight, // height של קורות הפלטה של השולחן
                     B: legWidth, // width של קורות הרגל (או החיזוק) של השולחן
                     C: productDimensions.height, // הגובה הכולל של המוצר
                     extraBeamDistance: extraBeamDistance,
+                    maxAllowedDistance: maxAllowedDistance,
                     frameBeamHeight: frameBeamHeight,
                     tableHeight: tableHeight
                 });
@@ -3201,17 +3214,31 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // חישוב מיקום קורת החיזוק התחתונה בדיוק כמו בשורה 1360
             // משתמש ב-tableHeight שכבר מוגדר למעלה (שורה 1236)
-            const extraBeamDistance = extraBeamParam && extraBeamParam.default > 0 ? extraBeamParam.default : 0;
+            let extraBeamDistance = extraBeamParam && extraBeamParam.default > 0 ? extraBeamParam.default : 0;
+            
+            // בדיקה שהמידה לא תהיה גדולה מ-C פחות (A + B + B) - מגבלה קפדנית יותר עבור הברגים
+            const productDimensionsForScrews = this.getProductDimensionsRaw();
+            const maxAllowedDistanceForScrews = productDimensionsForScrews.height - (plataBeamHeight + legWidth + legWidth);
+            
+            if (extraBeamDistance > maxAllowedDistanceForScrews) {
+                extraBeamDistance = maxAllowedDistanceForScrews;
+                console.log('CHACK_TABLE_GAP - Extra beam distance limited for screws:', {
+                    originalDistance: extraBeamParam.default,
+                    maxAllowedDistance: maxAllowedDistanceForScrews,
+                    limitedDistance: extraBeamDistance
+                });
+            }
+            
             const totalDistanceForLower = extraBeamDistance + calculatedFrameBeamHeightForLower;
             const lowerFrameY = tableHeight - calculatedFrameBeamHeightForLower / 2 - totalDistanceForLower;
             
             // CHACK_TABLE_GAP - לוג לבדיקת נתונים לברגים של קורות חיזוק נוספות
-            const productDimensionsForScrews = this.getProductDimensionsRaw();
             console.log('CHACK_TABLE_GAP - Extra beam screws calculation data:', {
                 A: plataBeamHeight, // height של קורות הפלטה של השולחן
                 B: legWidth, // width של קורות הרגל (או החיזוק) של השולחן
                 C: productDimensionsForScrews.height, // הגובה הכולל של המוצר
                 extraBeamDistance: extraBeamDistance,
+                maxAllowedDistance: maxAllowedDistanceForScrews,
                 calculatedFrameBeamHeightForLower: calculatedFrameBeamHeightForLower,
                 totalDistanceForLower: totalDistanceForLower,
                 lowerFrameY: lowerFrameY,
