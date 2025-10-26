@@ -750,10 +750,13 @@
                         
                         <!-- כפתור המשך -->
                         <button class="continue-button" 
-                                (click)="handleAddToCart(); $event.stopPropagation()"
                                 *ngIf="calculatedPrice > 0"
-                                [@fadeInScale]>
-                            <span class="continue-text">{{ 'modify-product.add-to-cart' | translate }}</span>
+                                [@fadeInScale]
+                                (click)="handleAddToCart(); $event.stopPropagation()">
+                            <span class="continue-text">
+                                <span *ngIf="isEditMode">{{ 'modify-product.save-changes' | translate }}</span>
+                                <span *ngIf="!isEditMode">{{ 'modify-product.add-to-cart' | translate }}</span>
+                            </span>
                             <svg class="continue-arrow" width="14" height="14" viewBox="0 0 14 14">
                                 <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
@@ -798,7 +801,8 @@
                     
                     <!-- כפתור אישור -->
                     <button class="confirm-button" (click)="confirmAddToCart(); $event.stopPropagation()">
-                        {{ 'modify-product.understood-add-to-cart' | translate }}
+                        <span *ngIf="isEditMode">{{ 'modify-product.understood-save-changes' | translate }}</span>
+                        <span *ngIf="!isEditMode">{{ 'modify-product.understood-add-to-cart' | translate }}</span>
                     </button>
                 </div>
                 
@@ -823,7 +827,10 @@
                     <!-- כפתור המשך -->
                     <button class="minimized-continue-button" 
                             (click)="onContinueOrder(); $event.stopPropagation()">
-                        <span class="continue-text">{{ 'modify-product.add-to-cart' | translate }}</span>
+                        <span class="continue-text">
+                            <span *ngIf="isEditMode">{{ 'modify-product.save-changes' | translate }}</span>
+                            <span *ngIf="!isEditMode">{{ 'modify-product.add-to-cart' | translate }}</span>
+                        </span>
                         <svg class="continue-arrow" width="14" height="14" viewBox="0 0 14 14">
                             <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>

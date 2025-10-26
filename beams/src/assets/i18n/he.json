@@ -1049,6 +1049,8 @@
   "modify-product.view-right": "ימין",
   "modify-product.view-down": "למטה",
   "modify-product.understood-add-to-cart": "הבנתי, הוסף לסל",
+  "modify-product.understood-save-changes": "הבנתי, שמור שינויים",
+  "modify-product.save-changes": "שמור שינויים",
   "modify-product.model-label": "דגם:",
   "modify-product.total-label": "סה\"כ:",
   "modify-product.add-to-cart": "הוסף לסל",

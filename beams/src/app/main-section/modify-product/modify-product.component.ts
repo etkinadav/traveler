@@ -51,6 +51,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // Performance tracking
     private performanceTimers: Map<string, number> = new Map();
     
+    // מצב עריכה - האם זה מוצר בעריכה או מוצר חדש
+    isEditMode = false;
+    
+    // קריאה ראשונית לבדיקת isEditMode
+    checkIsEditModeInitialValue() {
+        console.log('CHECK_EDIT_PRO - Initial isEditMode value at component creation:', this.isEditMode);
+    }
+    
     // Debug helper function - only logs when enableDebugLogs is true
     private debugLog(...args: any[]): void {
         if (this.enableDebugLogs) {
@@ -1415,6 +1423,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     currentConfigIndex: currentConfigIndex
                 });
                 
+                // בדיקת מצב עריכה
+                console.log('CHECK_EDIT_PRO - Setting isEditMode from params:', JSON.stringify({
+                    params_isEditMode: params['isEditMode'],
+                    params_isEditMode_type: typeof params['isEditMode'],
+                    comparison_true_string: params['isEditMode'] === 'true',
+                    comparison_true_bool: params['isEditMode'] === true,
+                    comparison_True_string: params['isEditMode'] === 'True',
+                    current_isEditMode_before: this.isEditMode
+                }, null, 2));
+                
+                this.isEditMode = params['isEditMode'] === 'true' || params['isEditMode'] === true || params['isEditMode'] === 'True';
+                
+                console.log('CHECK_EDIT_PRO - isEditMode value after setting:', JSON.stringify({
+                    isEditMode: this.isEditMode,
+                    type: typeof this.isEditMode
+                }, null, 2));
+                
+                console.log('CHECK_EDIT_PRO - Angular change detection will be triggered now');
+                
+                // הגרלת change detection
+                this.cdr.detectChanges();
+                
                 // יצירת מזהה ייחודי שכולל גם את ה-configIndex
                 const lastFullId = lastConfigIndex !== null ? `${lastProductId}_config${lastConfigIndex}` : lastProductId;
                 const currentFullId = currentConfigIndex !== undefined ? `${currentProductId}_config${currentConfigIndex}` : currentProductId;
@@ -1448,8 +1478,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     this.getProductById(params['productId'], configIndex);
                 } else {
                     console.log('EDIT_PRODUCT - No productId in URL, will load product by name:', this.selectedProductName);
-                    this.getProductByName(this.selectedProductName);
+                this.getProductByName(this.selectedProductName);
                 }
+                
+                // לוג אחרון לבדיקת isEditMode לאחר הטעינה
+                setTimeout(() => {
+                    console.log('CHECK_EDIT_PRO - Final isEditMode status after all initialization:', JSON.stringify({
+                        isEditMode: this.isEditMode,
+                        isEditMode_type: typeof this.isEditMode,
+                        timestamp: new Date().toISOString()
+                    }, null, 2));
+                    // הגרלת change detection שוב
+                    this.cdr.detectChanges();
+                    console.log('CHECK_EDIT_PRO - Change detection triggered again');
+                }, 1000);
             } else {
                 // אם אין פרמטר מוצר, נטען את המוצר האחרון או ברירת מחדל
                 const lastProduct = localStorage.getItem('lastSelectedProduct');
@@ -1767,7 +1809,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 if (lastFullId === currentFullId) {
                     console.log('EDIT_PRODUCT - Same sub-product, loading saved configuration');
                     this.debugLog('CHACK-BEAM-MINI: [threejs-box] Same sub-product, loading saved configuration');
-                    this.loadConfiguration();
+                this.loadConfiguration();
                 } else {
                     console.log('EDIT_PRODUCT - Different sub-product, not loading configuration');
                     this.debugLog('CHACK-BEAM-MINI: [threejs-box] Different sub-product, not loading configuration');
@@ -2270,7 +2312,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         console.log('EDIT_PRODUCT - loadConfiguration called (existing function)');
         
         // Always use localStorage to avoid authentication issues
-        this.loadConfigurationFromLocalStorage();
+            this.loadConfigurationFromLocalStorage();
         
         // Server configuration loading disabled to avoid CORS and authentication errors
         // TODO: Re-enable when backend is properly configured

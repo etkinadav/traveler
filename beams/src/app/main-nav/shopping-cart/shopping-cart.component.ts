@@ -100,13 +100,14 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     // שמירת המידע ב-localStorage באותו פורמט כמו בעמוד עריכת המוצר
     this.saveProductToLocalStorage(item);
     
-    // ניווט לעמוד עריכת המוצר עם productId ו-configIndex
+    // ניווט לעמוד עריכת המוצר עם productId, configIndex ו-isEditMode
     console.log('EDIT_PRODUCT - Navigating to /beams with productId:', item.productConfiguration.originalProductData?._id);
     this.router.navigate(['/beams'], {
       queryParams: {
         productId: item.productConfiguration.originalProductData?._id,
         product: item.productConfiguration.productName,
-        configIndex: 0  // תמיד נשתמש ב-configIndex 0 לעריכה
+        configIndex: 0,  // תמיד נשתמש ב-configIndex 0 לעריכה
+        isEditMode: true  // סימון שזה מוצר בעריכה
       }
     });
   }
