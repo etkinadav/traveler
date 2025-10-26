@@ -166,12 +166,13 @@
                                                                     [configurationIndex]="product.configurationIndex || 0" 
                                                                     style="width: 100%; height: 100%; position: relative; z-index: 2;" 
                                                                     (ngOnInit)="logProductCreation(product)"
-                                                                    (loadComplete)="markProductAsLoaded(getGlobalProductIndex(groupIndex, i))">
+                                                                    (loadComplete)="markProductAsLoaded(getGlobalProductIndex(groupIndex, i))"
+                                                                    (userInteracted)="onUserInteractedWith3D(product._id + '_' + i)">
                                                                 </app-product-mini-preview>
                                                                 
                                                             <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
                                                             <div class="product-3d-overlay" 
-                                                                 (click)="removeOverlay($event, miniPreview)"
+                                                                 (click)="removeOverlay($event, miniPreview, product._id + '_' + i)"
                                                                  (mouseenter)="showHintForProduct(product._id + '_' + i)"
                                                                  (mouseleave)="hideHintForProduct(product._id + '_' + i)">
                                                                 <!-- טקסט הוראה בריחוף -->
@@ -181,6 +182,18 @@
                                                                     {{ 'choose-product.click-to-change-view' | translate }}
                                                                 </div>
                                                                 </div>
+                                                                
+                                                                <!-- כפתור סיבוב - מוצג רק אחרי שהכיסוי הוסר ובביצוע פעולה ממשית -->
+                                                                <button *ngIf="isOverlayRemoved(product._id + '_' + i) && hasUserPerformedAction(product._id + '_' + i)"
+                                                                        class="reset-view-button" 
+                                                                        [title]="'shopping-cart.reset-view' | translate"
+                                                                        (click)="reset3DView(miniPreview, product._id + '_' + i); $event.stopPropagation()">
+                                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                        <path d="M23 4v6h-6"></path>
+                                                                        <path d="M1 20v-6h6"></path>
+                                                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                                                    </svg>
+                                                                </button>
                                                             </ng-container>
                                                             
                                                             <!-- placeholder עבור מוצרים שלא נראים במסך -->

@@ -74,6 +74,12 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   // מפה להצגת טקסט ההוראה בריחוף לכל מוצר
   showHintMap: { [key: string]: boolean } = {};
   
+  // מעקב אחר overlays שהוסרו
+  overlayRemovedMap: { [key: string]: boolean } = {};
+  
+  // מעקב אחר פעולות משתמש במודל התלת-ממדי
+  userPerformedActionMap: { [key: string]: boolean } = {};
+  
   // מערכת בדיקת נראות כרטיסיות
   private visibilityCheckInterval: any = null;
   private previousVisibleIndices: number[] = []; // שמירת הערך הישן
@@ -690,6 +696,40 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
       window.location.href = '/beams';
     }
   }
+  
+  /**
+   * בדיקה אם overlay הוסר
+   */
+  isOverlayRemoved(productKey: string): boolean {
+    return this.overlayRemovedMap[productKey] || false;
+  }
+  
+  /**
+   * בדיקה אם המשתמש ביצע פעולה במודל התלת-ממדי
+   */
+  hasUserPerformedAction(productKey: string): boolean {
+    return this.userPerformedActionMap[productKey] || false;
+  }
+  
+  /**
+   * טיפול באירוע פעולה משתמש במודל התלת-ממדי
+   */
+  onUserInteractedWith3D(productKey: string): void {
+    this.userPerformedActionMap[productKey] = true;
+  }
+  
+  /**
+   * איפוס התצוגה התלת-ממדית והסתרת הכפתור
+   */
+  reset3DView(miniPreview: any, productKey: string): void {
+    if (miniPreview && miniPreview.resetCameraAndRotation) {
+      // קריאה לפונקציה לאיפוס המצלמה והסיבוב
+      miniPreview.resetCameraAndRotation();
+      
+      // הסתרת הכפתור על ידי איפוס המשתנה
+      this.userPerformedActionMap[productKey] = false;
+    }
+  }
 
   // הוסר - כל מערכת התמונות המתחלפות והטקסטים נמחקה
   
@@ -705,7 +745,7 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   }
   
   // פונקציה להסרת הכיסוי עם אפקט ripple
-  removeOverlay(event: MouseEvent, miniPreview: any): void {
+  removeOverlay(event: MouseEvent, miniPreview: any, productKey?: string): void {
     const overlay = event.target as HTMLElement;
     
     // יצירת אפקט ripple
@@ -722,6 +762,11 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     ripple.style.pointerEvents = 'none';
     
     overlay.appendChild(ripple);
+    
+    // סימון שה-overlay הוסר אם יש productKey
+    if (productKey) {
+      this.overlayRemovedMap[productKey] = true;
+    }
     
     // הפסקת הסיבוב האוטומטי של המודל
     if (miniPreview && miniPreview.stopAutoRotation) {
