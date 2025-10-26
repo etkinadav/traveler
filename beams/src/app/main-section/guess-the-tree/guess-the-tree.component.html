@@ -28,9 +28,15 @@
         <div class="tree-cover" *ngIf="!trees[0].revealed">
           🌳
         </div>
-        <div class="tree-reveal" *ngIf="trees[0].revealed">
-          <div class="fruit">⭐ קרמבולה ⭐</div>
+        <div class="tree-with-fruits" *ngIf="trees[0].revealed">
+          <div class="tree-icon">🌳</div>
+          <div class="tree-reveal">
+            <img src="https://e1.pngegg.com/pngimages/68/417/png-clipart-fruits-carambola-fruit.png" alt="קרמבולה" class="fruit fruit-1">
+            <img src="https://e1.pngegg.com/pngimages/68/417/png-clipart-fruits-carambola-fruit.png" alt="קרמבולה" class="fruit fruit-2">
+            <img src="https://e1.pngegg.com/pngimages/68/417/png-clipart-fruits-carambola-fruit.png" alt="קרמבולה" class="fruit fruit-3">
+          </div>
         </div>
+        <div class="veil" [class.lifting]="trees[0].revealed"></div>
       </div>
       
       <div class="input-container">
@@ -58,9 +64,15 @@
         <div class="tree-cover" *ngIf="!trees[1].revealed">
           🌳
         </div>
-        <div class="tree-reveal" *ngIf="trees[1].revealed">
-          <div class="fruit">⭐ מנגו מאיה ⭐</div>
+        <div class="tree-with-fruits" *ngIf="trees[1].revealed">
+          <div class="tree-icon">🌳</div>
+          <div class="tree-reveal">
+            <img src="https://opa.cy/wp-content/uploads/2021/02/mango-maya.jpg" alt="מנגו מאיה" class="fruit fruit-1">
+            <img src="https://opa.cy/wp-content/uploads/2021/02/mango-maya.jpg" alt="מנגו מאיה" class="fruit fruit-2">
+            <img src="https://opa.cy/wp-content/uploads/2021/02/mango-maya.jpg" alt="מנגו מאיה" class="fruit fruit-3">
+          </div>
         </div>
+        <div class="veil" [class.lifting]="trees[1].revealed"></div>
       </div>
       
       <div class="input-container">
@@ -89,9 +101,15 @@
         <div class="tree-cover" *ngIf="!trees[2].revealed">
           🌳
         </div>
-        <div class="tree-reveal" *ngIf="trees[2].revealed">
-          <div class="fruit">⭐ לימון סיני ⭐</div>
+        <div class="tree-with-fruits" *ngIf="trees[2].revealed">
+          <div class="tree-icon">🌳</div>
+          <div class="tree-reveal">
+            <img src="https://rawabihypermarket.com/uploads/product_images/featured_image/844989.jpg" alt="לימון סיני" class="fruit fruit-1">
+            <img src="https://rawabihypermarket.com/uploads/product_images/featured_image/844989.jpg" alt="לימון סיני" class="fruit fruit-2">
+            <img src="https://rawabihypermarket.com/uploads/product_images/featured_image/844989.jpg" alt="לימון סיני" class="fruit fruit-3">
+          </div>
         </div>
+        <div class="veil" [class.lifting]="trees[2].revealed"></div>
       </div>
       
       <div class="input-container">
