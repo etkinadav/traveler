@@ -79,8 +79,129 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
    * עריכת מוצר
    */
   editItem(item: BasketItem): void {
-    // TODO: ניווט לעמוד עריכת המוצר עם הפרמטרים הנכונים
-    console.log('עריכת מוצר:', item);
+    console.log('EDIT_PRODUCT - Starting edit process for item:', JSON.stringify({
+      itemId: item.id,
+      productName: item.productConfiguration.productName,
+      inputConfigurations: item.productConfiguration.inputConfigurations,
+      originalProductData: {
+        _id: item.productConfiguration.originalProductData?._id,
+        name: item.productConfiguration.originalProductData?.name,
+        model: item.productConfiguration.originalProductData?.model,
+        params: item.productConfiguration.originalProductData?.params?.map(p => ({
+          name: p.name,
+          type: p.type,
+          default: p.default,
+          selectedBeamIndex: p.selectedBeamIndex,
+          selectedTypeIndex: p.selectedTypeIndex
+        }))
+      }
+    }, null, 2));
+    
+    // שמירת המידע ב-localStorage באותו פורמט כמו בעמוד עריכת המוצר
+    this.saveProductToLocalStorage(item);
+    
+    // ניווט לעמוד עריכת המוצר עם productId ו-configIndex
+    console.log('EDIT_PRODUCT - Navigating to /beams with productId:', item.productConfiguration.originalProductData?._id);
+    this.router.navigate(['/beams'], {
+      queryParams: {
+        productId: item.productConfiguration.originalProductData?._id,
+        product: item.productConfiguration.productName,
+        configIndex: 0  // תמיד נשתמש ב-configIndex 0 לעריכה
+      }
+    });
+  }
+  
+  /**
+   * שמירת מידע מוצר ב-localStorage באותו פורמט כמו בעמוד עריכת המוצר
+   * מבוסס על הפונקציה saveConfiguration() מ-modify-product.component.ts
+   */
+  private saveProductToLocalStorage(item: BasketItem): void {
+    console.log('EDIT_PRODUCT - Starting saveProductToLocalStorage for item:', item.id);
+    
+    try {
+      console.log('EDIT_PRODUCT - Processing inputConfigurations:', JSON.stringify(
+        item.productConfiguration.inputConfigurations.map(ic => ({
+          inputName: ic.inputName,
+          value: ic.value,
+          selectedBeamIndex: ic.selectedBeamIndex,
+          selectedTypeIndex: ic.selectedTypeIndex
+        })), null, 2
+      ));
+      
+      // יצירת config באותו פורמט כמו הפונקציה המקורית saveConfiguration()
+      const config = {
+        params: item.productConfiguration.inputConfigurations.map(inputConfig => {
+          console.log(`EDIT_PRODUCT - Processing parameter: ${inputConfig.inputName}`, {
+            hasValue: inputConfig.value !== undefined && inputConfig.value !== null,
+            value: inputConfig.value,
+            selectedBeamIndex: inputConfig.selectedBeamIndex,
+            selectedTypeIndex: inputConfig.selectedTypeIndex
+          });
+          
+          const param: any = {
+            name: inputConfig.inputName,
+            selectedBeamIndex: inputConfig.selectedBeamIndex,
+            selectedTypeIndex: inputConfig.selectedTypeIndex,
+          };
+          
+          // טיפול מיוחד בפרמטרים מסוג array (כמו shelfs)
+          if (inputConfig.value !== undefined && inputConfig.value !== null) {
+            param.default = inputConfig.value;
+            console.log(`EDIT_PRODUCT - Using direct value for ${inputConfig.inputName}:`, inputConfig.value);
+          } else {
+            // אם אין ערך ישיר, ננסה לקבל את הערך מהפרמטר המקורי
+            const originalParam = item.productConfiguration.originalProductData?.params?.find(
+              p => p.name === inputConfig.inputName
+            );
+            
+            console.log(`EDIT_PRODUCT - Looking for original param ${inputConfig.inputName}:`, {
+              found: !!originalParam,
+              originalDefault: originalParam?.default,
+              originalType: originalParam?.type
+            });
+            
+            if (originalParam && originalParam.default !== undefined) {
+              param.default = originalParam.default;
+              console.log(`EDIT_PRODUCT - Using original default for ${inputConfig.inputName}:`, originalParam.default);
+            } else {
+              // אם זה פרמטר מסוג array (כמו shelfs), נשתמש בערך ברירת מחדל
+              if (inputConfig.inputName === 'shelfs') {
+                param.default = [10, 17, 17]; // ערך ברירת מחדל למדפים
+                console.log(`EDIT_PRODUCT - Using fallback default for shelfs:`, param.default);
+              } else {
+                param.default = null;
+                console.log(`EDIT_PRODUCT - Using null default for ${inputConfig.inputName}`);
+              }
+            }
+          }
+          
+          console.log(`EDIT_PRODUCT - Final param for ${inputConfig.inputName}:`, JSON.stringify(param, null, 2));
+          return param;
+        }),
+        timestamp: new Date().toISOString(),
+      };
+      
+      console.log('EDIT_PRODUCT - Final config to save:', JSON.stringify(config, null, 2));
+      
+      // שמירה ב-localStorage באותו מפתח כמו הפונקציה המקורית
+      localStorage.setItem('beam-configuration', JSON.stringify(config));
+      console.log('EDIT_PRODUCT - Saved beam-configuration to localStorage');
+      
+      // 2. שמירת lastSelectedProductId
+      if (item.productConfiguration.originalProductData?._id) {
+        localStorage.setItem('lastSelectedProductId', item.productConfiguration.originalProductData._id);
+        console.log('EDIT_PRODUCT - Saved lastSelectedProductId:', item.productConfiguration.originalProductData._id);
+      }
+      
+      // 3. שמירת lastConfigIndex (אם יש קונפיגורציה ספציפית)
+      localStorage.setItem('lastConfigIndex', '0');
+      console.log('EDIT_PRODUCT - Saved lastConfigIndex: 0');
+      
+      console.log('EDIT_PRODUCT - Successfully saved all data to localStorage');
+      
+    } catch (error) {
+      console.error('EDIT_PRODUCT - Error saving data to localStorage:', error);
+    }
   }
 
 

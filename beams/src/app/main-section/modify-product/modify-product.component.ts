@@ -1371,6 +1371,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // קבלת פרמטר המוצר מה-URL
         this.route.queryParams.subscribe((params) => {
+            console.log('EDIT_PRODUCT - Route params received:', JSON.stringify(params, null, 2));
+            
             if (params['product']) {
                 this.selectedProductName = params['product'];
                 this.isTable = this.selectedProductName === 'table';
@@ -1378,6 +1380,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.isBox = this.selectedProductName === 'box';
                 this.isBelams = this.selectedProductName === 'beams';
                 this.isFuton = this.selectedProductName === 'futon';
+                
+                console.log('EDIT_PRODUCT - Product type determined:', {
+                    selectedProductName: this.selectedProductName,
+                    isTable: this.isTable,
+                    isPlanter: this.isPlanter,
+                    isBox: this.isBox,
+                    isBelams: this.isBelams,
+                    isFuton: this.isFuton
+                });
                 
                 // איפוס מצב שקוף במוצר קורות
                 if (this.isBelams) {
@@ -1397,11 +1408,25 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const currentProductId = params['productId'] || this.selectedProductName;
                 const currentConfigIndex = params['configIndex'] !== undefined ? params['configIndex'] : undefined;
                 
+                console.log('EDIT_PRODUCT - localStorage data check:', {
+                    lastProductId: lastProductId,
+                    lastConfigIndex: lastConfigIndex,
+                    currentProductId: currentProductId,
+                    currentConfigIndex: currentConfigIndex
+                });
+                
                 // יצירת מזהה ייחודי שכולל גם את ה-configIndex
                 const lastFullId = lastConfigIndex !== null ? `${lastProductId}_config${lastConfigIndex}` : lastProductId;
                 const currentFullId = currentConfigIndex !== undefined ? `${currentProductId}_config${currentConfigIndex}` : currentProductId;
                 
+                console.log('EDIT_PRODUCT - Full IDs comparison:', {
+                    lastFullId: lastFullId,
+                    currentFullId: currentFullId,
+                    shouldClearConfig: lastFullId && lastFullId !== currentFullId
+                });
+                
                 if (lastFullId && lastFullId !== currentFullId) {
+                    console.log('EDIT_PRODUCT - Clearing user configuration due to product change');
                     this.clearUserConfiguration();
                 }
                 
@@ -1413,13 +1438,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     localStorage.removeItem('lastConfigIndex');
                 }
                 
+                console.log('EDIT_PRODUCT - Updated localStorage with current product info');
+                
                 // טעינת המוצר הנכון לפי ID או שם
                 if (params['productId']) {
+                    console.log('EDIT_PRODUCT - Found productId in URL, will load product by ID:', params['productId']);
                     // בדיקה אם יש configIndex ב-URL
                     const configIndex = params['configIndex'] !== undefined ? parseInt(params['configIndex']) : undefined;
                     this.getProductById(params['productId'], configIndex);
                 } else {
-                this.getProductByName(this.selectedProductName);
+                    console.log('EDIT_PRODUCT - No productId in URL, will load product by name:', this.selectedProductName);
+                    this.getProductByName(this.selectedProductName);
                 }
             } else {
                 // אם אין פרמטר מוצר, נטען את המוצר האחרון או ברירת מחדל
@@ -1524,6 +1553,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     private originalProductParams: any[] = [];
     // Clear user configuration when switching products
     private clearUserConfiguration() {
+        console.log('EDIT_PRODUCT - clearUserConfiguration called - will remove beam-configuration from localStorage');
+        
         // ניקוי כל ההגדרות הקשורות למוצר הקודם
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -1537,19 +1568,45 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 keysToRemove.push(key);
             }
         }
+        
+        console.log('EDIT_PRODUCT - Keys to remove from localStorage:', JSON.stringify(keysToRemove, null, 2));
+        
         keysToRemove.forEach((key) => {
             localStorage.removeItem(key);
         });
         
         // מחיקת קונפיגורציה כללית
+        console.log('EDIT_PRODUCT - Removing beam-configuration from localStorage');
         localStorage.removeItem('beam-configuration');
+        
+        console.log('EDIT_PRODUCT - localStorage after clearing:', {
+            lastSelectedProductId: localStorage.getItem('lastSelectedProductId'),
+            lastConfigIndex: localStorage.getItem('lastConfigIndex'),
+            beamConfiguration: localStorage.getItem('beam-configuration')
+        });
         
         // איפוס הפרמטרים לערכי ברירת המחדל
         this.resetParamsToDefaults();
     }
+    
     getProductById(id: string, configIndex?: number) {
+        console.log('EDIT_PRODUCT - getProductById called:', {
+            id: id,
+            configIndex: configIndex
+        });
+        
         this.http.get(`/api/products/${id}`).subscribe({
             next: (data) => {
+                console.log('EDIT_PRODUCT - Product data received from API:', JSON.stringify({
+                    productId: id,
+                    configIndex: configIndex,
+                    productName: (data as any)?.name,
+                    productModel: (data as any)?.model,
+                    hasParams: !!(data as any)?.params,
+                    paramsCount: (data as any)?.params?.length || 0,
+                    hasConfigurations: !!(data as any)?.configurations,
+                    configurationsCount: (data as any)?.configurations?.length || 0
+                }, null, 2));
                 this.product = data;
                 const prod: any = data;
                 
@@ -1689,6 +1746,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const currentProductId = this.product?._id || this.selectedProductName;
                 const currentConfigIndex = configIndex !== undefined ? configIndex.toString() : null;
                 
+                console.log('EDIT_PRODUCT - Checking for saved configuration:', {
+                    lastProductId: lastProductId,
+                    lastConfigIndex: lastConfigIndex,
+                    currentProductId: currentProductId,
+                    currentConfigIndex: currentConfigIndex,
+                    beamConfiguration: localStorage.getItem('beam-configuration')
+                });
+                
                 // יצירת מזהה ייחודי שכולל גם את ה-configIndex
                 const lastFullId = lastConfigIndex !== null ? `${lastProductId}_config${lastConfigIndex}` : lastProductId;
                 const currentFullId = currentConfigIndex !== null ? `${currentProductId}_config${currentConfigIndex}` : currentProductId;
@@ -1700,9 +1765,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 // Load saved configuration BEFORE updateBeams to ensure correct values are used for texture loading
                 if (lastFullId === currentFullId) {
+                    console.log('EDIT_PRODUCT - Same sub-product, loading saved configuration');
                     this.debugLog('CHACK-BEAM-MINI: [threejs-box] Same sub-product, loading saved configuration');
-                this.loadConfiguration();
+                    this.loadConfiguration();
                 } else {
+                    console.log('EDIT_PRODUCT - Different sub-product, not loading configuration');
                     this.debugLog('CHACK-BEAM-MINI: [threejs-box] Different sub-product, not loading configuration');
                 }
                 
@@ -2200,12 +2267,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
     // Load saved configuration (always use localStorage for now)
     private loadConfiguration() {
+        console.log('EDIT_PRODUCT - loadConfiguration called (existing function)');
+        
         // Always use localStorage to avoid authentication issues
-            this.loadConfigurationFromLocalStorage();
+        this.loadConfigurationFromLocalStorage();
         
         // Server configuration loading disabled to avoid CORS and authentication errors
         // TODO: Re-enable when backend is properly configured
     }
+    
     // Load configuration from server (for authenticated users)
     private loadConfigurationFromServer() {
         const headers = new HttpHeaders({
@@ -2260,19 +2330,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // Load configuration from localStorage (fallback)
     private loadConfigurationFromLocalStorage() {
+        console.log('EDIT_PRODUCT - loadConfigurationFromLocalStorage called (existing function)');
+        
         const savedConfig = localStorage.getItem('beam-configuration');
+        console.log('EDIT_PRODUCT - Saved config from localStorage:', savedConfig);
+        
         if (savedConfig) {
             try {
                 const config = JSON.parse(savedConfig);
+                console.log('EDIT_PRODUCT - Parsed config:', JSON.stringify(config, null, 2));
+                
+                console.log('EDIT_PRODUCT - Calling applyConfiguration with config');
                 this.applyConfiguration(config);
+                console.log('EDIT_PRODUCT - Configuration applied successfully');
             } catch (error) {
-                console.error(
-                    'Error loading configuration from localStorage:',
-                    error
-                );
+                console.error('EDIT_PRODUCT - Error loading configuration from localStorage:', error);
             }
+        } else {
+            console.log('EDIT_PRODUCT - No saved configuration found in localStorage');
         }
     }
+    
     // Clear potentially incorrect localStorage values
     private clearIncorrectLocalStorageValues() {
         // Clear selectedTypeIndex for shelfs parameter to prevent incorrect texture loading
@@ -2294,15 +2372,36 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
     // Apply configuration to params
     private applyConfiguration(config: any) {
+        console.log('EDIT_PRODUCT - applyConfiguration called with config:', JSON.stringify(config, null, 2));
+        
         if (config.params) {
+            console.log('EDIT_PRODUCT - Applying params from config:', config.params.length);
+            
             config.params.forEach((savedParam) => {
+                console.log(`EDIT_PRODUCT - Processing saved param ${savedParam.name}:`, {
+                    hasDefault: savedParam.default !== undefined,
+                    default: savedParam.default,
+                    hasSelectedBeamIndex: savedParam.selectedBeamIndex !== undefined,
+                    selectedBeamIndex: savedParam.selectedBeamIndex,
+                    hasSelectedTypeIndex: savedParam.selectedTypeIndex !== undefined,
+                    selectedTypeIndex: savedParam.selectedTypeIndex
+                });
+                
                 const param = this.params.find(
                     (p) => p.name === savedParam.name
                 );
                 if (param) {
+                    console.log(`EDIT_PRODUCT - Found param ${savedParam.name}, applying values`);
+                    
                     param.default = savedParam.default;
                     param.selectedBeamIndex = savedParam.selectedBeamIndex;
                     param.selectedTypeIndex = savedParam.selectedTypeIndex;
+                    
+                    console.log(`EDIT_PRODUCT - Applied values to ${savedParam.name}:`, {
+                        default: param.default,
+                        selectedBeamIndex: param.selectedBeamIndex,
+                        selectedTypeIndex: param.selectedTypeIndex
+                    });
                     
                     // CHACK_TEXTURE - Log when localStorage data is applied to inputs
                     if (param.name === 'shelfs' || param.type === 'beamSingle') {

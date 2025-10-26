@@ -312,29 +312,29 @@
                             </button>
                         </div>
                         <div class="shelf-measurements-container beam-array-container">
-                            <div *ngFor="let i of [].constructor(param.default.length); let idx = index" 
+                            <div *ngFor="let i of [].constructor(param.default?.length || 0); let idx = index" 
                                 class="shelf-row" 
                                 [class.shelf-row-with-amount]="param.setAmount === true">
                                 <div class="shelf-gap-field-wrapper">
                                     <mat-form-field appearance="outline" class="shelf-gap-field">
-                                        <mat-label>{{ 'modify-product.measurement-label' | translate }} {{param.default.length - idx}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
+                                        <mat-label>{{ 'modify-product.measurement-label' | translate }} {{(param.default?.length || 0) - idx}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
                                         <input #shelfInput matInput type="number" [step]="1"
-                                            [ngModel]="param._editingValues?.[param.default.length - 1 - idx] ?? param.default[param.default.length - 1 - idx]"
-                                            (ngModelChange)="(param._editingValues = param._editingValues || []); param._editingValues[param.default.length - 1 - idx] = $event"
-                                            (focus)="onShelfNumberFocus(param, param.default.length - 1 - idx)"
-                                            (blur)="onShelfNumberCommit(param, param.default.length - 1 - idx)"
-                                            (keyup.enter)="onShelfNumberCommit(param, param.default.length - 1 - idx)"
-                                            (input)="onShelfNumberInput(param, $event, param.default.length - 1 - idx)">
-                                        <button type="button" class="quick-commit-btn" *ngIf="shouldShowShelfCommit(param, param.default.length - 1 - idx)" (click)="onShelfQuickCommit(param, param.default.length - 1 - idx, shelfInput)">
+                                            [ngModel]="param._editingValues?.[(param.default?.length || 0) - 1 - idx] ?? param.default?.[(param.default?.length || 0) - 1 - idx]"
+                                            (ngModelChange)="(param._editingValues = param._editingValues || []); param._editingValues[(param.default?.length || 0) - 1 - idx] = $event"
+                                            (focus)="onShelfNumberFocus(param, (param.default?.length || 0) - 1 - idx)"
+                                            (blur)="onShelfNumberCommit(param, (param.default?.length || 0) - 1 - idx)"
+                                            (keyup.enter)="onShelfNumberCommit(param, (param.default?.length || 0) - 1 - idx)"
+                                            (input)="onShelfNumberInput(param, $event, (param.default?.length || 0) - 1 - idx)">
+                                        <button type="button" class="quick-commit-btn" *ngIf="shouldShowShelfCommit(param, (param.default?.length || 0) - 1 - idx)" (click)="onShelfQuickCommit(param, (param.default?.length || 0) - 1 - idx, shelfInput)">
                                             <svg width="12" height="12" viewBox="0 0 12 12">
                                                 <path d="M2 6l2 2 6-6" stroke="#0066cc" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </button>
                                     </mat-form-field>
-                                    <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn" 
+                                    <button *ngIf="idx !== (param.default?.length || 0) - 1" class="remove-shelf-btn" 
                                         [class.remove-shelf-btn-with-amount]="param.setAmount === true"
-                                        (click)="param.default.splice(param.default.length - 1 - idx,1); updateBeams()"
-                                        [disabled]="param.default.length<=1" [attr.aria-label]="'modify-product.remove-shelf-aria' | translate">
+                                        (click)="param.default.splice((param.default?.length || 0) - 1 - idx,1); updateBeams()"
+                                        [disabled]="(param.default?.length || 0)<=1" [attr.aria-label]="'modify-product.remove-shelf-aria' | translate">
                                         <svg width="14" height="14" viewBox="0 0 14 14">
                                             <circle cx="7" cy="7" r="6" fill="#fff" stroke="#d32f2f" stroke-width="1.2" />
                                             <line x1="4.5" y1="4.5" x2="9.5" y2="9.5" stroke="#d32f2f" stroke-width="1.5" />
@@ -400,17 +400,18 @@
                             </button>
                         </div>
                         <div class="shelf-measurements-container beam-array-container">
-                            <div *ngFor="let i of [].constructor(param.default.length); let idx = index" 
+                            <div *ngFor="let i of [].constructor(param.default?.length || 0); let idx = index" 
                                 class="shelf-row" 
                                 [class.shelf-row-with-amount]="param.setAmount === true">
                                 <div class="shelf-gap-field-wrapper">
                                     <div class="beam-entry-container">
                                         <mat-form-field appearance="outline" class="shelf-gap-field-length">
-                                            <mat-label>{{ 'modify-product.length-label' | translate }} {{param.default.length - idx}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
+                                            <mat-label>{{ 'modify-product.length-label' | translate }} {{(param.default?.length || 0) - idx}} ({{param.min}} < {{param.max}} {{getUnitForParameter(param)}})</mat-label>
                                             <input matInput type="number" [step]="1"
-                                                [(ngModel)]="param.default[param.default.length - 1 - idx].length"
-                                                (blur)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
-                                                (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                                [ngModel]="param.default && param.default[(param.default?.length || 0) - 1 - idx] ? param.default[(param.default?.length || 0) - 1 - idx].length : null"
+                                                (ngModelChange)="param.default && param.default[(param.default?.length || 0) - 1 - idx] ? param.default[(param.default?.length || 0) - 1 - idx].length = $event : null"
+                                                (blur)="updateShelfParameterValue(param, param.default?.[(param.default?.length || 0) - 1 - idx], (param.default?.length || 0) - 1 - idx)"
+                                                (keyup.enter)="updateShelfParameterValue(param, param.default?.[(param.default?.length || 0) - 1 - idx], (param.default?.length || 0) - 1 - idx)"
                                                 (input)="onShelfInputChange($event, param, idx)">
                                         </mat-form-field>
                                         <div class="quantity-container">
@@ -427,9 +428,10 @@
                                                  <!-- באמצע: ערך הזנה -->
                                                  <input class="quantity-input"
                                                         type="number" 
-                                                        [(ngModel)]="param.default[param.default.length - 1 - idx].amount"
-                                                        (change)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
-                                                        (keyup.enter)="updateShelfParameterValue(param, param.default[param.default.length - 1 - idx], param.default.length - 1 - idx)"
+                                                        [ngModel]="param.default && param.default[(param.default?.length || 0) - 1 - idx] ? param.default[(param.default?.length || 0) - 1 - idx].amount : null"
+                                                        (ngModelChange)="param.default && param.default[(param.default?.length || 0) - 1 - idx] ? param.default[(param.default?.length || 0) - 1 - idx].amount = $event : null"
+                                                        (change)="updateShelfParameterValue(param, param.default?.[(param.default?.length || 0) - 1 - idx], (param.default?.length || 0) - 1 - idx)"
+                                                        (keyup.enter)="updateShelfParameterValue(param, param.default?.[(param.default?.length || 0) - 1 - idx], (param.default?.length || 0) - 1 - idx)"
                                                         (input)="onShelfInputChange($event, param, idx)"
                                                         min="1">
                                                 <!-- למטה: מינוס -->
@@ -442,10 +444,10 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button *ngIf="idx !== param.default.length - 1" class="remove-shelf-btn"
+                                    <button *ngIf="idx !== (param.default?.length || 0) - 1" class="remove-shelf-btn"
                                         [class.remove-shelf-btn-with-amount]="param.setAmount === true"
-                                        (click)="param.default.splice(param.default.length - 1 - idx,1); updateBeams()"
-                                        [disabled]="param.default.length<=1" [attr.aria-label]="'modify-product.remove-beam-aria' | translate">
+                                        (click)="param.default.splice((param.default?.length || 0) - 1 - idx,1); updateBeams()"
+                                        [disabled]="(param.default?.length || 0)<=1" [attr.aria-label]="'modify-product.remove-beam-aria' | translate">
                                         <svg width="14" height="14" viewBox="0 0 14 14">
                                             <circle cx="7" cy="7" r="6" fill="#fff" stroke="#d32f2f" stroke-width="1.2" />
                                             <line x1="4.5" y1="4.5" x2="9.5" y2="9.5" stroke="#d32f2f" stroke-width="1.5" />
