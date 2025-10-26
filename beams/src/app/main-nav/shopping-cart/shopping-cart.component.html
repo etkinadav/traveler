@@ -43,7 +43,9 @@
                 <button class="options-menu-button" 
                         [class.active]="isItemMenuOpen(item.id)"
                         (click)="toggleItemMenu(item.id)"
-                        [title]="'shopping-cart.additional-options' | translate">
+                        [matTooltip]="'shopping-cart.additional-options' | translate"
+                        matTooltipPosition="below"
+                        matTooltipShowDelay="300">
                   <svg width="12" height="12" viewBox="0 0 12 12">
                     <circle cx="6" cy="2" r="1.2" fill="currentColor"/>
                     <circle cx="6" cy="6" r="1.2" fill="currentColor"/>
