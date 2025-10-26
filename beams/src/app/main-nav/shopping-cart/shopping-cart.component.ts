@@ -67,6 +67,19 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   onUserInteractedWith3D(itemId: string): void {
     this.userPerformedActionMap[itemId] = true;
   }
+  
+  /**
+   * איפוס התצוגה התלת-ממדית והסתרת הכפתור
+   */
+  reset3DView(miniPreview: any, itemId: string): void {
+    if (miniPreview && miniPreview.resetCameraAndRotation) {
+      // קריאה לפונקציה לאיפוס המצלמה והסיבוב
+      miniPreview.resetCameraAndRotation();
+      
+      // הסתרת הכפתור על ידי איפוס המשתנה
+      this.userPerformedActionMap[itemId] = false;
+    }
+  }
 
   /**
    * פתיחה/סגירה של תפריט מוצר

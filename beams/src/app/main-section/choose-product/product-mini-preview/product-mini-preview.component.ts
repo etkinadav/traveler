@@ -14,6 +14,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   @Input() configurationIndex: number = 0;
   @Output() loadComplete = new EventEmitter<void>();
   @Output() userInteracted = new EventEmitter<void>(); // Event לכל פעולה של משתמש
+  @Output() resetComplete = new EventEmitter<void>(); // Event להשלמת איפוס
   
   @ViewChild('miniPreviewContainer', { static: true }) container!: ElementRef;
 
@@ -2035,6 +2036,22 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const offset2 = this.camera.position.clone().sub(this.target);
     this.spherical.setFromVector3(offset2);
     
+  }
+  
+  // פונקציה לאיפוס המצלמה והסיבוב למצב התחלתי
+  resetCameraAndRotation() {
+    // איפוס משתנה הפעולה
+    this.hasUserPerformedAction = false;
+    
+    // קריאה לפונקציה updateCameraPosition שתאפס את המצלמה למצב התחלתי
+    this.updateCameraPosition();
+    
+    // איפוס משתנה הסיבוב האוטומטי
+    this.hasUserInteracted = false;
+    this.resetInactivityTimer();
+    
+    // שלח event שהאיפוס הסתיים
+    this.resetComplete.emit();
   }
 
 
