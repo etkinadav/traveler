@@ -28,6 +28,30 @@ export class GuessTheTreeComponent implements OnInit {
   showGuessResult: boolean = false;
   guessResultMessage: string = '';
   guessResultType: 'success' | 'failure' = 'success';
+  
+  // הודעות כישלון חמודות
+  failureMessages: string[] = [
+    '😅 לא נורא אמא! תנסי שוב, אני מאמין בך! 😊',
+    '🤗 חסרת מזל הפעם! אבל את אלופה ואני יודע שתתגברי! 🌟',
+    '💪 לא הצלחת הפעם... אבל את תמיד מצליחה! נסי שוב! ❤️',
+    '😌 עוד ניסיון אחד אמא! אני יודע שאת יכולה! 🙏',
+    '🌈 אין דבר כזה כישלון, רק ניסיונות! נסי שוב! ✨',
+    '👑 אמא, את היורשת המלכותית! עוד נסיון ינצח! 💎',
+    '🌟 לא משנה כמה פעמים, את תמיד תוכלי! נסי שוב! 🌈',
+    '🎯 הקסם שלך עובד בשיבוץ! עוד ניסיון לא יזיק! ✨',
+    '💝 את הכי טובה בעולם! נסי עוד פעם ואני בטוח שתתגברי! 🌸',
+    '🥰 אמא יקרה שלי, את הכי חזקה! נסי שוב! 💖'
+  ];
+  
+  // הודעות הצלחה לכל עץ
+  getSuccessMessage(treeIndex: number): string {
+    const messages = [
+      '🎉 אימוץ! כל הכבוד, חשפת את העץ הראשון - קרמבולה! 🍉✨',
+      '🎉 וואו! את אלופה! חשפת את מנגו מאיה שכזאת! כמו שאת אוהבת! 🥭🌟',
+      '🎉 מזל טוב אמא! את חושפת את לימון סיני! את סיימת את כל המשחק! 🍋💖'
+    ];
+    return messages[treeIndex];
+  }
 
   ngOnInit() {
     // אתחל את הנתונים
@@ -163,7 +187,7 @@ export class GuessTheTreeComponent implements OnInit {
         console.log('DEBUG: Guess is CORRECT!');
         // ניחוש נכון!
         this.showGuessResult = true;
-        this.guessResultMessage = '🎉 הצלחת! 🎉';
+        this.guessResultMessage = this.getSuccessMessage(treeIndex);
         this.guessResultType = 'success';
         
         setTimeout(() => {
@@ -182,12 +206,12 @@ export class GuessTheTreeComponent implements OnInit {
               }
             }, 100);
           }
-        }, 1500);
+        }, 1000);
       } else {
         console.log('DEBUG: Guess is WRONG!');
         // ניחוש שגוי
         this.showGuessResult = true;
-        this.guessResultMessage = '❌ לא הצלחת! ❌';
+        this.guessResultMessage = this.getRandomFailureMessage();
         this.guessResultType = 'failure';
         
         setTimeout(() => {
@@ -204,7 +228,7 @@ export class GuessTheTreeComponent implements OnInit {
               element?.focus();
             }
           }, 100);
-        }, 1500);
+        }, 3000);
       }
     }
   }
@@ -412,6 +436,17 @@ export class GuessTheTreeComponent implements OnInit {
     if (this.trees.every(tree => tree.revealed)) {
       this.allRevealed = true;
       this.showConfetti = true;
+      
+      // הודעה אחרונה לאמא
+      setTimeout(() => {
+        this.showGuessResult = true;
+        this.guessResultMessage = '💖 אמא היקרה שלי, אני אוהב אותך מעל הכל! תודה על כל דבר שלך! 💖';
+        this.guessResultType = 'success';
+        
+        setTimeout(() => {
+          this.showGuessResult = false;
+        }, 3000);
+      }, 2000);
     }
   }
 
@@ -429,5 +464,10 @@ export class GuessTheTreeComponent implements OnInit {
   getRandomConfetti(): string {
     const emojis = ['🎉', '🎊', '🎈', '🎁', '🎂', '🎅', '✨', '🎃'];
     return emojis[Math.floor(Math.random() * emojis.length)];
+  }
+  
+  getRandomFailureMessage(): string {
+    const randomIndex = Math.floor(Math.random() * this.failureMessages.length);
+    return this.failureMessages[randomIndex];
   }
 }

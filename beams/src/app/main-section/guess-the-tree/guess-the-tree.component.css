@@ -88,7 +88,6 @@
   color: white;
   text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
   margin: 0;
-  animation: messagePulse 0.8s ease-in-out infinite;
 }
 
 @keyframes resultPop {
@@ -100,11 +99,6 @@
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
-}
-
-@keyframes messagePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
 }
 
 /* עץ cards */
