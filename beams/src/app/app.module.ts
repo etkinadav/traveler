@@ -43,7 +43,6 @@ import { FileUploadModule } from 'ng2-file-upload';
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { ModifyProductModule } from './main-section/modify-product/modify-product.module';
 import { ShoppingCartComponent } from './main-nav/shopping-cart/shopping-cart.component';
-import { GuessTheTreeComponent } from './main-section/guess-the-tree/guess-the-tree.component';
 
 @NgModule({
   declarations: [
@@ -67,7 +66,6 @@ import { GuessTheTreeComponent } from './main-section/guess-the-tree/guess-the-t
     SuEditUserComponent,
     DeleteCartConfirmationComponent,
     ShoppingCartComponent,
-    GuessTheTreeComponent,
   ],
   imports: [
     BrowserModule,

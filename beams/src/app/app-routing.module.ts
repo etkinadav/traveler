@@ -8,7 +8,6 @@ import { SocialComponent } from "./auth/social/social.component";
 import { AuthGuard } from "./auth/auth.guard";
 import { TAndCComponent } from "./main-section/legal/t-and-c/t-and-c.component"
 import { PrivacyPolicyComponent } from "./main-section/legal/privacy-policy/privacy-policy.component"
-import { GuessTheTreeComponent } from "./main-section/guess-the-tree/guess-the-tree.component";
 
 
 
@@ -24,7 +23,6 @@ const routes: Routes = [
 
     { path: "beams", component: ModifyProductComponent },
     { path: "shopping-cart", component: ShoppingCartComponent },
-    { path: "guess-the-tree", component: GuessTheTreeComponent },
 
     { path: "myorders/:userId", component: MyOrdersComponent },
     { path: "myprofile/:userId", component: MyProfileComponent },
