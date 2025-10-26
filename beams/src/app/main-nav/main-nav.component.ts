@@ -384,6 +384,12 @@ export class MainNavComponent implements OnInit, OnDestroy {
     }
   }
 
+  goToGuessTree() {
+    this.closeDrawer();
+    this.closeProfileManu();
+    this.router.navigate(["/guess-the-tree"]);
+  }
+
   goToMyOrders() {
     this.closeDrawer();
     this.closeProfileManu();

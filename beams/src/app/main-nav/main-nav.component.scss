@@ -992,3 +992,22 @@ mat-toolbar.transparent-toolbar {
   height: 0 !important;
   background: none !important;
 }
+
+// כפתור משחק נחש עץ
+.guess-tree-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 5px;
+  margin-left: 15px;
+}
+
+.guess-tree-btn:hover {
+  transform: scale(1.2) rotate(10deg);
+}
+
+.guess-tree-btn:active {
+  transform: scale(0.9);
+}

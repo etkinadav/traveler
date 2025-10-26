@@ -1,0 +1,352 @@
+import { Component, OnInit } from '@angular/core';
+
+interface Tree {
+  id: string;
+  name: string;
+  revealed: boolean;
+  inputs: string[][];
+}
+
+@Component({
+  selector: 'app-guess-the-tree',
+  templateUrl: './guess-the-tree.component.html',
+  styleUrls: ['./guess-the-tree.component.css']
+})
+export class GuessTheTreeComponent implements OnInit {
+  // שלושת העצים
+  trees: Tree[] = [
+    { id: 'tree1', name: 'קרמבולה', revealed: false, inputs: [] },
+    { id: 'tree2', name: 'מנגו מאיה', revealed: false, inputs: [] },
+    { id: 'tree3', name: 'לימון סיני', revealed: false, inputs: [] }
+  ];
+
+  currentTreeIndex: number = 0;
+  showTitleAnimation: boolean = true;
+  showConfetti: boolean = false;
+  allRevealed: boolean = false;
+  showGuessResult: boolean = false;
+  guessResultMessage: string = '';
+  guessResultType: 'success' | 'failure' = 'success';
+
+  ngOnInit() {
+    // אתחל את הנתונים
+    this.trees.forEach(tree => {
+      const words = tree.name.split(' ');
+      tree.inputs = words.map(word => word.split('').map(() => ''));
+    });
+
+    // הסתר את אנימציית הכותרת אחרי זמן
+    setTimeout(() => {
+      this.showTitleAnimation = false;
+    }, 3000);
+  }
+
+  getCurrentTree(): Tree {
+    return this.trees[this.currentTreeIndex];
+  }
+
+  getInputValue(rowIndex: number, charIndex: number): string {
+    const tree = this.getCurrentTree();
+    const row = tree.inputs[rowIndex];
+    return row && row[charIndex] || '';
+  }
+
+  setInputValue(rowIndex: number, charIndex: number, value: string): void {
+    const tree = this.getCurrentTree();
+    if (!tree.revealed && tree.inputs[rowIndex] && tree.inputs[rowIndex][charIndex] === '') {
+      const row = [...tree.inputs[rowIndex]];
+      row[charIndex] = value.toUpperCase();
+      tree.inputs = tree.inputs.map((r, i) => i === rowIndex ? row : r);
+      
+      // חכה קצת ואז עבור לתיבה הבאה או בדוק את הניחוש
+      setTimeout(() => {
+        // מצא את התיבה הבאה הפנויה (לא "revealed" ולא מלאה)
+        const nextInput = this.findNextTrulyEmptyInput(rowIndex, charIndex, tree);
+        if (nextInput) {
+          // יש תיבה פנויה - עבור אליה
+          const [nextRow, nextChar] = nextInput;
+          const element = document.getElementById(`input-${nextRow}-${nextChar}`);
+          element?.focus();
+        } else {
+          // אין תיבות פנויות - בדוק את הניחוש
+          this.checkAndHandleGuess(tree);
+        }
+      }, 50);
+    }
+  }
+
+  findNextTrulyEmptyInput(rowIndex: number, charIndex: number, tree: Tree): [number, number] | null {
+    const words = tree.name.split(' ');
+    
+    // איטרציה על כל המילים והאותיות מהמיקום הנוכחי
+    for (let i = rowIndex; i < words.length; i++) {
+      const startJ = (i === rowIndex) ? charIndex + 1 : 0;
+      
+      for (let j = startJ; j < words[i].length; j++) {
+        // בדוק שהאות לא גלויה ולא מלאה
+        if (!this.isCharRevealed(tree, i, j) && !tree.inputs[i][j]) {
+          return [i, j];
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  findNextEmptyInput(rowIndex: number, charIndex: number, tree: Tree): [number, number] | null {
+    const words = tree.name.split(' ');
+    
+    // איטרציה על כל המילים והאותיות מהמיקום הנוכחי
+    for (let i = rowIndex; i < words.length; i++) {
+      // התחל מהמיקום הבא במילה הנוכחית, או מההתחלה במילים הבאות
+      const startJ = (i === rowIndex) ? charIndex + 1 : 0;
+      
+      for (let j = startJ; j < words[i].length; j++) {
+        // בדוק אם האות לא גלויה (לא חלק מ-"revealed")
+        if (!this.isCharRevealed(tree, i, j)) {
+          return [i, j];
+        }
+      }
+    }
+    
+    // לא נמצאו תיבות פנויות
+    return null;
+  }
+
+  checkAndHandleGuess(tree: Tree): void {
+    // אם העץ כבר נחשף - אל תוצג הודעת כישלון
+    if (tree.revealed) {
+      return;
+    }
+    
+    const words = tree.name.split(' ');
+    
+    // ספור רק תיבות שאינן גלויות (לא "revealed")
+    let nonRevealedChars = 0;
+    let filledNonRevealedChars = 0;
+    
+    for (let i = 0; i < words.length; i++) {
+      for (let j = 0; j < words[i].length; j++) {
+        if (!this.isCharRevealed(tree, i, j)) {
+          nonRevealedChars++;
+          if (tree.inputs[i] && tree.inputs[i][j]) {
+            filledNonRevealedChars++;
+          }
+        }
+      }
+    }
+    
+    // אם כל התיבות הלא-גלויות מלאות - בדוק את הניחוש
+    if (filledNonRevealedChars === nonRevealedChars && nonRevealedChars > 0) {
+      if (this.checkGuess()) {
+        // ניחוש נכון!
+        this.showGuessResult = true;
+        this.guessResultMessage = '🎉 הצלחת! 🎉';
+        this.guessResultType = 'success';
+        
+        setTimeout(() => {
+          this.showGuessResult = false;
+          this.revealTree();
+        }, 1500);
+      } else {
+        // ניחוש שגוי
+        this.showGuessResult = true;
+        this.guessResultMessage = '❌ לא הצלחת! ❌';
+        this.guessResultType = 'failure';
+        
+        setTimeout(() => {
+          this.revealRandomLetter();
+          this.resetNonRevealedInputs(tree);
+          this.showGuessResult = false;
+          
+          // עבור אוטומטית ל-input הפנוי הראשון
+          this.focusNextEmptyInput(tree);
+        }, 1500);
+      }
+    }
+  }
+
+  focusNextEmptyInput(tree: Tree): void {
+    const words = tree.name.split(' ');
+    
+    // מצא את ה-input הפנוי הראשון
+    for (let i = 0; i < words.length; i++) {
+      for (let j = 0; j < words[i].length; j++) {
+        if (!this.isCharRevealed(tree, i, j) && !tree.inputs[i][j]) {
+          setTimeout(() => {
+            const element = document.getElementById(`input-${i}-${j}`);
+            element?.focus();
+          }, 10);
+          return;
+        }
+      }
+    }
+  }
+
+  moveToNextInput(rowIndex: number, charIndex: number): void {
+    const tree = this.getCurrentTree();
+    const words = tree.name.split(' ');
+    const currentWord = words[rowIndex];
+    
+    if (charIndex < currentWord.length - 1) {
+      // עדיין באותה מילה - עבור לאות הבאה
+      const nextCharIndex = charIndex + 1;
+      if (!this.isCharRevealed(tree, rowIndex, nextCharIndex)) {
+        setTimeout(() => {
+          const element = document.getElementById(`input-${rowIndex}-${nextCharIndex}`);
+          element?.focus();
+        }, 10);
+      }
+    } else if (rowIndex < words.length - 1) {
+      // עבר למילה הבאה
+      setTimeout(() => {
+        const element = document.getElementById(`input-0-${rowIndex + 1}`);
+        element?.focus();
+      }, 10);
+    }
+  }
+
+  isCharRevealed(tree: Tree, rowIndex: number, charIndex: number): boolean {
+    const words = tree.name.split(' ');
+    const row = tree.inputs[rowIndex];
+    return row && row[charIndex] === words[rowIndex][charIndex];
+  }
+
+  checkGuess(): boolean {
+    const tree = this.getCurrentTree();
+    const userGuess = tree.inputs.map(row => row.join('')).join(' ').trim();
+    return userGuess === tree.name;
+  }
+
+  onKeyDown(event: KeyboardEvent, rowIndex: number, charIndex: number): void {
+    const tree = this.getCurrentTree();
+    
+    if (event.key === 'Backspace') {
+      const currentRow = tree.inputs[rowIndex];
+      if (currentRow && currentRow[charIndex]) {
+        // יש תוכן - מחק אותה
+        const row = [...tree.inputs[rowIndex]];
+        row[charIndex] = '';
+        tree.inputs = tree.inputs.map((r, i) => i === rowIndex ? row : r);
+      } else {
+        // אין תוכן - חזור לאות הקודמת
+        this.moveToPreviousInput(rowIndex, charIndex);
+      }
+    }
+  }
+
+  moveToPreviousInput(rowIndex: number, charIndex: number): void {
+    if (charIndex > 0) {
+      // חזור לאות הקודמת באותה מילה
+      setTimeout(() => {
+        const element = document.getElementById(`input-${rowIndex}-${charIndex - 1}`);
+        element?.focus();
+      }, 10);
+    } else if (rowIndex > 0) {
+      // חזור לאות האחרונה של המילה הקודמת
+      const tree = this.getCurrentTree();
+      const words = tree.name.split(' ');
+      const prevWordLength = words[rowIndex - 1].length;
+      setTimeout(() => {
+        const element = document.getElementById(`input-${rowIndex - 1}-${prevWordLength - 1}`);
+        element?.focus();
+      }, 10);
+    }
+  }
+
+
+  revealTree(): void {
+    const tree = this.getCurrentTree();
+    const words = tree.name.split(' ');
+    
+    // חשף את העץ
+    const revealedInputs = words.map(word => word.split('').map(c => c));
+    tree.inputs = revealedInputs;
+    tree.revealed = true;
+    this.showConfetti = true;
+
+    // בדוק אם כל העצים נחשפו
+    setTimeout(() => {
+      this.checkAllRevealed();
+    }, 2000);
+
+    // עבור לעץ הבא אם קיים
+    setTimeout(() => {
+      if (this.currentTreeIndex < this.trees.length - 1) {
+        this.currentTreeIndex++;
+        this.showConfetti = false;
+      }
+    }, 2000);
+  }
+
+  revealRandomLetter(): void {
+    const tree = this.getCurrentTree();
+    const words = tree.name.split(' ');
+    
+    // מצא אות שלא נתגלתה עדיין
+    const revealedPositions = new Set<string>();
+    for (let i = 0; i < words.length; i++) {
+      for (let j = 0; j < words[i].length; j++) {
+        if (this.isCharRevealed(tree, i, j)) {
+          revealedPositions.add(`${i}-${j}`);
+        }
+      }
+    }
+
+    // בחר מיקום רנדומלי
+    const availablePositions: number[][] = [];
+    for (let i = 0; i < words.length; i++) {
+      for (let j = 0; j < words[i].length; j++) {
+        if (!revealedPositions.has(`${i}-${j}`)) {
+          availablePositions.push([i, j]);
+        }
+      }
+    }
+
+    if (availablePositions.length > 0) {
+      const randomPos = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+      const [rowIndex, charIndex] = randomPos;
+      
+      // חשף את האות
+      const row = [...tree.inputs[rowIndex]];
+      row[charIndex] = words[rowIndex][charIndex];
+      tree.inputs = tree.inputs.map((r, i) => i === rowIndex ? row : r);
+      
+      // אתחל את השאר
+      this.resetNonRevealedInputs(tree);
+    }
+  }
+
+  resetNonRevealedInputs(tree: Tree): void {
+    const words = tree.name.split(' ');
+    const newInputs = tree.inputs.map((row, rowIndex) => 
+      row.map((char, charIndex) => 
+        this.isCharRevealed(tree, rowIndex, charIndex) ? char : ''
+      )
+    );
+    tree.inputs = newInputs;
+  }
+
+  checkAllRevealed(): void {
+    if (this.trees.every(tree => tree.revealed)) {
+      this.allRevealed = true;
+      this.showConfetti = true;
+    }
+  }
+
+  switchTree(index: number): void {
+    if (!this.allRevealed) {
+      this.currentTreeIndex = index;
+      this.showConfetti = false;
+    }
+  }
+
+  canSwitchTree(): boolean {
+    return !this.allRevealed;
+  }
+
+  getRandomConfetti(): string {
+    const emojis = ['🎉', '🎊', '🎈', '🎁', '🎂', '🎅', '✨', '🎃'];
+    return emojis[Math.floor(Math.random() * emojis.length)];
+  }
+}
