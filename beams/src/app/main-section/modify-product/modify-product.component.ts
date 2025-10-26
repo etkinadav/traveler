@@ -4721,37 +4721,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.calculatePricing();
         }, 0);
         
-  // הפעלת קובית המידות ומצב שקוף 2 שניות אחרי הטעינה
-  if (isInitialLoad) {
-    setTimeout(() => {
-        this.autoEnableWireframeAndTransparent();
-    }, 2000);
-    }
     }
     
     
-     // פונקציה להפעלה אוטומטית של קובית המידות בלבד
-     private autoEnableWireframeAndTransparent() {
-        console.log('LOAD_TABLE - autoEnableWireframeAndTransparent called:', JSON.stringify({
-            showWireframe: this.showWireframe,
-            isTable: this.isTable,
-            isPlanter: this.isPlanter,
-            isBox: this.isBox,
-            isFuton: this.isFuton,
-            productName: this.product?.name || 'Unknown'
-        }, null, 2));
-        
-        console.log('🎯 AUTO-ENABLE: הפעלת קובית המידות אוטומטית');
-        
-        // הפעלת קובית המידות
-        if (!this.showWireframe) {
-            console.log('LOAD_TABLE - Enabling wireframe (was disabled)');
-            this.toggleWireframe();
-            console.log('🎯 AUTO-ENABLE: קובית המידות הופעלה');
-        } else {
-            console.log('LOAD_TABLE - Wireframe already enabled, skipping');
-        }
-    }
     // Add wireframe cube showing product dimensions with shortened lines and corner spheres
     private addWireframeCube() {
         console.log('LOAD_TABLE - addWireframeCube called');
