@@ -979,9 +979,39 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const delta = event.deltaY;
       const zoomSpeed = 0.1;
       
+      // לפני שינוי
+      const radiusBefore = this.spherical.radius;
+      
+      // מינימום הradius - לא ניתן לעשות zoom in יותר מזה
+      // הערך ההתחלתי הוא ~217.44, הרצינו לאפשר ירידה קטנה של ~10
+      const MIN_RADIUS = 205;
+      
       // שינוי רדיוס המצלמה
       this.spherical.radius += delta * zoomSpeed;
-      this.spherical.radius = Math.max(5, Math.min(500, this.spherical.radius)); // הגבלת טווח זום מורחבת
+      
+      // אחרי שינוי
+      const radiusAfterChange = this.spherical.radius;
+      
+      // הגבלה - לא לעבור את המינימום
+      if (this.spherical.radius < MIN_RADIUS) {
+        this.spherical.radius = MIN_RADIUS;
+      }
+      
+      // הגבלה רגילה
+      this.spherical.radius = Math.max(MIN_RADIUS, Math.min(500, this.spherical.radius));
+      
+      // אחרי הגבלה
+      const radiusAfterLimit = this.spherical.radius;
+      
+      console.log('ZOOM_DEBUG:', {
+        delta,
+        zoomSpeed,
+        delta_multiplied: delta * zoomSpeed,
+        radiusBefore,
+        radiusAfterChange,
+        radiusAfterLimit,
+        wasLimited: radiusAfterChange !== radiusAfterLimit
+      });
       
       // עדכון מיקום המצלמה
       this.camera.position.setFromSpherical(this.spherical).add(this.target);
