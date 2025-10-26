@@ -214,11 +214,11 @@
 }
 
 .char-input.revealed {
-  background: linear-gradient(135deg, #84fab0, #8fd3f4);
-  border-color: #4CAF50;
-  color: #333;
+  background: #ff9800 !important;
+  border: 3px solid #ff9800 !important;
+  color: #fff;
   font-weight: bold;
-  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3);
 }
 
 .char-input.pending {

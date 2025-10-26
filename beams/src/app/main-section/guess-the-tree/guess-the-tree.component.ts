@@ -339,10 +339,17 @@ export class GuessTheTreeComponent implements OnInit {
     const tree = this.getCurrentTree();
     const words = tree.name.split(' ');
     
-    // חשף את העץ
+    // חשף את העץ - כל האותיות עוברות למצב revealed
     const revealedInputs = words.map(word => word.split('').map(c => c));
     tree.inputs = revealedInputs;
     tree.revealed = true;
+    
+    // הוסף את כל האותיות כ-hints (במצב revealed)
+    for (let i = 0; i < words.length; i++) {
+      for (let j = 0; j < words[i].length; j++) {
+        tree.hints?.add(`${i}-${j}`);
+      }
+    }
     
     // הצג אפקט קונפטי
     this.showConfetti = true;
