@@ -1125,5 +1125,5 @@
   "shopping-cart.total-to-pay": "סה\"כ לתשלום:",
   "shopping-cart.proceed-to-checkout": "המשך לתשלום",
   "modify-product.warning-title": "שים לב!",
-  "modify-product.dimensions-alert-message": "מכיוון שהמוצר בנוי מקורות ללא רווח בניהן, גובה המוצר הסופי יהיה {{actualHeight}} ס\"מ, {{heightDifference}} {{heightDifferenceText}} ממה שהגדרת."
+  "modify-product.dimensions-alert-message": "מכיוון שהמוצר בנוי מקורות ללא רווח בניהן, גובה המוצר הסופי יהיה {{actualHeight}} ס\"מ, {{heightDifference}} ס\"מ {{heightDifferenceText}} ממה שהגדרת."
 }
