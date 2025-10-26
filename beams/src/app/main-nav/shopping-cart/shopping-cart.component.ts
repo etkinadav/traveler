@@ -40,6 +40,9 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   
   // מעקב אחר overlays שהוסרו
   overlayRemovedMap: { [key: string]: boolean } = {};
+  
+  // מעקב אחר פעולות משתמש במודל התלת-ממדי
+  userPerformedActionMap: { [key: string]: boolean } = {};
 
   // מעקב אחר תפריטים פתוחים
   itemMenuOpenMap: { [key: string]: boolean } = {};
@@ -49,6 +52,20 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   isItemMenuOpen(itemId: string): boolean {
     return this.itemMenuOpenMap[itemId] || false;
+  }
+
+  /**
+   * בדיקה אם המשתמש ביצע פעולה במודל התלת-ממדי
+   */
+  hasUserPerformedAction(itemId: string): boolean {
+    return this.userPerformedActionMap[itemId] || false;
+  }
+  
+  /**
+   * טיפול באירוע פעולה משתמש במודל התלת-ממדי
+   */
+  onUserInteractedWith3D(itemId: string): void {
+    this.userPerformedActionMap[itemId] = true;
   }
 
   /**

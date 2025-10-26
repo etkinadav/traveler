@@ -698,6 +698,50 @@
   .item-title {
     font-size: 16px;
   }
+}
+
+/* כפתור סיבוב במודל התלת-ממדי */
+.reset-view-button {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+  color: #0066cc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.reset-view-button:hover {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.reset-view-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+@media (max-width: 576px) {
+  .reset-view-button {
+    width: 22px;
+    height: 22px;
+    top: 6px;
+    left: 6px;
+  }
+
+  .reset-view-button svg {
+    width: 11px;
+    height: 11px;
+  }
 
   .total-price {
     font-size: 28px;

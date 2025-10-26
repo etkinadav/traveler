@@ -13,6 +13,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   @Input() product: any;
   @Input() configurationIndex: number = 0;
   @Output() loadComplete = new EventEmitter<void>();
+  @Output() userInteracted = new EventEmitter<void>(); // Event לכל פעולה של משתמש
   
   @ViewChild('miniPreviewContainer', { static: true }) container!: ElementRef;
 
@@ -167,6 +168,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private lastMouseX = 0;
   private lastMouseY = 0;
   private hasUserInteracted = false; // האם המשתמש התחיל להזיז את המודל
+  private hasUserPerformedAction = false; // האם המשתמש ביצע פעולה ממשית (זום/סיבוב/pan)
   private inactivityTimer: any = null; // טיימר לחוסר פעילות
   private rotationSpeed: number = 0.005; // מהירות הסיבוב האוטומטי (רדיאנים לפריים)
   
@@ -975,6 +977,10 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     container.addEventListener('wheel', (event: WheelEvent) => {
       event.preventDefault();
       this.hasUserInteracted = true; // המשתמש התחיל להזיז
+      if (!this.hasUserPerformedAction) {
+        this.hasUserPerformedAction = true;
+        this.userInteracted.emit(); // שלח event רק בפעם הראשונה
+      }
       this.resetInactivityTimer(); // אפס את טיימר חוסר הפעילות
       const delta = event.deltaY;
       const zoomSpeed = 0.1;
@@ -1033,6 +1039,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       
       const deltaX = event.clientX - this.lastMouseX;
       const deltaY = event.clientY - this.lastMouseY;
+      
+      // רק אם יש תנועה ממשית (לא רק לחיצה)
+      if ((Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) && !this.hasUserPerformedAction) {
+        this.hasUserPerformedAction = true;
+        this.userInteracted.emit(); // שלח event רק בפעם הראשונה
+      }
       
       if (this.isPan) {
         // Pan - הזזת המצלמה

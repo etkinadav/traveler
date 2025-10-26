@@ -100,7 +100,8 @@
                 [product]="getProductForPreview(item)"
                 [configurationIndex]="getConfigurationIndex(item)"
                 style="width: 100%; height: 100%; position: relative; z-index: 2;"
-                (loadComplete)="markItemAsLoaded(i)">
+                (loadComplete)="markItemAsLoaded(i)"
+                (userInteracted)="onUserInteractedWith3D(item.id)">
               </app-product-mini-preview>
               
               <!-- כיסוי שקוף מעל המודל התלת-ממדי -->
@@ -117,6 +118,18 @@
                   {{ 'shopping-cart.click-to-change-view' | translate }}
                 </div>
               </div>
+              
+              <!-- כפתור סיבוב - מוצג רק אחרי שהכיסוי הוסר ובביצוע פעולה ממשית -->
+              <button *ngIf="isOverlayRemoved(item.id) && hasUserPerformedAction(item.id)"
+                      class="reset-view-button" 
+                      [title]="'shopping-cart.reset-view' | translate"
+                      (click)="$event.stopPropagation()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 4v6h-6"></path>
+                  <path d="M1 20v-6h6"></path>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+              </button>
             </ng-container>
             
             <!-- placeholder לפריטים שלא נראים -->
