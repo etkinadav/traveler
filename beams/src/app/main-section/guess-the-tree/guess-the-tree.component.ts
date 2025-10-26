@@ -5,6 +5,7 @@ interface Tree {
   name: string;
   revealed: boolean;
   inputs: string[][];
+  hints?: Set<string>; // Set של "rowIndex-charIndex" של hints
 }
 
 @Component({
@@ -15,9 +16,9 @@ interface Tree {
 export class GuessTheTreeComponent implements OnInit {
   // שלושת העצים
   trees: Tree[] = [
-    { id: 'tree1', name: 'קרמבולה', revealed: false, inputs: [] },
-    { id: 'tree2', name: 'מנגו מאיה', revealed: false, inputs: [] },
-    { id: 'tree3', name: 'לימון סיני', revealed: false, inputs: [] }
+    { id: 'tree1', name: 'קרמבולה', revealed: false, inputs: [], hints: new Set() },
+    { id: 'tree2', name: 'מנגו מאיה', revealed: false, inputs: [], hints: new Set() },
+    { id: 'tree3', name: 'לימון סיני', revealed: false, inputs: [], hints: new Set() }
   ];
 
   currentTreeIndex: number = 0;
@@ -35,9 +36,14 @@ export class GuessTheTreeComponent implements OnInit {
       tree.inputs = words.map(word => word.split('').map(() => ''));
     });
 
-    // הסתר את אנימציית הכותרת אחרי זמן
+    // הסתר את אנימציית הכותרת אחרי זמן והעבר פוקוס לאות הראשונה של העץ הראשון
     setTimeout(() => {
       this.showTitleAnimation = false;
+      // פוקוס על האות הראשונה של העץ הראשון
+      setTimeout(() => {
+        const element = document.getElementById(`input-0-0-0`);
+        element?.focus();
+      }, 100);
     }, 3000);
   }
 
@@ -51,8 +57,13 @@ export class GuessTheTreeComponent implements OnInit {
     return row && row[charIndex] || '';
   }
 
-  setInputValue(rowIndex: number, charIndex: number, value: string): void {
-    const tree = this.getCurrentTree();
+  setInputValue(treeIndex: number, rowIndex: number, charIndex: number, value: string): void {
+    // רק לעץ הנוכחי מותר להקליד
+    if (treeIndex !== this.currentTreeIndex) {
+      return;
+    }
+    
+    const tree = this.trees[treeIndex];
     if (!tree.revealed && tree.inputs[rowIndex] && tree.inputs[rowIndex][charIndex] === '') {
       const row = [...tree.inputs[rowIndex]];
       row[charIndex] = value.toUpperCase();
@@ -65,11 +76,12 @@ export class GuessTheTreeComponent implements OnInit {
         if (nextInput) {
           // יש תיבה פנויה - עבור אליה
           const [nextRow, nextChar] = nextInput;
-          const element = document.getElementById(`input-${nextRow}-${nextChar}`);
+          const element = document.getElementById(`input-${treeIndex}-${nextRow}-${nextChar}`);
           element?.focus();
         } else {
           // אין תיבות פנויות - בדוק את הניחוש
-          this.checkAndHandleGuess(tree);
+          console.log('DEBUG: No empty inputs found, checking guess for tree:', tree.name);
+          this.checkAndHandleGuess(tree, treeIndex);
         }
       }, 50);
     }
@@ -113,9 +125,12 @@ export class GuessTheTreeComponent implements OnInit {
     return null;
   }
 
-  checkAndHandleGuess(tree: Tree): void {
+  checkAndHandleGuess(tree: Tree, treeIndex: number): void {
+    console.log('DEBUG: checkAndHandleGuess called for tree:', treeIndex);
+    
     // אם העץ כבר נחשף - אל תוצג הודעת כישלון
     if (tree.revealed) {
+      console.log('DEBUG: Tree already revealed, returning');
       return;
     }
     
@@ -136,9 +151,16 @@ export class GuessTheTreeComponent implements OnInit {
       }
     }
     
-    // אם כל התיבות הלא-גלויות מלאות - בדוק את הניחוש
-    if (filledNonRevealedChars === nonRevealedChars && nonRevealedChars > 0) {
+    console.log('DEBUG: nonRevealedChars:', nonRevealedChars, 'filledNonRevealedChars:', filledNonRevealedChars);
+    
+    // בדוק אם יש תיבות לא-גלויות וצריך לבדוק את הניחוש
+    const needsCheck = (filledNonRevealedChars === nonRevealedChars && nonRevealedChars > 0) || 
+                      (nonRevealedChars === 0 && this.isAllInputsFilled(tree));
+    
+    if (needsCheck) {
+      console.log('DEBUG: Checking guess...');
       if (this.checkGuess()) {
+        console.log('DEBUG: Guess is CORRECT!');
         // ניחוש נכון!
         this.showGuessResult = true;
         this.guessResultMessage = '🎉 הצלחת! 🎉';
@@ -147,8 +169,22 @@ export class GuessTheTreeComponent implements OnInit {
         setTimeout(() => {
           this.showGuessResult = false;
           this.revealTree();
+          // עבר לעץ הבא אם יש
+          if (treeIndex < this.trees.length - 1) {
+            this.currentTreeIndex++;
+            setTimeout(() => {
+              const nextTree = this.trees[this.currentTreeIndex];
+              const firstEmptyInput = this.findFirstEmptyInputInTree(nextTree);
+              if (firstEmptyInput) {
+                const [rowIndex, charIndex] = firstEmptyInput;
+                const element = document.getElementById(`input-${this.currentTreeIndex}-${rowIndex}-${charIndex}`);
+                element?.focus();
+              }
+            }, 100);
+          }
         }, 1500);
       } else {
+        console.log('DEBUG: Guess is WRONG!');
         // ניחוש שגוי
         this.showGuessResult = true;
         this.guessResultMessage = '❌ לא הצלחת! ❌';
@@ -159,11 +195,47 @@ export class GuessTheTreeComponent implements OnInit {
           this.resetNonRevealedInputs(tree);
           this.showGuessResult = false;
           
-          // עבור אוטומטית ל-input הפנוי הראשון
-          this.focusNextEmptyInput(tree);
+          // העבר פוקוס לאינפוט הראשון שפנוי
+          setTimeout(() => {
+            const firstEmptyInput = this.findFirstEmptyInputInTree(tree);
+            if (firstEmptyInput) {
+              const [rowIndex, charIndex] = firstEmptyInput;
+              const element = document.getElementById(`input-${treeIndex}-${rowIndex}-${charIndex}`);
+              element?.focus();
+            }
+          }, 100);
         }, 1500);
       }
     }
+  }
+  
+  findFirstEmptyInputInTree(tree: Tree): [number, number] | null {
+    const words = tree.name.split(' ');
+    for (let i = 0; i < words.length; i++) {
+      for (let j = 0; j < words[i].length; j++) {
+        // בדוק אם האות הזו לא revealed
+        if (!this.isCharRevealed(tree, i, j)) {
+          // אם היא לא revealed, בדוק אם היא ריקה
+          const isEmpty = !tree.inputs[i] || !tree.inputs[i][j] || tree.inputs[i][j] === '';
+          if (isEmpty) {
+            return [i, j];
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  isAllInputsFilled(tree: Tree): boolean {
+    const words = tree.name.split(' ');
+    for (let i = 0; i < words.length; i++) {
+      for (let j = 0; j < words[i].length; j++) {
+        if (!tree.inputs[i] || !tree.inputs[i][j]) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   focusNextEmptyInput(tree: Tree): void {
@@ -183,8 +255,8 @@ export class GuessTheTreeComponent implements OnInit {
     }
   }
 
-  moveToNextInput(rowIndex: number, charIndex: number): void {
-    const tree = this.getCurrentTree();
+  moveToNextInput(treeIndex: number, rowIndex: number, charIndex: number): void {
+    const tree = this.trees[treeIndex];
     const words = tree.name.split(' ');
     const currentWord = words[rowIndex];
     
@@ -193,33 +265,41 @@ export class GuessTheTreeComponent implements OnInit {
       const nextCharIndex = charIndex + 1;
       if (!this.isCharRevealed(tree, rowIndex, nextCharIndex)) {
         setTimeout(() => {
-          const element = document.getElementById(`input-${rowIndex}-${nextCharIndex}`);
+          const element = document.getElementById(`input-${treeIndex}-${rowIndex}-${nextCharIndex}`);
           element?.focus();
         }, 10);
       }
     } else if (rowIndex < words.length - 1) {
       // עבר למילה הבאה
       setTimeout(() => {
-        const element = document.getElementById(`input-0-${rowIndex + 1}`);
+        const element = document.getElementById(`input-${treeIndex}-0-${rowIndex + 1}`);
         element?.focus();
       }, 10);
     }
   }
 
   isCharRevealed(tree: Tree, rowIndex: number, charIndex: number): boolean {
-    const words = tree.name.split(' ');
-    const row = tree.inputs[rowIndex];
-    return row && row[charIndex] === words[rowIndex][charIndex];
+    // רק hints נחשבים כ-revealed
+    const hintKey = `${rowIndex}-${charIndex}`;
+    return tree.hints?.has(hintKey) || false;
   }
 
   checkGuess(): boolean {
     const tree = this.getCurrentTree();
     const userGuess = tree.inputs.map(row => row.join('')).join(' ').trim();
-    return userGuess === tree.name;
+    console.log('DEBUG: checkGuess - userGuess:', userGuess, 'tree.name:', tree.name);
+    const isCorrect = userGuess === tree.name;
+    console.log('DEBUG: checkGuess result:', isCorrect);
+    return isCorrect;
   }
 
-  onKeyDown(event: KeyboardEvent, rowIndex: number, charIndex: number): void {
-    const tree = this.getCurrentTree();
+  onKeyDown(event: KeyboardEvent, treeIndex: number, rowIndex: number, charIndex: number): void {
+    // רק לעץ הנוכחי מותר להקליד
+    if (treeIndex !== this.currentTreeIndex) {
+      return;
+    }
+    
+    const tree = this.trees[treeIndex];
     
     if (event.key === 'Backspace') {
       const currentRow = tree.inputs[rowIndex];
@@ -230,25 +310,25 @@ export class GuessTheTreeComponent implements OnInit {
         tree.inputs = tree.inputs.map((r, i) => i === rowIndex ? row : r);
       } else {
         // אין תוכן - חזור לאות הקודמת
-        this.moveToPreviousInput(rowIndex, charIndex);
+        this.moveToPreviousInput(treeIndex, rowIndex, charIndex);
       }
     }
   }
 
-  moveToPreviousInput(rowIndex: number, charIndex: number): void {
+  moveToPreviousInput(treeIndex: number, rowIndex: number, charIndex: number): void {
     if (charIndex > 0) {
       // חזור לאות הקודמת באותה מילה
       setTimeout(() => {
-        const element = document.getElementById(`input-${rowIndex}-${charIndex - 1}`);
+        const element = document.getElementById(`input-${treeIndex}-${rowIndex}-${charIndex - 1}`);
         element?.focus();
       }, 10);
     } else if (rowIndex > 0) {
       // חזור לאות האחרונה של המילה הקודמת
-      const tree = this.getCurrentTree();
+      const tree = this.trees[treeIndex];
       const words = tree.name.split(' ');
       const prevWordLength = words[rowIndex - 1].length;
       setTimeout(() => {
-        const element = document.getElementById(`input-${rowIndex - 1}-${prevWordLength - 1}`);
+        const element = document.getElementById(`input-${treeIndex}-${rowIndex - 1}-${prevWordLength - 1}`);
         element?.focus();
       }, 10);
     }
@@ -263,6 +343,8 @@ export class GuessTheTreeComponent implements OnInit {
     const revealedInputs = words.map(word => word.split('').map(c => c));
     tree.inputs = revealedInputs;
     tree.revealed = true;
+    
+    // הצג אפקט קונפטי
     this.showConfetti = true;
 
     // בדוק אם כל העצים נחשפו
@@ -270,12 +352,9 @@ export class GuessTheTreeComponent implements OnInit {
       this.checkAllRevealed();
     }, 2000);
 
-    // עבור לעץ הבא אם קיים
+    // הסתר קונפטי אחרי זמן
     setTimeout(() => {
-      if (this.currentTreeIndex < this.trees.length - 1) {
-        this.currentTreeIndex++;
-        this.showConfetti = false;
-      }
+      this.showConfetti = false;
     }, 2000);
   }
 
@@ -283,21 +362,13 @@ export class GuessTheTreeComponent implements OnInit {
     const tree = this.getCurrentTree();
     const words = tree.name.split(' ');
     
-    // מצא אות שלא נתגלתה עדיין
-    const revealedPositions = new Set<string>();
-    for (let i = 0; i < words.length; i++) {
-      for (let j = 0; j < words[i].length; j++) {
-        if (this.isCharRevealed(tree, i, j)) {
-          revealedPositions.add(`${i}-${j}`);
-        }
-      }
-    }
-
-    // בחר מיקום רנדומלי
+    // מצא אות שלא נתגלתה עדיין (לא hint)
+    const revealedPositions = tree.hints || new Set<string>();
     const availablePositions: number[][] = [];
     for (let i = 0; i < words.length; i++) {
       for (let j = 0; j < words[i].length; j++) {
-        if (!revealedPositions.has(`${i}-${j}`)) {
+        const hintKey = `${i}-${j}`;
+        if (!revealedPositions.has(hintKey)) {
           availablePositions.push([i, j]);
         }
       }
@@ -306,6 +377,9 @@ export class GuessTheTreeComponent implements OnInit {
     if (availablePositions.length > 0) {
       const randomPos = availablePositions[Math.floor(Math.random() * availablePositions.length)];
       const [rowIndex, charIndex] = randomPos;
+      
+      // הוסף hint
+      tree.hints?.add(`${rowIndex}-${charIndex}`);
       
       // חשף את האות
       const row = [...tree.inputs[rowIndex]];

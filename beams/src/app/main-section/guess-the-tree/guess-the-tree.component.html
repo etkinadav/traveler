@@ -38,15 +38,15 @@
           <input 
             *ngFor="let char of row; let j = index"
             type="text" 
-            [id]="'input-' + i + '-' + j"
+            [id]="'input-0-' + i + '-' + j"
             maxlength="1"
             class="char-input"
             [class.revealed]="isCharRevealed(trees[0], i, j)"
             [class.current]="getCurrentTree().id === trees[0].id"
             [value]="char"
             [readonly]="isCharRevealed(trees[0], i, j)"
-            (keydown)="onKeyDown($event, i, j)"
-            (input)="setInputValue(i, j, $any($event.target).value)"
+            (keydown)="onKeyDown($event, 0, i, j)"
+            (input)="setInputValue(0, i, j, $any($event.target).value)"
           />
         </div>
       </div>
@@ -68,15 +68,16 @@
           <input 
             *ngFor="let char of row; let j = index"
             type="text" 
-            [id]="'input-' + i + '-' + j"
+            [id]="'input-1-' + i + '-' + j"
             maxlength="1"
             class="char-input"
             [class.revealed]="isCharRevealed(trees[1], i, j)"
             [class.current]="getCurrentTree().id === trees[1].id"
+            [class.pending]="currentTreeIndex < 1"
             [value]="char"
             [readonly]="isCharRevealed(trees[1], i, j)"
-            (keydown)="onKeyDown($event, i, j)"
-            (input)="setInputValue(i, j, $any($event.target).value)"
+            (keydown)="onKeyDown($event, 1, i, j)"
+            (input)="setInputValue(1, i, j, $any($event.target).value)"
           />
         </div>
       </div>
@@ -98,15 +99,16 @@
           <input 
             *ngFor="let char of row; let j = index"
             type="text" 
-            [id]="'input-' + i + '-' + j"
+            [id]="'input-2-' + i + '-' + j"
             maxlength="1"
             class="char-input"
             [class.revealed]="isCharRevealed(trees[2], i, j)"
             [class.current]="getCurrentTree().id === trees[2].id"
+            [class.pending]="currentTreeIndex < 2"
             [value]="char"
             [readonly]="isCharRevealed(trees[2], i, j)"
-            (keydown)="onKeyDown($event, i, j)"
-            (input)="setInputValue(i, j, $any($event.target).value)"
+            (keydown)="onKeyDown($event, 2, i, j)"
+            (input)="setInputValue(2, i, j, $any($event.target).value)"
           />
         </div>
       </div>
