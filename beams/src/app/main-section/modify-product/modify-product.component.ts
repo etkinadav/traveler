@@ -249,6 +249,39 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
     
     
+    // פונקציה לטיפול בהוספה לסל או עדכון לפי מצב עריכה
+    handleAddToCart() {
+        // בדיקה אם יש אזהרות - אם כן, פתיחת תפריט האזהרה
+        if (this.checkIfHasDimensionsAlert() || this.hasHiddenBeams || this.hasNoMiddleBeams) {
+            this.showWarningMenu = true;
+            return;
+        }
+        
+        // אם אין אזהרות, ישר לביצוע הפעולה
+        this.confirmAddToCart();
+    }
+    
+    // פונקציה לביצוע הוספה לסל או עדכון
+    confirmAddToCart() {
+        // סגירת תפריט האזהרה אם פתוח
+        this.showWarningMenu = false;
+        
+        try {
+            // בדיקה אם זה מצב עריכה - עדכון מוצר קיים
+            const editingItemId = localStorage.getItem('editingItemId');
+            
+            if (this.isEditMode && editingItemId) {
+                // מצב עריכה - עדכון מוצר קיים
+                this.updateProductInBasket(editingItemId);
+            } else {
+                // מצב רגיל - הוספת מוצר חדש
+                this.addProductToBasket();
+            }
+        } catch (error) {
+            console.error('❌ Error in confirmAddToCart:', error);
+        }
+    }
+    
     // פונקציה להוספת המוצר לסל
     addProductToBasket() {
         try {
@@ -419,11 +452,167 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
             console.log('✅ Product added to basket successfully!');
             
-            // פתיחת דיאלוג הסל
-            this.openShoppingCart();
+            // ניווט לסל הקניות
+            this.router.navigate(['/shopping-cart']);
             
         } catch (error) {
             console.error('❌ Error adding product to basket:', error);
+        }
+    }
+    
+    // פונקציה לעדכון מוצר קיים בסל
+    updateProductInBasket(itemId: string) {
+        try {
+            console.log('UPDATE_PRODUCT - Starting updateProductInBasket for itemId:', itemId);
+            
+            // יצירת קונפיגורציה של המוצר (פורמט 1)
+            const productConfiguration: ProductConfiguration = {
+                productName: this.selectedProductName || 'Unknown Product',
+                translatedProductName: this.selectedProductName || 'Unknown Product',
+                inputConfigurations: this.params.map(param => ({
+                    inputName: param.name,
+                    value: param?.default,
+                    selectedBeamIndex: param.selectedBeamIndex,
+                    selectedTypeIndex: param.selectedTypeIndex
+                })),
+                selectedCorners: this.params.map(param => ({
+                    cornerType: param.name,
+                    cornerData: param.selectedBeamIndex !== undefined ? param.beams[param.selectedBeamIndex] : null
+                })),
+                originalProductData: this.product
+            };
+
+            // יצירת רשימת חיתוך (פורמט 2)
+            const cutList: CutList = {
+                corners: this.BeamsDataForPricing?.map(beamData => ({
+                    cornerType: beamData.beamName,
+                    length: beamData.type.length,
+                    quantity: beamData.totalSizes.reduce((sum, size) => sum + size.count, 0)
+                })) || [],
+                screws: this.ForgingDataForPricing?.map(forgingData => ({
+                    screwType: forgingData.type,
+                    length: forgingData.length,
+                    quantity: forgingData.count
+                })) || []
+            };
+
+            // יצירת הסידור המאורגן (פורמט 3)
+            const organizedArrangement: OrganizedArrangement = {
+                corners: this.cuttingPlan?.map(beam => ({
+                    cornerType: beam.beamType,
+                    length: beam.beamLength,
+                    quantity: beam.cuts.length,
+                    arrangement: beam
+                })) || [],
+                screwBoxes: this.screwsPackagingPlan?.map(pkg => ({
+                    screwType: pkg.screwTranslatedName,
+                    length: pkg.optimalPackage.length,
+                    quantity: pkg.numPackages,
+                    boxPrice: pkg.optimalPackage.price,
+                    arrangement: pkg
+                })) || []
+            };
+
+            // יצירת מידע המחירים
+            const pricingInfo: PricingInfo = {
+                totalPrice: this.calculatedPrice || 0,
+                cutCornersPrice: {
+                    cornerPrice: this.cuttingPlan?.reduce((sum, beam) => sum + beam.beamPrice, 0) || 0,
+                    cuttingPrice: this.drawingPrice || 0,
+                    cornerUnitPrice: this.cuttingPlan?.[0]?.beamPrice || 0,
+                    units: this.cuttingPlan?.reduce((sum, beam) => sum + beam.cuts.length, 0) || 0,
+                    total: (this.cuttingPlan?.reduce((sum, beam) => sum + beam.beamPrice, 0) || 0) + (this.drawingPrice || 0)
+                },
+                screwsPrice: {
+                    boxPrice: this.screwsPackagingPlan?.reduce((sum, pkg) => sum + pkg.totalPrice, 0) || 0,
+                    unitsPerType: this.ForgingDataForPricing?.map(forgingData => ({
+                        screwType: forgingData.type,
+                        quantity: forgingData.count
+                    })) || [],
+                    boxPricePerType: this.screwsPackagingPlan?.map(pkg => ({
+                        screwType: pkg.screwTranslatedName,
+                        price: pkg.optimalPackage.price
+                    })) || []
+                },
+                // מידע נוסף על עריכת המוצר
+                editingInfo: {
+                    wasEdited: (() => {
+                        const hasBeamsChanged = this.hasBeamsChanged;
+                        const hasScrewsChanged = this.hasScrewsChanged;
+                        const hasParamsChanged = this.hasProductParametersChanged();
+                        const wasEdited = hasBeamsChanged || hasScrewsChanged || hasParamsChanged;
+                        
+                        return wasEdited;
+                    })(),
+                    selectedOptions: {
+                        drawing: { 
+                            enabled: true,
+                            price: this.drawingPrice || 0 
+                        },
+                        beams: { 
+                            enabled: this.isBeamsEnabled, 
+                            price: this.isBeamsEnabled ? this.getBeamsOnlyPrice() : 0 
+                        },
+                        cutting: { 
+                            enabled: this.isCuttingEnabled, 
+                            price: this.isCuttingEnabled ? this.getCuttingPrice() : 0 
+                        },
+                        screws: { 
+                            enabled: this.isScrewsEnabled, 
+                            price: this.isScrewsEnabled ? this.getScrewsPrice() : 0 
+                        }
+                    },
+                    pricesComparison: {
+                        originalTotal: this.originalBeamsPrice + this.originalCuttingPrice + this.originalScrewsPrice + (this.drawingPrice || 0),
+                        editedTotal: this.getFinalPrice(),
+                        originalBeams: this.originalBeamsPrice,
+                        editedBeams: this.getBeamsOnlyPrice(),
+                        originalCutting: this.originalCuttingPrice,
+                        editedCutting: this.getCuttingPrice(),
+                        originalScrews: this.originalScrewsPrice,
+                        editedScrews: this.getScrewsPrice()
+                    },
+                    updatedQuantities: {
+                        beams: this.BeamsDataForPricing?.map((beam, index) => ({
+                            beamType: beam.beamTranslatedName,
+                            originalQuantity: this.originalBeamQuantities[index] || 0,
+                            editedQuantity: this.getFullBeamsCount(beam)
+                        })) || [],
+                        screws: this.screwsPackagingPlan?.map((screw, index) => ({
+                            screwType: screw.screwTranslatedName,
+                            originalQuantity: this.originalScrewsData?.[index]?.numPackages || 0,
+                            editedQuantity: screw.numPackages
+                        })) || []
+                    },
+                    isCuttingPossible: this.isCuttingPossible
+                }
+            };
+
+            // חישוב מידות המוצר
+            const dimensions = this.getProductDimensionsRaw();
+            
+            console.log('UPDATE_PRODUCT - Calling productBasketService.updateBasketItem');
+            
+            // עדכון המוצר בסל
+            this.productBasketService.updateBasketItem(
+                itemId,
+                productConfiguration,
+                cutList,
+                organizedArrangement,
+                pricingInfo,
+                dimensions
+            );
+
+            console.log('✅ Product updated in basket successfully!');
+            
+            // הסרת ה-editingItemId מ-localStorage
+            localStorage.removeItem('editingItemId');
+            
+            // ניווט לסל הקניות
+            this.router.navigate(['/shopping-cart']);
+            
+        } catch (error) {
+            console.error('❌ Error updating product in basket:', error);
         }
     }
 
@@ -750,39 +939,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.showNoMiddleBeamsWarning = false;
     }
     
-    // פונקציה לאישור הוספה לסל מהתפריט "שימו לב!"
-    confirmAddToCart() {
-        console.log('🚨 WARNING_MENU - confirmAddToCart called');
-        // סגירת תפריט האזהרה
-        this.closeWarningMenu();
-        // הוספת המוצר לסל והעברה לעמוד הסל
-        this.addProductToBasket();
-    }
-    
-    // פונקציה לטיפול בלחיצה על כפתור "המשך"
-    onContinueOrder() {
-        console.log('🚨 WARNING_MENU - onContinueOrder called');
-        this.handleAddToCart();
-    }
-    
-    // פונקציה חדשה לטיפול בלחיצה על כפתור "הוסף לסל"
-    handleAddToCart() {
-        console.log('🚨 WARNING_MENU - handleAddToCart called');
-        console.log('🚨 WARNING_MENU - calculatedPrice:', this.calculatedPrice);
-        console.log('🚨 WARNING_MENU - this.product:', this.product);
-        console.log('🚨 WARNING_MENU - this.product.restrictions:', this.product?.restrictions);
-        
-        // בדיקה אם יש צורך בהצגת אזהרה
-        if (this.shouldShowWarning()) {
-            console.log('🚨 WARNING_MENU - Showing warning menu');
-            this.showWarningMenu = true;
-            console.log('🚨 WARNING_MENU - showWarningMenu set to:', this.showWarningMenu);
-        } else {
-            console.log('🚨 WARNING_MENU - Adding directly to cart');
-            // הוספה ישירה לסל
-            this.addProductToBasket();
-        }
-    }
     
     // בדיקה אם יש צורך בהצגת אזהרה
     shouldShowWarning(): boolean {

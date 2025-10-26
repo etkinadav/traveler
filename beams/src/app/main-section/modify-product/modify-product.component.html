@@ -826,7 +826,7 @@
                     
                     <!-- כפתור המשך -->
                     <button class="minimized-continue-button" 
-                            (click)="onContinueOrder(); $event.stopPropagation()">
+                            (click)="handleAddToCart(); $event.stopPropagation()">
                         <span class="continue-text">
                             <span *ngIf="isEditMode">{{ 'modify-product.save-changes' | translate }}</span>
                             <span *ngIf="!isEditMode">{{ 'modify-product.add-to-cart' | translate }}</span>

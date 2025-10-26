@@ -102,6 +102,10 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // ניווט לעמוד עריכת המוצר עם productId, configIndex ו-isEditMode
     console.log('EDIT_PRODUCT - Navigating to /beams with productId:', item.productConfiguration.originalProductData?._id);
+    // שמירת מזהה הפריט למטרת עדכון
+    localStorage.setItem('editingItemId', item.id);
+    console.log('EDIT_PRODUCT - Saving item ID for update:', item.id);
+    
     this.router.navigate(['/beams'], {
       queryParams: {
         productId: item.productConfiguration.originalProductData?._id,

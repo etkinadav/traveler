@@ -323,6 +323,47 @@ export class ProductBasketService {
   }
 
   /**
+   * Update an existing basket item
+   */
+  updateBasketItem(
+    id: string,
+    productConfiguration: ProductConfiguration,
+    cutList: CutList,
+    organizedArrangement: OrganizedArrangement,
+    pricingInfo: PricingInfo,
+    dimensions?: ProductDimensions
+  ): void {
+    console.log('UPDATE_BASKET - Starting updateBasketItem for ID:', id);
+    
+    const itemIndex = this.basketItems.findIndex(item => item.id === id);
+    
+    if (itemIndex === -1) {
+      console.error('UPDATE_BASKET - Item not found:', id);
+      return;
+    }
+    
+    // אם לא סופקו מידות, נחשב אותן
+    const finalDimensions = dimensions || this.calculateProductDimensions(productConfiguration);
+    
+    console.log('UPDATE_BASKET - Final dimensions:', JSON.stringify(finalDimensions, null, 2));
+    
+    // עדכון הפריט
+    this.basketItems[itemIndex] = {
+      id: id, // שמירה על אותו ID
+      productConfiguration,
+      cutList,
+      organizedArrangement,
+      pricingInfo,
+      dimensions: finalDimensions,
+      addedToBasketAt: this.basketItems[itemIndex].addedToBasketAt // שמירה על התאריך המקורי
+    };
+    
+    this.saveBasketToStorage();
+    
+    console.log('UPDATE_BASKET - Item updated successfully');
+  }
+
+  /**
    * Remove item from basket
    */
   removeFromBasket(id: string): void {
