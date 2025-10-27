@@ -611,11 +611,6 @@ export class PricingService {
     // אם סופקה כמות, חשב את המחיר הכולל עבור הקופסאות האופטימליות
     if (count && count > 0) {
       const result = this.calculateOptimalPackages(closestScrew, count);
-      console.log(`💰 Screw pricing for ${closestScrew.name} (${count} units):`, {
-        totalPrice: result.totalPrice,
-        totalAmount: result.totalAmount,
-        packages: result.packages
-      });
       return result.totalPrice;
     }
 
