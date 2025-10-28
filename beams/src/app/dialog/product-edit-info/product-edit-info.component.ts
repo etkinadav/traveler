@@ -456,6 +456,57 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
     return this.currentPluralCategoryName !== this.originalPluralCategoryName;
   }
 
+  /**
+   * שמירת שינויים - מדפיס את כל המידע ל-console
+   */
+  saveChanges(): void {
+    const allData = {
+      product: this.product,
+      currentParams: this.currentParams,
+      currentConfiguration: this.currentConfiguration,
+      editedNames: {
+        productName: {
+          original: this.originalProductName,
+          current: this.currentDisplayName,
+          modified: this.isNameModified()
+        },
+        singleCategoryName: {
+          original: this.originalSingleCategoryName,
+          current: this.currentSingleCategoryName,
+          modified: this.isSingleNameModified()
+        },
+        pluralCategoryName: {
+          original: this.originalPluralCategoryName,
+          current: this.currentPluralCategoryName,
+          modified: this.isPluralNameModified()
+        }
+      },
+      visibleParams: this.getVisibleParams(),
+      hiddenParamsCount: this.getHiddenParamsCount()
+    };
+
+    console.log('=== SAVE CHANGES - ALL DATA ===');
+    console.log(JSON.stringify(allData, null, 2));
+    console.log('=== END SAVE CHANGES ===');
+  }
+
+  /**
+   * מחיקת דגם - מדפיס את כל המידע ל-console
+   */
+  deleteModel(): void {
+    const deleteData = {
+      modelToDelete: this.product?.model,
+      productId: this.product?._id,
+      productName: this.currentDisplayName,
+      allProductData: this.product,
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('=== DELETE MODEL - ALL DATA ===');
+    console.log(JSON.stringify(deleteData, null, 2));
+    console.log('=== END DELETE MODEL ===');
+  }
+
 
   /**
    * קביעת סטטוס שם הקטגוריה ביחיד

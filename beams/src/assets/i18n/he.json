@@ -1157,5 +1157,7 @@
   "product-edit-info.plural-category-placeholder": "הזן שם קטגוריה ברבים",
   "product-edit-info.status-original": "מקורי",
   "product-edit-info.status-other": "אחר",
-  "product-edit-info.status-new": "חדש"
+  "product-edit-info.status-new": "חדש",
+  "product-edit-info.save-changes": "שמור שינויים",
+  "product-edit-info.delete-model": "מחק דגם"
 }

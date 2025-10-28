@@ -198,12 +198,17 @@
                 <div class="section-divider" [class.dark-mode]="isDarkMode"></div>
             </div>
 
-            <p class="dialog-subtitle" [class.text-white]="isDarkMode" dir="ltr">
-                <span *ngIf="product?.model">
-                    {{ 'product-edit-info.model-label' | translate }}: {{ product.model }} | 
-                </span>
-                {{ getVisibleParams().length }} {{ 'product-edit-info.active-parameters' | translate }}
-            </p>
+            <div class="dialog-subtitle-container" [class.text-white]="isDarkMode">
+                <div class="subtitle-flex">
+                    <span *ngIf="product?.model" class="model-info">
+                        {{ 'product-edit-info.model-label' | translate }}: {{ product.model }}
+                    </span>
+                    <span class="separator" *ngIf="product?.model">|</span>
+                    <span class="params-info">
+                        {{ getVisibleParams().length }} {{ 'product-edit-info.active-parameters' | translate }}
+                    </span>
+                </div>
+            </div>
         </div>
 
         <!-- תצוגת הפרמטרים -->
@@ -268,6 +273,20 @@
         <!-- הודעה על פרמטרים מוסתרים -->
         <div class="hidden-params-info" *ngIf="getHiddenParamsCount() > 0" [class.dark-mode]="isDarkMode">
             <small>{{ getHiddenParamsCount() }} פרמטרים נוספים מוסתרים (isVisual)</small>
+        </div>
+
+        <!-- כפתורי פעולה -->
+        <div class="action-buttons-container">
+            <button class="action-btn save-btn" 
+                    (click)="saveChanges()"
+                    [class.dark-mode]="isDarkMode">
+                {{ 'product-edit-info.save-changes' | translate }}
+            </button>
+            <button class="action-btn delete-btn" 
+                    (click)="deleteModel()"
+                    [class.dark-mode]="isDarkMode">
+                {{ 'product-edit-info.delete-model' | translate }}
+            </button>
         </div>
 
         <!-- מצב טעינה -->

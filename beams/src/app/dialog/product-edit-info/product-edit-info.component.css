@@ -326,6 +326,111 @@
   }
 }
 
+/* מיכל כותרת משנה עם flex */
+.dialog-subtitle-container {
+  margin: 10px 0;
+}
+
+.subtitle-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #666;
+  direction: rtl; /* עברית */
+}
+
+[dir="ltr"] .subtitle-flex {
+  direction: ltr; /* אנגלית */
+}
+
+.model-info {
+  white-space: nowrap;
+}
+
+.separator {
+  color: #999;
+  font-weight: 300;
+}
+
+.params-info {
+  white-space: nowrap;
+}
+
+.dialog-subtitle-container.text-white .subtitle-flex {
+  color: #ccc;
+}
+
+.dialog-subtitle-container.text-white .separator {
+  color: #888;
+}
+
+/* כפתורי פעולה */
+.action-buttons-container {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin: 25px 0 15px 0;
+  padding: 20px 0;
+  border-top: 1px solid #eee;
+}
+
+.action-btn {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 2px solid;
+  border-radius: 0; /* פינות מרובעות */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.save-btn {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.save-btn:hover {
+  background: #218838;
+  border-color: #218838;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+  border-color: #c82333;
+}
+
+/* מצב לילה לכפתורים */
+.action-btn.dark-mode.save-btn {
+  background: #20c997;
+  border-color: #20c997;
+}
+
+.action-btn.dark-mode.save-btn:hover {
+  background: #1ca085;
+  border-color: #1ca085;
+}
+
+.action-btn.dark-mode.delete-btn {
+  background: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.action-btn.dark-mode.delete-btn:hover {
+  background: #c0392b;
+  border-color: #c0392b;
+}
+
 .dialog-model {
   font-size: 1rem;
   color: #0066cc;
