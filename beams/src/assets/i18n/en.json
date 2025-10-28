@@ -1027,5 +1027,7 @@
 	"product-edit-info.status-other": "Other",
 	"product-edit-info.status-new": "New",
 	"product-edit-info.save-changes": "Save Changes",
-	"product-edit-info.delete-model": "Delete Model"
+	"product-edit-info.delete-model": "Delete Model",
+	"product-edit-info.serial-name": "Serial Name",
+	"product-edit-info.serial-name-placeholder": "Enter serial name"
 }

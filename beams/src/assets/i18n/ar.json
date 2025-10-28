@@ -1021,5 +1021,7 @@
     "product-edit-info.status-other": "آخر",
     "product-edit-info.status-new": "جديد",
     "product-edit-info.save-changes": "حفظ التغييرات",
-    "product-edit-info.delete-model": "حذف النموذج"
+    "product-edit-info.delete-model": "حذف النموذج",
+    "product-edit-info.serial-name": "الاسم التسلسلي",
+    "product-edit-info.serial-name-placeholder": "أدخل الاسم التسلسلي"
 }

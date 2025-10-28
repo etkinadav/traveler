@@ -1159,5 +1159,7 @@
   "product-edit-info.status-other": "אחר",
   "product-edit-info.status-new": "חדש",
   "product-edit-info.save-changes": "שמור שינויים",
-  "product-edit-info.delete-model": "מחק דגם"
+  "product-edit-info.delete-model": "מחק דגם",
+  "product-edit-info.serial-name": "שם סידורי",
+  "product-edit-info.serial-name-placeholder": "הזן שם סידורי"
 }

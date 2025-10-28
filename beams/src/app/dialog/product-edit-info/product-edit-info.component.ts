@@ -55,6 +55,9 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
   originalPluralCategoryName: string = '';
   currentPluralCategoryName: string = '';
 
+  // שם סידורי
+  serialName: string = '';
+
   constructor(
     private directionService: DirectionService,
     private authService: AuthService,
@@ -457,6 +460,14 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   /**
+   * בדיקה האם צריך להציג שדה שם סידורי
+   * מופיע כשאחד משני השמות (יחיד או רבים) שונה מהמקורי
+   */
+  shouldShowSerialName(): boolean {
+    return this.isSingleNameModified() || this.isPluralNameModified();
+  }
+
+  /**
    * שמירת שינויים - מדפיס את כל המידע ל-console
    */
   saveChanges(): void {
@@ -481,6 +492,7 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
           modified: this.isPluralNameModified()
         }
       },
+      serialName: this.serialName,
       visibleParams: this.getVisibleParams(),
       hiddenParamsCount: this.getHiddenParamsCount()
     };

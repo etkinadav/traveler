@@ -45,13 +45,13 @@
                                (keyup.escape)="cancelEditingName()"
                                #nameInput>
                     </mat-form-field>
-                    <div class="edit-actions">
-                        <button class="save-btn" 
+                    <div class="edit-buttons">
+                        <button class="edit-save-btn" 
                                 (click)="saveProductName()" 
                                 [disabled]="!editedProductName.trim()">
                             <mat-icon>check</mat-icon>
                         </button>
-                        <button class="cancel-btn" (click)="cancelEditingName()">
+                        <button class="edit-cancel-btn" (click)="cancelEditingName()">
                             <mat-icon>close</mat-icon>
                         </button>
                     </div>
@@ -113,18 +113,18 @@
                                            (keyup.escape)="cancelEditingSingleName()"
                                            #singleNameInput>
                                 </mat-form-field>
-                                <div class="edit-buttons">
-                                    <button class="save-btn" 
-                                            (click)="saveSingleCategoryName()"
-                                            [matTooltip]="'product-edit-info.save-name' | translate">
-                                        <mat-icon>check</mat-icon>
-                                    </button>
-                                    <button class="cancel-btn" 
-                                            (click)="cancelEditingSingleName()"
-                                            [matTooltip]="'product-edit-info.cancel-edit' | translate">
-                                        <mat-icon>close</mat-icon>
-                                    </button>
-                                </div>
+                        <div class="edit-buttons">
+                            <button class="edit-save-btn" 
+                                    (click)="saveSingleCategoryName()"
+                                    [matTooltip]="'product-edit-info.save-name' | translate">
+                                <mat-icon>check</mat-icon>
+                            </button>
+                            <button class="edit-cancel-btn" 
+                                    (click)="cancelEditingSingleName()"
+                                    [matTooltip]="'product-edit-info.cancel-edit' | translate">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                        </div>
                             </div>
                             
                             <!-- השם המקורי - מוצג רק אם שונה -->
@@ -170,18 +170,18 @@
                                            (keyup.escape)="cancelEditingPluralName()"
                                            #pluralNameInput>
                                 </mat-form-field>
-                                <div class="edit-buttons">
-                                    <button class="save-btn" 
-                                            (click)="savePluralCategoryName()"
-                                            [matTooltip]="'product-edit-info.save-name' | translate">
-                                        <mat-icon>check</mat-icon>
-                                    </button>
-                                    <button class="cancel-btn" 
-                                            (click)="cancelEditingPluralName()"
-                                            [matTooltip]="'product-edit-info.cancel-edit' | translate">
-                                        <mat-icon>close</mat-icon>
-                                    </button>
-                                </div>
+                        <div class="edit-buttons">
+                            <button class="edit-save-btn" 
+                                    (click)="savePluralCategoryName()"
+                                    [matTooltip]="'product-edit-info.save-name' | translate">
+                                <mat-icon>check</mat-icon>
+                            </button>
+                            <button class="edit-cancel-btn" 
+                                    (click)="cancelEditingPluralName()"
+                                    [matTooltip]="'product-edit-info.cancel-edit' | translate">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                        </div>
                             </div>
                             
                             <!-- השם המקורי - מוצג רק אם שונה -->
@@ -191,6 +191,21 @@
                                 {{ 'product-edit-info.original-name' | translate }}: {{ originalPluralCategoryName }}
                             </p>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- שם סידורי - מופיע רק כשאחד מהשמות שונה -->
+                <div class="serial-name-section" *ngIf="shouldShowSerialName()">
+                    <h6 class="category-field-title" [class.text-white]="isDarkMode">
+                        {{ 'product-edit-info.serial-name' | translate }}
+                    </h6>
+                    
+                    <div class="serial-name-content">
+                        <mat-form-field appearance="outline" class="serial-name-field">
+                            <input matInput 
+                                   [(ngModel)]="serialName"
+                                   [placeholder]="'product-edit-info.serial-name-placeholder' | translate">
+                        </mat-form-field>
                     </div>
                 </div>
                 
@@ -220,7 +235,6 @@
                 <!-- כותרת הפרמטר -->
                 <div class="param-header">
                     <h5 class="param-name">{{ param.translatedName || param.name }}</h5>
-                    <span class="param-type">{{ getParameterTypeText(param) }}</span>
                 </div>
 
                 <!-- תוכן הפרמטר -->
