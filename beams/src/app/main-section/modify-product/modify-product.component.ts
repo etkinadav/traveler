@@ -215,36 +215,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.router.navigate(['/main-section/choose-printing-system']);
     }
     
-    // עריכת מוצר
-    editProduct() {
-        // יצירת אוביקט עם כל המידע הנוכחי של המוצר
-        const productData = {
-            product: this.product,
-            currentParams: this.params,
-            currentConfiguration: {
-                selectedProductName: this.selectedProductName,
-                isEditMode: this.isEditMode,
-                calculatedPrice: this.calculatedPrice,
-                finalPrice: this.getFinalPrice(),
-                beamsData: this.BeamsDataForPricing,
-                screwsData: this.ForgingDataForPricing,
-                isBeamsEnabled: this.isBeamsEnabled,
-                isCuttingEnabled: this.isCuttingEnabled,
-                isScrewsEnabled: this.isScrewsEnabled,
-                productType: {
-                    isTable: this.isTable,
-                    isPlanter: this.isPlanter,
-                    isBox: this.isBox,
-                    isBelams: this.isBelams,
-                    isFuton: this.isFuton
-                },
-                originalProductParams: this.originalProductParams
-            }
-        };
-
-        // פתיחת הדיאלוג עם המידע
-        this.dialogService.onOpenProductEditInfoDialog(productData);
-    }
     
     // פתיחה/סגירה של תפריט אפשרויות נוספות
     toggleOptionsMenu() {
@@ -9423,6 +9393,61 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
 
         return false;
+    }
+
+    /**
+     * עריכת מוצר - פתיחת דיאלוג מידע מוצר
+     */
+    editProduct(): void {
+        console.log('SAVE_PRO - EditProduct dialog opening started');
+        console.log('SAVE_PRO - Current product data:', JSON.stringify({
+            productId: this.product?._id || this.product?.id || 'NO_ID',
+            productName: this.product?.name || 'NO_NAME',
+            productModel: this.product?.model || 'NO_MODEL',
+            configurationIndex: this.product?.configurationIndex || 0,
+            currentConfiguration: this.product?.configurations?.[this.product?.configurationIndex || 0] || null,
+            paramsCount: this.params?.length || 0,
+            hasBeamData: false, // beamsData not available in this component
+            hasCalculatedData: !!this.calculatedPrice
+        }, null, 2));
+
+        // בדיקה אם יש מוצר זמין
+        if (!this.product) {
+            console.log('SAVE_PRO - ERROR: No product available for editing');
+            alert('אין מוצר זמין לעריכה');
+            return;
+        }
+
+        // בדיקה אם יש פרמטרים
+        if (!this.params || this.params.length === 0) {
+            console.log('SAVE_PRO - ERROR: No parameters available for editing');
+            alert('אין פרמטרים זמינים לעריכה');
+            return;
+        }
+
+        // הכנת נתוני המוצר עבור הדיאלוג
+        const productDataForDialog = {
+            product: { ...this.product },
+            currentParams: [...this.params],
+            currentConfiguration: this.product?.configurations?.[this.product?.configurationIndex || 0] || null,
+            beamsData: null, // beamsData not available in this component
+            calculatedPrice: this.calculatedPrice || 0,
+            timestamp: new Date().toISOString()
+        };
+
+        console.log('SAVE_PRO - Opening ProductEditInfo dialog with data:', JSON.stringify({
+            productId: productDataForDialog.product._id || productDataForDialog.product.id,
+            productName: productDataForDialog.product.name,
+            paramsCount: productDataForDialog.currentParams.length,
+            hasConfiguration: !!productDataForDialog.currentConfiguration,
+            configurationName: productDataForDialog.currentConfiguration?.translatedName || productDataForDialog.currentConfiguration?.name,
+            timestamp: productDataForDialog.timestamp
+        }, null, 2));
+
+        // פתיחת הדיאלוג
+        this.dialogService.onOpenProductEditInfoDialog(productDataForDialog);
+        
+        console.log('SAVE_PRO - ProductEditInfo dialog opened successfully');
     }
 
 }

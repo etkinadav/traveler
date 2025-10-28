@@ -174,6 +174,18 @@ export class DialogService {
 
   // Product Edit Info Dialog
   onOpenProductEditInfoDialog(productData: ProductEditInfoData): void {
+    console.log('SAVE_PRO - DialogService opening ProductEditInfo dialog');
+    console.log('SAVE_PRO - Dialog data summary:', JSON.stringify({
+      hasProduct: !!productData?.product,
+      productId: productData?.product?._id || productData?.product?.id || 'NO_ID',
+      productName: productData?.product?.name || 'NO_NAME',
+      hasCurrentParams: !!productData?.currentParams,
+      paramsCount: productData?.currentParams?.length || 0,
+      hasCurrentConfiguration: !!productData?.currentConfiguration,
+      configurationName: productData?.currentConfiguration?.translatedName || productData?.currentConfiguration?.name || 'NO_CONFIG',
+      timestamp: productData?.timestamp || 'NO_TIMESTAMP'
+    }, null, 2));
+    
     this.dialogProductEditInfoRef = this.dialog.open(ProductEditInfoComponent, {
       panelClass: 'zx-product-edit-info-dialog',
       data: productData,
@@ -182,11 +194,17 @@ export class DialogService {
       maxHeight: '90vh',
       minWidth: '800px'
     });
+    
+    console.log('SAVE_PRO - ProductEditInfo dialog opened successfully');
   }
 
   onCloseProductEditInfoDialog(): void {
+    console.log('SAVE_PRO - DialogService closing ProductEditInfo dialog');
     if (this.dialogProductEditInfoRef) {
       this.dialogProductEditInfoRef.close();
+      console.log('SAVE_PRO - ProductEditInfo dialog closed successfully');
+    } else {
+      console.log('SAVE_PRO - WARNING: No ProductEditInfo dialog reference found to close');
     }
   }
 

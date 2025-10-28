@@ -293,11 +293,14 @@
         <div class="action-buttons-container">
             <button class="action-btn save-btn" 
                     (click)="saveChanges()"
+                    [disabled]="isSaving"
                     [class.dark-mode]="isDarkMode">
-                {{ 'product-edit-info.save-changes' | translate }}
+                <span *ngIf="!isSaving">{{ 'product-edit-info.save-changes' | translate }}</span>
+                <span *ngIf="isSaving">{{ 'product-edit-info.saving' | translate }}</span>
             </button>
             <button class="action-btn delete-btn" 
                     (click)="deleteModel()"
+                    [disabled]="isSaving"
                     [class.dark-mode]="isDarkMode">
                 {{ 'product-edit-info.delete-model' | translate }}
             </button>

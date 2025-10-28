@@ -109,21 +109,24 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
    * עריכת מוצר
    */
   editItem(item: BasketItem): void {
-    console.log('EDIT_PRODUCT - Starting edit process for item:', JSON.stringify({
+    console.log('SAVE_PRO - Shopping cart edit item started');
+    console.log('SAVE_PRO - Edit item data:', JSON.stringify({
       itemId: item.id,
       productName: item.productConfiguration.productName,
-      inputConfigurations: item.productConfiguration.inputConfigurations,
+      inputConfigurationsCount: item.productConfiguration.inputConfigurations?.length || 0,
+      hasOriginalProductData: !!item.productConfiguration.originalProductData,
       originalProductData: {
         _id: item.productConfiguration.originalProductData?._id,
         name: item.productConfiguration.originalProductData?.name,
         model: item.productConfiguration.originalProductData?.model,
+        paramsCount: item.productConfiguration.originalProductData?.params?.length || 0,
         params: item.productConfiguration.originalProductData?.params?.map(p => ({
           name: p.name,
           type: p.type,
           default: p.default,
           selectedBeamIndex: p.selectedBeamIndex,
           selectedTypeIndex: p.selectedTypeIndex
-        }))
+        })) || []
       }
     }, null, 2));
     
@@ -131,19 +134,26 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     this.saveProductToLocalStorage(item);
     
     // ניווט לעמוד עריכת המוצר עם productId, configIndex ו-isEditMode
-    console.log('EDIT_PRODUCT - Navigating to /beams with productId:', item.productConfiguration.originalProductData?._id);
+    console.log('SAVE_PRO - Navigating to modify-product with productId:', item.productConfiguration.originalProductData?._id);
+    
     // שמירת מזהה הפריט למטרת עדכון
     localStorage.setItem('editingItemId', item.id);
-    console.log('EDIT_PRODUCT - Saving item ID for update:', item.id);
+    console.log('SAVE_PRO - Saved editing item ID to localStorage:', item.id);
+    
+    const navigationParams = {
+      productId: item.productConfiguration.originalProductData?._id,
+      product: item.productConfiguration.productName,
+      configIndex: 0,  // תמיד נשתמש ב-configIndex 0 לעריכה
+      isEditMode: true  // סימון שזה מוצר בעריכה
+    };
+    
+    console.log('SAVE_PRO - Navigation parameters:', JSON.stringify(navigationParams, null, 2));
     
     this.router.navigate(['/beams'], {
-      queryParams: {
-        productId: item.productConfiguration.originalProductData?._id,
-        product: item.productConfiguration.productName,
-        configIndex: 0,  // תמיד נשתמש ב-configIndex 0 לעריכה
-        isEditMode: true  // סימון שזה מוצר בעריכה
-      }
+      queryParams: navigationParams
     });
+    
+    console.log('SAVE_PRO - Navigation initiated to modify-product page');
   }
   
   /**
