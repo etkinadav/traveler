@@ -169,6 +169,23 @@ exports.saveChanges = async (req, res, next) => {
             paramsCount: product.params?.length || 0
         }, null, 2));
 
+        // 🔍 בדיקה מפורטת של פרמטר shelfs במאגר
+        const shelfsParam = product.params?.find(p => p.name === 'shelfs');
+        if (shelfsParam) {
+            console.log('SAVE_PRO - SHELFS PARAM IN DATABASE:', JSON.stringify({
+                name: shelfsParam.name,
+                type: shelfsParam.type,
+                hasConfigurations: !!shelfsParam.configurations,
+                configurationsLength: shelfsParam.configurations?.length || 0,
+                configurations: shelfsParam.configurations || 'NO_CONFIGURATIONS',
+                hasBeamsConfigurations: !!shelfsParam.beamsConfigurations,
+                beamsConfigurationsLength: shelfsParam.beamsConfigurations?.length || 0,
+                beamsConfigurations: shelfsParam.beamsConfigurations || 'NO_BEAMS_CONFIGURATIONS'
+            }, null, 2));
+        } else {
+            console.log('SAVE_PRO - ERROR: shelfs parameter not found in database!');
+        }
+
         // קביעה האם זה דגם חדש
         const isNewModel = productName.status === 'new';
         console.log('SAVE_PRO - Model status determined:', JSON.stringify({
@@ -189,11 +206,55 @@ exports.saveChanges = async (req, res, next) => {
             isNewModel
         });
 
+        // בדיקה לפני השמירה: מה באמת יש באובייקט המוצר בזיכרון
+        const shelfsParamBeforeSave = product.params?.find(p => p.name === 'shelfs');
+        if (shelfsParamBeforeSave) {
+            console.log('SAVE_PRO - SHELFS PARAM BEFORE SAVE (in memory):', JSON.stringify({
+                name: shelfsParamBeforeSave.name,
+                configurationsLength: shelfsParamBeforeSave.configurations?.length || 0,
+                configurations: shelfsParamBeforeSave.configurations,
+                beamsConfigurationsLength: shelfsParamBeforeSave.beamsConfigurations?.length || 0,
+                beamsConfigurations: shelfsParamBeforeSave.beamsConfigurations
+            }, null, 2));
+        }
+
+        // וידוא שMongoose יודע שהפרמטרים השתנו (markModified)
+        console.log('SAVE_PRO - Marking params as modified for Mongoose');
+        product.markModified('params');
+        
         // שמירת המוצר
         console.log('SAVE_PRO - Saving updated product to database');
         await product.save();
         
         console.log('SAVE_PRO - Product saved successfully to database');
+
+        // בדיקה נוספת: איך נראה פרמטר shelfs אחרי השמירה
+        const updatedShelfsParam = product.params?.find(p => p.name === 'shelfs');
+        if (updatedShelfsParam) {
+            console.log('SAVE_PRO - SHELFS PARAM AFTER SAVE:', JSON.stringify({
+                name: updatedShelfsParam.name,
+                configurationsLength: updatedShelfsParam.configurations?.length || 0,
+                configurations: updatedShelfsParam.configurations,
+                beamsConfigurationsLength: updatedShelfsParam.beamsConfigurations?.length || 0,
+                beamsConfigurations: updatedShelfsParam.beamsConfigurations
+            }, null, 2));
+        }
+
+        // 🔍 בדיקה נוספת: טעינה מחדש מהמאגר לוודא שהשמירה התבצעה
+        console.log('SAVE_PRO - Reloading product from database to verify save...');
+        const reloadedProduct = await Product.findById(productId);
+        const reloadedShelfsParam = reloadedProduct?.params?.find(p => p.name === 'shelfs');
+        if (reloadedShelfsParam) {
+            console.log('SAVE_PRO - SHELFS PARAM RELOADED FROM DB:', JSON.stringify({
+                name: reloadedShelfsParam.name,
+                configurationsLength: reloadedShelfsParam.configurations?.length || 0,
+                configurations: reloadedShelfsParam.configurations,
+                beamsConfigurationsLength: reloadedShelfsParam.beamsConfigurations?.length || 0,
+                beamsConfigurations: reloadedShelfsParam.beamsConfigurations
+            }, null, 2));
+        } else {
+            console.log('SAVE_PRO - ERROR: Could not reload shelfs param from database!');
+        }
         
         const response = { 
             success: true, 
@@ -361,8 +422,24 @@ function updateBeamArrayParameter(param, value, beamConfiguration, configIndex, 
     console.log('SAVE_PRO - beamArray beam configuration:', beamConfiguration);
     console.log('SAVE_PRO - beamArray config index:', configIndex, 'isNewModel:', isNewModel);
     
-    param.configurations = param.configurations || [];
-    param.beamsConfigurations = param.beamsConfigurations || [];
+    // וידוא שקיימים מערכי קונפיגורציות + אתחול נכון אם חסרים
+    if (!param.configurations || !Array.isArray(param.configurations)) {
+        console.log('SAVE_PRO - beamArray: Creating new configurations array');
+        param.configurations = [];
+    }
+    if (!param.beamsConfigurations || !Array.isArray(param.beamsConfigurations)) {
+        console.log('SAVE_PRO - beamArray: Creating new beamsConfigurations array');
+        param.beamsConfigurations = [];
+    }
+
+    // אתחול מקומות ריקים עד האינדקס הנדרש אם חסרים (רק אם לא isNewModel)
+    if (!isNewModel) {
+        while (param.configurations.length <= configIndex) {
+            console.log(`SAVE_PRO - beamArray: Filling configurations gap at index ${param.configurations.length}`);
+            param.configurations.push([]);
+            param.beamsConfigurations.push('');
+        }
+    }
     
     console.log('SAVE_PRO - beamArray before update:', JSON.stringify({
         configurationsLength: param.configurations.length,

@@ -9375,8 +9375,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
      */
     private updateParamsWithConfiguration(params: any[], configIndex: number, product: any): any[] {
         console.log(`SAVE_PRO - Loading configurations for product: ${product.translatedName} (config #${configIndex})`);
+        console.log(`SAVE_PRO - Input params before configuration update:`, JSON.stringify(params.map(p => ({
+            name: p.name,
+            hasConfigurations: !!p.configurations,
+            configurationsLength: p.configurations?.length || 0,
+            configAtIndex: p.configurations?.[configIndex] || 'NO_CONFIG',
+            isArrayConfig: Array.isArray(p.configurations?.[configIndex])
+        })), null, 2));
         
-        return params.map((param: any) => {
+        const result = params.map((param: any) => {
             const updatedParam = { ...param };
             
             // עדכון default לפי configurations - עבור beamArray ופרמטרים רגילים
@@ -9387,6 +9394,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     isArray: Array.isArray(param.configurations[configIndex])
                 });
                 updatedParam.default = param.configurations[configIndex];
+            } else {
+                console.log(`SAVE_PRO - No saved configuration for ${param.name} at index ${configIndex}`);
             }
             
             // עדכון beamsConfigurations - מציאת אינדקס הקורה הנכונה
@@ -9410,6 +9419,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             return updatedParam;
         });
+        
+        console.log(`SAVE_PRO - Result after configuration update:`, JSON.stringify(result.map(p => ({
+            name: p.name,
+            default: p.default,
+            isArray: Array.isArray(p.default)
+        })), null, 2));
+        
+        return result;
     }
 
     /**

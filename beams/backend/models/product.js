@@ -8,7 +8,14 @@ const paramSchema = new Schema({
     min: Number,
     max: Number,
     round: Number,
-    beams: [{ type: Schema.Types.ObjectId, ref: 'Beam' }]
+    beams: [{ type: Schema.Types.ObjectId, ref: 'Beam' }],
+    // השדות החסרים שנדרשים לשמירת קונפיגורציות:
+    configurations: [Schema.Types.Mixed], // מערך של ערכים מעורבים (מספרים, מערכים, וכו')
+    beamsConfigurations: [String], // מערך של strings כמו "100-25"
+    translatedName: String, // שם מתורגם
+    selectedBeamIndex: Number, // אינדקס קורה נבחרת
+    selectedTypeIndex: Number, // אינדקס סוג נבחר
+    isVisual: Boolean // האם פרמטר ויזואלי בלבד
 }, { _id: false });
 
 const productsSchema = new Schema({
@@ -17,6 +24,10 @@ const productsSchema = new Schema({
         required: true
     },
     names: {
+        type: Object,
+        required: false
+    },
+    singleNames: {
         type: Object,
         required: false
     },
