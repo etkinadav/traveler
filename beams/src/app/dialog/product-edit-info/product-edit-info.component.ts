@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { DirectionService } from '../../direction.service';
 import { AuthService } from 'src/app/auth/auth.service';
 import { DialogService } from 'src/app/dialog/dialog.service';
+import { TranslateService } from '@ngx-translate/core';
 
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
@@ -40,11 +41,13 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
   editedProductName: string = '';
   originalProductName: string = '';
   currentDisplayName: string = ''; // השם הנוכחי שמוצג (יכול להשתנות)
+  isNewFurniture: boolean = false; // האם רהיט חדש
 
   constructor(
     private directionService: DirectionService,
     private authService: AuthService,
     private dialogService: DialogService,
+    private translateService: TranslateService,
     @Inject(MAT_DIALOG_DATA) public data: ProductEditInfoData,
   ) {
     this.product = data.product || {};
@@ -52,7 +55,7 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
     this.currentConfiguration = data.currentConfiguration || {};
     
     // הגדרת השמות המקוריים והנוכחיים
-    this.originalProductName = this.product?.translatedName || this.product?.name || 'מוצר לא זמין';
+    this.originalProductName = this.product?.translatedName || this.product?.name || this.translateService.instant('product-edit-info.product-unavailable');
     this.currentDisplayName = this.originalProductName; // בהתחלה זהה למקורי
     this.editedProductName = this.currentDisplayName;
   }
@@ -165,7 +168,7 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
    * החזרת שם המוצר להצגה (השם הנוכחי, לא המקורי)
    */
   getProductDisplayName(): string {
-    return this.currentDisplayName || 'מוצר לא זמין';
+    return this.currentDisplayName || this.translateService.instant('product-edit-info.product-unavailable');
   }
 
   /**
@@ -187,16 +190,16 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
    */
   getParameterTypeText(param: any): string {
     if (this.isArrayParameter(param)) {
-      return 'מערך';
+      return this.translateService.instant('product-edit-info.array');
     }
     if (this.hasBeamSelection(param)) {
-      return 'בחירת קורה';
+      return this.translateService.instant('product-edit-info.beam-selection');
     }
     switch (param.type) {
-      case 1: return 'מספר שלם';
-      case 2: return 'מספר עשרוני';
-      case 3: return 'טקסט';
-      default: return 'לא זמין';
+      case 1: return this.translateService.instant('product-edit-info.integer');
+      case 2: return this.translateService.instant('product-edit-info.decimal');
+      case 3: return this.translateService.instant('product-edit-info.text');
+      default: return this.translateService.instant('product-edit-info.not-available');
     }
   }
 
@@ -219,7 +222,7 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
    */
   formatParameterValue(param: any): string {
     if (param.default === undefined || param.default === null) {
-      return 'לא מוגדר';
+      return this.translateService.instant('product-edit-info.not-defined');
     }
 
     let value = param.default;
@@ -238,11 +241,11 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
    */
   getSelectedBeamName(param: any): string {
     if (!this.hasBeamSelection(param)) {
-      return 'לא זמין';
+      return this.translateService.instant('product-edit-info.not-available');
     }
     
     const selectedBeam = param.beams[param.selectedBeamIndex];
-    return selectedBeam?.translatedName || selectedBeam?.name || 'לא זמין';
+    return selectedBeam?.translatedName || selectedBeam?.name || this.translateService.instant('product-edit-info.not-available');
   }
 
   /**
@@ -250,13 +253,13 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
    */
   getSelectedWoodType(param: any): string {
     if (!this.hasBeamSelection(param)) {
-      return 'לא זמין';
+      return this.translateService.instant('product-edit-info.not-available');
     }
 
     const selectedBeam = param.beams[param.selectedBeamIndex];
     const selectedType = selectedBeam?.types?.[param.selectedTypeIndex];
     
-    return selectedType?.translatedName || selectedType?.name || 'לא זמין';
+    return selectedType?.translatedName || selectedType?.name || this.translateService.instant('product-edit-info.not-available');
   }
 
   /**
@@ -328,5 +331,13 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
    */
   isNameModified(): boolean {
     return this.currentDisplayName !== this.originalProductName;
+  }
+
+  /**
+   * החלפת מצב "רהיט חדש"
+   */
+  toggleNewFurniture(): void {
+    this.isNewFurniture = !this.isNewFurniture;
+    console.log('מצב רהיט חדש:', this.isNewFurniture);
   }
 }

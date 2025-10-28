@@ -59,16 +59,30 @@
                    *ngIf="isNameModified()">
                     {{ 'product-edit-info.original-name' | translate }}: {{ originalProductName }}
                 </p>
+                
+                <!-- כפתור "רהיט חדש" - מוצג רק אם השם שונה -->
+                <div class="new-furniture-toggle" 
+                     *ngIf="isNameModified()"
+                     [class.dark-mode]="isDarkMode">
+                    <mat-slide-toggle 
+                        [(ngModel)]="isNewFurniture"
+                        (change)="toggleNewFurniture()"
+                        color="primary"
+                        [matTooltip]="'product-edit-info.new-furniture-tooltip' | translate"
+                        matTooltipPosition="below">
+                        {{ 'product-edit-info.new-furniture-label' | translate }}
+                    </mat-slide-toggle>
+                </div>
             </div>
             
             <!-- קו הפרדה -->
             <div class="section-divider" [class.dark-mode]="isDarkMode"></div>
             
             <p class="dialog-model" [class.text-white]="isDarkMode" *ngIf="product?.model">
-                דגם: {{ product.model }}
+                {{ 'product-edit-info.model-label' | translate }}: {{ product.model }}
             </p>
             <p class="dialog-subtitle" [class.text-white]="isDarkMode">
-                {{ getVisibleParams().length }} פרמטרים פעילים
+                {{ getVisibleParams().length }} {{ 'product-edit-info.active-parameters' | translate }}
             </p>
         </div>
 
@@ -90,11 +104,11 @@
                     <!-- פרמטר מספרי רגיל -->
                     <div *ngIf="!isArrayParameter(param) && !hasBeamSelection(param)" class="param-info">
                         <div class="info-row">
-                            <span class="info-label">ערך נוכחי:</span>
+                            <span class="info-label">{{ 'product-edit-info.current-value' | translate }}:</span>
                             <span class="info-value">{{ formatParameterValue(param) }}</span>
                         </div>
                         <div class="info-row" *ngIf="param.min !== undefined && param.max !== undefined">
-                            <span class="info-label range-label">טווח:</span>
+                            <span class="info-label range-label">{{ 'product-edit-info.range' | translate }}:</span>
                             <span class="info-value range-value">{{ param.min }} - {{ param.max }} {{ param.unit || '' }}</span>
                         </div>
                     </div>
@@ -102,15 +116,15 @@
                     <!-- פרמטר עם בחירת קורה -->
                     <div *ngIf="hasBeamSelection(param)" class="param-info">
                         <div class="info-row">
-                            <span class="info-label">סוג קורה:</span>
+                            <span class="info-label">{{ 'product-edit-info.beam-type' | translate }}:</span>
                             <span class="info-value">{{ getSelectedBeamName(param) }}</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">סוג עץ:</span>
+                            <span class="info-label">{{ 'product-edit-info.wood-type' | translate }}:</span>
                             <span class="info-value">{{ getSelectedWoodType(param) }}</span>
                         </div>
                         <div class="info-row" *ngIf="!isArrayParameter(param) && needsValueDisplay(param)">
-                            <span class="info-label">ערך נוכחי:</span>
+                            <span class="info-label">{{ 'product-edit-info.current-value' | translate }}:</span>
                             <span class="info-value">{{ formatParameterValue(param) }}</span>
                         </div>
                     </div>
@@ -118,7 +132,7 @@
                     <!-- פרמטר מערך (כמו מדפים) -->
                     <div *ngIf="isArrayParameter(param)" class="param-info">
                         <div class="array-values" *ngIf="param.default && param.default.length > 0">
-                            <div class="array-label">ערכים:</div>
+                            <div class="array-label">{{ 'product-edit-info.values' | translate }}:</div>
                             <div class="array-items">
                                 <span class="array-item" *ngFor="let value of param.default; let i = index">
                                     {{ i + 1 }}. {{ value }}{{ param.unit ? ' ' + param.unit : '' }}
@@ -139,7 +153,7 @@
         <!-- מצב טעינה -->
         <div *ngIf="isLoading" class="loading-container">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">טוען...</span>
+                <span class="visually-hidden">{{ 'product-edit-info.loading' | translate }}</span>
             </div>
         </div>
     </div>
