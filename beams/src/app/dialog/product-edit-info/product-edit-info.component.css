@@ -175,6 +175,7 @@
 
 .info-label.range-label {
   opacity: 0.75;
+  color: var(--zx-green) !important;
 }
 
 .info-value {
@@ -187,6 +188,7 @@
 
 .info-value.range-value {
   opacity: 0.75;
+  color: var(--zx-green) !important;
 }
 
 /* ערכי מערך (מדפים) */
@@ -255,7 +257,7 @@
 }
 
 .parameter-card.dark-mode .info-label.range-label {
-  color: #ccc;
+  color: var(--zx-green) !important;
   opacity: 0.75;
 }
 
@@ -264,7 +266,7 @@
 }
 
 .parameter-card.dark-mode .info-value.range-value {
-  color: #e0e0e0;
+  color: var(--zx-green) !important;
   opacity: 0.75;
 }
 
