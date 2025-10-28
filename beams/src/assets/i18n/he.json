@@ -1149,5 +1149,15 @@
   "product-edit-info.beam-selection": "בחירת קורה",
   "product-edit-info.integer": "מספר שלם",
   "product-edit-info.decimal": "מספר עשרוני",
-  "product-edit-info.text": "טקסט"
+  "product-edit-info.text": "טקסט",
+  "product-edit-info.category-names-title": "שמות קטגוריות",
+  "product-edit-info.single-category-name": "שם הקטגוריה ביחיד",
+  "product-edit-info.plural-category-name": "שם הקטגוריה ברבים",
+  "product-edit-info.edit-single-name-tooltip": "ערוך שם קטגוריה ביחיד",
+  "product-edit-info.edit-plural-name-tooltip": "ערוך שם קטגוריה ברבים",
+  "product-edit-info.single-category-placeholder": "הזן שם קטגוריה ביחיד",
+  "product-edit-info.plural-category-placeholder": "הזן שם קטגוריה ברבים",
+  "product-edit-info.status-original": "מקורי",
+  "product-edit-info.status-other": "אחר",
+  "product-edit-info.status-new": "חדש"
 }

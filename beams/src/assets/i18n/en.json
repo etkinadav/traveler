@@ -1017,5 +1017,15 @@
 	"product-edit-info.beam-selection": "Beam Selection",
 	"product-edit-info.integer": "Integer",
 	"product-edit-info.decimal": "Decimal",
-	"product-edit-info.text": "Text"
+	"product-edit-info.text": "Text",
+	"product-edit-info.category-names-title": "Category Names",
+	"product-edit-info.single-category-name": "Single Category Name",
+	"product-edit-info.plural-category-name": "Plural Category Name",
+	"product-edit-info.edit-single-name-tooltip": "Edit single category name",
+	"product-edit-info.edit-plural-name-tooltip": "Edit plural category name",
+	"product-edit-info.single-category-placeholder": "Enter single category name",
+	"product-edit-info.plural-category-placeholder": "Enter plural category name",
+	"product-edit-info.status-original": "Original",
+	"product-edit-info.status-other": "Other",
+	"product-edit-info.status-new": "New"
 }

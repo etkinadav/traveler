@@ -22,6 +22,8 @@ export interface ProductEditInfoData {
 
 export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('nameInput') nameInputRef: ElementRef;
+  @ViewChild('singleNameInput') singleNameInputRef: ElementRef;
+  @ViewChild('pluralNameInput') pluralNameInputRef: ElementRef;
   isRTL: boolean = true;
   private directionSubscription: Subscription;
   isDarkMode: boolean = false;
@@ -43,6 +45,17 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
   currentDisplayName: string = ''; // השם הנוכחי שמוצג (יכול להשתנות)
   isNewFurniture: boolean = false; // האם רהיט חדש
 
+  // עריכת שמות קטגוריות
+  isEditingSingleName: boolean = false;
+  editedSingleCategoryName: string = '';
+  originalSingleCategoryName: string = '';
+  currentSingleCategoryName: string = '';
+
+  isEditingPluralName: boolean = false;
+  editedPluralCategoryName: string = '';
+  originalPluralCategoryName: string = '';
+  currentPluralCategoryName: string = '';
+
   constructor(
     private directionService: DirectionService,
     private authService: AuthService,
@@ -58,6 +71,9 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
     this.originalProductName = this.product?.translatedName || this.product?.name || this.translateService.instant('product-edit-info.product-unavailable');
     this.currentDisplayName = this.originalProductName; // בהתחלה זהה למקורי
     this.editedProductName = this.currentDisplayName;
+
+    // הגדרת שמות הקטגוריות המקוריים והנוכחיים
+    this.initializeCategoryNames();
   }
 
   async ngOnInit() {
@@ -334,10 +350,188 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   /**
+   * קביעת סטטוס שם המוצר (הכותרת הראשית)
+   */
+  getProductNameStatus(): 'original' | 'new' {
+    return this.currentDisplayName === this.originalProductName ? 'original' : 'new';
+  }
+
+  /**
    * החלפת מצב "רהיט חדש"
    */
   toggleNewFurniture(): void {
     this.isNewFurniture = !this.isNewFurniture;
     console.log('מצב רהיט חדש:', this.isNewFurniture);
+  }
+
+  /**
+   * אתחול שמות הקטגוריות על פי הקונפיגורציה הנוכחית
+   */
+  private initializeCategoryNames(): void {
+    const configIndex = this.product?.configurationIndex || 0;
+    const configs = this.product?.configurations || [];
+    const currentConfig = configs[configIndex];
+    
+    if (!currentConfig) {
+      this.originalSingleCategoryName = this.translateService.instant('product-edit-info.not-available');
+      this.originalPluralCategoryName = this.translateService.instant('product-edit-info.not-available');
+    } else {
+      const productKey = currentConfig.product;
+      const singleNames = this.product?.singleNames || {};
+      const names = this.product?.names || {};
+      
+      this.originalSingleCategoryName = singleNames[productKey] || this.translateService.instant('product-edit-info.not-defined');
+      this.originalPluralCategoryName = names[productKey] || this.translateService.instant('product-edit-info.not-defined');
+    }
+    
+    this.currentSingleCategoryName = this.originalSingleCategoryName;
+    this.currentPluralCategoryName = this.originalPluralCategoryName;
+    this.editedSingleCategoryName = this.currentSingleCategoryName;
+    this.editedPluralCategoryName = this.currentPluralCategoryName;
+  }
+
+  /**
+   * תחילת עריכת שם קטגוריה ביחיד
+   */
+  startEditingSingleName(): void {
+    this.isEditingSingleName = true;
+    this.editedSingleCategoryName = this.currentSingleCategoryName;
+    setTimeout(() => {
+      if (this.singleNameInputRef) {
+        this.singleNameInputRef.nativeElement.focus();
+      }
+    }, 100);
+  }
+
+  /**
+   * ביטול עריכת שם קטגוריה ביחיד
+   */
+  cancelEditingSingleName(): void {
+    this.isEditingSingleName = false;
+    this.editedSingleCategoryName = this.currentSingleCategoryName;
+  }
+
+  /**
+   * שמירת שם קטגוריה ביחיד
+   */
+  saveSingleCategoryName(): void {
+    this.currentSingleCategoryName = this.editedSingleCategoryName.trim();
+    this.isEditingSingleName = false;
+    console.log('שם קטגוריה ביחיד עודכן:', this.currentSingleCategoryName);
+  }
+
+  /**
+   * תחילת עריכת שם קטגוריה ברבים
+   */
+  startEditingPluralName(): void {
+    this.isEditingPluralName = true;
+    this.editedPluralCategoryName = this.currentPluralCategoryName;
+    setTimeout(() => {
+      if (this.pluralNameInputRef) {
+        this.pluralNameInputRef.nativeElement.focus();
+      }
+    }, 100);
+  }
+
+  /**
+   * ביטול עריכת שם קטגוריה ברבים
+   */
+  cancelEditingPluralName(): void {
+    this.isEditingPluralName = false;
+    this.editedPluralCategoryName = this.currentPluralCategoryName;
+  }
+
+  /**
+   * שמירת שם קטגוריה ברבים
+   */
+  savePluralCategoryName(): void {
+    this.currentPluralCategoryName = this.editedPluralCategoryName.trim();
+    this.isEditingPluralName = false;
+    console.log('שם קטגוריה ברבים עודכן:', this.currentPluralCategoryName);
+  }
+
+  /**
+   * בדיקה האם שם הקטגוריה ביחיד שונה מהמקורי
+   */
+  isSingleNameModified(): boolean {
+    return this.currentSingleCategoryName !== this.originalSingleCategoryName;
+  }
+
+  /**
+   * בדיקה האם שם הקטגוריה ברבים שונה מהמקורי
+   */
+  isPluralNameModified(): boolean {
+    return this.currentPluralCategoryName !== this.originalPluralCategoryName;
+  }
+
+
+  /**
+   * קביעת סטטוס שם הקטגוריה ביחיד
+   */
+  getSingleNameStatus(): 'original' | 'other' | 'new' {
+    if (this.currentSingleCategoryName === this.originalSingleCategoryName) {
+      return 'original';
+    }
+
+    // בדיקה אם הערך קיים ב-singleNames
+    const singleNames = this.product?.singleNames || {};
+    const singleNamesValues = Object.values(singleNames);
+    
+    if (singleNamesValues.includes(this.currentSingleCategoryName)) {
+      return 'other';
+    }
+
+    return 'new';
+  }
+
+  /**
+   * קביעת סטטוס שם הקטגוריה ברבים
+   */
+  getPluralNameStatus(): 'original' | 'other' | 'new' {
+    if (this.currentPluralCategoryName === this.originalPluralCategoryName) {
+      return 'original';
+    }
+
+    // בדיקה אם הערך קיים ב-names
+    const names = this.product?.names || {};
+    const namesValues = Object.values(names);
+    
+    if (namesValues.includes(this.currentPluralCategoryName)) {
+      return 'other';
+    }
+
+    return 'new';
+  }
+
+  /**
+   * קבלת טקסט התג לפי סטטוס
+   */
+  getStatusText(status: 'original' | 'other' | 'new'): string {
+    switch (status) {
+      case 'original':
+        return this.translateService.instant('product-edit-info.status-original');
+      case 'other':
+        return this.translateService.instant('product-edit-info.status-other');
+      case 'new':
+        return this.translateService.instant('product-edit-info.status-new');
+      default:
+        return '';
+    }
+  }
+
+  /**
+   * קבלת מחלקת CSS לתג לפי סטטוס
+   */
+  getStatusClass(status: 'original' | 'other' | 'new'): string {
+    switch (status) {
+      case 'original':
+        return 'status-tag-original';
+      case 'other':
+        return 'status-tag-other';
+      case 'new':
+        return 'status-tag-new';
+      default:
+        return '';
+    }
   }
 }
