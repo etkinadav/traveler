@@ -478,6 +478,101 @@ function updateBeamArrayParameter(param, value, beamConfiguration, configIndex, 
     }, null, 2));
 }
 
+// 🎯 SAVE CHANGES - הפונקציה שנמחקה ונצרכת שוב!
+exports.saveChanges = async (req, res, next) => {
+    console.log('SAVE_PRO - saveChanges endpoint hit at:', new Date().toISOString());
+    console.log('SAVE_PRO - Request body:', JSON.stringify(req.body, null, 2));
+    
+    try {
+        const { productId, currentConfigurationIndex, parameters, productName, singleCategoryName, pluralCategoryName, serialName } = req.body;
+        
+        if (!productId) {
+            console.log('SAVE_PRO - ERROR: No productId provided');
+            return res.status(400).json({ success: false, message: 'Product ID is required' });
+        }
+        
+        console.log('SAVE_PRO - Finding product by ID:', productId);
+        const product = await Product.findById(productId);
+        
+        if (!product) {
+            console.log('SAVE_PRO - ERROR: Product not found');
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+        
+        console.log('SAVE_PRO - Product found, processing parameters...');
+        const configIndex = currentConfigurationIndex || 0;
+        
+        // עדכון פרמטרים
+        parameters.forEach(paramData => {
+            const param = product.params.find(p => p.name === paramData.name);
+            if (!param) {
+                console.log(`SAVE_PRO - WARNING: Parameter ${paramData.name} not found in product`);
+                return;
+            }
+            
+            // וידוא שיש מערכים
+            if (!Array.isArray(param.configurations)) {
+                param.configurations = [];
+            }
+            if (!Array.isArray(param.beamsConfigurations)) {
+                param.beamsConfigurations = [];
+            }
+            
+            // מלא חסרים עד לאינדקס הנדרש
+            while (param.configurations.length <= configIndex) {
+                param.configurations.push(null);
+            }
+            while (param.beamsConfigurations.length <= configIndex) {
+                param.beamsConfigurations.push(null);
+            }
+            
+            if (paramData.type === 'beamArray') {
+                // עדכון beamArray
+                param.configurations[configIndex] = [...paramData.value];
+                param.beamsConfigurations[configIndex] = paramData.beamConfiguration;
+                console.log(`SAVE_PRO - Updated beamArray ${paramData.name}:`, JSON.stringify(paramData.value));
+                
+            } else if (paramData.type === 'beamSingle') {
+                // עדכון beamSingle - שמירת beamConfiguration בלבד
+                param.beamsConfigurations[configIndex] = paramData.beamConfiguration;
+                console.log(`SAVE_PRO - Updated beamSingle ${paramData.name}: ${paramData.beamConfiguration}`);
+                
+            } else {
+                // עדכון פרמטר רגיל (מספרי)
+                param.configurations[configIndex] = paramData.value;
+                console.log(`SAVE_PRO - Updated numeric ${paramData.name}: ${paramData.value}`);
+            }
+        });
+        
+        // שמור שינויים במאגר
+        product.markModified('params');
+        const savedProduct = await product.save();
+        
+        console.log('SAVE_PRO - Product saved successfully!');
+        
+        res.status(200).json({
+            success: true,
+            message: 'Product updated successfully',
+            product: {
+                _id: savedProduct._id,
+                name: savedProduct.name,
+                model: savedProduct.model
+            },
+            timestamp: new Date().toISOString(),
+            updatedConfigurationsCount: savedProduct.configurations?.length || 0,
+            updatedParamsCount: savedProduct.params?.length || 0
+        });
+        
+    } catch (error) {
+        console.error('SAVE_PRO - ERROR in saveChanges:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Internal server error', 
+            error: error.message 
+        });
+    }
+};
+
 // Get product by name
 exports.getProductByName = async (req, res, next) => {
     const name = req.params.name;

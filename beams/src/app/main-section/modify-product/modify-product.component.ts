@@ -9724,12 +9724,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     private fixLegParameterIfNeeded(): void {
         if (this.params) {
             const legParam = this.params.find(p => p.name === 'leg');
-            if (legParam && legParam.selectedBeamIndex === 0 && legParam.beams && legParam.beams[2]?.name === '50-25') {
-                console.log(`CHECK_LEG - TEMP FIX: Correcting leg parameter from index 0 to index 2`);
-                legParam.selectedBeamIndex = 2;
-                legParam.selectedTypeIndex = 0;
-                console.log(`CHECK_LEG - TEMP FIX: Fixed! Now showing "${legParam.beams[2]?.translatedName}"`);
+            if (legParam) {
+                console.log(`CHECK_LEG - TEMP FIX CHECK: Current leg selectedBeamIndex = ${legParam.selectedBeamIndex}`);
+                if (legParam.selectedBeamIndex === 0 && legParam.beams && legParam.beams[2]?.name === '50-25') {
+                    console.log(`CHECK_LEG - TEMP FIX: Correcting leg parameter from index 0 to index 2`);
+                    legParam.selectedBeamIndex = 2;
+                    legParam.selectedTypeIndex = 0;
+                    console.log(`CHECK_LEG - TEMP FIX: Fixed! Now showing "${legParam.beams[2]?.translatedName}"`);
+                } else {
+                    console.log(`CHECK_LEG - TEMP FIX: No fix needed. selectedBeamIndex = ${legParam.selectedBeamIndex}`);
+                }
+            } else {
+                console.log(`CHECK_LEG - TEMP FIX: No leg parameter found`);
             }
+        } else {
+            console.log(`CHECK_LEG - TEMP FIX: No params available`);
         }
     }
 
@@ -9760,6 +9769,22 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
      */
     editProduct(): void {
         console.log('SAVE_PRO - EditProduct dialog opening started');
+        
+        // 🎯 תיקון פרמטרים לפני פתיחת הדיאלוג
+        this.fixLegParameterIfNeeded();
+        console.log('SAVE_PRO - Applied parameter fixes before opening dialog');
+        
+        // בדיקת פרמטר leg אחרי התיקון
+        const legParam = this.params?.find(p => p.name === 'leg');
+        if (legParam) {
+            console.log('SAVE_PRO - leg parameter after fix:', JSON.stringify({
+                selectedBeamIndex: legParam.selectedBeamIndex,
+                selectedTypeIndex: legParam.selectedTypeIndex,
+                beamName: legParam.beams?.[legParam.selectedBeamIndex]?.translatedName,
+                beamConfiguration: legParam.beams?.[legParam.selectedBeamIndex]?.name
+            }, null, 2));
+        }
+        
         console.log('SAVE_PRO - Current product data:', JSON.stringify({
             productId: this.product?._id || this.product?.id || 'NO_ID',
             productName: this.product?.name || 'NO_NAME',
