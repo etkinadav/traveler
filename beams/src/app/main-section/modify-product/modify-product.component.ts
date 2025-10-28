@@ -1458,7 +1458,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     this.isBox = this.selectedProductName === 'box';
                     this.getProductByName(this.selectedProductName);
                 } else {
-        this.getProductById('68a186bb0717136a1a9245de');
+        this.getProductById('68a186bb0717136a1a9245de', 0); // טעינה עם configIndex=0 לקבלת קונפיגורציות שמורות
                 }
             }
         });
@@ -1474,77 +1474,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     
-    // פונקציה לעדכון פרמטרים לפי דגם משנה (configuration)
-    private updateParamsWithConfiguration(params: any[], configIndex: number, product: any): any[] {
-        this.debugLog(`CHACK-BEAM-MINI: [threejs-box] === עדכון פרמטרים למוצר: ${product.translatedName} (configuration #${configIndex}) ===`);
-        
-        return params.map((param: any) => {
-            const updatedParam = { ...param };
-            
-            // עדכון default לפי configurations
-            if (param.configurations && param.configurations[configIndex] !== undefined) {
-                this.debugLog(`CHACK-BEAM-MINI: [threejs-box] 📝 עדכון default עבור ${param.name}: ${param.default} -> ${param.configurations[configIndex]}`);
-                updatedParam.default = param.configurations[configIndex];
-            }
-            
-            // עדכון beamsConfigurations - מציאת הקורה לפי name
-            if (param.beamsConfigurations && param.beamsConfigurations[configIndex] && param.beams && param.beams.length > 0) {
-                const beamName = param.beamsConfigurations[configIndex];
-                
-                this.debugLog(`CHACK-BEAM-MINI: [threejs-box] 🔍 מחפש קורה עבור פרמטר: ${param.name}`);
-                this.debugLog(`CHACK-BEAM-MINI: [threejs-box]    📌 שם קורה מבוקש: "${beamName}"`);
-                this.debugLog(`CHACK-BEAM-MINI: [threejs-box]    📌 defaultType לפני עדכון:`, param.defaultType);
-                
-                // חיפוש הקורה ברשימת beams
-                let foundBeamId: string | null = null;
-                
-                for (const beamRef of param.beams) {
-                    const beamId = beamRef.$oid || beamRef._id || beamRef;
-                    
-                    // בדיקה לפי name
-                    if (beamRef.name === beamName) {
-                        foundBeamId = beamId;
-                        this.debugLog(`CHACK-BEAM-MINI: [threejs-box]    ✅ נמצאה קורה: ${beamRef.name} (ID: ${foundBeamId})`);
-                        break;
-                    }
-                }
-                
-                if (foundBeamId) {
-                    updatedParam.defaultType = { $oid: foundBeamId };
-                    this.debugLog(`CHACK-BEAM-MINI: [threejs-box]    ✨ defaultType עודכן ל: { $oid: "${foundBeamId}" }`);
-                } else {
-                    this.debugLog(`CHACK-BEAM-MINI: [threejs-box]    ❌ לא נמצאה קורה מתאימה - נשאר עם default`);
-                }
-            }
-            
-            return updatedParam;
-        });
-    }
-    
-    // פונקציה עזר לבחירת קורה לפי defaultType
-    private getBeamIndexByDefaultType(param: any): number {
-        let beamIndex = param.selectedBeamIndex || 0;
-        
-        // אם יש defaultType, מחפשים את הקורה המתאימה לפי ה-ID
-        if (param.defaultType && !param.selectedBeamIndex && param.beams && param.beams.length > 0) {
-            const defaultTypeId = param.defaultType.$oid || param.defaultType._id || param.defaultType;
-            const foundIndex = param.beams.findIndex((b: any) => {
-                const beamId = b._id || b.$oid;
-                return beamId === defaultTypeId;
-            });
-            if (foundIndex !== -1) {
-                beamIndex = foundIndex;
-                this.debugLog(`CHACK-BEAM-MINI: 🎯 בחירת קורת ${param.name} לפי defaultType: ${defaultTypeId} -> index ${beamIndex}`);
-            }
-        }
-        
-        return beamIndex;
-    }
-    
-    // פונקציה עזר ליצירת deep copy של פרמטרים
-    private deepCopyParams(params: any[]): any[] {
-        return JSON.parse(JSON.stringify(params));
-    }
     
     // משתנה לשמירת הפרמטרים המקוריים של הדגם (ללא הגדרות שמורות)
     private originalProductParams: any[] = [];
@@ -1585,9 +1514,22 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.product = data;
                 const prod: any = data;
                 
+                // 🎯 CRITICAL: שמירת הפרמטרים המקוריים לפני עדכון הקונפיגורציות
+                console.log('SAVE_PRO - Saving ORIGINAL params BEFORE applying configurations');
+                this.originalProductParams = this.deepCopyParams(prod.params || []);
+                console.log('SAVE_PRO - Original params saved:', JSON.stringify(this.originalProductParams.map(p => ({
+                    name: p.name,
+                    default: p.default,
+                    isArray: Array.isArray(p.default)
+                })), null, 2));
+
+                // איפוס משתני הלוגים כדי לראות נתונים מעודכנים
+                this.displayNameLogged = false;
+                this.paramChangedLogged = false;
+                
                 // אם זה תת-מוצר (יש configIndex), נעדכן את הפרמטרים לפי ה-configuration
                 if (configIndex !== undefined && prod.configurations && prod.configurations[configIndex]) {
-                    this.debugLog(`CHACK-BEAM-MINI: טעינת תת-מוצר configuration #${configIndex}: ${prod.configurations[configIndex].translatedName}`);
+                    console.log(`SAVE_PRO - Applying configuration #${configIndex}: ${prod.configurations[configIndex].translatedName}`);
                     prod.params = this.updateParamsWithConfiguration(prod.params, configIndex, prod);
                     prod.translatedName = prod.configurations[configIndex].translatedName;
                     prod.configurationName = prod.configurations[configIndex].name;
@@ -1596,8 +1538,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 // יצירת deep copy של הפרמטרים כדי למנוע שינוי של המקור
                 const paramsCopy = this.deepCopyParams(prod.params || []);
-                if (prod.params && prod.params.length > 0 && paramsCopy && paramsCopy.length > 0) {
-                }
+                console.log('SAVE_PRO - Created paramsCopy with loaded configurations:', JSON.stringify(paramsCopy.map(p => ({
+                    name: p.name,
+                    default: p.default,
+                    isArray: Array.isArray(p.default)
+                })), null, 2));
                 
                 this.params = paramsCopy.map((param) => {
                     // Set default selected beam and type for shelfs and beamSingle
@@ -9363,12 +9308,42 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 continue;
             }
 
-            // בדיקת ערך פרמטר - עם המרה למספרים לבדיקה מדויקת יותר
-            const originalValue = parseFloat(originalParam.default) || originalParam.default;
-            const currentValue = parseFloat(currentParam.default) || currentParam.default;
+            // בדיקת ערך פרמטר - עם טיפול מיוחד במערכים (beamArray)
+            if (Array.isArray(originalParam.default) || Array.isArray(currentParam.default)) {
+                // בדיקה מיוחדת עבור מערכים (כמו מדפים)
+                const originalArray = Array.isArray(originalParam.default) ? originalParam.default : [];
+                const currentArray = Array.isArray(currentParam.default) ? currentParam.default : [];
+                
+                // בדיקת אורך המערכים
+                if (originalArray.length !== currentArray.length) {
+                    return true;
+                }
+                
+                // בדיקת תוכן המערכים
+                for (let i = 0; i < originalArray.length; i++) {
+                    if (originalArray[i] !== currentArray[i]) {
+                        return true;
+                    }
+                }
+            } else {
+                // בדיקה רגילה עבור ערכים יחידים - עם טיפול ב-undefined
+                let originalValue = originalParam.default;
+                let currentValue = currentParam.default;
+                
+                // עבור ערכים מספריים - המרה לפלואט אם אפשר
+                if (typeof originalValue === 'string') {
+                    const parsedOriginal = parseFloat(originalValue);
+                    if (!isNaN(parsedOriginal)) originalValue = parsedOriginal;
+                }
+                
+                if (typeof currentValue === 'string') {
+                    const parsedCurrent = parseFloat(currentValue);
+                    if (!isNaN(parsedCurrent)) currentValue = parsedCurrent;
+                }
 
-            if (originalValue !== currentValue) {
-                return true;
+                if (originalValue !== currentValue) {
+                    return true;
+                }
             }
 
             // בדיקת אינדקס קורה
@@ -9393,6 +9368,77 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
 
         return false;
+    }
+
+    /**
+     * פונקציה לעדכון פרמטרים לפי דגם משנה (configuration)
+     */
+    private updateParamsWithConfiguration(params: any[], configIndex: number, product: any): any[] {
+        console.log(`SAVE_PRO - Loading configurations for product: ${product.translatedName} (config #${configIndex})`);
+        
+        return params.map((param: any) => {
+            const updatedParam = { ...param };
+            
+            // עדכון default לפי configurations - עבור beamArray ופרמטרים רגילים
+            if (param.configurations && param.configurations[configIndex] !== undefined) {
+                console.log(`SAVE_PRO - Loading saved value for ${param.name}:`, {
+                    from: param.default,
+                    to: param.configurations[configIndex],
+                    isArray: Array.isArray(param.configurations[configIndex])
+                });
+                updatedParam.default = param.configurations[configIndex];
+            }
+            
+            // עדכון beamsConfigurations - מציאת אינדקס הקורה הנכונה
+            if (param.beamsConfigurations && param.beamsConfigurations[configIndex] && param.beams && param.beams.length > 0) {
+                const beamConfigStr = param.beamsConfigurations[configIndex]; // e.g., "100-25"
+                console.log(`SAVE_PRO - Loading beam configuration for ${param.name}: ${beamConfigStr}`);
+                
+                // מציאת הקורה הנכונה לפי width-height
+                const [width, height] = beamConfigStr.split('-').map(Number);
+                const beamIndex = param.beams.findIndex((beam: any) => 
+                    beam.width === width && beam.types?.some((type: any) => type.height === height)
+                );
+                
+                if (beamIndex !== -1) {
+                    updatedParam.selectedBeamIndex = beamIndex;
+                    const typeIndex = param.beams[beamIndex].types?.findIndex((type: any) => type.height === height) || 0;
+                    updatedParam.selectedTypeIndex = typeIndex;
+                    console.log(`SAVE_PRO - Set beam for ${param.name}: beamIndex=${beamIndex}, typeIndex=${typeIndex}`);
+                }
+            }
+            
+            return updatedParam;
+        });
+    }
+
+    /**
+     * פונקציה ליצירת deep copy של פרמטרים
+     */
+    private deepCopyParams(params: any[]): any[] {
+        return JSON.parse(JSON.stringify(params));
+    }
+
+    /**
+     * פונקציה עזר לבחירת קורה לפי defaultType
+     */
+    private getBeamIndexByDefaultType(param: any): number {
+        let beamIndex = param.selectedBeamIndex || 0;
+        
+        // אם יש defaultType, מחפשים את הקורה המתאימה לפי ה-ID
+        if (param.defaultType && !param.selectedBeamIndex && param.beams && param.beams.length > 0) {
+            const defaultTypeId = param.defaultType.$oid || param.defaultType._id || param.defaultType;
+            const foundIndex = param.beams.findIndex((b: any) => {
+                const beamId = b._id || b.$oid;
+                return beamId === defaultTypeId;
+            });
+            if (foundIndex !== -1) {
+                beamIndex = foundIndex;
+                this.debugLog(`CHACK-BEAM-MINI: 🎯 בחירת קורת ${param.name} לפי defaultType: ${defaultTypeId} -> index ${beamIndex}`);
+            }
+        }
+        
+        return beamIndex;
     }
 
     /**

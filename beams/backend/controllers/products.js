@@ -101,6 +101,9 @@ exports.deleteProduct = async (req, res, next) => {
 };
 
 exports.saveChanges = async (req, res, next) => {
+    console.log('🔥🔥🔥 SAVE_PRO - URGENT - Backend saveChanges called! 🔥🔥🔥');
+    console.error('🔥🔥🔥 SAVE_PRO - URGENT - This should appear in console! 🔥🔥🔥');
+    
     try {
         const { 
             productId, 
@@ -352,6 +355,7 @@ function updateBeamSingleParameter(param, value, beamConfiguration, configIndex,
 }
 
 function updateBeamArrayParameter(param, value, beamConfiguration, configIndex, isNewModel) {
+    console.error('🎯🎯🎯 SAVE_PRO - CRITICAL - updateBeamArrayParameter called! 🎯🎯🎯');
     console.log(`SAVE_PRO - Updating beamArray parameter: ${param.name}`);
     console.log('SAVE_PRO - beamArray value received (full array):', JSON.stringify(value, null, 2));
     console.log('SAVE_PRO - beamArray beam configuration:', beamConfiguration);

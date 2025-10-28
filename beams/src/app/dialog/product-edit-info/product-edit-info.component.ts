@@ -597,6 +597,8 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
 
     // שליחה לבק-אנד
     console.log('SAVE_PRO - Sending HTTP POST request to /api/products/save-changes');
+    console.log('🌐🌐🌐 SAVE_PRO - IMPORTANT - About to send HTTP request! 🌐🌐🌐');
+    console.log('SAVE_PRO - Request URL will be:', window.location.origin + '/api/products/save-changes');
     this.http.post('/api/products/save-changes', dataToSend)
       .subscribe({
         next: (response: any) => {
