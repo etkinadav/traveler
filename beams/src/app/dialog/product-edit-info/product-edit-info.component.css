@@ -334,6 +334,7 @@
 .subtitle-flex {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-size: 0.9rem;
   color: #666;
