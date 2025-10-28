@@ -11,9 +11,59 @@
     <div class="dialog-content">
         <!-- כותרת -->
         <div class="dialog-header">
-            <h4 class="dialog-title" [class.text-white]="isDarkMode">
-                {{ getProductDisplayName() }}
-            </h4>
+            <!-- כותרת שם הדגם -->
+            <h5 class="section-title" [class.text-white]="isDarkMode">
+                {{ 'product-edit-info.model-name' | translate }}
+            </h5>
+            
+            <!-- שם המוצר עם כפתור עריכה -->
+            <div class="product-name-container">
+                <!-- מצב תצוגה -->
+                <div *ngIf="!isEditingName" class="name-display-container">
+                    <h4 class="dialog-title" [class.text-white]="isDarkMode">
+                        {{ getCurrentDisplayName() }}
+                    </h4>
+                    <button class="edit-name-btn" 
+                            (click)="startEditingName()"
+                            [matTooltip]="'product-edit-info.edit-name-tooltip' | translate"
+                            matTooltipPosition="below">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                </div>
+                
+                <!-- מצב עריכה -->
+                <div *ngIf="isEditingName" class="name-edit-container">
+                    <mat-form-field class="name-input-field" appearance="outline">
+                        <input matInput 
+                               [(ngModel)]="editedProductName" 
+                               [placeholder]="'product-edit-info.product-name-placeholder' | translate"
+                               (keyup.enter)="saveProductName()"
+                               (keyup.escape)="cancelEditingName()"
+                               #nameInput>
+                    </mat-form-field>
+                    <div class="edit-actions">
+                        <button class="save-btn" 
+                                (click)="saveProductName()" 
+                                [disabled]="!editedProductName.trim()">
+                            <mat-icon>check</mat-icon>
+                        </button>
+                        <button class="cancel-btn" (click)="cancelEditingName()">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- השם המקורי - מוצג רק אם שונה -->
+                <p class="original-name-text modified" 
+                   [class.text-white]="isDarkMode"
+                   *ngIf="isNameModified()">
+                    {{ 'product-edit-info.original-name' | translate }}: {{ originalProductName }}
+                </p>
+            </div>
+            
+            <!-- קו הפרדה -->
+            <div class="section-divider" [class.dark-mode]="isDarkMode"></div>
+            
             <p class="dialog-model" [class.text-white]="isDarkMode" *ngIf="product?.model">
                 דגם: {{ product.model }}
             </p>

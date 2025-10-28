@@ -1125,5 +1125,11 @@
   "shopping-cart.total-to-pay": "סה\"כ לתשלום:",
   "shopping-cart.proceed-to-checkout": "המשך לתשלום",
   "modify-product.warning-title": "שים לב!",
-  "modify-product.dimensions-alert-message": "מכיוון שהמוצר בנוי מקורות ללא רווח בניהן, גובה המוצר הסופי יהיה {{actualHeight}} ס\"מ, {{heightDifference}} ס\"מ {{heightDifferenceText}} ממה שהגדרת."
+  "modify-product.dimensions-alert-message": "מכיוון שהמוצר בנוי מקורות ללא רווח בניהן, גובה המוצר הסופי יהיה {{actualHeight}} ס\"מ, {{heightDifference}} ס\"מ {{heightDifferenceText}} ממה שהגדרת.",
+  "product-edit-info.edit-name-tooltip": "ערוך את שם המוצר",
+  "product-edit-info.product-name-placeholder": "הזן שם מוצר חדש",
+  "product-edit-info.original-name": "השם המקורי",
+  "product-edit-info.save-name": "שמור שם",
+  "product-edit-info.cancel-edit": "בטל עריכה",
+  "product-edit-info.model-name": "שם הדגם"
 }

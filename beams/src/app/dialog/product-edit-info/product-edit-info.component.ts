@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { DirectionService } from '../../direction.service';
@@ -19,7 +19,8 @@ export interface ProductEditInfoData {
   styleUrls: ['./product-edit-info.component.css'],
 })
 
-export class ProductEditInfoComponent implements OnInit, OnDestroy {
+export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('nameInput') nameInputRef: ElementRef;
   isRTL: boolean = true;
   private directionSubscription: Subscription;
   isDarkMode: boolean = false;
@@ -34,6 +35,12 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy {
   currentParams: any[] = [];
   currentConfiguration: any = {};
 
+  // עריכת שם המוצר
+  isEditingName: boolean = false;
+  editedProductName: string = '';
+  originalProductName: string = '';
+  currentDisplayName: string = ''; // השם הנוכחי שמוצג (יכול להשתנות)
+
   constructor(
     private directionService: DirectionService,
     private authService: AuthService,
@@ -43,6 +50,11 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy {
     this.product = data.product || {};
     this.currentParams = data.currentParams || [];
     this.currentConfiguration = data.currentConfiguration || {};
+    
+    // הגדרת השמות המקוריים והנוכחיים
+    this.originalProductName = this.product?.translatedName || this.product?.name || 'מוצר לא זמין';
+    this.currentDisplayName = this.originalProductName; // בהתחלה זהה למקורי
+    this.editedProductName = this.currentDisplayName;
   }
 
   async ngOnInit() {
@@ -68,6 +80,10 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy {
     this.logProductInformation();
 
     this.isLoading = false;
+  }
+
+  ngAfterViewInit() {
+    // לא צריך כלום כרגע
   }
 
   closeProductEditInfoDialog() {
@@ -146,10 +162,10 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * החזרת שם המוצר להצגה
+   * החזרת שם המוצר להצגה (השם הנוכחי, לא המקורי)
    */
   getProductDisplayName(): string {
-    return this.product?.translatedName || this.product?.name || 'מוצר לא זמין';
+    return this.currentDisplayName || 'מוצר לא זמין';
   }
 
   /**
@@ -261,5 +277,56 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy {
     
     // אחרת, כן צריך ערך נוכחי
     return true;
+  }
+
+  /**
+   * התחלת עריכת שם המוצר
+   */
+  startEditingName(): void {
+    this.isEditingName = true;
+    this.editedProductName = this.currentDisplayName;
+    
+    // התמקדות בשדה הטקסט אחרי שהוא נטען
+    setTimeout(() => {
+      if (this.nameInputRef) {
+        this.nameInputRef.nativeElement.focus();
+        this.nameInputRef.nativeElement.select();
+      }
+    }, 100);
+  }
+
+  /**
+   * ביטול עריכת שם המוצר
+   */
+  cancelEditingName(): void {
+    this.isEditingName = false;
+    this.editedProductName = this.currentDisplayName; // חזרה לערך הנוכחי
+  }
+
+  /**
+   * שמירת שם המוצר החדש
+   */
+  saveProductName(): void {
+    if (this.editedProductName.trim()) {
+      // עדכון השם הנוכחי לערך החדש
+      this.currentDisplayName = this.editedProductName.trim();
+      console.log('שם מוצר חדש נשמר:', this.currentDisplayName);
+      console.log('האם שונה מהמקורי:', this.isNameModified());
+      this.isEditingName = false;
+    }
+  }
+
+  /**
+   * קבלת השם הנוכחי להצגה
+   */
+  getCurrentDisplayName(): string {
+    return this.currentDisplayName;
+  }
+
+  /**
+   * בדיקה האם השם שונה מהמקורי
+   */
+  isNameModified(): boolean {
+    return this.currentDisplayName !== this.originalProductName;
   }
 }
