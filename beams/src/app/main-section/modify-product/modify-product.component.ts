@@ -54,6 +54,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // מצב עריכה - האם זה מוצר בעריכה או מוצר חדש
     isEditMode = false;
     
+    // משתנה למניעת לוגים חוזרים של getDisplayProductName
+    private displayNameLogged = false;
+    
+    // משתנה למניעת לוגים חוזרים של hasProductParametersChanged
+    private paramChangedLogged = false;
+    
     // קריאה ראשונית לבדיקת isEditMode
     checkIsEditModeInitialValue() {
     }
@@ -62,6 +68,43 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     private debugLog(...args: any[]): void {
         if (this.enableDebugLogs) {
         }
+    }
+    
+    // פונקציה לקבלת שם המוצר להצגה (מקורי או מותאם אישית)
+    // שימוש ב-getter כדי ש-Angular יעדכן אותו אוטומטית
+    get getDisplayProductName(): string {
+        // לוג חד פעמי בלבד כדי למנוע לוגים אינסופיים
+        if (!this.displayNameLogged) {
+            console.log('CHECK_IS_MODIFIED - getDisplayProductName called (first time only)');
+            console.log('CHECK_IS_MODIFIED - product exists:', !!this.product);
+            console.log('CHECK_IS_MODIFIED - selectedProductName:', this.selectedProductName);
+            console.log('CHECK_IS_MODIFIED - originalProductParams length:', this.originalProductParams?.length || 0);
+            console.log('CHECK_IS_MODIFIED - params length:', this.params?.length || 0);
+            this.displayNameLogged = true;
+        }
+        
+        if (!this.product) {
+            return this.selectedProductName || '';
+        }
+        
+        // בדיקה אם יש שינויים בפרמטרים מהמקור
+        const hasChanges = this.hasProductParametersChanged();
+        
+        if (!hasChanges) {
+            // מציגים את שם הקונפיגורציה (לדוגמה: "שולחן קפה קטן")
+            const configIndex = this.product.configurationIndex || 0;
+            const configs = this.product.configurations || [];
+            const configName = configs[configIndex]?.translatedName;
+            return configName || this.product.translatedName || this.selectedProductName || '';
+        }
+
+        // מותאם אישית: קובעים טיפוס יחיד מתוך singleNames לפי המפתח product בקונפיגורציה הנוכחית
+        const configIndex = this.product.configurationIndex || 0;
+        const configs = this.product.configurations || [];
+        const singleNames = this.product.singleNames || {};
+        const productKey = configs[configIndex]?.product;
+        const single = (productKey && singleNames[productKey]) ? singleNames[productKey] : (this.product.translatedName || this.selectedProductName || '');
+        return single ? `${single} בהתאמה אישית` : 'בהתאמה אישית';
     }
     
     // Performance timing helper - disabled for cleaner logs
@@ -1555,9 +1598,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     prod.configurationIndex = configIndex;
                 }
                 
-                // שמירת הפרמטרים המקוריים של הדגם (לפני כל שינוי)
-                this.originalProductParams = this.deepCopyParams(prod.params || []);
-                
                 // יצירת deep copy של הפרמטרים כדי למנוע שינוי של המקור
                 const paramsCopy = this.deepCopyParams(prod.params || []);
                 if (prod.params && prod.params.length > 0 && paramsCopy && paramsCopy.length > 0) {
@@ -1637,6 +1677,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 });
                 this.initParamsFromProduct();
                 
+                // איפוס משתני הלוגים כדי לראות נתונים מעודכנים
+                this.displayNameLogged = false;
+                this.paramChangedLogged = false;
+                
+                // שמירת הפרמטרים המקוריים של הדגם (אחרי init) עם כל הערכים
+                this.originalProductParams = this.deepCopyParams(this.params || []);
+                
                 // בדיקת מגבלות המוצר
                 this.checkProductRestrictions(prod);
                 
@@ -1692,6 +1739,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 // שמירת הפרמטרים המקוריים של הדגם (לפני כל שינוי)
                 this.originalProductParams = this.deepCopyParams(prod.params || []);
+                
+                // איפוס משתני הלוגים כדי לראות נתונים מעודכנים
+                this.displayNameLogged = false;
+                this.paramChangedLogged = false;
                 
                 // יצירת deep copy של הפרמטרים כדי למנוע שינוי של המקור
                 const paramsCopy = this.deepCopyParams(prod.params || []);
@@ -1769,6 +1820,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     return param;
                 });
                 this.initParamsFromProduct();
+                
+                // איפוס משתני הלוגים כדי לראות נתונים מעודכנים
+                this.displayNameLogged = false;
+                this.paramChangedLogged = false;
+                
+                // שמירת הפרמטרים המקוריים של הדגם (אחרי init) עם כל הערכים
+                this.originalProductParams = this.deepCopyParams(this.params || []);
                 
                 // בדיקת מגבלות המוצר
                 this.checkProductRestrictions(prod);
@@ -9266,6 +9324,26 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
      * בדיקה האם פרמטרים בסיסיים של המוצר השתנו מהמוצר המקורי
      */
     private hasProductParametersChanged(): boolean {
+        // לוג חד פעמי בלבד כדי למנוע לוגים אינסופיים
+        if (!this.paramChangedLogged) {
+            console.log('CHECK_IS_MODIFIED - hasProductParametersChanged called (first time only)');
+            console.log('CHECK_IS_MODIFIED - originalProductParams:', JSON.stringify(this.originalProductParams?.map(p => ({ 
+                name: p.name, 
+                default: p.default, 
+                isVisual: p.isVisual,
+                selectedBeamIndex: p.selectedBeamIndex,
+                selectedTypeIndex: p.selectedTypeIndex
+            })) || []));
+            console.log('CHECK_IS_MODIFIED - current params:', JSON.stringify(this.params?.map(p => ({ 
+                name: p.name, 
+                default: p.default, 
+                isVisual: p.isVisual,
+                selectedBeamIndex: p.selectedBeamIndex,
+                selectedTypeIndex: p.selectedTypeIndex
+            })) || []));
+            this.paramChangedLogged = true;
+        }
+        
         if (!this.originalProductParams || this.originalProductParams.length === 0) {
             return false;
         }
@@ -9292,7 +9370,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // בדיקת ערך פרמטר - עם המרה למספרים לבדיקה מדויקת יותר
             const originalValue = parseFloat(originalParam.default) || originalParam.default;
             const currentValue = parseFloat(currentParam.default) || currentParam.default;
-            
 
             if (originalValue !== currentValue) {
                 return true;
@@ -9303,7 +9380,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const originalBeamIndex = originalParam.selectedBeamIndex || 0;
                 const currentBeamIndex = currentParam.selectedBeamIndex || 0;
                 
-                
                 if (originalBeamIndex !== currentBeamIndex) {
                     return true;
                 }
@@ -9313,7 +9389,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             if (originalParam.selectedTypeIndex !== undefined || currentParam.selectedTypeIndex !== undefined) {
                 const originalTypeIndex = originalParam.selectedTypeIndex || 0;
                 const currentTypeIndex = currentParam.selectedTypeIndex || 0;
-                
                 
                 if (originalTypeIndex !== currentTypeIndex) {
                     return true;
