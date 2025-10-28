@@ -199,21 +199,6 @@
   font-size: 0.85rem;
 }
 
-/* כפתור רהיט חדש */
-.new-furniture-toggle {
-  margin-top: 10px;
-  text-align: center;
-}
-
-.new-furniture-toggle ::ng-deep .mat-slide-toggle-label {
-  font-size: 0.9rem;
-  color: #0066cc;
-  font-weight: 500;
-}
-
-.new-furniture-toggle.dark-mode ::ng-deep .mat-slide-toggle-label {
-  color: #66b3ff;
-}
 
 /* מיכל שמות קטגוריות */
 .category-names-section {

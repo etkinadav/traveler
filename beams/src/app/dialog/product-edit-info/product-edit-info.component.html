@@ -63,20 +63,6 @@
                    *ngIf="isNameModified()">
                     {{ 'product-edit-info.original-name' | translate }}: {{ originalProductName }}
                 </p>
-                
-                <!-- כפתור "רהיט חדש" - מוצג רק אם השם שונה -->
-                <div class="new-furniture-toggle" 
-                     *ngIf="isNameModified()"
-                     [class.dark-mode]="isDarkMode">
-                    <mat-slide-toggle 
-                        [(ngModel)]="isNewFurniture"
-                        (change)="toggleNewFurniture()"
-                        color="primary"
-                        [matTooltip]="'product-edit-info.new-furniture-tooltip' | translate"
-                        matTooltipPosition="below">
-                        {{ 'product-edit-info.new-furniture-label' | translate }}
-                    </mat-slide-toggle>
-                </div>
             </div>
             
             <!-- קו הפרדה -->

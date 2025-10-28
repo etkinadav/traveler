@@ -43,7 +43,6 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
   editedProductName: string = '';
   originalProductName: string = '';
   currentDisplayName: string = ''; // השם הנוכחי שמוצג (יכול להשתנות)
-  isNewFurniture: boolean = false; // האם רהיט חדש
 
   // עריכת שמות קטגוריות
   isEditingSingleName: boolean = false;
@@ -356,13 +355,6 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
     return this.currentDisplayName === this.originalProductName ? 'original' : 'new';
   }
 
-  /**
-   * החלפת מצב "רהיט חדש"
-   */
-  toggleNewFurniture(): void {
-    this.isNewFurniture = !this.isNewFurniture;
-    console.log('מצב רהיט חדש:', this.isNewFurniture);
-  }
 
   /**
    * אתחול שמות הקטגוריות על פי הקונפיגורציה הנוכחית
