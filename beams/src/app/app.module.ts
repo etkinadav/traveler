@@ -37,6 +37,7 @@ import { CopyScanComponent } from "./dialog/scan-copy/scan-copy.component";
 import { PropertyExplainComponent } from "./dialog/property-explain/property-explain.component";
 import { SuEditUserComponent } from "./dialog/su-edit-user/su-edit-user.component";
 import { DeleteCartConfirmationComponent } from "./dialog/delete-cart-confirmation/delete-cart-confirmation.component";
+import { ProductEditInfoComponent } from "./dialog/product-edit-info/product-edit-info.component";
 
 
 import { FileUploadModule } from 'ng2-file-upload';
@@ -65,6 +66,7 @@ import { ShoppingCartComponent } from './main-nav/shopping-cart/shopping-cart.co
     DeleteUserComponent,
     SuEditUserComponent,
     DeleteCartConfirmationComponent,
+    ProductEditInfoComponent,
     ShoppingCartComponent,
   ],
   imports: [

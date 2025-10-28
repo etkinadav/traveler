@@ -10,6 +10,7 @@ import { CopyScanComponent } from './scan-copy/scan-copy.component';
 import { PropertyExplainComponent } from './property-explain/property-explain.component';
 import { SuEditUserComponent } from './su-edit-user/su-edit-user.component';
 import { DeleteCartConfirmationComponent, DeleteCartConfirmationData } from './delete-cart-confirmation/delete-cart-confirmation.component';
+import { ProductEditInfoComponent, ProductEditInfoData } from './product-edit-info/product-edit-info.component';
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +26,7 @@ export class DialogService {
   private dialogPropertyExplainRef: MatDialogRef<PropertyExplainComponent> | null = null;
   private dialogSuEditUserRef: MatDialogRef<SuEditUserComponent> | null = null;
   private dialogDeleteCartConfirmationRef: MatDialogRef<DeleteCartConfirmationComponent> | null = null;
+  private dialogProductEditInfoRef: MatDialogRef<ProductEditInfoComponent> | null = null;
 
   constructor(
     private dialog: MatDialog,
@@ -170,7 +172,23 @@ export class DialogService {
     }
   }
 
-  // Edit Product Dialog
+  // Product Edit Info Dialog
+  onOpenProductEditInfoDialog(productData: ProductEditInfoData): void {
+    this.dialogProductEditInfoRef = this.dialog.open(ProductEditInfoComponent, {
+      panelClass: 'zx-product-edit-info-dialog',
+      data: productData,
+      maxWidth: '95vw',
+      width: 'auto',
+      maxHeight: '90vh',
+      minWidth: '800px'
+    });
+  }
+
+  onCloseProductEditInfoDialog(): void {
+    if (this.dialogProductEditInfoRef) {
+      this.dialogProductEditInfoRef.close();
+    }
+  }
 
   // =================
 }

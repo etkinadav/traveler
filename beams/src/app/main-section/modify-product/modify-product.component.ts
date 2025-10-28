@@ -217,7 +217,33 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // עריכת מוצר
     editProduct() {
-        // Edit product dialog removed
+        // יצירת אוביקט עם כל המידע הנוכחי של המוצר
+        const productData = {
+            product: this.product,
+            currentParams: this.params,
+            currentConfiguration: {
+                selectedProductName: this.selectedProductName,
+                isEditMode: this.isEditMode,
+                calculatedPrice: this.calculatedPrice,
+                finalPrice: this.getFinalPrice(),
+                beamsData: this.BeamsDataForPricing,
+                screwsData: this.ForgingDataForPricing,
+                isBeamsEnabled: this.isBeamsEnabled,
+                isCuttingEnabled: this.isCuttingEnabled,
+                isScrewsEnabled: this.isScrewsEnabled,
+                productType: {
+                    isTable: this.isTable,
+                    isPlanter: this.isPlanter,
+                    isBox: this.isBox,
+                    isBelams: this.isBelams,
+                    isFuton: this.isFuton
+                },
+                originalProductParams: this.originalProductParams
+            }
+        };
+
+        // פתיחת הדיאלוג עם המידע
+        this.dialogService.onOpenProductEditInfoDialog(productData);
     }
     
     // פתיחה/סגירה של תפריט אפשרויות נוספות

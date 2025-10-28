@@ -1,0 +1,97 @@
+<div class="h-100 w-100 d-flex flex-column flex-grow-1 overflow-auto">
+
+    <div class="position-absolute w-100 d-flex" [class.justify-content-end]="isRTL">
+        <button type="button" mat-icon-button aria-label="Close dialog" (click)="closeProductEditInfoDialog()"
+            class="close-icon d-flex align-items-center justify-content-center" [class.text-white]="isDarkMode">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <!-- תוכן הדיאלוג -->
+    <div class="dialog-content">
+        <!-- כותרת -->
+        <div class="dialog-header">
+            <h4 class="dialog-title" [class.text-white]="isDarkMode">
+                {{ getProductDisplayName() }}
+            </h4>
+            <p class="dialog-model" [class.text-white]="isDarkMode" *ngIf="product?.model">
+                דגם: {{ product.model }}
+            </p>
+            <p class="dialog-subtitle" [class.text-white]="isDarkMode">
+                {{ getVisibleParams().length }} פרמטרים פעילים
+            </p>
+        </div>
+
+        <!-- תצוגת הפרמטרים -->
+        <div class="parameters-grid" *ngIf="!isLoading">
+            <div class="parameter-card" 
+                 *ngFor="let param of getVisibleParams()" 
+                 [class.dark-mode]="isDarkMode">
+                
+                <!-- כותרת הפרמטר -->
+                <div class="param-header">
+                    <h5 class="param-name">{{ param.translatedName || param.name }}</h5>
+                    <span class="param-type">{{ getParameterTypeText(param) }}</span>
+                </div>
+
+                <!-- תוכן הפרמטר -->
+                <div class="param-content">
+                    
+                    <!-- פרמטר מספרי רגיל -->
+                    <div *ngIf="!isArrayParameter(param) && !hasBeamSelection(param)" class="param-info">
+                        <div class="info-row">
+                            <span class="info-label">ערך נוכחי:</span>
+                            <span class="info-value">{{ formatParameterValue(param) }}</span>
+                        </div>
+                        <div class="info-row" *ngIf="param.min !== undefined && param.max !== undefined">
+                            <span class="info-label range-label">טווח:</span>
+                            <span class="info-value range-value">{{ param.min }} - {{ param.max }} {{ param.unit || '' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- פרמטר עם בחירת קורה -->
+                    <div *ngIf="hasBeamSelection(param)" class="param-info">
+                        <div class="info-row">
+                            <span class="info-label">סוג קורה:</span>
+                            <span class="info-value">{{ getSelectedBeamName(param) }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">סוג עץ:</span>
+                            <span class="info-value">{{ getSelectedWoodType(param) }}</span>
+                        </div>
+                        <div class="info-row" *ngIf="!isArrayParameter(param) && needsValueDisplay(param)">
+                            <span class="info-label">ערך נוכחי:</span>
+                            <span class="info-value">{{ formatParameterValue(param) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- פרמטר מערך (כמו מדפים) -->
+                    <div *ngIf="isArrayParameter(param)" class="param-info">
+                        <div class="array-values" *ngIf="param.default && param.default.length > 0">
+                            <div class="array-label">ערכים:</div>
+                            <div class="array-items">
+                                <span class="array-item" *ngFor="let value of param.default; let i = index">
+                                    {{ i + 1 }}. {{ value }}{{ param.unit ? ' ' + param.unit : '' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- הודעה על פרמטרים מוסתרים -->
+        <div class="hidden-params-info" *ngIf="getHiddenParamsCount() > 0" [class.dark-mode]="isDarkMode">
+            <small>{{ getHiddenParamsCount() }} פרמטרים נוספים מוסתרים (isVisual)</small>
+        </div>
+
+        <!-- מצב טעינה -->
+        <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">טוען...</span>
+            </div>
+        </div>
+    </div>
+
+</div>
