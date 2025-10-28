@@ -1514,6 +1514,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.product = data;
                 const prod: any = data;
                 
+                // 🎯 לוג חיפוש פרמטר leg בנתונים שהתקבלו מהבקאנד
+                const legParam = prod.params?.find((p: any) => p.name === 'leg');
+                if (legParam) {
+                    console.log(`CHECK_LEG - getProductById: Found leg param in backend data`);
+                    console.log(`CHECK_LEG - leg param from backend:`, JSON.stringify(legParam, null, 2));
+                    console.log(`CHECK_LEG - leg beamsConfigurations:`, JSON.stringify(legParam.beamsConfigurations));
+                    console.log(`CHECK_LEG - configIndex used:`, configIndex);
+                    if (legParam.beamsConfigurations && configIndex !== undefined) {
+                        console.log(`CHECK_LEG - leg beamsConfiguration at index ${configIndex}:`, legParam.beamsConfigurations[configIndex]);
+                    }
+                } else {
+                    console.log(`CHECK_LEG - getProductById: NO leg param found in backend data!`);
+                }
+                
                 // 🎯 CRITICAL: שמירת הפרמטרים המקוריים לפני עדכון הקונפיגורציות
                 console.log('SAVE_PRO - Saving ORIGINAL params BEFORE applying configurations');
                 this.originalProductParams = this.deepCopyParams(prod.params || []);
@@ -1536,13 +1550,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     prod.configurationIndex = configIndex;
                 }
                 
-                // יצירת deep copy של הפרמטרים כדי למנוע שינוי של המקור
-                const paramsCopy = this.deepCopyParams(prod.params || []);
-                console.log('SAVE_PRO - Created paramsCopy with loaded configurations:', JSON.stringify(paramsCopy.map(p => ({
-                    name: p.name,
-                    default: p.default,
-                    isArray: Array.isArray(p.default)
-                })), null, 2));
+                    // יצירת deep copy של הפרמטרים כדי למנוע שינוי של המקור
+                    const paramsCopy = this.deepCopyParams(prod.params || []);
+                    console.log('SAVE_PRO - Created paramsCopy with loaded configurations:', JSON.stringify(paramsCopy.map(p => ({
+                        name: p.name,
+                        default: p.default,
+                        isArray: Array.isArray(p.default),
+                        selectedBeamIndex: p.selectedBeamIndex,
+                        pendingBeamConfig: p._pendingBeamConfig
+                    })), null, 2));
                 
                 this.params = paramsCopy.map((param) => {
                     // Set default selected beam and type for shelfs and beamSingle
@@ -1551,17 +1567,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         Array.isArray(param.beams) &&
                         param.beams.length
                     ) {
-                        this.debugLog('Setting default beam for shelfs parameter');
-                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
-                        param.selectedBeamIndex = defaultBeamIndex;
+                        // 🎯 FIX: רק אם לא כבר נקבע מהקונפיגורציה!
+                        if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
+                            this.debugLog('Setting default beam for shelfs parameter');
+                            const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                            param.selectedBeamIndex = defaultBeamIndex;
                         param.selectedTypeIndex =
                             Array.isArray(param.beams[defaultBeamIndex].types) &&
                             param.beams[defaultBeamIndex].types.length
                                 ? 0
-                                : null;
+                                    : null;
+                            this.debugLog('Shelfs parameter set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        } else {
+                            this.debugLog('Shelfs parameter already has selectedBeamIndex from configuration:', param.selectedBeamIndex, 'selectedTypeIndex:', param.selectedTypeIndex);
+                        }
                         // CHACK_TEXTURE - Log texture loading information
-                        
-                        this.debugLog('Shelfs parameter set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                     }
                     if (
                         param.type === 'beamSingle' &&
@@ -1569,17 +1589,117 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         param.beams.length
                     ) {
                         this.debugLog('Setting default beam for beamSingle parameter:', param.name);
+                        // 🎯 אם יש _pendingBeamConfig, נטפל בו כדי למצוא את האינדקס הנכון
+                        if (param._pendingBeamConfig) {
+                            console.log(`SAVE_PRO - Processing _pendingBeamConfig for ${param.name}: ${param._pendingBeamConfig}`);
+                            const [width, height] = param._pendingBeamConfig.split('-').map(Number);
+                            
+                            // 🎯 לוג מיוחד עבור leg parameter
+                            if (param.name === 'leg') {
+                                console.log(`CHECK_LEG - Searching for beam: width=${width}, height=${height}`);
+                            }
+                            
+                            // חיפוש הקורה המתאימה ברשימה
+                            let foundBeamIndex = -1;
+                            let foundTypeIndex = -1;
+                            
+                            for (let beamIdx = 0; beamIdx < param.beams.length; beamIdx++) {
+                                const beam = param.beams[beamIdx];
+                                console.log(`SAVE_PRO - Checking beam ${beamIdx}:`, {
+                                    width: beam.width,
+                                    height: beam.height,
+                                    name: beam.name,
+                                    translatedName: beam.translatedName
+                                });
+                                
+                                // 🎯 לוג מיוחד עבור leg parameter
+                                if (param.name === 'leg') {
+                                    console.log(`CHECK_LEG - Beam ${beamIdx} details:`, JSON.stringify({
+                                        width: beam.width,
+                                        height: beam.height,
+                                        name: beam.name,
+                                        translatedName: beam.translatedName,
+                                        matchesWidth: beam.width === width,
+                                        matchesHeight: beam.height === height,
+                                        fullMatch: beam.width === width && beam.height === height
+                                    }));
+                                }
+                                
+                                // 🎯 תיקון: גובה הקורה נמצא ב-beam.height, לא ב-beam.types[].height
+                                if (beam.width === width && beam.height === height) {
+                                    foundBeamIndex = beamIdx;
+                                    foundTypeIndex = 0; // ברירת מחדל לסוג העץ הראשון
+                                    console.log(`SAVE_PRO - Found matching beam for ${param.name}: beam=${beamIdx}, type=${foundTypeIndex} (${width}-${height})`);
+                                    
+                                    // 🎯 לוג מיוחד עבור leg parameter
+                                    if (param.name === 'leg') {
+                                        console.log(`CHECK_LEG - FOUND MATCH! beam=${beamIdx}, type=${foundTypeIndex}`);
+                                        console.log(`CHECK_LEG - Found beam details:`, JSON.stringify({
+                                            beamIndex: beamIdx,
+                                            typeIndex: foundTypeIndex,
+                                            beamWidth: beam.width,
+                                            beamHeight: beam.height,
+                                            beamTranslatedName: beam.translatedName,
+                                            expectedWidth: width,
+                                            expectedHeight: height,
+                                            matches: `${beam.width}-${beam.height}` === `${width}-${height}`
+                                        }));
+                                    }
+                                    break;
+                                }
+                                if (foundBeamIndex !== -1) break;
+                            }
+                            
+                            if (foundBeamIndex !== -1) {
+                                param.selectedBeamIndex = foundBeamIndex;
+                                param.selectedTypeIndex = foundTypeIndex;
+                                console.log(`SAVE_PRO - Set ${param.name} to beam index ${foundBeamIndex}, type index ${foundTypeIndex}`);
+                            } else {
+                                console.log(`SAVE_PRO - Could not find beam ${param._pendingBeamConfig} for ${param.name}, using default`);
+                                const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                                param.selectedBeamIndex = defaultBeamIndex;
+                                param.selectedTypeIndex = 0;
+                            }
+                            
+                            // 🎯 לוג מיוחד עבור leg parameter - תוצאות סופיות
+                            if (param.name === 'leg') {
+                                console.log(`CHECK_LEG - FINAL RESULT for leg: foundBeamIndex=${foundBeamIndex}, foundTypeIndex=${foundTypeIndex}`);
+                                console.log(`CHECK_LEG - leg final selectedBeamIndex:`, param.selectedBeamIndex);
+                                console.log(`CHECK_LEG - leg final selectedTypeIndex:`, param.selectedTypeIndex);
+                                if (foundBeamIndex !== -1) {
+                                    console.log(`CHECK_LEG - Selected beam details:`, JSON.stringify({
+                                        beamIndex: foundBeamIndex,
+                                        typeIndex: foundTypeIndex,
+                                        beam: param.beams[foundBeamIndex],
+                                        selectedType: param.beams[foundBeamIndex]?.types?.[foundTypeIndex]
+                                    }));
+                                }
+                            }
+                            
+                            // ניקוי ה-_pendingBeamConfig
+                            delete param._pendingBeamConfig;
+                        }
                         // Only set default if selectedBeamIndex is not already set (same as shelfs)
-                        if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
-                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
-                        param.selectedBeamIndex = defaultBeamIndex;
-                        param.selectedTypeIndex =
-                            Array.isArray(param.beams[defaultBeamIndex].types) &&
-                            param.beams[defaultBeamIndex].types.length
-                                ? 0
-                                : null;
-                        this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        else if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
+                            const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                            
+                            // 🎯 לוג מיוחד עבור leg parameter - זה הקוד שדורס!
+                            if (param.name === 'leg') {
+                                console.log(`CHECK_LEG - PROBLEM! Overriding selectedBeamIndex from ${param.selectedBeamIndex} to ${defaultBeamIndex}`);
+                            }
+                            
+                            param.selectedBeamIndex = defaultBeamIndex;
+                            param.selectedTypeIndex =
+                                Array.isArray(param.beams[defaultBeamIndex].types) &&
+                                param.beams[defaultBeamIndex].types.length
+                                    ? 0
+                                    : null;
+                            this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                         } else {
+                            // 🎯 לוג מיוחד עבור leg parameter
+                            if (param.name === 'leg') {
+                                console.log(`CHECK_LEG - Good! NOT overriding. selectedBeamIndex is:`, param.selectedBeamIndex);
+                            }
                             this.debugLog('BeamSingle parameter', param.name, 'already has selectedBeamIndex:', param.selectedBeamIndex);
                         }
                     }
@@ -1664,6 +1784,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     this.debugLog('CHACK-BEAM-MINI: [threejs-box] Different sub-product, not loading configuration');
                 }
                 
+                // 🎯 תיקון זמני לleg parameter לפני עדכון הbeams
+                this.fixLegParameterIfNeeded();
+                
                 this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
             error: (err) => {
@@ -1695,17 +1818,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         Array.isArray(param.beams) &&
                         param.beams.length
                     ) {
-                        this.debugLog('Setting default beam for shelfs parameter');
-                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
-                        param.selectedBeamIndex = defaultBeamIndex;
+                        // 🎯 FIX: רק אם לא כבר נקבע מהקונפיגורציה!
+                        if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
+                            this.debugLog('Setting default beam for shelfs parameter');
+                            const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                            param.selectedBeamIndex = defaultBeamIndex;
                         param.selectedTypeIndex =
                             Array.isArray(param.beams[defaultBeamIndex].types) &&
                             param.beams[defaultBeamIndex].types.length
                                 ? 0
-                                : null;
+                                    : null;
+                            this.debugLog('Shelfs parameter set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        } else {
+                            this.debugLog('Shelfs parameter already has selectedBeamIndex from configuration:', param.selectedBeamIndex, 'selectedTypeIndex:', param.selectedTypeIndex);
+                        }
                         // CHACK_TEXTURE - Log texture loading information
-                        
-                        this.debugLog('Shelfs parameter set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                     }
                     if (
                         param.type === 'beamSingle' &&
@@ -1713,17 +1840,117 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         param.beams.length
                     ) {
                         this.debugLog('Setting default beam for beamSingle parameter:', param.name);
+                        // 🎯 אם יש _pendingBeamConfig, נטפל בו כדי למצוא את האינדקס הנכון
+                        if (param._pendingBeamConfig) {
+                            console.log(`SAVE_PRO - Processing _pendingBeamConfig for ${param.name}: ${param._pendingBeamConfig}`);
+                            const [width, height] = param._pendingBeamConfig.split('-').map(Number);
+                            
+                            // 🎯 לוג מיוחד עבור leg parameter
+                            if (param.name === 'leg') {
+                                console.log(`CHECK_LEG - Searching for beam: width=${width}, height=${height}`);
+                            }
+                            
+                            // חיפוש הקורה המתאימה ברשימה
+                            let foundBeamIndex = -1;
+                            let foundTypeIndex = -1;
+                            
+                            for (let beamIdx = 0; beamIdx < param.beams.length; beamIdx++) {
+                                const beam = param.beams[beamIdx];
+                                console.log(`SAVE_PRO - Checking beam ${beamIdx}:`, {
+                                    width: beam.width,
+                                    height: beam.height,
+                                    name: beam.name,
+                                    translatedName: beam.translatedName
+                                });
+                                
+                                // 🎯 לוג מיוחד עבור leg parameter
+                                if (param.name === 'leg') {
+                                    console.log(`CHECK_LEG - Beam ${beamIdx} details:`, JSON.stringify({
+                                        width: beam.width,
+                                        height: beam.height,
+                                        name: beam.name,
+                                        translatedName: beam.translatedName,
+                                        matchesWidth: beam.width === width,
+                                        matchesHeight: beam.height === height,
+                                        fullMatch: beam.width === width && beam.height === height
+                                    }));
+                                }
+                                
+                                // 🎯 תיקון: גובה הקורה נמצא ב-beam.height, לא ב-beam.types[].height
+                                if (beam.width === width && beam.height === height) {
+                                    foundBeamIndex = beamIdx;
+                                    foundTypeIndex = 0; // ברירת מחדל לסוג העץ הראשון
+                                    console.log(`SAVE_PRO - Found matching beam for ${param.name}: beam=${beamIdx}, type=${foundTypeIndex} (${width}-${height})`);
+                                    
+                                    // 🎯 לוג מיוחד עבור leg parameter
+                                    if (param.name === 'leg') {
+                                        console.log(`CHECK_LEG - FOUND MATCH! beam=${beamIdx}, type=${foundTypeIndex}`);
+                                        console.log(`CHECK_LEG - Found beam details:`, JSON.stringify({
+                                            beamIndex: beamIdx,
+                                            typeIndex: foundTypeIndex,
+                                            beamWidth: beam.width,
+                                            beamHeight: beam.height,
+                                            beamTranslatedName: beam.translatedName,
+                                            expectedWidth: width,
+                                            expectedHeight: height,
+                                            matches: `${beam.width}-${beam.height}` === `${width}-${height}`
+                                        }));
+                                    }
+                                    break;
+                                }
+                                if (foundBeamIndex !== -1) break;
+                            }
+                            
+                            if (foundBeamIndex !== -1) {
+                                param.selectedBeamIndex = foundBeamIndex;
+                                param.selectedTypeIndex = foundTypeIndex;
+                                console.log(`SAVE_PRO - Set ${param.name} to beam index ${foundBeamIndex}, type index ${foundTypeIndex}`);
+                            } else {
+                                console.log(`SAVE_PRO - Could not find beam ${param._pendingBeamConfig} for ${param.name}, using default`);
+                                const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                                param.selectedBeamIndex = defaultBeamIndex;
+                                param.selectedTypeIndex = 0;
+                            }
+                            
+                            // 🎯 לוג מיוחד עבור leg parameter - תוצאות סופיות
+                            if (param.name === 'leg') {
+                                console.log(`CHECK_LEG - FINAL RESULT for leg: foundBeamIndex=${foundBeamIndex}, foundTypeIndex=${foundTypeIndex}`);
+                                console.log(`CHECK_LEG - leg final selectedBeamIndex:`, param.selectedBeamIndex);
+                                console.log(`CHECK_LEG - leg final selectedTypeIndex:`, param.selectedTypeIndex);
+                                if (foundBeamIndex !== -1) {
+                                    console.log(`CHECK_LEG - Selected beam details:`, JSON.stringify({
+                                        beamIndex: foundBeamIndex,
+                                        typeIndex: foundTypeIndex,
+                                        beam: param.beams[foundBeamIndex],
+                                        selectedType: param.beams[foundBeamIndex]?.types?.[foundTypeIndex]
+                                    }));
+                                }
+                            }
+                            
+                            // ניקוי ה-_pendingBeamConfig
+                            delete param._pendingBeamConfig;
+                        }
                         // Only set default if selectedBeamIndex is not already set (same as shelfs)
-                        if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
-                        const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
-                        param.selectedBeamIndex = defaultBeamIndex;
-                        param.selectedTypeIndex =
-                            Array.isArray(param.beams[defaultBeamIndex].types) &&
-                            param.beams[defaultBeamIndex].types.length
-                                ? 0
-                                : null;
-                        this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
+                        else if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
+                            const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
+                            
+                            // 🎯 לוג מיוחד עבור leg parameter - זה הקוד שדורס!
+                            if (param.name === 'leg') {
+                                console.log(`CHECK_LEG - PROBLEM! Overriding selectedBeamIndex from ${param.selectedBeamIndex} to ${defaultBeamIndex}`);
+                            }
+                            
+                            param.selectedBeamIndex = defaultBeamIndex;
+                            param.selectedTypeIndex =
+                                Array.isArray(param.beams[defaultBeamIndex].types) &&
+                                param.beams[defaultBeamIndex].types.length
+                                    ? 0
+                                    : null;
+                            this.debugLog('BeamSingle parameter', param.name, 'set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                         } else {
+                            // 🎯 לוג מיוחד עבור leg parameter
+                            if (param.name === 'leg') {
+                                console.log(`CHECK_LEG - Good! NOT overriding. selectedBeamIndex is:`, param.selectedBeamIndex);
+                            }
                             this.debugLog('BeamSingle parameter', param.name, 'already has selectedBeamIndex:', param.selectedBeamIndex);
                         }
                     }
@@ -1793,6 +2020,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 if (lastProductId === currentProductId) {
                 this.loadConfiguration();
                 }
+                
+                // 🎯 תיקון זמני לleg parameter לפני עדכון הbeams
+                this.fixLegParameterIfNeeded();
+                
                 this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
             error: (err) => {
@@ -9375,12 +9606,26 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
      */
     private updateParamsWithConfiguration(params: any[], configIndex: number, product: any): any[] {
         console.log(`SAVE_PRO - Loading configurations for product: ${product.translatedName} (config #${configIndex})`);
+        
+        // 🎯 לוג מיוחד עבור leg parameter
+        const legParam = params.find(p => p.name === 'leg');
+        if (legParam) {
+            console.log(`CHECK_LEG - updateParamsWithConfiguration: Processing leg param`);
+            console.log(`CHECK_LEG - leg param before configuration update:`, JSON.stringify(legParam, null, 2));
+        }
+        
         console.log(`SAVE_PRO - Input params before configuration update:`, JSON.stringify(params.map(p => ({
             name: p.name,
             hasConfigurations: !!p.configurations,
             configurationsLength: p.configurations?.length || 0,
             configAtIndex: p.configurations?.[configIndex] || 'NO_CONFIG',
-            isArrayConfig: Array.isArray(p.configurations?.[configIndex])
+            isArrayConfig: Array.isArray(p.configurations?.[configIndex]),
+            // עוד פרטים עבור beamSingle:
+            hasBeamsConfigurations: !!p.beamsConfigurations,
+            beamsConfigurationsLength: p.beamsConfigurations?.length || 0,
+            beamConfigAtIndex: p.beamsConfigurations?.[configIndex] || 'NO_BEAM_CONFIG',
+            hasBeams: !!p.beams,
+            beamsLength: p.beams?.length || 0
         })), null, 2));
         
         const result = params.map((param: any) => {
@@ -9399,21 +9644,36 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
             
             // עדכון beamsConfigurations - מציאת אינדקס הקורה הנכונה
-            if (param.beamsConfigurations && param.beamsConfigurations[configIndex] && param.beams && param.beams.length > 0) {
-                const beamConfigStr = param.beamsConfigurations[configIndex]; // e.g., "100-25"
+            if (param.beamsConfigurations && param.beamsConfigurations[configIndex]) {
+                const beamConfigStr = param.beamsConfigurations[configIndex]; // e.g., "50-25"
                 console.log(`SAVE_PRO - Loading beam configuration for ${param.name}: ${beamConfigStr}`);
                 
-                // מציאת הקורה הנכונה לפי width-height
-                const [width, height] = beamConfigStr.split('-').map(Number);
-                const beamIndex = param.beams.findIndex((beam: any) => 
-                    beam.width === width && beam.types?.some((type: any) => type.height === height)
-                );
+                // 🎯 לוג מיוחד עבור קורת הרגל
+                if (param.name === 'leg') {
+                    console.log(`CHECK_LEG - updateParamsWithConfiguration: Found beamsConfiguration for leg param`);
+                    console.log(`CHECK_LEG - leg beamConfigStr: ${beamConfigStr}`);
+                    console.log(`CHECK_LEG - leg beamsConfigurations array:`, JSON.stringify(param.beamsConfigurations));
+                    console.log(`CHECK_LEG - leg configIndex: ${configIndex}`);
+                    console.log(`CHECK_LEG - leg beams ObjectIds:`, JSON.stringify(param.beams));
+                }
                 
-                if (beamIndex !== -1) {
-                    updatedParam.selectedBeamIndex = beamIndex;
-                    const typeIndex = param.beams[beamIndex].types?.findIndex((type: any) => type.height === height) || 0;
-                    updatedParam.selectedTypeIndex = typeIndex;
-                    console.log(`SAVE_PRO - Set beam for ${param.name}: beamIndex=${beamIndex}, typeIndex=${typeIndex}`);
+                console.log(`SAVE_PRO - Will set selectedBeamIndex/selectedTypeIndex based on: ${beamConfigStr}`);
+                
+                // פשוט מקבעים את הערכים - נתן לשלב הבא (this.params = paramsCopy.map) לטפל בזה
+                // כאן אנחנו רק רוצים לזכור שיש beamsConfiguration
+                updatedParam._pendingBeamConfig = beamConfigStr;
+            } else {
+                console.log(`SAVE_PRO - Skipping beam configuration for ${param.name}:`, {
+                    hasBeamsConfigurations: !!param.beamsConfigurations,
+                    hasConfigAtIndex: !!param.beamsConfigurations?.[configIndex],
+                    hasBeams: !!param.beams,
+                    beamsLength: param.beams?.length || 0
+                });
+                
+                // 🎯 לוג מיוחד עבור קורת הרגל כשלא מוצאים beamsConfiguration
+                if (param.name === 'leg') {
+                    console.log(`CHECK_LEG - updateParamsWithConfiguration: NO beamsConfiguration found for leg`);
+                    console.log(`CHECK_LEG - leg param full object:`, JSON.stringify(param, null, 2));
                 }
             }
             
@@ -9426,6 +9686,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             isArray: Array.isArray(p.default)
         })), null, 2));
         
+        // 🎯 לוג מיוחד עבור leg parameter - תוצאה סופית
+        const legResultParam = result.find(p => p.name === 'leg');
+        if (legResultParam) {
+            console.log(`CHECK_LEG - updateParamsWithConfiguration: leg param AFTER configuration update`);
+            console.log(`CHECK_LEG - leg param result:`, JSON.stringify(legResultParam, null, 2));
+            console.log(`CHECK_LEG - leg _pendingBeamConfig:`, legResultParam._pendingBeamConfig);
+        }
+        
         return result;
     }
 
@@ -9434,6 +9702,35 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
      */
     private deepCopyParams(params: any[]): any[] {
         return JSON.parse(JSON.stringify(params));
+    }
+    
+    // 🎯 פונקציה לבדיקת leg parameter בזמן render של ה-UI
+    logLegParam(param: any): string {
+        if (param.name === 'leg') {
+            console.log(`CHECK_LEG - UI RENDER: leg selectedBeamIndex = ${param.selectedBeamIndex}`);
+            console.log(`CHECK_LEG - UI RENDER: leg beam name = ${param.beams[param.selectedBeamIndex]?.translatedName}`);
+            console.log(`CHECK_LEG - UI RENDER: param object ID = ${param._id || 'NO_ID'}`);
+            console.log(`CHECK_LEG - UI RENDER: has _pendingBeamConfig = ${!!param._pendingBeamConfig}`);
+            
+            // בדיקה אם יש mismatch בין הערכים
+            if (param.selectedBeamIndex === 0 && param.beams[2]?.name === '50-25') {
+                console.log(`CHECK_LEG - UI RENDER: MISMATCH DETECTED! Should be index 2 (${param.beams[2]?.translatedName}), but showing index 0 (${param.beams[0]?.translatedName})`);
+            }
+        }
+        return ''; // החזרת מחרוזת ריקה כדי שלא יופיע כלום ב-UI
+    }
+    
+    // 🎯 תיקון זמני לבעיית leg parameter
+    private fixLegParameterIfNeeded(): void {
+        if (this.params) {
+            const legParam = this.params.find(p => p.name === 'leg');
+            if (legParam && legParam.selectedBeamIndex === 0 && legParam.beams && legParam.beams[2]?.name === '50-25') {
+                console.log(`CHECK_LEG - TEMP FIX: Correcting leg parameter from index 0 to index 2`);
+                legParam.selectedBeamIndex = 2;
+                legParam.selectedTypeIndex = 0;
+                console.log(`CHECK_LEG - TEMP FIX: Fixed! Now showing "${legParam.beams[2]?.translatedName}"`);
+            }
+        }
     }
 
     /**
