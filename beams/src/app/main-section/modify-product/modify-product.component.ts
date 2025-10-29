@@ -48,6 +48,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // משתנה למניעת לוגים חוזרים של animate
     private animationLogged = false;
     
+    // משתנה למניעת לוג חוזר של קורת רגל מיטה
+    private futonLegBeamLogged = false;
+    
     // Performance tracking
     private performanceTimers: Map<string, number> = new Map();
     
@@ -3046,6 +3049,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
     updateBeams(isInitialLoad: boolean = false) {
         
+        // 🎯 איפוס משתני לוגים חד פעמיים
+        this.futonLegBeamLogged = false;
+        
         // CHACH_ALLERT - Log when updateBeams is called
         
         // CHACK_TEXTURE - Log parameter state at start of updateBeams
@@ -3619,8 +3625,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         if (this.isFuton) {
             // עבור בסיס מיטה - דומה לשולחן אבל עם גובה שונה
+            console.log('CHECK_FUTON_LEG - updateBeams: isFuton=true, קורא ל-createFutonBeams');
             this.createFutonBeams();
             
+        } else {
+            console.log('CHECK_FUTON_LEG - updateBeams: isFuton=false, לא יוצר מיטה', JSON.stringify({
+                isTable: this.isTable,
+                isPlanter: this.isPlanter,
+                isBox: this.isBox,
+                isBelams: this.isBelams,
+                isFuton: this.isFuton,
+                productName: this.product?.name
+            }, null, 2));
         }
         
         if (this.isPlanter || this.isBox) {
@@ -9473,6 +9489,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // פונקציה ליצירת קורות בסיס מיטה
     private createFutonBeams() {
+        console.log('CHECK_FUTON_LEG - createFutonBeams נקראה!');
         this.debugLog('יצירת קורות בסיס מיטה...');
         
         // קבלת פרמטרים
@@ -9481,8 +9498,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const plataParam = this.getParam('plata');
         const legParam = this.getParam('leg');
         
+        console.log('CHECK_FUTON_LEG - פרמטרים:', JSON.stringify({
+            hasWidthParam: !!widthParam,
+            hasDepthParam: !!depthParam,
+            hasPlataParam: !!plataParam,
+            hasLegParam: !!legParam
+        }, null, 2));
+        
         if (!widthParam || !depthParam || !plataParam || !legParam) {
-            console.warn('חסרים פרמטרים לבסיס מיטה');
+            console.warn('CHECK_FUTON_LEG - חסרים פרמטרים לבסיס מיטה:', {
+                widthParam: !!widthParam,
+                depthParam: !!depthParam,
+                plataParam: !!plataParam,
+                legParam: !!legParam
+            });
             return;
         }
         
@@ -9580,6 +9609,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const legCount = extraBeamParam.default;
             this.debugLog(`יצירת ${legCount} קורות רגליים...`);
             
+            // 🎯 לוג בדיקה - הגעה ליצירת קורות רגל
+            console.log('CHECK_FUTON_LEG - מתחיל ליצור קורות רגל:', JSON.stringify({
+                legCount: legCount,
+                legBeamExists: !!legBeam,
+                legBeamWidth: legBeamWidth,
+                legBeamHeight: legBeamHeight,
+                futonWidth: futonWidth,
+                futonDepth: futonDepth
+            }, null, 2));
+            
             // חישוב רווחים - 5 ס"מ מכל קצה
             const totalLength = futonDepth;
             const availableLength = totalLength - 10; // 5 ס"מ מכל קצה
@@ -9597,11 +9636,35 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // יצירת קורות הרגליים
             for (let i = 0; i < legCount; i++) {
+                // 🎯 תיקון: החלפה בין width ו-height - הקורה צריכה להיות עומדת ולא שוכבת
                 const geometry = new THREE.BoxGeometry(
-                    futonWidth,    // אורך הקורה = רוחב המיטה (ציר X)
-                    legBeamHeight, // גובה הקורה (ציר Y)
-                    legBeamWidth   // רוחב הקורה (ציר Z)
+                    futonWidth,    // אורך הקורה = רוחב המיטה (ציר X) - נשאר אותו דבר
+                    legBeamWidth,  // גובה הקורה (ציר Y) - הוחלף מ-legBeamHeight ל-legBeamWidth
+                    legBeamHeight // רוחב הקורה (ציר Z) - הוחלף מ-legBeamWidth ל-legBeamHeight
                 );
+                
+                // 🎯 לוג חד פעמי ברגע שנוצרת קורת הרגל
+                if (!this.futonLegBeamLogged && legBeam) {
+                    console.log('CHECK_FUTON_LEG - קורת רגל נוצרת:', JSON.stringify({
+                        legIndex: i + 1,
+                        geometryDimensions: {
+                            x: futonWidth,        // אורך הקורה (ציר X)
+                            y: legBeamWidth,      // גובה הקורה (ציר Y) - תוקן!
+                            z: legBeamHeight      // רוחב הקורה (ציר Z) - תוקן!
+                        },
+                        legBeamData: {
+                            width: legBeam.width,      // רוחב במ"מ
+                            height: legBeam.height,    // גובה במ"מ
+                            widthCm: legBeamWidth,     // רוחב בס"מ
+                            heightCm: legBeamHeight    // גובה בס"מ
+                        },
+                        legBeamName: legBeam.name,
+                        legBeamTranslatedName: legBeam.translatedName,
+                        fixNote: "תיקון: y=legBeamWidth (15), z=legBeamHeight (3.5) במקום ההפך"
+                    }, null, 2));
+                    this.futonLegBeamLogged = true;
+                }
+                
                 const material = this.getWoodMaterial(legType ? legType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
@@ -9614,8 +9677,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // שמירת מיקום הרגל למערך
                 legPositions.push(zPosition);
                 
-                // מיקום הרגל - צמודה למטה (Y=0) + חצי גובה הקורה
-                mesh.position.set(0, legBeamHeight / 2, zPosition);
+                // מיקום הרגל - צמודה למטה (Y=0) + חצי גובה הקורה (כעת legBeamWidth במקום legBeamHeight)
+                mesh.position.set(0, legBeamWidth / 2, zPosition);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
                 
