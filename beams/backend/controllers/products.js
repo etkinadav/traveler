@@ -380,21 +380,71 @@ async function updateProductData(product, data) {
         isNewCategory: isNewCategory,
         singleStatus: singleCategoryName.status,
         pluralStatus: pluralCategoryName.status,
-        serialName: serialName || 'MISSING'
+        serialName: serialName || 'MISSING',
+        singleValue: singleCategoryName.value,
+        pluralValue: pluralCategoryName.value
     }, null, 2));
 
-    // שלב 1: עדכון singleNames אם נדרש (אם חדש)
-    if (singleCategoryName.status === 'new' && serialName) {
-        console.log(`SAVE_PRO_BACK - Adding to singleNames: ${serialName} = ${singleCategoryName.value}`);
+    // 🎯 עדכון singleNames - אם הערך שונה מהמקורי וקיים serialName:
+    // בודקים אם הערך החדש קיים כבר ב-singleNames, ואם לא - מוסיפים
+    if (serialName && singleCategoryName.value) {
         product.singleNames = product.singleNames || {};
-        product.singleNames[serialName] = singleCategoryName.value;
+        const singleNamesValues = Object.values(product.singleNames);
+        const valueExists = singleNamesValues.includes(singleCategoryName.value);
+        
+        console.log(`SAVE_PRO_BACK - Checking singleName: value="${singleCategoryName.value}", exists=${valueExists}`);
+        
+        if (!valueExists) {
+            // הערך לא קיים - מוסיפים אותו
+            product.singleNames[serialName] = singleCategoryName.value;
+            console.log(`SAVE_PRO_BACK - ✅ Added to singleNames: ${serialName} = ${singleCategoryName.value}`);
+        } else {
+            // הערך קיים - לא מוסיפים
+            console.log(`SAVE_PRO_BACK - ⚠️ SingleName value "${singleCategoryName.value}" already exists, not adding`);
+            
+            // אבל אולי צריך לעדכן את ה-key אם serialName שונה?
+            // בואו נמצא את ה-key הקיים:
+            const existingKey = Object.keys(product.singleNames).find(key => 
+                product.singleNames[key] === singleCategoryName.value
+            );
+            if (existingKey && existingKey !== serialName) {
+                console.log(`SAVE_PRO_BACK - ⚠️ Value exists with different key: ${existingKey}, requested key: ${serialName}`);
+                // אנו משאירים את ה-key הקיים, לא מעדכנים
+            }
+        }
+    } else if (!serialName && (singleCategoryName.status === 'new' || isNewModel)) {
+        console.log('SAVE_PRO_BACK - ⚠️ WARNING: serialName missing but new category detected');
     }
 
-    // שלב 2: עדכון names אם נדרש (אם חדש)
-    if (pluralCategoryName.status === 'new' && serialName) {
-        console.log(`SAVE_PRO_BACK - Adding to names: ${serialName} = ${pluralCategoryName.value}`);
+    // 🎯 עדכון names - אם הערך שונה מהמקורי וקיים serialName:
+    // בודקים אם הערך החדש קיים כבר ב-names, ואם לא - מוסיפים
+    if (serialName && pluralCategoryName.value) {
         product.names = product.names || {};
-        product.names[serialName] = pluralCategoryName.value;
+        const namesValues = Object.values(product.names);
+        const valueExists = namesValues.includes(pluralCategoryName.value);
+        
+        console.log(`SAVE_PRO_BACK - Checking pluralName: value="${pluralCategoryName.value}", exists=${valueExists}`);
+        
+        if (!valueExists) {
+            // הערך לא קיים - מוסיפים אותו
+            product.names[serialName] = pluralCategoryName.value;
+            console.log(`SAVE_PRO_BACK - ✅ Added to names: ${serialName} = ${pluralCategoryName.value}`);
+        } else {
+            // הערך קיים - לא מוסיפים
+            console.log(`SAVE_PRO_BACK - ⚠️ PluralName value "${pluralCategoryName.value}" already exists, not adding`);
+            
+            // אבל אולי צריך לעדכן את ה-key אם serialName שונה?
+            // בואו נמצא את ה-key הקיים:
+            const existingKey = Object.keys(product.names).find(key => 
+                product.names[key] === pluralCategoryName.value
+            );
+            if (existingKey && existingKey !== serialName) {
+                console.log(`SAVE_PRO_BACK - ⚠️ Value exists with different key: ${existingKey}, requested key: ${serialName}`);
+                // אנו משאירים את ה-key הקיים, לא מעדכנים
+            }
+        }
+    } else if (!serialName && (pluralCategoryName.status === 'new' || isNewModel)) {
+        console.log('SAVE_PRO_BACK - ⚠️ WARNING: serialName missing but new category detected');
     }
 
     // שלב 3: עדכון/הוספת configuration אם דגם חדש
@@ -688,6 +738,145 @@ function updateBeamArrayParameter(param, value, beamConfiguration, configIndex, 
         finalBeamsConfigurations: param.beamsConfigurations
     }, null, 2));
 }
+
+// מחיקת קונפיגורציה (דגם) מהמוצר
+exports.deleteConfiguration = async (req, res, next) => {
+    console.log('🔥🔥🔥 DELETE_CONFIG_BACK - Backend deleteConfiguration called! 🔥🔥🔥');
+    
+    try {
+        const { 
+            productId, 
+            configurationIndex
+        } = req.body;
+
+        console.log('DELETE_CONFIG_BACK - Backend deleteConfiguration endpoint hit');
+        console.log('DELETE_CONFIG_BACK - Request timestamp:', new Date().toISOString());
+        console.log('DELETE_CONFIG_BACK - Full request body:', JSON.stringify(req.body, null, 2));
+        console.log('DELETE_CONFIG_BACK - Product ID:', productId);
+        console.log('DELETE_CONFIG_BACK - Configuration Index to delete:', configurationIndex);
+
+        // Validation
+        if (!productId) {
+            console.log('DELETE_CONFIG_BACK - ERROR: Missing productId');
+            return res.status(400).json({ error: 'Product ID is required' });
+        }
+
+        if (!ObjectId.isValid(productId)) {
+            console.log('DELETE_CONFIG_BACK - ERROR: Invalid productId format:', productId);
+            return res.status(400).json({ error: 'Invalid product ID' });
+        }
+
+        if (configurationIndex === undefined || configurationIndex === null) {
+            console.log('DELETE_CONFIG_BACK - ERROR: Missing configurationIndex');
+            return res.status(400).json({ error: 'Configuration index is required' });
+        }
+
+        // מציאת המוצר
+        console.log('DELETE_CONFIG_BACK - Searching for product by ID:', productId);
+        const product = await Product.findById(productId);
+        if (!product) {
+            console.log('DELETE_CONFIG_BACK - ERROR: Product not found in database');
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        const configs = product.configurations || [];
+        if (!configs[configurationIndex]) {
+            console.log('DELETE_CONFIG_BACK - ERROR: Configuration not found at index:', configurationIndex);
+            return res.status(404).json({ error: 'Configuration not found' });
+        }
+
+        const configToDelete = configs[configurationIndex];
+        console.log('DELETE_CONFIG_BACK - Configuration to delete:', JSON.stringify(configToDelete, null, 2));
+        console.log('DELETE_CONFIG_BACK - Configurations count before delete:', configs.length);
+
+        // 🎯 שלב 1: מחיקה מ-configurations הראשי של המוצר
+        configs.splice(configurationIndex, 1);
+        console.log('DELETE_CONFIG_BACK - ✅ Deleted from main configurations array');
+        console.log('DELETE_CONFIG_BACK - Configurations count after delete:', configs.length);
+
+        // 🎯 שלב 2: מחיקה מכל הפרמטרים
+        if (product.params && product.params.length > 0) {
+            console.log('DELETE_CONFIG_BACK - Processing', product.params.length, 'parameters');
+            
+            for (const param of product.params) {
+                const paramType = typeof param.type === 'string' ? param.type : String(param.type);
+                
+                // מחיקה מ-configurations של הפרמטר
+                if (param.configurations && Array.isArray(param.configurations) && param.configurations.length > configurationIndex) {
+                    console.log(`DELETE_CONFIG_BACK - Deleting from param ${param.name} configurations at index ${configurationIndex}`);
+                    
+                    // עבור beamArray - צריך למחוק array שלם מתוך array של arrays
+                    if (paramType === 'beamArray') {
+                        console.log(`DELETE_CONFIG_BACK - beamArray: Deleting full array from configurations at index ${configurationIndex}`);
+                        param.configurations.splice(configurationIndex, 1);
+                        console.log(`DELETE_CONFIG_BACK - ✅ beamArray: Deleted array, new length: ${param.configurations.length}`);
+                    } else {
+                        // עבור פרמטרים רגילים - מחיקה של ערך בודד
+                        param.configurations.splice(configurationIndex, 1);
+                        console.log(`DELETE_CONFIG_BACK - ✅ Param ${param.name}: Deleted from configurations, new length: ${param.configurations.length}`);
+                    }
+                } else {
+                    console.log(`DELETE_CONFIG_BACK - ⚠️ Param ${param.name}: No configurations to delete or index out of range`);
+                }
+                
+                // מחיקה מ-beamsConfigurations של הפרמטר
+                if (param.beamsConfigurations && Array.isArray(param.beamsConfigurations) && param.beamsConfigurations.length > configurationIndex) {
+                    param.beamsConfigurations.splice(configurationIndex, 1);
+                    console.log(`DELETE_CONFIG_BACK - ✅ Param ${param.name}: Deleted from beamsConfigurations, new length: ${param.beamsConfigurations.length}`);
+                } else {
+                    console.log(`DELETE_CONFIG_BACK - ⚠️ Param ${param.name}: No beamsConfigurations to delete or index out of range`);
+                }
+            }
+        } else {
+            console.log('DELETE_CONFIG_BACK - ⚠️ No parameters found in product');
+        }
+
+        // וידוא שMongoose יודע שהפרמטרים השתנו
+        console.log('DELETE_CONFIG_BACK - Marking params as modified for Mongoose');
+        product.markModified('params');
+        product.markModified('configurations');
+        
+        // סימון מפורש של beamsConfigurations עבור כל פרמטר
+        product.params.forEach((param, index) => {
+            if (param.beamsConfigurations && Array.isArray(param.beamsConfigurations)) {
+                product.markModified(`params.${index}.beamsConfigurations`);
+            }
+            if (param.configurations && Array.isArray(param.configurations)) {
+                product.markModified(`params.${index}.configurations`);
+            }
+        });
+
+        // שמירת המוצר
+        console.log('DELETE_CONFIG_BACK - Saving updated product to database');
+        await product.save();
+        
+        console.log('DELETE_CONFIG_BACK - ✅ Configuration deleted successfully from database');
+        console.log('DELETE_CONFIG_BACK - Final configurations count:', product.configurations?.length || 0);
+
+        const response = { 
+            success: true, 
+            message: 'Configuration deleted successfully',
+            deletedConfiguration: configToDelete,
+            remainingConfigurationsCount: product.configurations?.length || 0,
+            timestamp: new Date().toISOString()
+        };
+
+        console.log('DELETE_CONFIG_BACK - Sending success response:', JSON.stringify(response, null, 2));
+        res.json(response);
+
+    } catch (error) {
+        console.log('DELETE_CONFIG_BACK - ERROR: Exception occurred during delete process');
+        console.log('DELETE_CONFIG_BACK - Error details:', JSON.stringify({
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        }, null, 2));
+        res.status(500).json({ 
+            error: 'Internal server error',
+            message: error.message 
+        });
+    }
+};
 
 // Get product by name
 exports.getProductByName = async (req, res, next) => {

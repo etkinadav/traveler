@@ -1165,5 +1165,8 @@
   "product-edit-info.serial-name-required": "שם סידורי נדרש כאשר יוצרים קטגוריות חדשות",
   "product-edit-info.save-success": "השינויים נשמרו בהצלחה!",
   "product-edit-info.save-error": "שגיאה בשמירת השינויים",
-  "product-edit-info.saving": "שומר..."
+  "product-edit-info.saving": "שומר...",
+  "product-edit-info.delete-confirm": "האם אתה בטוח שברצונך למחוק את הדגם \"{{modelName}}\"? פעולה זו לא ניתנת לביטול.",
+  "product-edit-info.delete-success": "הדגם נמחק בהצלחה!",
+  "product-edit-info.delete-error": "שגיאה במחיקת הדגם"
 }

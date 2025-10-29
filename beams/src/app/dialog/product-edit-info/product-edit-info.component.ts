@@ -656,20 +656,80 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   /**
-   * מחיקת דגם - מדפיס את כל המידע ל-console
+   * מחיקת דגם - מוחק את הקונפיגורציה מהמאגר
    */
   deleteModel(): void {
+    // בדיקה אם יש קונפיגורציה למחיקה
+    const configIndex = this.product?.configurationIndex || 0;
+    const configs = this.product?.configurations || [];
+    
+    if (!configs[configIndex]) {
+      alert(this.translateService.instant('product-edit-info.delete-error') || 'לא ניתן למחוק דגם זה');
+      return;
+    }
+
+    // אימות עם המשתמש
+    const confirmMessage = this.translateService.instant('product-edit-info.delete-confirm', {
+      modelName: this.currentDisplayName
+    }) || `האם אתה בטוח שברצונך למחוק את הדגם "${this.currentDisplayName}"? פעולה זו לא ניתנת לביטול.`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    if (this.isSaving) {
+      console.log('DELETE_MODEL - Already processing, ignoring request');
+      return;
+    }
+
+    console.log('DELETE_MODEL - Delete configuration request started');
+    console.log('DELETE_MODEL - Configuration index to delete:', configIndex);
+    console.log('DELETE_MODEL - Model name:', this.currentDisplayName);
+    
+    this.isSaving = true;
+
     const deleteData = {
-      modelToDelete: this.product?.model,
-      productId: this.product?._id,
-      productName: this.currentDisplayName,
-      allProductData: this.product,
-      timestamp: new Date().toISOString()
+      productId: this.product._id || this.product.id,
+      configurationIndex: configIndex
     };
 
-    console.log('=== DELETE MODEL - ALL DATA ===');
-    console.log(JSON.stringify(deleteData, null, 2));
-    console.log('=== END DELETE MODEL ===');
+    console.log('DELETE_MODEL - Sending delete request to backend:', JSON.stringify(deleteData, null, 2));
+    
+    // שליחה לבק-אנד
+    this.http.post('/api/products/delete-configuration', deleteData)
+      .subscribe({
+        next: (response: any) => {
+          console.log('DELETE_MODEL - SUCCESS: Configuration deleted successfully');
+          console.log('DELETE_MODEL - Response:', JSON.stringify(response, null, 2));
+          
+          this.isSaving = false;
+          
+          // הודעת הצלחה
+          const successMessage = this.translateService.instant('product-edit-info.delete-success') || 'הדגם נמחק בהצלחה!';
+          alert(successMessage);
+          
+          // סגירת הדיאלוג
+          console.log('DELETE_MODEL - Closing dialog');
+          this.dialogService.onCloseProductEditInfoDialog();
+        },
+        error: (error) => {
+          console.log('DELETE_MODEL - ERROR: Delete request failed');
+          console.log('DELETE_MODEL - Error details:', JSON.stringify({
+            status: error.status,
+            statusText: error.statusText,
+            errorMessage: error.error?.message || 'No specific error message',
+            fullError: error
+          }, null, 2));
+          
+          this.isSaving = false;
+          
+          // הודעת שגיאה
+          const errorMessage = error.error?.message || 
+                              this.translateService.instant('product-edit-info.delete-error') || 
+                              'שגיאה במחיקת הדגם';
+          alert(errorMessage);
+        }
+      });
   }
 
 
