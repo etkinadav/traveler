@@ -1559,15 +1559,103 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         selectedBeamIndex: p.selectedBeamIndex,
                         pendingBeamConfig: p._pendingBeamConfig
                     })), null, 2));
+                    
+                    // CHECK_SHELF_BEAM: לוג מפורט על shelfs אחרי updateParamsWithConfiguration
+                    const shelfsAfterUpdate = paramsCopy.find(p => p.name === 'shelfs');
+                    if (shelfsAfterUpdate) {
+                        console.log(`CHECK_SHELF_BEAM - After updateParamsWithConfiguration, shelfs state:`, JSON.stringify({
+                            selectedBeamIndex: shelfsAfterUpdate.selectedBeamIndex,
+                            selectedTypeIndex: shelfsAfterUpdate.selectedTypeIndex,
+                            _pendingBeamConfig: shelfsAfterUpdate._pendingBeamConfig,
+                            hasBeams: !!shelfsAfterUpdate.beams,
+                            beamsLength: shelfsAfterUpdate.beams?.length || 0
+                        }, null, 2));
+                    }
                 
                 this.params = paramsCopy.map((param) => {
+                    console.log(`SAVE_PRO - Processing param in paramsCopy.map: ${param.name}, type: ${param.type}, selectedBeamIndex: ${param.selectedBeamIndex}, hasPendingBeamConfig: ${!!param._pendingBeamConfig}`);
+                    
                     // Set default selected beam and type for shelfs and beamSingle
                     if (
                         param.name === 'shelfs' &&
                         Array.isArray(param.beams) &&
                         param.beams.length
                     ) {
-                        // 🎯 FIX: רק אם לא כבר נקבע מהקונפיגורציה!
+                        console.log(`CHECK_SHELF_BEAM - paramsCopy.map: Processing shelfs param`);
+                        console.log(`CHECK_SHELF_BEAM - paramsCopy.map: Shelfs param check START:`, JSON.stringify({
+                            selectedBeamIndex: param.selectedBeamIndex,
+                            selectedTypeIndex: param.selectedTypeIndex,
+                            hasPendingBeamConfig: !!param._pendingBeamConfig,
+                            pendingBeamConfig: param._pendingBeamConfig || 'NONE',
+                            beamsLength: param.beams?.length || 0,
+                            configIndex: configIndex
+                        }, null, 2));
+                        
+                        // 🎯 תמיד לבדוק _pendingBeamConfig אם הוא קיים, אפילו אם יש selectedBeamIndex
+                        // כי הוא מכיל את הערך הנכון מהקונפיגורציה
+                        if (param._pendingBeamConfig) {
+                            console.log(`CHECK_SHELF_BEAM - paramsCopy.map: Processing _pendingBeamConfig for shelfs: ${param._pendingBeamConfig}`);
+                            const [width, height] = param._pendingBeamConfig.split('-').map(Number);
+                            
+                            // חיפוש הקורה המתאימה ברשימה
+                            let foundBeamIndex = -1;
+                            let foundTypeIndex = -1;
+                            
+                            console.log(`CHECK_SHELF_BEAM - paramsCopy.map: Searching for shelfs beam: ${width}-${height} in ${param.beams?.length || 0} beams`);
+                            
+                            for (let beamIdx = 0; beamIdx < param.beams.length; beamIdx++) {
+                                const beam = param.beams[beamIdx];
+                                if (!beam) continue;
+                                
+                                // לוג רק אם זה התאמה או בקשות אחרונות כדי לא להציף
+                                const matches = beam.width === width && beam.height === height;
+                                if (matches || beamIdx === param.beams.length - 1) {
+                                    console.log(`CHECK_SHELF_BEAM - paramsCopy.map: Checking shelfs beam ${beamIdx}:`, JSON.stringify({
+                                        width: beam.width,
+                                        height: beam.height,
+                                        name: beam.name,
+                                        translatedName: beam.translatedName,
+                                        matches: matches,
+                                        lookingFor: `${width}-${height}`
+                                    }, null, 2));
+                                }
+                                
+                                if (matches) {
+                                    foundBeamIndex = beamIdx;
+                                    foundTypeIndex = 0; // ברירת מחדל לסוג העץ הראשון
+                                    console.log(`CHECK_SHELF_BEAM - paramsCopy.map: ✅ Found matching shelfs beam: beam=${beamIdx}, type=${foundTypeIndex} (${width}-${height})`);
+                                    break;
+                                }
+                            }
+                            
+                            if (foundBeamIndex !== -1) {
+                                // גם אם יש selectedBeamIndex קיים, עדכן אותו עם הערך הנכון
+                                const oldIndex = param.selectedBeamIndex;
+                                param.selectedBeamIndex = foundBeamIndex;
+                                param.selectedTypeIndex = foundTypeIndex;
+                                console.log(`CHECK_SHELF_BEAM - paramsCopy.map: ✅ Override: Set shelfs from index ${oldIndex} to beam index ${foundBeamIndex}, type index ${foundTypeIndex}`);
+                                console.log(`CHECK_SHELF_BEAM - paramsCopy.map: Final state after override:`, JSON.stringify({
+                                    selectedBeamIndex: param.selectedBeamIndex,
+                                    selectedTypeIndex: param.selectedTypeIndex,
+                                    beamConfig: `${width}-${height}`
+                                }, null, 2));
+                                // ניקוי _pendingBeamConfig כי מצאנו את הקורה
+                                delete param._pendingBeamConfig;
+                            } else {
+                                console.log(`CHECK_SHELF_BEAM - paramsCopy.map: ❌ Could not find shelfs beam ${param._pendingBeamConfig} (looking for ${width}-${height}), will use ${param.selectedBeamIndex !== undefined && param.selectedBeamIndex !== null ? `existing index ${param.selectedBeamIndex}` : 'default'}`);
+                                // אם לא מצאנו את הקורה, נשאיר את _pendingBeamConfig למקרה שיש עוד ניסיון
+                            }
+                        }
+                        
+                        // 🎯 רק אם לא כבר נקבע מהקונפיגורציה או מ-_pendingBeamConfig!
+                        // חשוב: 0 הוא ערך תקין, אז צריך לבדוק רק undefined ו-null
+                        console.log(`CHECK_SHELF_BEAM - paramsCopy.map: Final check for shelfs:`, JSON.stringify({
+                            selectedBeamIndex: param.selectedBeamIndex,
+                            selectedBeamIndexType: typeof param.selectedBeamIndex,
+                            isUndefined: param.selectedBeamIndex === undefined,
+                            isNull: param.selectedBeamIndex === null,
+                            selectedTypeIndex: param.selectedTypeIndex
+                        }, null, 2));
                         if (param.selectedBeamIndex === undefined || param.selectedBeamIndex === null) {
                             this.debugLog('Setting default beam for shelfs parameter');
                             const defaultBeamIndex = this.findDefaultBeamIndex(param.beams, param.defaultType);
@@ -1577,8 +1665,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             param.beams[defaultBeamIndex].types.length
                                 ? 0
                                     : null;
+                            console.log(`CHECK_SHELF_BEAM - paramsCopy.map: Set default beam index ${defaultBeamIndex} for shelfs`);
                             this.debugLog('Shelfs parameter set to beam index:', defaultBeamIndex, 'type index:', param.selectedTypeIndex);
                         } else {
+                            console.log(`CHECK_SHELF_BEAM - paramsCopy.map: Shelfs parameter already has selectedBeamIndex: ${param.selectedBeamIndex}, selectedTypeIndex: ${param.selectedTypeIndex}`);
                             this.debugLog('Shelfs parameter already has selectedBeamIndex from configuration:', param.selectedBeamIndex, 'selectedTypeIndex:', param.selectedTypeIndex);
                         }
                         // CHACK_TEXTURE - Log texture loading information
@@ -1605,12 +1695,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             
                             for (let beamIdx = 0; beamIdx < param.beams.length; beamIdx++) {
                                 const beam = param.beams[beamIdx];
-                                console.log(`SAVE_PRO - Checking beam ${beamIdx}:`, {
+                                console.log(`SAVE_PRO - Checking beam ${beamIdx}:`, JSON.stringify({
                                     width: beam.width,
                                     height: beam.height,
                                     name: beam.name,
                                     translatedName: beam.translatedName
-                                });
+                                }, null, 2));
                                 
                                 // 🎯 לוג מיוחד עבור leg parameter
                                 if (param.name === 'leg') {
@@ -1736,7 +1826,75 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     }
                     return param;
                 });
+                
+                // 🎯 CHECK_SHELF_BEAM: שמירת הערך הנכון לפני initParamsFromProduct
+                const shelfsBeforeInit = this.params.find(p => p.name === 'shelfs');
+                let savedSelectedBeamIndex: number | undefined = undefined;
+                let savedSelectedTypeIndex: number | null | undefined = undefined;
+                
+                // שמירת הערך הנכון מהקונפיגורציה לפני initParamsFromProduct
+                if (configIndex !== undefined && prod.configurations && prod.configurations[configIndex]) {
+                    if (shelfsBeforeInit && shelfsBeforeInit.beamsConfigurations && shelfsBeforeInit.beamsConfigurations[configIndex]) {
+                        const correctBeamConfig = shelfsBeforeInit.beamsConfigurations[configIndex]; // e.g., "50-50"
+                        const [width, height] = correctBeamConfig.split('-').map(num => parseInt(num, 10));
+                        const correctBeamIndex = shelfsBeforeInit.beams?.findIndex((beam: any) => 
+                            beam && beam.width === width && beam.height === height
+                        );
+                        if (correctBeamIndex !== -1) {
+                            savedSelectedBeamIndex = correctBeamIndex;
+                            savedSelectedTypeIndex = 0;
+                        }
+                    }
+                }
+                
+                // אם לא מצאנו מהקונפיגורציה, נשמור את הערך הנוכחי (אם הוא קיים)
+                if (savedSelectedBeamIndex === undefined && shelfsBeforeInit?.selectedBeamIndex !== undefined && shelfsBeforeInit?.selectedBeamIndex !== null) {
+                    savedSelectedBeamIndex = shelfsBeforeInit.selectedBeamIndex;
+                    savedSelectedTypeIndex = shelfsBeforeInit.selectedTypeIndex;
+                }
+                
+                console.log(`CHECK_SHELF_BEAM - Before initParamsFromProduct:`, JSON.stringify({
+                    selectedBeamIndex: shelfsBeforeInit?.selectedBeamIndex,
+                    selectedTypeIndex: shelfsBeforeInit?.selectedTypeIndex,
+                    savedSelectedBeamIndex: savedSelectedBeamIndex,
+                    savedSelectedTypeIndex: savedSelectedTypeIndex,
+                    configIndex: configIndex
+                }, null, 2));
+                
                 this.initParamsFromProduct();
+                
+                // 🎯 CHECK_SHELF_BEAM: שחזור הערך הנכון אחרי initParamsFromProduct
+                const shelfsAfterInit = this.params.find(p => p.name === 'shelfs');
+                console.log(`CHECK_SHELF_BEAM - After initParamsFromProduct (before restore):`, JSON.stringify({
+                    selectedBeamIndex: shelfsAfterInit?.selectedBeamIndex,
+                    selectedTypeIndex: shelfsAfterInit?.selectedTypeIndex,
+                    savedSelectedBeamIndex: savedSelectedBeamIndex,
+                    configIndex: configIndex
+                }, null, 2));
+                
+                // שחזור הערך הנכון אם הוא נדרס
+                if (savedSelectedBeamIndex !== undefined && shelfsAfterInit) {
+                    if (shelfsAfterInit.selectedBeamIndex !== savedSelectedBeamIndex) {
+                        console.log(`CHECK_SHELF_BEAM - ✅ FIX: Restoring shelfs selectedBeamIndex from ${shelfsAfterInit.selectedBeamIndex} to ${savedSelectedBeamIndex}`);
+                        console.log(`CHECK_SHELF_BEAM - Restore fix details:`, JSON.stringify({
+                            oldIndex: shelfsAfterInit.selectedBeamIndex,
+                            newIndex: savedSelectedBeamIndex,
+                            configIndex: configIndex
+                        }, null, 2));
+                        shelfsAfterInit.selectedBeamIndex = savedSelectedBeamIndex;
+                        shelfsAfterInit.selectedTypeIndex = savedSelectedTypeIndex !== undefined ? savedSelectedTypeIndex : 0;
+                    } else {
+                        console.log(`CHECK_SHELF_BEAM - ✅ No fix needed: shelfs selectedBeamIndex already correct (${savedSelectedBeamIndex})`);
+                    }
+                }
+                
+                // בדיקה סופית אחרי השחזור
+                const shelfsFinal = this.params.find(p => p.name === 'shelfs');
+                console.log(`CHECK_SHELF_BEAM - After restore fix:`, JSON.stringify({
+                    selectedBeamIndex: shelfsFinal?.selectedBeamIndex,
+                    selectedTypeIndex: shelfsFinal?.selectedTypeIndex,
+                    configIndex: configIndex
+                }, null, 2));
                 
                 // איפוס משתני הלוגים כדי לראות נתונים מעודכנים
                 this.displayNameLogged = false;
@@ -1856,12 +2014,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             
                             for (let beamIdx = 0; beamIdx < param.beams.length; beamIdx++) {
                                 const beam = param.beams[beamIdx];
-                                console.log(`SAVE_PRO - Checking beam ${beamIdx}:`, {
+                                console.log(`SAVE_PRO - Checking beam ${beamIdx}:`, JSON.stringify({
                                     width: beam.width,
                                     height: beam.height,
                                     name: beam.name,
                                     translatedName: beam.translatedName
-                                });
+                                }, null, 2));
                                 
                                 // 🎯 לוג מיוחד עבור leg parameter
                                 if (param.name === 'leg') {
@@ -9513,6 +9671,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 selectedBeamIndex: p.selectedBeamIndex,
                 selectedTypeIndex: p.selectedTypeIndex
             })) || []));
+            
+            // CHECK_SHELF_BEAM: לוג מפורט על shelfs ב-CHECK_IS_MODIFIED
+            const originalShelfs = this.originalProductParams?.find(p => p.name === 'shelfs');
+            const currentShelfs = this.params?.find(p => p.name === 'shelfs');
+            if (originalShelfs || currentShelfs) {
+                console.log(`CHECK_SHELF_BEAM - CHECK_IS_MODIFIED: shelfs comparison:`, JSON.stringify({
+                    originalSelectedBeamIndex: originalShelfs?.selectedBeamIndex,
+                    originalSelectedTypeIndex: originalShelfs?.selectedTypeIndex,
+                    currentSelectedBeamIndex: currentShelfs?.selectedBeamIndex,
+                    currentSelectedTypeIndex: currentShelfs?.selectedTypeIndex,
+                    changed: originalShelfs?.selectedBeamIndex !== currentShelfs?.selectedBeamIndex
+                }, null, 2));
+            }
+            
             this.paramChangedLogged = true;
         }
         
@@ -9582,6 +9754,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const originalBeamIndex = originalParam.selectedBeamIndex || 0;
                 const currentBeamIndex = currentParam.selectedBeamIndex || 0;
                 
+                // CHECK_SHELF_BEAM: לוג בבדיקת השינוי ב-selectedBeamIndex (רק פעם אחת כדי למנוע לולאה אינסופית)
+                // הלוג זה כבר מוגבל בלוג הראשי, אז לא צריך לוג נוסף כאן - זה גורם ללולאה אינסופית
+                
                 if (originalBeamIndex !== currentBeamIndex) {
                     return true;
                 }
@@ -9614,6 +9789,30 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             console.log(`CHECK_LEG - leg param before configuration update:`, JSON.stringify(legParam, null, 2));
         }
         
+        // 🎯 CHECK_SHELF_BEAM: לוג מיוחד עבור shelfs parameter
+        const shelfsParam = params.find(p => p.name === 'shelfs');
+        if (shelfsParam) {
+            console.log(`CHECK_SHELF_BEAM - updateParamsWithConfiguration: Processing shelfs param`);
+            console.log(`CHECK_SHELF_BEAM - shelfs param before configuration update:`, JSON.stringify({
+                name: shelfsParam.name,
+                type: shelfsParam.type,
+                configIndex: configIndex,
+                beamsConfigurations: shelfsParam.beamsConfigurations,
+                beamConfigAtIndex: shelfsParam.beamsConfigurations?.[configIndex] || 'NO_BEAM_CONFIG',
+                selectedBeamIndex: shelfsParam.selectedBeamIndex,
+                selectedTypeIndex: shelfsParam.selectedTypeIndex,
+                hasBeams: !!shelfsParam.beams,
+                beamsLength: shelfsParam.beams?.length || 0,
+                beams: shelfsParam.beams?.map((b: any, idx: number) => ({
+                    index: idx,
+                    name: b?.name,
+                    width: b?.width,
+                    height: b?.height,
+                    translatedName: b?.translatedName
+                })) || []
+            }, null, 2));
+        }
+        
         console.log(`SAVE_PRO - Input params before configuration update:`, JSON.stringify(params.map(p => ({
             name: p.name,
             hasConfigurations: !!p.configurations,
@@ -9633,11 +9832,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // עדכון default לפי configurations - עבור beamArray ופרמטרים רגילים
             if (param.configurations && param.configurations[configIndex] !== undefined) {
-                console.log(`SAVE_PRO - Loading saved value for ${param.name}:`, {
+                console.log(`SAVE_PRO - Loading saved value for ${param.name}:`, JSON.stringify({
                     from: param.default,
                     to: param.configurations[configIndex],
                     isArray: Array.isArray(param.configurations[configIndex])
-                });
+                }, null, 2));
                 updatedParam.default = param.configurations[configIndex];
             } else {
                 console.log(`SAVE_PRO - No saved configuration for ${param.name} at index ${configIndex}`);
@@ -9659,16 +9858,73 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 console.log(`SAVE_PRO - Will set selectedBeamIndex/selectedTypeIndex based on: ${beamConfigStr}`);
                 
-                // פשוט מקבעים את הערכים - נתן לשלב הבא (this.params = paramsCopy.map) לטפל בזה
-                // כאן אנחנו רק רוצים לזכור שיש beamsConfiguration
-                updatedParam._pendingBeamConfig = beamConfigStr;
+                // 🎯 תיקון: קביעת selectedBeamIndex עבור beamArray (shelfs) כאן!
+                if (param.name === 'shelfs' && param.beams && Array.isArray(param.beams) && param.beams.length > 0) {
+                    console.log(`CHECK_SHELF_BEAM - updateParamsWithConfiguration: Starting shelfs beam search`);
+                    console.log(`CHECK_SHELF_BEAM - Shelfs in updateParamsWithConfiguration: hasBeams=${!!param.beams}, beamsLength=${param.beams.length}, beamConfigStr=${beamConfigStr}`);
+                    const [width, height] = beamConfigStr.split('-').map(num => parseInt(num, 10));
+                    console.log(`CHECK_SHELF_BEAM - Searching for shelfs beam: ${width}-${height} in ${param.beams.length} beams`);
+                    
+                    // בדיקה אם beams הם אובייקטים עם width/height או ObjectIds
+                    const firstBeam = param.beams[0];
+                    const isPopulated = firstBeam && typeof firstBeam === 'object' && firstBeam !== null && 'width' in firstBeam;
+                    
+                    console.log(`SAVE_PRO - shelfs beams are ${isPopulated ? 'POPULATED (objects)' : 'NOT POPULATED (ObjectIds)'}, firstBeam type: ${typeof firstBeam}`);
+                    if (firstBeam) {
+                        console.log(`SAVE_PRO - shelfs firstBeam keys:`, Object.keys(firstBeam));
+                    }
+                    
+                    if (isPopulated) {
+                        // beams כבר populated - אפשר לחפש ישירות
+                        console.log(`SAVE_PRO - Searching in populated beams for ${width}-${height}`);
+                        const foundBeamIndex = param.beams.findIndex((beam: any) => {
+                            if (!beam || typeof beam !== 'object') return false;
+                            const matches = beam.width === width && beam.height === height;
+                            if (matches) {
+                                console.log(`SAVE_PRO - ✅ Found match at index ${param.beams.indexOf(beam)}: ${beam.name} (${beam.width}-${beam.height})`);
+                            }
+                            return matches;
+                        });
+                        
+                        if (foundBeamIndex !== -1) {
+                            updatedParam.selectedBeamIndex = foundBeamIndex;
+                            updatedParam.selectedTypeIndex = 0; // ברירת מחדל
+                            console.log(`CHECK_SHELF_BEAM - ✅ updateParamsWithConfiguration: Set shelfs selectedBeamIndex to ${foundBeamIndex} based on ${beamConfigStr}`);
+                            console.log(`CHECK_SHELF_BEAM - Updated param state:`, JSON.stringify({
+                                selectedBeamIndex: updatedParam.selectedBeamIndex,
+                                selectedTypeIndex: updatedParam.selectedTypeIndex,
+                                beamConfigStr: beamConfigStr,
+                                configIndex: configIndex
+                            }, null, 2));
+                            // לא נשאיר _pendingBeamConfig כי מצאנו את הקורה
+                            delete updatedParam._pendingBeamConfig;
+                        } else {
+                            console.log(`CHECK_SHELF_BEAM - ❌ updateParamsWithConfiguration: Could not find shelfs beam ${beamConfigStr} (${width}-${height}) in populated beams, will use _pendingBeamConfig`);
+                            console.log(`CHECK_SHELF_BEAM - Available beams:`, JSON.stringify(param.beams.map((b: any) => `${b.name} (${b.width}-${b.height})`), null, 2));
+                            updatedParam._pendingBeamConfig = beamConfigStr;
+                        }
+                    } else {
+                        // beams לא populated - נשתמש ב-_pendingBeamConfig ונטפל בשלב הבא
+                        console.log(`CHECK_SHELF_BEAM - updateParamsWithConfiguration: shelfs beams not populated, setting _pendingBeamConfig: ${beamConfigStr}`);
+                        updatedParam._pendingBeamConfig = beamConfigStr;
+                    }
+                } else if (param.name === 'shelfs') {
+                    // גם אם אין beams או shelfs לא מוגדר נכון, נשמור את beamConfigStr
+                    console.log(`SAVE_PRO - Shelfs but no beams array or empty, setting _pendingBeamConfig: ${beamConfigStr}`);
+                    updatedParam._pendingBeamConfig = beamConfigStr;
+                }
+                
+                // עבור beamSingle - תמיד נשתמש ב-_pendingBeamConfig
+                if (param.type === 'beamSingle') {
+                    updatedParam._pendingBeamConfig = beamConfigStr;
+                }
             } else {
-                console.log(`SAVE_PRO - Skipping beam configuration for ${param.name}:`, {
+                console.log(`SAVE_PRO - Skipping beam configuration for ${param.name}:`, JSON.stringify({
                     hasBeamsConfigurations: !!param.beamsConfigurations,
                     hasConfigAtIndex: !!param.beamsConfigurations?.[configIndex],
                     hasBeams: !!param.beams,
                     beamsLength: param.beams?.length || 0
-                });
+                }, null, 2));
                 
                 // 🎯 לוג מיוחד עבור קורת הרגל כשלא מוצאים beamsConfiguration
                 if (param.name === 'leg') {
@@ -9813,12 +10069,24 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // הכנת נתוני המוצר עבור הדיאלוג
         const productDataForDialog = {
             product: { ...this.product },
-            currentParams: [...this.params],
+            currentParams: [...this.params], // 🎯 זה אמור להכיל את השינויים הנוכחיים מה-UI
             currentConfiguration: this.product?.configurations?.[this.product?.configurationIndex || 0] || null,
             beamsData: null, // beamsData not available in this component
             calculatedPrice: this.calculatedPrice || 0,
             timestamp: new Date().toISOString()
         };
+        
+        // 🎯 לוג הפרמטרים שמועברים לדיאלוג
+        console.log('SAVE_PRO - Parameters being passed to dialog:', JSON.stringify(
+            this.params?.map(param => ({
+                name: param.name,
+                type: param.type,
+                currentValue: param.default,
+                selectedBeamIndex: param.selectedBeamIndex,
+                selectedTypeIndex: param.selectedTypeIndex,
+                beamName: param.beams?.[param.selectedBeamIndex]?.translatedName,
+                beamConfig: param.beams?.[param.selectedBeamIndex]?.name
+            })), null, 2));
 
         console.log('SAVE_PRO - Opening ProductEditInfo dialog with data:', JSON.stringify({
             productId: productDataForDialog.product._id || productDataForDialog.product.id,

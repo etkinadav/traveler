@@ -131,6 +131,18 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
     console.log('SAVE_PRO - ProductEditInfo component logProductInformation started');
     console.log('=== PRODUCT EDIT INFO DIALOG ===');
     
+    // 🎯 לוג מיוחד לבדיקת הפרמטרים שהתקבלו
+    console.log('SAVE_PRO - DIALOG: Received params from parent component:', JSON.stringify(
+        this.currentParams?.map(param => ({
+            name: param.name,
+            type: param.type,
+            currentValue: param.default,
+            selectedBeamIndex: param.selectedBeamIndex,
+            selectedTypeIndex: param.selectedTypeIndex,
+            beamName: param.beams?.[param.selectedBeamIndex]?.translatedName,
+            beamConfig: param.beams?.[param.selectedBeamIndex]?.name
+        })), null, 2));
+    
     // מידע כללי על המוצר
     console.log('🛠️ PRODUCT GENERAL INFO:', {
       productExists: !!this.product,
@@ -545,16 +557,19 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
             paramData.selectedBeamIndex = param.selectedBeamIndex || 0;
             paramData.selectedTypeIndex = param.selectedTypeIndex || 0;
             
-            // יצירת beam configuration string
-            const selectedBeam = param.beams?.[paramData.selectedBeamIndex];
-            const selectedType = selectedBeam?.types?.[paramData.selectedTypeIndex];
-            
-            if (selectedBeam && selectedType) {
-              // בניית beam configuration מהערכים הנוכחיים
-              paramData.beamConfiguration = `${selectedBeam.width || 50}-${selectedType.height || 25}`;
-            } else if (param.beamsConfigurations && param.beamsConfigurations[this.product?.configurationIndex || 0]) {
-              // גיבוי - שימוש בקונפיגורציה הקיימת
-              paramData.beamConfiguration = param.beamsConfigurations[this.product?.configurationIndex || 0];
+            // 🎯 שימוש ב-beamConfig שמועבר מהקומפוננטה במקום חישוב מחדש
+            if (param.beamConfig) {
+              paramData.beamConfiguration = param.beamConfig;
+            } else {
+              // גיבוי - חישוב מהערכים הנוכחיים
+              const selectedBeam = param.beams?.[paramData.selectedBeamIndex];
+              const selectedType = selectedBeam?.types?.[paramData.selectedTypeIndex];
+              
+              if (selectedBeam && selectedType) {
+                paramData.beamConfiguration = `${selectedBeam.width}-${selectedBeam.height}`;
+              } else if (param.beamsConfigurations && param.beamsConfigurations[this.product?.configurationIndex || 0]) {
+                paramData.beamConfiguration = param.beamsConfigurations[this.product?.configurationIndex || 0];
+              }
             }
           }
         }
@@ -564,16 +579,19 @@ export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewIni
           paramData.selectedBeamIndex = param.selectedBeamIndex || 0;
           paramData.selectedTypeIndex = param.selectedTypeIndex || 0;
           
-          // יצירת beam configuration string
-          const selectedBeam = param.beams?.[paramData.selectedBeamIndex];
-          const selectedType = selectedBeam?.types?.[paramData.selectedTypeIndex];
-          
-          if (selectedBeam && selectedType) {
-            // בניית beam configuration מהערכים הנוכחיים
-            paramData.beamConfiguration = `${selectedBeam.width || 50}-${selectedType.height || 25}`;
-          } else if (param.beamsConfigurations && param.beamsConfigurations[this.product?.configurationIndex || 0]) {
-            // גיבוי - שימוש בקונפיגורציה הקיימת
-            paramData.beamConfiguration = param.beamsConfigurations[this.product?.configurationIndex || 0];
+          // 🎯 שימוש ב-beamConfig שמועבר מהקומפוננטה במקום חישוב מחדש
+          if (param.beamConfig) {
+            paramData.beamConfiguration = param.beamConfig;
+          } else {
+            // גיבוי - חישוב מהערכים הנוכחיים
+            const selectedBeam = param.beams?.[paramData.selectedBeamIndex];
+            const selectedType = selectedBeam?.types?.[paramData.selectedTypeIndex];
+            
+            if (selectedBeam && selectedType) {
+              paramData.beamConfiguration = `${selectedBeam.width}-${selectedBeam.height}`;
+            } else if (param.beamsConfigurations && param.beamsConfigurations[this.product?.configurationIndex || 0]) {
+              paramData.beamConfiguration = param.beamsConfigurations[this.product?.configurationIndex || 0];
+            }
           }
         }
         // עבור פרמטרים מספריים רגילים
