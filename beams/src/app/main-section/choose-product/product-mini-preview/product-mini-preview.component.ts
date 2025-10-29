@@ -33,6 +33,7 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     beamHeight: 2, // זהה לקובץ הראשי
     frameWidth: 5, // זהה לקובץ הראשי
     frameHeight: 5, // זהה לקובץ הראשי
+    gap: 1, // 🎯 תיקון: רווח מינימלי בין קורות (כמו בקובץ הראשי - minGap)
     shelfCount: 3,
     woodType: 0, // אינדקס סוג עץ
     beamType: 0,  // אינדקס סוג קורה
@@ -1232,6 +1233,13 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         this.dynamicParams.length = param.default || 100;
       } else if (param.name === 'height') {
         this.dynamicParams.height = param.default || 100;
+      } else if (param.name === 'gap') {
+        // 🎯 תיקון: טעינת minGap מהפרמטר gap (כמו בקובץ הראשי)
+        this.dynamicParams.gap = param.default || 1; // ברירת מחדל 1 כמו בקובץ הראשי
+        console.log(`CHECK_MINI_SHELFS - Gap param loaded:`, JSON.stringify({
+          gapParam: param.default,
+          dynamicParamsGap: this.dynamicParams.gap
+        }, null, 2));
       }
       
       // בדיקה לפי סוג הפרמטר עבור קורות
@@ -1258,21 +1266,63 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
           this.dynamicParams.beamWidth = beamWidth / 10; // המרה ממ"מ לס"מ
           this.dynamicParams.beamHeight = beamHeight / 10; // המרה ממ"מ לס"מ
         }
-        // מספר מדפים
-        this.dynamicParams.shelfCount = param.default || 3;
+        // 🎯 תיקון: טעינת גבהי המדפים כמו בקובץ הראשי - ישירות מ-default או מ-configurations
+        // בקובץ הראשי משתמשים ב-shelfsParam.default ישירות, וגם מטופלות configurations
+        // אם יש configuration index, נשתמש בו; אחרת נשתמש ב-default
         
-        // טעינת גבהי המדפים מהקונפיגורציה הנכונה
-        if (param.configurations && param.configurations.length > 0) {
+        console.log(`CHECK_MINI_SHELFS - initializeParamsFromProduct: Processing shelfs param`);
+        console.log(`CHECK_MINI_SHELFS - shelfs param state:`, JSON.stringify({
+          name: param.name,
+          type: param.type,
+          default: param.default,
+          defaultIsArray: Array.isArray(param.default),
+          defaultLength: Array.isArray(param.default) ? param.default.length : 'NOT_ARRAY',
+          hasConfigurations: !!param.configurations,
+          configurationsLength: param.configurations?.length || 0,
+          configurationIndex: this.configurationIndex || 0,
+          selectedBeamIndex: param.selectedBeamIndex,
+          selectedTypeIndex: param.selectedTypeIndex
+        }, null, 2));
+        
+        if (Array.isArray(param.default)) {
+          // אם default הוא מערך - זה הערך הנוכחי (יכול להיות מה-configuration שכבר הוחל)
+          this.shelfGaps = [...param.default];
+          console.log(`CHECK_MINI_SHELFS - Using param.default (array):`, JSON.stringify(this.shelfGaps, null, 2));
+        } else if (param.configurations && param.configurations.length > 0) {
+          // אם אין default מערך אבל יש configurations - נשתמש ב-configuration לפי האינדקס
           const configIndex = this.configurationIndex || 0;
-          if (param.configurations[configIndex]) {
+          console.log(`CHECK_MINI_SHELFS - Checking configurations[${configIndex}]:`, JSON.stringify({
+            configIndex: configIndex,
+            configExists: !!param.configurations[configIndex],
+            configIsArray: Array.isArray(param.configurations[configIndex]),
+            configValue: param.configurations[configIndex]
+          }, null, 2));
+          
+          if (param.configurations[configIndex] && Array.isArray(param.configurations[configIndex])) {
             this.shelfGaps = [...param.configurations[configIndex]];
-          } else {
+            console.log(`CHECK_MINI_SHELFS - Using configurations[${configIndex}]:`, JSON.stringify(this.shelfGaps, null, 2));
+          } else if (param.configurations[0] && Array.isArray(param.configurations[0])) {
             // fallback לקונפיגורציה הראשונה אם האינדקס לא קיים
             this.shelfGaps = [...param.configurations[0]];
+            console.log(`CHECK_MINI_SHELFS - Fallback to configurations[0]:`, JSON.stringify(this.shelfGaps, null, 2));
+          } else {
+            // אם אין configurations תקינים, fallback למערך ריק (לא יהיו מדפים)
+            this.shelfGaps = [];
+            console.log(`CHECK_MINI_SHELFS - No valid configurations, shelfGaps set to empty array`);
           }
-        } else if (Array.isArray(param.default)) {
-          this.shelfGaps = [...param.default]; // העתקת הגבהים מהמוצר
+        } else {
+          // אם אין default מערך ואין configurations - fallback למערך ריק
+          this.shelfGaps = [];
+          console.log(`CHECK_MINI_SHELFS - No default array and no configurations, shelfGaps set to empty array`);
         }
+        
+        // מספר מדפים - נקבע לפי shelfGaps.length (לא נשתמש ב-shelfCount)
+        this.dynamicParams.shelfCount = this.shelfGaps.length || 3; // fallback ל-3 רק אם אין מדפים כלל
+        console.log(`CHECK_MINI_SHELFS - Final shelfGaps after initializeParamsFromProduct:`, JSON.stringify({
+          shelfGaps: this.shelfGaps,
+          shelfGapsLength: this.shelfGaps.length,
+          shelfCount: this.dynamicParams.shelfCount
+        }, null, 2));
       } else if (isTable && param.type === 'beamSingle' && param.name === 'plata') {
         // שולחן - טיפול בפרמטר plata
         if (param.beams && param.beams.length > 0) {
@@ -1358,7 +1408,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }
 
     // יצירת מדפים דינמיים - זהה לקובץ הראשי
-    const minGap = 2; // רווח מינימלי בין קורות
+    // 🎯 תיקון: minGap מהפרמטר gap (כמו בקובץ הראשי), לא hardcoded
+    const minGap = this.dynamicParams.gap || 1; // ברירת מחדל 1 כמו בקובץ הראשי
+    console.log(`CHECK_MINI_SHELFS - Using minGap:`, JSON.stringify({
+      minGap: minGap,
+      fromDynamicParams: this.dynamicParams.gap
+    }, null, 2));
     let currentY = 0;
     
     // זיהוי סוג המוצר - שולחן או ארון
@@ -1377,10 +1432,42 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // עבור שולחן, נשתמש בפרמטר plata במקום shelfs
       shelfsParam = this.product?.params?.find((p: any) => p.type === 'beamSingle' && p.name === 'plata');
     } else {
-      // ארון - שימוש בגבהי המדפים הנוכחיים
+      // 🎯 תיקון: ארון - שימוש בגבהי המדפים כמו בקובץ הראשי
+      // בקובץ הראשי: return shelfsParam.default.map((gap: number) => ({ gap }))
       shelfsParam = this.product?.params?.find((p: any) => p.type === 'beamArray' && p.name === 'shelfs');
-      shelfGaps = this.shelfGaps;
+      
+      console.log(`CHECK_MINI_SHELFS - createSimpleProduct: Processing cabinet (not table)`);
+      console.log(`CHECK_MINI_SHELFS - shelfsParam found:`, JSON.stringify({
+        shelfsParamExists: !!shelfsParam,
+        shelfsParamDefault: shelfsParam?.default,
+        defaultIsArray: Array.isArray(shelfsParam?.default),
+        defaultLength: Array.isArray(shelfsParam?.default) ? shelfsParam.default.length : 'NOT_ARRAY',
+        thisShelfGaps: this.shelfGaps,
+        thisShelfGapsIsArray: Array.isArray(this.shelfGaps),
+        thisShelfGapsLength: Array.isArray(this.shelfGaps) ? this.shelfGaps.length : 'NOT_ARRAY'
+      }, null, 2));
+      
+      // 🎯 תיקון: כמו בקובץ הראשי - אם shelfsParam.default הוא מערך, נשתמש בו ישירות
+      if (shelfsParam && Array.isArray(shelfsParam.default) && shelfsParam.default.length > 0) {
+        // כמו בקובץ הראשי - משתמשים ב-default ישירות
+        shelfGaps = [...shelfsParam.default];
+        console.log(`CHECK_MINI_SHELFS - ✅ Using shelfsParam.default:`, JSON.stringify(shelfGaps, null, 2));
+      } else if (this.shelfGaps && Array.isArray(this.shelfGaps) && this.shelfGaps.length > 0) {
+        // fallback ל-shelfGaps שנטען ב-initializeParamsFromProduct
+        shelfGaps = [...this.shelfGaps];
+        console.log(`CHECK_MINI_SHELFS - ⚠️ Fallback to this.shelfGaps:`, JSON.stringify(shelfGaps, null, 2));
+      } else {
+        // אם אין מדפים כלל - fallback ל-3 מדפים עם gaps ברירת מחדל
+        shelfGaps = [30, 30, 30]; // 3 מדפים ברירת מחדל
+        console.log(`CHECK_MINI_SHELFS - ⚠️ No valid shelf gaps, using default [30, 30, 30]`);
+      }
+      
       totalShelves = shelfGaps.length;
+      console.log(`CHECK_MINI_SHELFS - Final shelf calculation:`, JSON.stringify({
+        totalShelves: totalShelves,
+        shelfGaps: shelfGaps,
+        shelfGapsLength: shelfGaps.length
+      }, null, 2));
     }
 
     // קבלת סוג הקורה והעץ מהפרמטרים - זהה לקובץ הראשי
@@ -1392,6 +1479,18 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // if (this.debugLogsEnabled) console.log('shelfBeam:', shelfBeam);
       // if (this.debugLogsEnabled) console.log('shelfBeam.types:', shelfBeam ? shelfBeam.types : 'null');
       shelfType = shelfBeam.types && shelfBeam.types.length ? shelfBeam.types[shelfsParam.selectedBeamTypeIndex || 0] : null;
+      
+      // CHECK_SHELF_BEAM: לוג על קורת המדף
+      console.log(`CHECK_SHELF_BEAM - CHECK_MINI_SHELFS: Shelf beam selected:`, JSON.stringify({
+        shelfBeamIndex: shelfBeamIndex,
+        beamName: shelfBeam?.name,
+        beamWidth: shelfBeam?.width,
+        beamHeight: shelfBeam?.height,
+        translatedName: shelfBeam?.translatedName,
+        selectedBeamIndex: shelfsParam?.selectedBeamIndex,
+        selectedTypeIndex: shelfsParam?.selectedTypeIndex,
+        shelfTypeName: shelfType?.name
+      }, null, 2));
     }
     
     // קבלת טקסטורת עץ לקורות המדפים - זהה לקובץ הראשי
@@ -1407,6 +1506,18 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // if (this.debugLogsEnabled) console.log('frameBeam:', frameBeam);
       // if (this.debugLogsEnabled) console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
       frameType = frameBeam.types && frameBeam.types.length ? frameBeam.types[frameParam.selectedBeamTypeIndex || 0] : null;
+      
+      // CHECK_SHELF_BEAM: לוג על קורת הרגל
+      console.log(`CHECK_SHELF_BEAM - CHECK_MINI_SHELFS: Leg beam selected:`, JSON.stringify({
+        frameBeamIndex: frameBeamIndex,
+        beamName: frameBeam?.name,
+        beamWidth: frameBeam?.width,
+        beamHeight: frameBeam?.height,
+        translatedName: frameBeam?.translatedName,
+        selectedBeamIndex: frameParam?.selectedBeamIndex,
+        selectedTypeIndex: frameParam?.selectedTypeIndex,
+        frameTypeName: frameType?.name
+      }, null, 2));
     }
     
     // קבלת טקסטורת עץ לקורות החיזוק
@@ -1427,12 +1538,31 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     actualFrameWidth = actualFrameWidth || 5; // ברירת מחדל 5 ס"מ
     actualFrameHeight = actualFrameHeight || 5; // ברירת מחדל 5 ס"מ
     
+    console.log(`CHECK_MINI_SHELFS - Starting shelf creation loop:`, JSON.stringify({
+      totalShelves: totalShelves,
+      shelfGaps: shelfGaps,
+      currentY: currentY,
+      isTable: isTable
+    }, null, 2));
     
     for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
       const isTopShelf = shelfIndex === totalShelves - 1;
       const shelfGap = shelfGaps[shelfIndex];
+      
+      console.log(`CHECK_MINI_SHELFS - Shelf ${shelfIndex + 1}/${totalShelves}:`, JSON.stringify({
+        shelfIndex: shelfIndex,
+        isTopShelf: isTopShelf,
+        shelfGap: shelfGap,
+        currentYBefore: currentY
+      }, null, 2));
+      
       // הוספת gap לכל מדף - זהה לקובץ הראשי
       currentY += shelfGap;
+      
+      console.log(`CHECK_MINI_SHELFS - Shelf ${shelfIndex + 1} after adding gap:`, JSON.stringify({
+        currentYAfter: currentY,
+        shelfGap: shelfGap
+      }, null, 2));
       
       // Surface beams (קורת משטח) - זהה לקובץ הראשי
       const surfaceBeams = this.createSurfaceBeams(
@@ -1442,6 +1572,15 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         this.dynamicParams.beamHeight,
         minGap
       );
+      
+      console.log(`CHECK_MINI_SHELFS - Shelf ${shelfIndex + 1} surface beams:`, JSON.stringify({
+        shelfIndex: shelfIndex,
+        surfaceBeamsCount: surfaceBeams.length,
+        beamWidth: this.dynamicParams.beamWidth,
+        beamHeight: this.dynamicParams.beamHeight,
+        shelfBeamName: shelfBeam?.name,
+        shelfBeamTranslatedName: shelfBeam?.translatedName
+      }, null, 2));
       
       for (let i = 0; i < surfaceBeams.length; i++) {
         let beam = { ...surfaceBeams[i] };
@@ -1488,7 +1627,20 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       
       // Add the height of the shelf itself for the next shelf
       currentY += actualFrameHeight + this.dynamicParams.beamHeight;
+      
+      console.log(`CHECK_MINI_SHELFS - Shelf ${shelfIndex + 1} completed:`, JSON.stringify({
+        shelfIndex: shelfIndex,
+        currentYAfterShelf: currentY,
+        actualFrameHeight: actualFrameHeight,
+        beamHeight: this.dynamicParams.beamHeight
+      }, null, 2));
     }
+    
+    console.log(`CHECK_MINI_SHELFS - All shelves creation completed:`, JSON.stringify({
+      totalShelves: totalShelves,
+      finalCurrentY: currentY,
+      shelfGapsUsed: shelfGaps
+    }, null, 2));
 
     // יצירת רגליים (legs) - זהה לקורות החיזוק
     // הרגליים משתמשות באותן הגדרות של קורות החיזוק
@@ -1657,7 +1809,12 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     }
 
     // יצירת מדפים דינמיים - זהה לקובץ הראשי
-    const minGap = 2; // רווח מינימלי בין קורות
+    // 🎯 תיקון: minGap מהפרמטר gap (כמו בקובץ הראשי), לא hardcoded
+    const minGap = this.dynamicParams.gap || 1; // ברירת מחדל 1 כמו בקובץ הראשי
+    console.log(`CHECK_MINI_SHELFS - Using minGap:`, JSON.stringify({
+      minGap: minGap,
+      fromDynamicParams: this.dynamicParams.gap
+    }, null, 2));
     let currentY = 0;
     
     // זיהוי סוג המוצר - שולחן או ארון
@@ -1676,10 +1833,42 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // עבור שולחן, נשתמש בפרמטר plata במקום shelfs
       shelfsParam = this.product?.params?.find((p: any) => p.type === 'beamSingle' && p.name === 'plata');
     } else {
-      // ארון - שימוש בגבהי המדפים הנוכחיים
+      // 🎯 תיקון: ארון - שימוש בגבהי המדפים כמו בקובץ הראשי
+      // בקובץ הראשי: return shelfsParam.default.map((gap: number) => ({ gap }))
       shelfsParam = this.product?.params?.find((p: any) => p.type === 'beamArray' && p.name === 'shelfs');
-      shelfGaps = this.shelfGaps;
+      
+      console.log(`CHECK_MINI_SHELFS - createSimpleProduct: Processing cabinet (not table)`);
+      console.log(`CHECK_MINI_SHELFS - shelfsParam found:`, JSON.stringify({
+        shelfsParamExists: !!shelfsParam,
+        shelfsParamDefault: shelfsParam?.default,
+        defaultIsArray: Array.isArray(shelfsParam?.default),
+        defaultLength: Array.isArray(shelfsParam?.default) ? shelfsParam.default.length : 'NOT_ARRAY',
+        thisShelfGaps: this.shelfGaps,
+        thisShelfGapsIsArray: Array.isArray(this.shelfGaps),
+        thisShelfGapsLength: Array.isArray(this.shelfGaps) ? this.shelfGaps.length : 'NOT_ARRAY'
+      }, null, 2));
+      
+      // 🎯 תיקון: כמו בקובץ הראשי - אם shelfsParam.default הוא מערך, נשתמש בו ישירות
+      if (shelfsParam && Array.isArray(shelfsParam.default) && shelfsParam.default.length > 0) {
+        // כמו בקובץ הראשי - משתמשים ב-default ישירות
+        shelfGaps = [...shelfsParam.default];
+        console.log(`CHECK_MINI_SHELFS - ✅ Using shelfsParam.default:`, JSON.stringify(shelfGaps, null, 2));
+      } else if (this.shelfGaps && Array.isArray(this.shelfGaps) && this.shelfGaps.length > 0) {
+        // fallback ל-shelfGaps שנטען ב-initializeParamsFromProduct
+        shelfGaps = [...this.shelfGaps];
+        console.log(`CHECK_MINI_SHELFS - ⚠️ Fallback to this.shelfGaps:`, JSON.stringify(shelfGaps, null, 2));
+      } else {
+        // אם אין מדפים כלל - fallback ל-3 מדפים עם gaps ברירת מחדל
+        shelfGaps = [30, 30, 30]; // 3 מדפים ברירת מחדל
+        console.log(`CHECK_MINI_SHELFS - ⚠️ No valid shelf gaps, using default [30, 30, 30]`);
+      }
+      
       totalShelves = shelfGaps.length;
+      console.log(`CHECK_MINI_SHELFS - Final shelf calculation:`, JSON.stringify({
+        totalShelves: totalShelves,
+        shelfGaps: shelfGaps,
+        shelfGapsLength: shelfGaps.length
+      }, null, 2));
     }
 
     // קבלת סוג הקורה והעץ מהפרמטרים - זהה לקובץ הראשי
@@ -1691,6 +1880,18 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // if (this.debugLogsEnabled) console.log('shelfBeam:', shelfBeam);
       // if (this.debugLogsEnabled) console.log('shelfBeam.types:', shelfBeam ? shelfBeam.types : 'null');
       shelfType = shelfBeam.types && shelfBeam.types.length ? shelfBeam.types[shelfsParam.selectedBeamTypeIndex || 0] : null;
+      
+      // CHECK_SHELF_BEAM: לוג על קורת המדף
+      console.log(`CHECK_SHELF_BEAM - CHECK_MINI_SHELFS: Shelf beam selected:`, JSON.stringify({
+        shelfBeamIndex: shelfBeamIndex,
+        beamName: shelfBeam?.name,
+        beamWidth: shelfBeam?.width,
+        beamHeight: shelfBeam?.height,
+        translatedName: shelfBeam?.translatedName,
+        selectedBeamIndex: shelfsParam?.selectedBeamIndex,
+        selectedTypeIndex: shelfsParam?.selectedTypeIndex,
+        shelfTypeName: shelfType?.name
+      }, null, 2));
     }
     
     // קבלת טקסטורת עץ לקורות המדפים - זהה לקובץ הראשי
@@ -1706,6 +1907,18 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // if (this.debugLogsEnabled) console.log('frameBeam:', frameBeam);
       // if (this.debugLogsEnabled) console.log('frameBeam.types:', frameBeam ? frameBeam.types : 'null');
       frameType = frameBeam.types && frameBeam.types.length ? frameBeam.types[frameParam.selectedBeamTypeIndex || 0] : null;
+      
+      // CHECK_SHELF_BEAM: לוג על קורת הרגל
+      console.log(`CHECK_SHELF_BEAM - CHECK_MINI_SHELFS: Leg beam selected:`, JSON.stringify({
+        frameBeamIndex: frameBeamIndex,
+        beamName: frameBeam?.name,
+        beamWidth: frameBeam?.width,
+        beamHeight: frameBeam?.height,
+        translatedName: frameBeam?.translatedName,
+        selectedBeamIndex: frameParam?.selectedBeamIndex,
+        selectedTypeIndex: frameParam?.selectedTypeIndex,
+        frameTypeName: frameType?.name
+      }, null, 2));
     }
     
     // קבלת טקסטורת עץ לקורות החיזוק
@@ -1726,12 +1939,31 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     actualFrameWidth = actualFrameWidth || 5; // ברירת מחדל 5 ס"מ
     actualFrameHeight = actualFrameHeight || 5; // ברירת מחדל 5 ס"מ
     
+    console.log(`CHECK_MINI_SHELFS - Starting shelf creation loop:`, JSON.stringify({
+      totalShelves: totalShelves,
+      shelfGaps: shelfGaps,
+      currentY: currentY,
+      isTable: isTable
+    }, null, 2));
     
     for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
       const isTopShelf = shelfIndex === totalShelves - 1;
       const shelfGap = shelfGaps[shelfIndex];
+      
+      console.log(`CHECK_MINI_SHELFS - Shelf ${shelfIndex + 1}/${totalShelves}:`, JSON.stringify({
+        shelfIndex: shelfIndex,
+        isTopShelf: isTopShelf,
+        shelfGap: shelfGap,
+        currentYBefore: currentY
+      }, null, 2));
+      
       // הוספת gap לכל מדף - זהה לקובץ הראשי
       currentY += shelfGap;
+      
+      console.log(`CHECK_MINI_SHELFS - Shelf ${shelfIndex + 1} after adding gap:`, JSON.stringify({
+        currentYAfter: currentY,
+        shelfGap: shelfGap
+      }, null, 2));
       
       // Surface beams (קורת משטח) - זהה לקובץ הראשי
       const surfaceBeams = this.createSurfaceBeams(
@@ -1741,6 +1973,15 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         this.dynamicParams.beamHeight,
         minGap
       );
+      
+      console.log(`CHECK_MINI_SHELFS - Shelf ${shelfIndex + 1} surface beams:`, JSON.stringify({
+        shelfIndex: shelfIndex,
+        surfaceBeamsCount: surfaceBeams.length,
+        beamWidth: this.dynamicParams.beamWidth,
+        beamHeight: this.dynamicParams.beamHeight,
+        shelfBeamName: shelfBeam?.name,
+        shelfBeamTranslatedName: shelfBeam?.translatedName
+      }, null, 2));
       
       for (let i = 0; i < surfaceBeams.length; i++) {
         let beam = { ...surfaceBeams[i] };
@@ -1787,7 +2028,20 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       
       // Add the height of the shelf itself for the next shelf
       currentY += actualFrameHeight + this.dynamicParams.beamHeight;
+      
+      console.log(`CHECK_MINI_SHELFS - Shelf ${shelfIndex + 1} completed:`, JSON.stringify({
+        shelfIndex: shelfIndex,
+        currentYAfterShelf: currentY,
+        actualFrameHeight: actualFrameHeight,
+        beamHeight: this.dynamicParams.beamHeight
+      }, null, 2));
     }
+    
+    console.log(`CHECK_MINI_SHELFS - All shelves creation completed:`, JSON.stringify({
+      totalShelves: totalShelves,
+      finalCurrentY: currentY,
+      shelfGapsUsed: shelfGaps
+    }, null, 2));
 
     // יצירת רגליים (legs) - זהה לקורות החיזוק
     // הרגליים משתמשות באותן הגדרות של קורות החיזוק
