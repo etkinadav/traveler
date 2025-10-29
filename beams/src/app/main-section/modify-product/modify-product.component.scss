@@ -844,7 +844,8 @@ mat-form-field {
 
 .threejs-box-wrapper {
     width: 100vw;
-    height: 100vh;
+    // 🎯 תיקון: גובה מתחשב ב-navbar (45px מובייל, 52px דסקטופ)
+    height: calc(100vh - 45px); // מובייל - גובה navbar
     margin: 0;
     max-width: none;
     max-height: none;
@@ -854,6 +855,11 @@ mat-form-field {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    
+    // 🎯 תיקון: במסכים גדולים - גובה navbar הוא 52px
+    @media only screen and (min-width: 576px) {
+        height: calc(100vh - 52px); // דסקטופ - גובה navbar
+    }
 }
 
 .main-flex-row {
