@@ -374,14 +374,23 @@ async function updateProductData(product, data) {
         parametersCount: parameters?.length || 0
     }, null, 2));
 
-    // שלב 1: עדכון singleNames אם נדרש
+    // שלב 1: בדיקה אם צריך ליצור קטגוריה חדשה (אם אחד מהם חדש - מספיק אחד)
+    const isNewCategory = (singleCategoryName.status === 'new' || pluralCategoryName.status === 'new');
+    console.log('SAVE_PRO_BACK - Category status check:', JSON.stringify({
+        isNewCategory: isNewCategory,
+        singleStatus: singleCategoryName.status,
+        pluralStatus: pluralCategoryName.status,
+        serialName: serialName || 'MISSING'
+    }, null, 2));
+
+    // שלב 1: עדכון singleNames אם נדרש (אם חדש)
     if (singleCategoryName.status === 'new' && serialName) {
         console.log(`SAVE_PRO_BACK - Adding to singleNames: ${serialName} = ${singleCategoryName.value}`);
         product.singleNames = product.singleNames || {};
         product.singleNames[serialName] = singleCategoryName.value;
     }
 
-    // שלב 2: עדכון names אם נדרש  
+    // שלב 2: עדכון names אם נדרש (אם חדש)
     if (pluralCategoryName.status === 'new' && serialName) {
         console.log(`SAVE_PRO_BACK - Adding to names: ${serialName} = ${pluralCategoryName.value}`);
         product.names = product.names || {};
@@ -392,15 +401,39 @@ async function updateProductData(product, data) {
     let configurationIndex;
     if (isNewModel) {
         console.log('SAVE_PRO_BACK - Creating new configuration');
-        // הוספת configuration חדש
+        
+        // 🎯 קביעת product של הקונפיגורציה החדשה:
+        // אם קטגוריה לא חדשה (שניהם original או other) -> singleName של הקונפיגורציה הנוכחית
+        // אם קטגוריה חדשה -> serialName
+        let configProduct;
+        if (!isNewCategory) {
+            // קטגוריה לא חדשה - נשתמש ב-singleName של הקונפיגורציה הנוכחית
+            const currentConfig = product.configurations?.[currentConfigurationIndex || 0];
+            configProduct = currentConfig?.product;
+            console.log(`SAVE_PRO_BACK - Using existing category product: ${configProduct} (from current config)`);
+            if (!configProduct) {
+                // גיבוי - אם אין product בקונפיגורציה הנוכחית
+                console.log('SAVE_PRO_BACK - WARNING: No product in current config, falling back to serialName');
+                configProduct = serialName;
+            }
+        } else {
+            // קטגוריה חדשה - נשתמש ב-serialName
+            configProduct = serialName;
+            console.log(`SAVE_PRO_BACK - Using new category serialName: ${configProduct}`);
+            if (!configProduct) {
+                console.log('SAVE_PRO_BACK - ERROR: serialName is required for new category but missing!');
+            }
+        }
+        
+        // הוספת configuration חדש (ללא name - לא צריך בקונפיגורציות חדשות)
         const newConfig = {
-            product: serialName, // השם הסידורי
+            product: configProduct,
             translatedName: productName.value
         };
         product.configurations = product.configurations || [];
         product.configurations.push(newConfig);
         configurationIndex = product.configurations.length - 1;
-        console.log(`SAVE_PRO_BACK - New configuration index: ${configurationIndex}`);
+        console.log(`SAVE_PRO_BACK - New configuration created at index ${configurationIndex}:`, JSON.stringify(newConfig, null, 2));
     } else {
         // מציאת האינדקס של הקונפיגורציה הנוכחית
         configurationIndex = currentConfigurationIndex || 0;
@@ -506,9 +539,10 @@ function updateNumericParameter(param, value, configIndex, isNewModel) {
     }
     
     if (isNewModel) {
-        // הוספה בסוף
+        // 🎯 הוספה בסוף לקונפיגורציה חדשה
         param.configurations.push(value);
-        console.log(`SAVE_PRO_BACK - Added value to end: ${value}`);
+        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: Added numeric value to end of configurations: ${value}`);
+        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: configurations length after push: ${param.configurations.length}`);
     } else {
         // אתחול עד האינדקס הנדרש אם חסרים מקומות
         while (param.configurations.length <= configIndex) {
@@ -550,9 +584,10 @@ function updateBeamSingleParameter(param, value, beamConfiguration, configIndex,
     param.beamsConfigurations = param.beamsConfigurations || [];
     
     if (isNewModel) {
-        // הוספה בסוף
+        // 🎯 הוספה בסוף לקונפיגורציה חדשה
         param.beamsConfigurations.push(beamConfiguration);
-        console.log(`SAVE_PRO_BACK - Added beam config to end: ${beamConfiguration}`);
+        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: Added beamSingle config to end: ${beamConfiguration}`);
+        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamsConfigurations length after push: ${param.beamsConfigurations.length}`);
     } else {
         // אתחול עד האינדקס הנדרש אם חסרים מקומות
         while (param.beamsConfigurations.length <= configIndex) {
@@ -628,12 +663,14 @@ function updateBeamArrayParameter(param, value, beamConfiguration, configIndex, 
     }
     
     if (isNewModel) {
-        // הוספה בסוף - גם configurations וגם beamsConfigurations
+        // 🎯 הוספה בסוף לקונפיגורציה חדשה - beamArray
         // שמירת המערך המלא כמו שהוא
         param.configurations.push([...value]); // העתקה מלאה של המערך
         param.beamsConfigurations.push(beamConfiguration);
-        console.log(`SAVE_PRO_BACK - beamArray ADDED FULL array config to END (${value.length} items):`, JSON.stringify(value, null, 2));
-        console.log(`SAVE_PRO_BACK - beamArray ADDED beam config to END: ${beamConfiguration}`);
+        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamArray ADDED FULL array config to END (${value.length} items):`, JSON.stringify(value, null, 2));
+        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamArray ADDED beam config to END: ${beamConfiguration}`);
+        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamArray configurations length after push: ${param.configurations.length}`);
+        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamArray beamsConfigurations length after push: ${param.beamsConfigurations.length}`);
     } else {
         // עדכון במיקום הנכון
         // החלפת המערך הקיים במערך החדש המלא
