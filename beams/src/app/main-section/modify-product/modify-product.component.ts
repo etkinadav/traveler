@@ -4048,6 +4048,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 mesh.receiveShadow = true;
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 mesh.position.set(leg.x, legHeight / 2, leg.z);
+                // If outside reinforcement flag is true, move cabinet legs toward Z=0 by b (leg profile height in cm)
+                const outsideParamCabLegs = this.getParam('is-reinforcement-beams-outside');
+                if (outsideParamCabLegs && outsideParamCabLegs.default === true) {
+                    const legProfileHeightCm = (legBeam && typeof legBeam.height === 'number') ? (legBeam.height / 10) : 0;
+                    if (legProfileHeightCm > 0) {
+                        const dirZ = mesh.position.z >= 0 ? 1 : -1;
+                        mesh.position.z = mesh.position.z - dirZ * legProfileHeightCm;
+                    }
+                }
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
@@ -4155,6 +4164,34 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     shelfBeamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
                 }
             }
+            // CHECK_SHORTEN_BEAM_is-reinforcement-beams-outside - Shelf context (once per shelf)
+            try {
+                const outsideParamCabCtx = this.getParam('is-reinforcement-beams-outside');
+                const isOutsideCabCtx = !!(outsideParamCabCtx && outsideParamCabCtx.default === true);
+                console.log('CHECK_SHORTEN_BEAM_is-reinforcement-beams-outside', JSON.stringify({
+                    shelfIndex: shelfIndex + 1,
+                    isOutside: isOutsideCabCtx,
+                    legWidthCm: legWidth,
+                    legHeightCm: legDepth,
+                    frameBeamWidthCm: frameBeamWidth,
+                    shelfBeamWidthCm: shelfBeamWidth,
+                    shelfBeamHeightCm: shelfBeamHeight
+                }, null, 2));
+                // Also provide CHECK_SHELF_BEAM info
+                console.log('CHECK_SHELF_BEAM', JSON.stringify({
+                    shelfIndex: shelfIndex + 1,
+                    shelfsSelectedBeam: {
+                        name: shelfBeam?.name,
+                        translatedName: shelfBeam?.translatedName,
+                        widthMm: shelfBeam?.width,
+                        heightMm: shelfBeam?.height
+                    },
+                    legSelectedBeam: {
+                        widthMm: (this.getParam('leg')?.beams?.[this.getParam('leg')?.selectedBeamIndex || 0]?.width) || null,
+                        heightMm: (this.getParam('leg')?.beams?.[this.getParam('leg')?.selectedBeamIndex || 0]?.height) || null
+                    }
+                }, null, 2));
+            } catch {}
             const surfaceBeams = this.createSurfaceBeams(
                 this.surfaceWidth,
                 this.surfaceLength,
@@ -4322,7 +4359,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         !isTopShelf &&
                         (i === 0 || i === surfaceBeams.length - 1)
                     ) {
-                    beam.depth = beam.depth - 2 * frameBeamWidth;
+                    const outsideParamCabShelves = this.getParam('is-reinforcement-beams-outside');
+                    const isOutsideCabShelves = !!(outsideParamCabShelves && outsideParamCabShelves.default === true);
+                    // Default: shorten by 2 * frameBeamWidth; Outside=true: shorten by (2 * frameBeamWidth) + (2 * legDepth)
+                    const before = beam.depth;
+                    if (isOutsideCabShelves) {
+                        beam.depth = Math.max(0.1, beam.depth - ((2 * frameBeamWidth) + (2 * legDepth)));
+                    } else {
+                        beam.depth = beam.depth - 2 * frameBeamWidth;
+                    }
+                    try {
+                        console.log('CHECK_SHORTEN_BEAM_is-reinforcement-beams-outside', JSON.stringify({
+                            kind: 'SHELF_END_SHORTEN',
+                            shelfIndex: shelfIndex + 1,
+                            endIndex: i,
+                            beforeDepth: before,
+                            afterDepth: beam.depth,
+                            defaultShortenCm: 2 * frameBeamWidth,
+                            extraShortenOutsideCm: isOutsideCabShelves ? 2 * legDepth : 0,
+                            totalShortenCm: (before - beam.depth)
+                        }, null, 2));
+                    } catch {}
                 }
                     const geometry = new THREE.BoxGeometry(
                         beam.width,
@@ -4387,10 +4444,32 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 legDepth
             );
             for (const beam of frameBeams) {
+                    // When is-reinforcement-beams-outside is true (cabinet only):
+                    // - X-spanning pair: extend width by 2a (a = legWidth)
+                    // - Z-spanning pair: shorten depth by b (b = legDepth)
+                    const outsideParamCabAdj = this.getParam('is-reinforcement-beams-outside');
+                    const isOutsideCabAdj = !!(outsideParamCabAdj && outsideParamCabAdj.default === true);
+                    let widthToUseCab = beam.width;
+                    let depthToUseCab = beam.depth;
+                    if (isOutsideCabAdj) {
+                        const tol = (2 * frameBeamHeight) + 0.001;
+                        const isXSpan = Math.abs(beam.width - this.surfaceWidth) <= tol;
+                        const isZSpan = Math.abs(beam.depth - this.surfaceLength) <= tol;
+                        // a = legWidth, b = legDepth (from earlier cabinet calculations)
+                        const a_extend = legWidth;
+                        const b_shorten = legDepth;
+                        if (isXSpan && a_extend > 0) {
+                            widthToUseCab = beam.width + (2 * a_extend);
+                        }
+                        if (isZSpan && b_shorten > 0) {
+                            // Shorten on both ends: total reduction = 2 * b
+                            depthToUseCab = Math.max(0.1, beam.depth - (2 * b_shorten));
+                        }
+                    }
                     const geometry = new THREE.BoxGeometry(
-                        beam.width,
+                        widthToUseCab,
                         frameBeamHeightCorrect,
-                        beam.depth
+                        depthToUseCab
                     );
                     const material = this.getWoodMaterial(frameType ? frameType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
@@ -5169,7 +5248,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             if (!isTopShelf) {
                                 // קורות בקצוות (ראשונה ואחרונה) מקוצרות
                                 if (beamIndex === 0 || beamIndex === cabinetShelfBeams.length - 1) {
-                                    beamLength = beamLength - (legBeamHeight * 2); // מורידים פעמיים גובה קורת הרגל
+                                    const outsideParamCabForPricingShelves = this.getParam('is-reinforcement-beams-outside');
+                                    const isOutsideCabForPricingShelves = !!(outsideParamCabForPricingShelves && outsideParamCabForPricingShelves.default === true);
+                                    const defaultShorten = (legBeamHeight * 2);
+                                    const extraShorten = isOutsideCabForPricingShelves ? (2 * (this.frameWidth)) : 0; // 2 * frameBeamWidth
+                                    beamLength = Math.max(0.1, beamLength - (defaultShorten + extraShorten));
                                     isShortened = true;
                                 }
                             }
@@ -5307,12 +5390,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             shorteningAmount
                         );
                         // עבור ארון - קורות חיזוק מקוצרות לכל מדף
+                        const outsideParamCabForPricing = this.getParam('is-reinforcement-beams-outside');
+                        const isOutsideCabForPricing = !!(outsideParamCabForPricing && outsideParamCabForPricing.default === true);
                         this.shelves.forEach((shelf, shelfIndex) => {
                             // 4 קורות חיזוק מקוצרות לכל מדף (2 לרוחב, 2 לאורך)
                             // קורות רוחב מקוצרות
+                            const widthLengthForPricing = isOutsideCabForPricing
+                                ? this.surfaceWidth
+                                : this.surfaceWidth - shorteningAmountEx;
                             allBeams.push({
                                 type: selectedType,
-                                length: this.surfaceWidth - shorteningAmountEx,
+                                length: widthLengthForPricing,
                                 width: frameWidth,
                                 height: frameHeight,
                                 name: `Frame Beam Width 1 - Shelf ${shelfIndex + 1}`,
@@ -5322,7 +5410,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             });
                             allBeams.push({
                                 type: selectedType,
-                                length: this.surfaceWidth - shorteningAmountEx,
+                                length: widthLengthForPricing,
                                 width: frameWidth,
                                 height: frameHeight,
                                 name: `Frame Beam Width 2 - Shelf ${shelfIndex + 1}`,
@@ -5331,9 +5419,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                                 beamWoodType: selectedType.translatedName, // סוג העץ
                             });
                             // קורות אורך מקוצרות (מקבילות לקורות המדפים)
+                            // אם outside=true: נדרש קיצור נוסף של b מכל צד => סה"כ 4*b
+                            const lengthLengthForPricing = isOutsideCabForPricing
+                                ? this.surfaceLength - (4 * legBeamHeight)
+                                : this.surfaceLength - shorteningAmount;
                             allBeams.push({
                                 type: selectedType,
-                                length: this.surfaceLength - shorteningAmount,
+                                length: Math.max(0.1, lengthLengthForPricing),
                                 width: frameWidth,
                                 height: frameHeight,
                                 name: `Frame Beam Length 1 - Shelf ${shelfIndex + 1}`,
@@ -5343,7 +5435,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             });
                             allBeams.push({
                                 type: selectedType,
-                                length: this.surfaceLength - shorteningAmount,
+                                length: Math.max(0.1, lengthLengthForPricing),
                                 width: frameWidth,
                                 height: frameHeight,
                                 name: `Frame Beam Length 2 - Shelf ${shelfIndex + 1}`,
