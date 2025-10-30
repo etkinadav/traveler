@@ -3468,20 +3468,33 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 legDepth // עומק הרגל האמיתי - חזרה למצב התקין
             );
             for (const beam of frameBeams) {
+                // Apply outside reinforcement adjustment for TABLE if enabled
+                const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                const isOutside = !!(outsideParam && outsideParam.default === true);
+                // a = legWidth, b = legDepth (as logged)
+                const a_extend = legWidth;
+                const b_inset = legDepth;
+                const isLengthBeam = Math.abs(beam.depth - this.surfaceLength) <= (2 * frameBeamHeight + 0.001);
+                const depthToUse = isOutside && isLengthBeam ? beam.depth + (2 * a_extend) : beam.depth;
                 const geometry = new THREE.BoxGeometry(
                     beam.width,
                     beam.height,
-                    beam.depth
+                    depthToUse
                 );
                 const material = this.getWoodMaterial(frameType ? frameType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
+                let zPos = beam.z;
+                if (isOutside && isLengthBeam) {
+                    const dir = zPos >= 0 ? 1 : -1;
+                    zPos = zPos - dir * b_inset;
+                }
                 mesh.position.set(
                     beam.x,
                     tableHeight - beam.height / 2,
-                    beam.z
+                    zPos
                 );
                 
                 this.scene.add(mesh);
@@ -3514,10 +3527,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // המרחק הכולל = הנתון החדש + רוחב קורות החיזוק
                 const totalDistance = extraBeamDistance + frameBeamHeight;
                 for (const beam of extraFrameBeams) {
+                    // Apply outside reinforcement adjustment for TABLE extra beams if enabled
+                    const outsideParamEx = this.getParam('is-reinforcement-beams-outside');
+                    const isOutsideEx = !!(outsideParamEx && outsideParamEx.default === true);
+                    const a_extend_ex = legWidth;
+                    const b_inset_ex = legDepth;
+                    const isLengthBeamEx = Math.abs(beam.depth - this.surfaceLength) <= (2 * frameBeamHeight + 0.001);
+                    const depthToUseEx = isOutsideEx && isLengthBeamEx ? beam.depth + (2 * a_extend_ex) : beam.depth;
                     const geometry = new THREE.BoxGeometry(
                         beam.width,
                         beam.height,
-                        beam.depth
+                        depthToUseEx
                     );
                     const material = this.getWoodMaterial(frameType ? frameType.name : '');
                     const mesh = new THREE.Mesh(geometry, material);
@@ -3525,10 +3545,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     mesh.receiveShadow = true;
                     this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                     // מיקום יותר נמוך במידת totalDistance (הנתון החדש + רוחב קורות החיזוק)
+                    let zPosEx = beam.z;
+                    if (isOutsideEx && isLengthBeamEx) {
+                        const dir = zPosEx >= 0 ? 1 : -1;
+                        zPosEx = zPosEx - dir * b_inset_ex;
+                    }
                     mesh.position.set(
                         beam.x,
                         tableHeight - beam.height / 2 - totalDistance,
-                        beam.z
+                        zPosEx
                     );
                     this.scene.add(mesh);
                     this.beamMeshes.push(mesh);
@@ -4387,10 +4412,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 legDepth
             );
             for (const beam of frameBeams) {
+                    // Apply outside reinforcement adjustment for CABINET if enabled
+                    const outsideParamCab = this.getParam('is-reinforcement-beams-outside');
+                    const isOutsideCab = !!(outsideParamCab && outsideParamCab.default === true);
+                    // a = legWidth, b = legDepth (as used above for cabinet)
+                    const a_extend_cab = legWidth;
+                    const b_inset_cab = legDepth;
+                    const isLengthBeamCab = Math.abs(beam.depth - this.surfaceLength) <= (2 * frameBeamHeight + 0.001);
+                    const depthToUseCab = isOutsideCab && isLengthBeamCab ? beam.depth + (2 * a_extend_cab) : beam.depth;
                     const geometry = new THREE.BoxGeometry(
                         beam.width,
                         frameBeamHeightCorrect,
-                        beam.depth
+                        depthToUseCab
                     );
                     const material = this.getWoodMaterial(frameType ? frameType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
@@ -4398,7 +4431,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 mesh.receiveShadow = true;
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 const frameY = currentY + frameBeamHeightCorrect / 2;
-                mesh.position.set(beam.x, frameY, beam.z);
+                let zPosCab = beam.z;
+                if (isOutsideCab && isLengthBeamCab) {
+                    const dir = zPosCab >= 0 ? 1 : -1;
+                    zPosCab = zPosCab - dir * b_inset_cab;
+                }
+                mesh.position.set(beam.x, frameY, zPosCab);
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
