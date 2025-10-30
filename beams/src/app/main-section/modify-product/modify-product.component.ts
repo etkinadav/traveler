@@ -45,6 +45,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // Debug mode - set to true to enable console logs
     private enableDebugLogs = false;
     
+    // מניעת לוגים אינסופיים עבור CHACK_is-reinforcement-beams-outside
+    private reinforcementLogPrinted = false;
+    
     // משתנה למניעת לוגים חוזרים של animate
     private animationLogged = false;
     
@@ -62,6 +65,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // משתנה למניעת לוגים חוזרים של hasProductParametersChanged
     private paramChangedLogged = false;
+
     
     // קריאה ראשונית לבדיקת isEditMode
     checkIsEditModeInitialValue() {
@@ -1216,6 +1220,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         animate();
     }
+
     
     // פונקציה לפתיחת/סגירת תפריט המחיר
     togglePriceMenu() {
@@ -7648,6 +7653,59 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
         // רוחב כולל
         let totalWidth = this.surfaceWidth;
+        // חישוב אורך כולל (totalLength) לפי סוג המוצר הנוכחי
+        // נבנה totalLength בדומה ללוגיקה בהמשך הפונקציה כדי להדפיס לוג מדויק
+        let totalLengthForLog = this.surfaceLength;
+        try {
+            // אם קיימת פונקציה או נתונים מחושבים לאחר מכן, ננסה לשמר התאמה
+            // כברירת מחדל משתמשים ב-surfaceLength שנגזר מהפרמטרים המעודכנים
+            if ((this as any).__emitReinforcementLogs && (this as any).__emitReinforcementLogs.emitLogs) {
+                (this as any).__emitReinforcementLogs.emitLogs(totalLengthForLog);
+            }
+        } catch {}
+        
+        // CHACK_is-reinforcement-beams-outside - לוגים נדרשים עבור קורות רגל וקורות חיזוק
+        try {
+            const productName = this.product?.name || '';
+            const isCabinet = productName === 'cabinet';
+            const isTable = productName === 'table';
+            
+            // נתוני קורת רגל (a,b)
+            let legWidthCm = 0;
+            let legHeightCm = 0;
+            const legParam = this.getParam ? this.getParam('leg') : this.product?.params?.find((p: any) => p.name === 'leg');
+            if (legParam && Array.isArray(legParam.beams) && legParam.beams.length) {
+                const legBeamIdx = typeof legParam.selectedBeamIndex === 'number' ? legParam.selectedBeamIndex : 0;
+                const legBeam = legParam.beams[legBeamIdx];
+                if (legBeam) {
+                    legWidthCm = (legBeam.width || 0) / 10;
+                    legHeightCm = (legBeam.height || 0) / 10;
+                }
+            }
+            
+            // נחשב גם את האורך הכולל (c) לאחר שמתקבל totalLength בהמשך
+            const emitLogs = (totalLen: number) => {
+                if (this.reinforcementLogPrinted) { return; }
+                const title = 'CHACK_is-reinforcement-beams-outside';
+                const product = isCabinet ? 'ארון' : (isTable ? 'שולחן' : (this.product?.translatedName || productName));
+                // A - קורות רגל
+                console.log(`${title} - A`, JSON.stringify({
+                    product,
+                    stage: 'A',
+                    a_legProfileWidthCm: legWidthCm,
+                    b_legProfileHeightCm: legHeightCm
+                }, null, 2));
+                // B - קורות חיזוק לרוחב; c - אורך קורת חיזוק לאורך המשטח
+                console.log(`${title} - B`, JSON.stringify({
+                    product,
+                    stage: 'B',
+                    c_reinforcementAlongLength_cm: totalLen
+                }, null, 2));
+                this.reinforcementLogPrinted = true;
+            };
+            // נשמור לפונקציה מקומית לשימוש בהמשך כשנחשב totalLength
+            (this as any).__emitReinforcementLogs = { emitLogs, legWidthCm, legHeightCm };
+        } catch {}
         // אורך כולל
         let totalLength = this.surfaceLength;
         // גובה כולל
@@ -8922,24 +8980,33 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const axesLength = 5; // אורך החצים בס"מ - קוצר ל-5 ס"מ
         
         // חץ X (כחול בהיר) - ימינה
-        const xArrow = this.createArrow(axesLength, 0x0066ff, ''); // כחול בהיר ללא טקסט
+        const xArrow = this.createArrow(axesLength, 0x0066ff, 'X');
         xArrow.position.set(0, 0, 0);
         this.scene.add(xArrow);
         this.coordinateAxes.push(xArrow);
         
         // חץ Y (כחול בינוני) - למעלה
-        const yArrow = this.createArrow(axesLength, 0x4d94ff, ''); // כחול בינוני ללא טקסט
+        const yArrow = this.createArrow(axesLength, 0x4d94ff, 'Y');
         yArrow.position.set(0, 0, 0);
         yArrow.rotation.z = -Math.PI / 2; // סיבוב 90 מעלות סביב Z
         this.scene.add(yArrow);
         this.coordinateAxes.push(yArrow);
         
         // חץ Z (כחול כהה) - קדימה (לכיוון המצלמה)
-        const zArrow = this.createArrow(axesLength, 0x003d99, ''); // כחול כהה ללא טקסט
+        const zArrow = this.createArrow(axesLength, 0x003d99, 'Z');
         zArrow.position.set(0, 0, 0);
         zArrow.rotation.x = Math.PI / 2; // סיבוב 90 מעלות סביב X
         this.scene.add(zArrow);
         this.coordinateAxes.push(zArrow);
+
+        // מיקום כל החצים לגובה: גובה המוצר + 10 ס"מ
+        try {
+            const dims = this.getProductDimensionsRaw();
+            const yOffset = (dims?.height || 0) + 10;
+            xArrow.position.y = yOffset;
+            yArrow.position.y = yOffset;
+            zArrow.position.y = yOffset;
+        } catch {}
         
         this.debugLog('נוספו חצים לכיוונים במרכז המודל');
     }
@@ -8993,26 +9060,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // הוספת טקסט לכיוון - רק אם יש label
         if (label && label.length > 0) {
             const canvas = document.createElement('canvas');
-            canvas.width = 64;
+            canvas.width = 128;
             canvas.height = 64;
-            const context = canvas.getContext('2d')!;
-            context.fillStyle = '#ffffff';
-            context.fillRect(0, 0, 64, 64);
-            context.fillStyle = '#000000';
-            context.font = 'bold 32px Arial';
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
-            context.fillText(label, 32, 32);
-            
+            const ctx = canvas.getContext('2d')!;
+            // ללא רקע - שקוף
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // טקסט בכחול (מותאם ל"כחול שלנו")
+            ctx.fillStyle = '#1e90ff';
+            ctx.font = 'bold 36px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, canvas.width / 2, canvas.height / 2);
             const texture = new THREE.CanvasTexture(canvas);
-            const textMaterial = new THREE.MeshBasicMaterial({ 
-                map: texture, 
-                transparent: true,
-                alphaTest: 0.1
-            });
-            const textGeometry = new THREE.PlaneGeometry(8, 8);
+            const textMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+            const textGeometry = new THREE.PlaneGeometry(8, 4);
             const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-            textMesh.position.y = length + 5; // מיקום הטקסט מעל החץ
+            textMesh.position.y = length + 2.5; // מעט מעל ראש החץ
+            // הצמדת הטקסט לפנים המצלמה (Billboard) כדי שתמיד יהיה נראה, כולל עבור ציר Z
+            textMesh.onBeforeRender = function(_renderer: any, _scene: any, camera: THREE.Camera) {
+                // מעתיקים את הסיבוב של המצלמה, כך שהטקסט תמיד פונה אליה
+                // @ts-ignore
+                this.quaternion.copy((camera as any).quaternion);
+            } as any;
             group.add(textMesh);
         }
         
