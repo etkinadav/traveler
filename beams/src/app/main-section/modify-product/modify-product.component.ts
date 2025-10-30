@@ -3441,6 +3441,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 );
                 legWidth = frameBeamWidth;
             }
+            // CHACK_is-reinforcement-beams-outside - A (VALUES USED)
+            try {
+                console.log('CHACK_is-reinforcement-beams-outside - A_USED', JSON.stringify({
+                    product: this.product?.translatedName || this.product?.name,
+                    stage: 'A_USED_TABLE',
+                    a_legProfileWidthCm_used: legWidth,
+                    b_legProfileHeightCm_used: (tableLegParam?.beams?.[tableLegParam.selectedBeamIndex || 0]?.height || 0) / 10,
+                    fallbackDepthUsedAsHeight: !tableLegParam?.beams?.[tableLegParam.selectedBeamIndex || 0]?.height && !!tableLegParam?.beams?.[tableLegParam.selectedBeamIndex || 0]?.depth
+                }, null, 2));
+            } catch {}
             if (isNaN(legDepth) || legDepth <= 0) {
                 console.warn(
                     'Invalid legDepth, using frameBeamWidth:',
@@ -4355,6 +4365,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.endTimer(`CABINET - Render ${surfaceBeams.length} Beams for Shelf ${shelfIndex + 1}`);
             
             // Frame beams (קורת חיזוק)
+            // CHACK_is-reinforcement-beams-outside - A (VALUES USED for CABINET)
+            if (!this.reinforcementLogPrinted) {
+                try {
+                    console.log('CHACK_is-reinforcement-beams-outside - A_USED', JSON.stringify({
+                        product: this.product?.translatedName || this.product?.name,
+                        stage: 'A_USED_CABINET',
+                        a_legProfileWidthCm_used: legWidth,
+                        b_legProfileHeightCm_used: legDepth
+                    }, null, 2));
+                } catch {}
+                this.reinforcementLogPrinted = true;
+            }
             this.startTimer(`CABINET - Create and Render Frame Beams for Shelf ${shelfIndex + 1}`);
             const frameBeams = this.createFrameBeams(
                 this.surfaceWidth,
@@ -7675,8 +7697,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             let legHeightCm = 0;
             const legParam = this.getParam ? this.getParam('leg') : this.product?.params?.find((p: any) => p.name === 'leg');
             if (legParam && Array.isArray(legParam.beams) && legParam.beams.length) {
-                const legBeamIdx = typeof legParam.selectedBeamIndex === 'number' ? legParam.selectedBeamIndex : 0;
-                const legBeam = legParam.beams[legBeamIdx];
+                // ודא שיש selectedBeamIndex תקף; אם אין, נבחר ברירת מחדל יציבה
+                let legBeamIdx: number;
+                if (typeof legParam.selectedBeamIndex === 'number') {
+                    legBeamIdx = legParam.selectedBeamIndex;
+                } else if (typeof (this as any).findDefaultBeamIndex === 'function') {
+                    try {
+                        legBeamIdx = (this as any).findDefaultBeamIndex(legParam.beams, legParam.defaultType);
+                    } catch {
+                        legBeamIdx = 0;
+                    }
+                } else {
+                    legBeamIdx = 0;
+                }
+                // אם אין מימדים על הבחירה, חפש קורה ראשונה עם width/height
+                let legBeam = legParam.beams[legBeamIdx];
+                if (!legBeam || (!legBeam.width && !legBeam.height)) {
+                    const found = legParam.beams.find((b: any) => (b?.width || 0) > 0 && (b?.height || 0) > 0);
+                    if (found) {
+                        legBeam = found;
+                    }
+                }
                 if (legBeam) {
                     legWidthCm = (legBeam.width || 0) / 10;
                     legHeightCm = (legBeam.height || 0) / 10;
@@ -10053,9 +10094,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             return matches;
                         });
                         
-                        if (foundBeamIndex !== -1) {
-                            updatedParam.selectedBeamIndex = foundBeamIndex;
-                            updatedParam.selectedTypeIndex = 0; // ברירת מחדל
+                    if (foundBeamIndex !== -1) {
+                        updatedParam.selectedBeamIndex = foundBeamIndex;
+                        updatedParam.selectedTypeIndex = 0; // ברירת מחדל
                             console.log(`CHECK_SHELF_BEAM - ✅ updateParamsWithConfiguration: Set shelfs selectedBeamIndex to ${foundBeamIndex} based on ${beamConfigStr}`);
                             console.log(`CHECK_SHELF_BEAM - Updated param state:`, JSON.stringify({
                                 selectedBeamIndex: updatedParam.selectedBeamIndex,
@@ -10083,7 +10124,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 // עבור beamSingle - תמיד נשתמש ב-_pendingBeamConfig
                 if (param.type === 'beamSingle') {
-                    updatedParam._pendingBeamConfig = beamConfigStr;
+                updatedParam._pendingBeamConfig = beamConfigStr;
                 }
             } else {
                 console.log(`SAVE_PRO - Skipping beam configuration for ${param.name}:`, JSON.stringify({
