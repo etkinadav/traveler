@@ -857,17 +857,29 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return result;
     }
     
-    // בדיקה ישירה אם יש dimensions-alert במוצר
+    // בדיקה ישירה אם יש dimensions-alert במוצר וגם יש הבדל בין הגובה שהוזן לגובה האמיתי
     checkIfHasDimensionsAlert(): boolean {
-        
+        // שלב 1: בדיקה אם יש restriction של dimensions-alert
         if (!this.product || !this.product.restrictions) {
             return false;
         }
         
         const dimensionsAlert = this.product.restrictions.find((r: any) => r.name === 'dimensions-allert' || r.name === 'dimensions-alert');
         
-        const result = dimensionsAlert && dimensionsAlert.val === true;
-        return result;
+        if (!dimensionsAlert || dimensionsAlert.val !== true) {
+            return false;
+        }
+        
+        // שלב 2: בדיקה אם יש הפרש בין הגובה שהוזן לגובה האמיתי
+        // 🎯 צריך לבדוק את הערכים הנוכחיים (הכי מעודכנים) של שניהם
+        const actualHeight = this.getActualHeight();
+        const userHeight = this.getUserDefinedHeight();
+        
+        // 🔍 השוואה מדויקת (עם סובלנות קטנה לשגיאות עיגול)
+        const difference = Math.abs(actualHeight - userHeight);
+        const hasDifference = difference > 0.01; // אם ההפרש גדול מ-0.01 ס"מ
+        
+        return hasDifference;
     }
     
     // קבלת הגובה האמיתי של המוצר
@@ -877,11 +889,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return height;
     }
     
-    // קבלת הגובה שהמשתמש הגדיר
+    // קבלת הגובה שהמשתמש הגדיר (הערך הנוכחי מהאינפוט)
     getUserDefinedHeight(): number {
-        const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
-        if (heightParam && heightParam.default !== undefined) {
-            return heightParam.default;
+        // 🎯 משתמשים ב-this.params (המערך הנוכחי והמעודכן) ולא ב-this.product.params
+        const heightParam = this.params?.find((p: any) => p.name === 'height');
+        if (heightParam && heightParam.default !== undefined && heightParam.default !== null) {
+            // המרה למספר אם צריך
+            const heightValue = typeof heightParam.default === 'number' ? heightParam.default : Number(heightParam.default);
+            return isNaN(heightValue) ? 0 : heightValue;
         }
         return 0;
     }
