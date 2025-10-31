@@ -576,7 +576,7 @@
                         <span class="boolean-label">{{param.translatedName}}</span>
                         <mat-slide-toggle 
                             [(ngModel)]="param.default"
-                            (change)="updateBeams()"
+                            (change)="onBooleanParamChange(param.name)"
                             color="primary">
                         </mat-slide-toggle>
                     </div>

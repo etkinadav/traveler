@@ -5965,6 +5965,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 if (shouldDuplicateScrews) {
                     totalScrews = totalScrews * 2; // Double the screws (UP + DOWN instead of original)
                 }
+                
+                // REDUCE_LEG_SCREWS_WHEN_OUTSIDE - Reduce leg screws by half when is-reinforcement-beams-outside is true
+                const outsideParamForPricing = this.getParam('is-reinforcement-beams-outside');
+                const isOutsideForPricing = !!(outsideParamForPricing && outsideParamForPricing.default === true);
+                if (isOutsideForPricing && !this.isTable) {
+                    totalScrews = Math.floor(totalScrews / 2); // Halve the screws (only Z-facing screws remain, Y-facing screws are removed)
+                    console.log(`CHECK_REMOVE_LEG_SCREWS_OUTSIDE - Reduced leg screws by half for pricing: ${totalScrews} screws remain`);
+                }
+                
                 // חלוקה לשתי קבוצות שוות - חצי לכל קבוצה
                 const halfScrews = Math.floor(totalScrews / 2);
                 const remainingScrews = totalScrews - halfScrews; // לטפל במקרה של מספר אי-זוגי
@@ -8096,7 +8105,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             totalScrews += beamCount * screwsPerBeam;
         }
         // ברגים לרגליים (2 ברגים לכל רגל לכל מדף)
-        const legScrews = this.shelves.length * 4 * 2; // 4 רגליים × 2 ברגים לכל מדף
+        // REDUCE_LEG_SCREWS_WHEN_OUTSIDE - Reduce leg screws by half when is-reinforcement-beams-outside is true
+        const outsideParamForLegScrews = this.getParam('is-reinforcement-beams-outside');
+        const isOutsideForLegScrews = !!(outsideParamForLegScrews && outsideParamForLegScrews.default === true);
+        const screwsPerLeg = isOutsideForLegScrews ? 1 : 2; // 1 screw per leg when outside=true (only Z-facing), 2 screws per leg when outside=false
+        const legScrews = this.shelves.length * 4 * screwsPerLeg; // 4 רגליים × screwsPerLeg ברגים לכל מדף
         totalScrews += legScrews;
         const result = {
             length: totalLength,
@@ -8651,6 +8664,29 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             verticalPosition: 'top',
             panelClass: ['custom-snackbar']
         });
+    }
+    
+    // פונקציה לטיפול בשינוי פרמטר boolean
+    onBooleanParamChange(paramName: string): void {
+        // עדכון התלת-ממדי
+        this.updateBeams();
+        
+        // אם זה פרמטר שמשפיע על המחיר, עדכן את המחיר
+        if (paramName === 'is-reinforcement-beams-outside') {
+            console.log(`CHECK_REMOVE_LEG_SCREWS_OUTSIDE - Toggle changed for ${paramName}, forcing pricing recalculation`);
+            // עדכון המחיר כדי שהחישוב של ברגי הרגל יתעדכן
+            // ניסיון לקרוא לפונקציה שמעדכנת את המחיר - אם היא קיימת
+            try {
+                // אם יש פונקציה שמחשבת את המחיר, קרא לה
+                if (typeof (this as any).calculateForgingData === 'function') {
+                    (this as any).calculateForgingData();
+                } else if (typeof (this as any).calculatePricing === 'function') {
+                    (this as any).calculatePricing();
+                }
+            } catch (e) {
+                console.warn('CHECK_REMOVE_LEG_SCREWS_OUTSIDE - Could not call pricing function:', e);
+            }
+        }
     }
     
     // קבלת שם קצר לאופציות הנבחרות למצב מצומצם

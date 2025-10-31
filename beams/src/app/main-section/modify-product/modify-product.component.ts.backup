@@ -6373,6 +6373,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 if (shouldDuplicateScrews) {
                     totalScrews = totalScrews * 2; // Double the screws (UP + DOWN instead of original)
                 }
+                
+                // REDUCE_LEG_SCREWS_WHEN_OUTSIDE - Reduce leg screws by half when is-reinforcement-beams-outside is true
+                const outsideParamForPricing = this.getParam('is-reinforcement-beams-outside');
+                const isOutsideForPricing = !!(outsideParamForPricing && outsideParamForPricing.default === true);
+                if (isOutsideForPricing && !this.isTable) {
+                    totalScrews = Math.floor(totalScrews / 2); // Halve the screws (only Z-facing screws remain, Y-facing screws are removed)
+                    console.log(`CHECK_REMOVE_LEG_SCREWS_OUTSIDE - Reduced leg screws by half for pricing: ${totalScrews} screws remain`);
+                }
+                
                 // חלוקה לשתי קבוצות שוות - חצי לכל קבוצה
                 const halfScrews = Math.floor(totalScrews / 2);
                 const remainingScrews = totalScrews - halfScrews; // לטפל במקרה של מספר אי-זוגי
