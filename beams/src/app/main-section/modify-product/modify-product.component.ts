@@ -10467,11 +10467,38 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const legParam = this.params.find(p => p.name === 'leg');
             if (legParam) {
                 console.log(`CHECK_LEG - TEMP FIX CHECK: Current leg selectedBeamIndex = ${legParam.selectedBeamIndex}`);
+                
+                // בדיקה אם יש localStorage value שמור שמציין שהמשתמש בחר index 0
+                const storageKey = `selectedBeamIndex_${this.product?.name}_leg`;
+                const savedBeamIndex = localStorage.getItem(storageKey);
+                const savedIndex = savedBeamIndex !== null ? parseInt(savedBeamIndex, 10) : null;
+                
+                console.log(`CHECK_LEG - TEMP FIX CHECK: localStorage value = ${savedIndex}, current value = ${legParam.selectedBeamIndex}`);
+                
+                // אם יש localStorage value שמתאים לערך הנוכחי (index 0), זה אומר שהמשתמש בחר אותו - אל נתקן
+                if (legParam.selectedBeamIndex === 0 && savedIndex === 0) {
+                    console.log(`CHECK_LEG - TEMP FIX: User selected index 0 (${legParam.beams[0]?.name}), not fixing`);
+                    return; // המשתמש בחר index 0 - אל נתקן
+                }
+                
+                // רק אם אין localStorage value או שהוא שונה מ-0, ואם יש קורה 50-25 ב-index 2, נבדוק אם צריך לתקן
                 if (legParam.selectedBeamIndex === 0 && legParam.beams && legParam.beams[2]?.name === '50-25') {
-                    console.log(`CHECK_LEG - TEMP FIX: Correcting leg parameter from index 0 to index 2`);
-                    legParam.selectedBeamIndex = 2;
-                    legParam.selectedTypeIndex = 0;
-                    console.log(`CHECK_LEG - TEMP FIX: Fixed! Now showing "${legParam.beams[2]?.translatedName}"`);
+                    // בדיקה נוספת: אם הקונפיגורציה מגדירה 50-25 והערך הנוכחי הוא 0, זה יכול להיות שגיאה
+                    const configIndex = this.product?.configurationIndex || 0;
+                    const legBeamsConfig = legParam.beamsConfigurations || [];
+                    const configBeamName = legBeamsConfig[configIndex];
+                    
+                    console.log(`CHECK_LEG - TEMP FIX CHECK: configIndex=${configIndex}, configBeamName=${configBeamName}, currentBeam=${legParam.beams[0]?.name}`);
+                    
+                    // רק אם הקונפיגורציה מגדירה 50-25 והערך הנוכחי הוא 0 (100-25), ואם אין localStorage שמציין שהמשתמש בחר 0
+                    if (configBeamName === '50-25' && savedIndex !== 0) {
+                        console.log(`CHECK_LEG - TEMP FIX: Correcting leg parameter from index 0 to index 2 (config expects 50-25, no user override)`);
+                        legParam.selectedBeamIndex = 2;
+                        legParam.selectedTypeIndex = 0;
+                        console.log(`CHECK_LEG - TEMP FIX: Fixed! Now showing "${legParam.beams[2]?.translatedName}"`);
+                    } else {
+                        console.log(`CHECK_LEG - TEMP FIX: No fix needed. User selected index 0 or config doesn't match`);
+                    }
                 } else {
                     console.log(`CHECK_LEG - TEMP FIX: No fix needed. selectedBeamIndex = ${legParam.selectedBeamIndex}`);
                 }

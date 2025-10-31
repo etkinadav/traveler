@@ -1,13 +1,6 @@
 <div class="threejs-box-wrapper">
     <!-- הודעת validation הוסרה - משתמשים ב-SnackBar -->
     
-    <!-- כפתור הוראות הרכבה - בפינה השמאלית העליונה -->
-    <button class="assembly-instructions-button" 
-            (click)="toggleAssemblyInstructions()"
-            [class.active]="showAssemblyInstructions">
-        <span>{{ showAssemblyInstructions ? ('modify-product.view-edit-menu' | translate) : ('modify-product.view-assembly-instructions' | translate) }}</span>
-    </button>
-    
     <!-- קונטיינר לכפתורי תצוגה -->
     <div class="view-controls-container">
         <!-- כפתור להצגת wireframe - מוסתר במובייל ובמוצר קורות -->
@@ -135,6 +128,20 @@
                 <polygon points="8,8 6,7 7,9" fill="currentColor"/>
             </svg>
             <span>{{ showCoordinateAxes ? ('hide_axes' | translate) : ('show_axes' | translate) }}</span>
+        </button>
+        
+        <!-- אפשרות הוראות הרכבה -->
+        <button class="menu-option" 
+                (click)="toggleAssemblyInstructions(); isOptionsMenuOpen = false"
+                [class.active]="showAssemblyInstructions">
+            <svg width="18" height="18" viewBox="0 0 16 16">
+                <!-- אייקון מסמך/הוראות -->
+                <rect x="2" y="2" width="12" height="14" rx="1" stroke="currentColor" stroke-width="0.8" fill="none"/>
+                <line x1="5" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="5" y1="9" x2="11" y2="9" stroke="currentColor" stroke-width="0.8"/>
+                <line x1="5" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="0.8"/>
+            </svg>
+            <span>{{ showAssemblyInstructions ? ('modify-product.view-edit-menu' | translate) : ('modify-product.view-assembly-instructions' | translate) }}</span>
         </button>
     </div>
     
@@ -671,6 +678,15 @@
                             <td [innerHTML]="getProductDimensions().shelfCount"></td>
                         </tr>
                     </table>
+                </div>
+                
+                <!-- כפתור הוראות הרכבה - בסוף התפריט -->
+                <div class="assembly-instructions-container">
+                    <button class="assembly-instructions-button-inline" 
+                            (click)="toggleAssemblyInstructions()"
+                            [class.active]="showAssemblyInstructions">
+                        <span>{{ showAssemblyInstructions ? ('modify-product.view-edit-menu' | translate) : ('modify-product.view-assembly-instructions' | translate) }}</span>
+                    </button>
                 </div>
                 
                 </div> <!-- סיום התוכן הרגיל -->

@@ -32,22 +32,27 @@
 .quick-commit-btn svg path {
   stroke: #0066cc;
 }
-/* כפתור הוראות הרכבה - בפינה השמאלית העליונה */
-.assembly-instructions-button {
-    position: fixed !important;
-    top: 63px !important;
-    left: 19px !important;
-    padding: 6px 12px;
+/* כפתור הוראות הרכבה - בתוך התפריט */
+.assembly-instructions-container {
+    width: 100%;
+    padding: 15px 10px;
+    margin-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.assembly-instructions-button-inline {
+    width: 100%;
+    padding: 10px 15px;
     border: 1px solid #0066cc;
     border-radius: 0;
     background: transparent;
     color: #0066cc;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
-    z-index: 1000 !important;
     transition: all 0.2s ease;
-    white-space: nowrap;
+    text-align: center;
+    display: block;
     
     &:hover {
         background: rgba(0, 102, 204, 0.1);
