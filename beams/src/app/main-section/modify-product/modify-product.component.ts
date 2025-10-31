@@ -5398,6 +5398,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         } else {
                             widthLengthForTable = this.surfaceWidth - shorteningAmountEx; // -2a
                         }
+                        // Width beams (X-spanning) - duplicate for extra frame beams (lower reinforcement)
                         allBeams.push({
                             type: selectedType,
                             length: widthLengthForTable,
@@ -5414,6 +5415,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             width: frameWidth,
                             height: frameHeight,
                             name: 'Table Frame Beam Width 2',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        // Duplicate width beams for extra frame beams (always for table)
+                        allBeams.push({
+                            type: selectedType,
+                            length: widthLengthForTable,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Table Frame Beam Width 1 (Extra)',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        allBeams.push({
+                            type: selectedType,
+                            length: widthLengthForTable,
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Table Frame Beam Width 2 (Extra)',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
                             beamWoodType: selectedType.translatedName, // סוג העץ
@@ -5438,6 +5460,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             width: frameWidth,
                             height: frameHeight,
                             name: 'Table Frame Beam Length 2',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        // Duplicate length beams for extra frame beams (always for table)
+                        allBeams.push({
+                            type: selectedType,
+                            length: Math.max(0.1, lengthBeamLength),
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Table Frame Beam Length 1 (Extra)',
+                            beamName: selectedBeam.name,
+                            beamTranslatedName: selectedBeam.translatedName,
+                            beamWoodType: selectedType.translatedName, // סוג העץ
+                        });
+                        allBeams.push({
+                            type: selectedType,
+                            length: Math.max(0.1, lengthBeamLength),
+                            width: frameWidth,
+                            height: frameHeight,
+                            name: 'Table Frame Beam Length 2 (Extra)',
                             beamName: selectedBeam.name,
                             beamTranslatedName: selectedBeam.translatedName,
                             beamWoodType: selectedType.translatedName, // סוג העץ
