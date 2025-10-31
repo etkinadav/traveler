@@ -4066,7 +4066,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const legWidthCabinet = legParamCabinet?.beams?.[legParamCabinet.selectedBeamIndex || 0]?.width || 0;
             const dubbleThresholdCabinet = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
             
-            this.addScrewsToLegs(totalShelves, legs, frameBeamHeightCorrect, 0);
+            // When outside=true: skip Y-facing screws (screwIndex=1), keep Z-facing screws (screwIndex=0)
+            const outsideForCabinetScrews = this.getParam('is-reinforcement-beams-outside');
+            const isOutsideEnabled = !!(outsideForCabinetScrews && outsideForCabinetScrews.default === true);
+            this.addScrewsToLegs(totalShelves, legs, frameBeamHeightCorrect, 0, isOutsideEnabled);
         }
         
         // עבור ארון - הקוד המקורי
@@ -7453,7 +7456,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         totalShelves: number,
         legPositions: any[],
         frameBeamHeight: number,
-        shelfY: number
+        shelfY: number,
+        skipYFacingScrews: boolean = false
     ) {
         this.debugLog(
             'Adding screws to legs:',
@@ -7606,6 +7610,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const shouldDuplicateScrews = dubbleThreshold && frameBeamHeight > dubbleThreshold;
                 
                 screwPositions.forEach((pos, screwIndex) => {
+                    // Skip Y-facing screws (screwIndex=1) if skipYFacingScrews is true
+                    if (skipYFacingScrews && screwIndex === 1) {
+                        console.log(`CHECK_REMOVE_LEG_SCREWS_OUTSIDE - Skipping Y-facing screw (screwIndex=${screwIndex}) for leg ${legIndex + 1}, shelf ${shelfIndex + 1}`);
+                        return; // Skip this screw
+                    }
+                    
                     // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
                     const screwType = screwIndex === 0 ? 'leg_height' : 'leg_width';
                     // מעביר גם את שתי המידות כדי לבחור את המקסימום + 3
