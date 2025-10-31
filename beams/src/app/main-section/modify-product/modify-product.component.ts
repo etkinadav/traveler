@@ -8454,10 +8454,38 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 },
             ];
         }
-        // אם הקורה מקוצרת, השתמש בלוגיקה הישנה (4 ברגים בפינות)
+        // אם הקורה מקוצרת, קרא את threshold וקבע כמה ברגים ליצור
         if (isShortenedBeam !== 'top') {
-            // לקורות מקוצרות, תמיד השתמש בלוגיקה הישנה של 4 ברגים בפינות
-            screwPositions = [
+            // קריאת ערך threshold מה-restrictions של המוצר
+            let threshold = 50; // ערך ברירת מחדל (50 ס"מ)
+            if (this.product && Array.isArray(this.product.restrictions)) {
+                const thresholdRestriction = this.product.restrictions.find(
+                    (r: any) => r.name === 'dubble-shorten-beam-screws-threshold'
+                );
+                if (thresholdRestriction && typeof thresholdRestriction.val === 'number') {
+                    threshold = thresholdRestriction.val;
+                }
+            }
+            
+            // חישוב אורך הקורה המקוצרת (L) - beam.depth כבר מקוצר
+            const L = beam.depth; // אורך הקורה המקוצרת (בס"מ)
+            const D = threshold; // ערך ה-threshold
+            
+            // קביעת מספר הברגים לפי הכללים
+            let numScrewsPerSide: number;
+            if (L > D) {
+                // L > D → 4 ברגים (2 ברגים בכל צד)
+                numScrewsPerSide = 2;
+            } else if (L > D / 2) {
+                // L > D/2 → 3 ברגים (1.5 בכל צד, אבל נעגל ל-2 בצד אחד ו-1 בצד השני)
+                numScrewsPerSide = 1.5; // נטפל בזה בהמשך
+            } else {
+                // L <= D/2 → 2 ברגים (רק 1 בכל צד = הקיצוניים)
+                numScrewsPerSide = 1;
+            }
+            
+            // יצירת מיקומי הברגים הבסיסיים (4 פינות)
+            const basePositions = [
                 // פינה שמאלית קדמית
                 {
                     x: beam.x - beam.width / 2 + inwardOffset,
@@ -8479,102 +8507,96 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     z: beamZ + beam.depth / 2 - edgeOffset,
                 },
             ];
-            // הסר את הברגים הראשון והשלישי (אינדקסים 0 ו-2)
+            
+            // סינון לפי צד (start או end)
+            let filteredBasePositions: any[] = [];
             if (isShortenedBeam === 'start') {
-                screwPositions = screwPositions.filter(
-                    (pos, index) => index !== 1 && index !== 3
-                );
+                // לשמאל: רק הקיצוניים (0, 2) - פינה שמאלית קדמית ואחורית
+                filteredBasePositions = [
+                    basePositions[0], // שמאלי קדמי
+                    basePositions[2]  // שמאלי אחורי
+                ];
             } else {
-                screwPositions = screwPositions.filter(
-                    (pos, index) => index !== 0 && index !== 2
-                );
+                // לימין: רק הקיצוניים (1, 3) - פינה ימנית קדמית ואחורית
+                filteredBasePositions = [
+                    basePositions[1], // ימני קדמי
+                    basePositions[3]  // ימני אחורי
+                ];
             }
-            // רק לקורות רחבות (>4) נבצע את החישוב המתקדם של מיקומי הברגים
+            
+            // עכשיו נקבע כמה ברגים נוספים להוסיף לפי numScrewsPerSide
+            if (numScrewsPerSide === 2) {
+                // 4 ברגים - שני קיצוניים + שני ביניים
+                // נוסיף ברגים באמצע בין הקיצוניים
+                const startPos = filteredBasePositions[0];
+                const endPos = filteredBasePositions[1];
+                const middlePos1 = {
+                    x: startPos.x + (endPos.x - startPos.x) / 3,
+                    z: startPos.z + (endPos.z - startPos.z) / 3,
+                };
+                const middlePos2 = {
+                    x: startPos.x + (2 * (endPos.x - startPos.x)) / 3,
+                    z: startPos.z + (2 * (endPos.z - startPos.z)) / 3,
+                };
+                screwPositions = [startPos, middlePos1, middlePos2, endPos];
+            } else if (numScrewsPerSide === 1.5) {
+                // 3 ברגים - שני קיצוניים + אחד באמצע
+                const startPos = filteredBasePositions[0];
+                const endPos = filteredBasePositions[1];
+                const middlePos = {
+                    x: (startPos.x + endPos.x) / 2,
+                    z: (startPos.z + endPos.z) / 2,
+                };
+                screwPositions = [startPos, middlePos, endPos];
+            } else {
+                // 2 ברגים - רק שני קיצוניים
+                screwPositions = filteredBasePositions;
+            }
+            
+            // עדכון מיקומי הברגים לפי הלוגיקה המתקדמת (כמו קודם)
             const startPositions = screwPositions[0];
-            const endPositions = screwPositions[1];
+            const endPositions = screwPositions[screwPositions.length - 1];
 
-                // חישוב הפרמטרים לפי הלוגיקה החדשה
-                const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
-                const X = this.frameHeight; // frameBeamHeight
-                const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
-                const Q = beam.width; // beam.width
+            // חישוב הפרמטרים לפי הלוגיקה החדשה
+            const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
+            const X = this.frameHeight; // frameBeamHeight
+            const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
+            const Q = beam.width; // beam.width
 
-                // חישוב Z ו-R ו-L
-                const Z = (X - Y) / 2;
-                const R = (Q - Z) / 2;
-                const L = R + Z;
+            // חישוב Z ו-R ו-L
+            const Z = (X - Y) / 2;
+            const R = (Q - Z) / 2;
+            const L_calc = R + Z;
 
-                // המרחק הסופי של הברגים מהמרכז
-                let finalDistance;
-                if (Q > X) {
-                    // מקרה קצה: Q > X
-                    finalDistance = A - X / 2;
-                } else {
-                    // מקרה רגיל: Q <= X
-                    finalDistance = A - L;
-                }
+            // המרחק הסופי של הברגים מהמרכז
+            let finalDistance;
+            if (Q > X) {
+                // מקרה קצה: Q > X
+                finalDistance = A - X / 2;
+            } else {
+                // מקרה רגיל: Q <= X
+                finalDistance = A - L_calc;
+            }
 
-                // חישוב הרווח מהקצה השמאלי של הקורה לבורג השמאלי
-                const leftEdgeX = beam.x - beam.width / 2;
-                const rightEdgeX = beam.x + beam.width / 2;
-                const leftScrewX = Math.min(startPositions.x, endPositions.x);
-                const rightScrewX = Math.max(startPositions.x, endPositions.x);
-                const leftGap = leftScrewX - leftEdgeX;
-                const rightGap = rightEdgeX - rightScrewX;
-            // create 2 new positions between start and end - 1/3 from start and 2/3 from end and the opposite
-                // חישוב המיקומים החדשים של כל הברגים לפי המרחק הסופי מהמרכז
-                const adjustedStartPositions = {
-                    x: startPositions.x > 0 ? finalDistance : -finalDistance,
-                    z: startPositions.z,
-                };
-                const adjustedEndPositions = {
-                    x: endPositions.x > 0 ? finalDistance : -finalDistance,
-                    z: endPositions.z,
-                };
-
-                this.debugLog(
-                    'CHECKSCREWS adjustedStartPositions:',
-                    adjustedStartPositions
-                );
-                this.debugLog(
-                    'CHECKSCREWS adjustedEndPositions:',
-                    adjustedEndPositions
-                );
-
-           const newPosition = [
-                {
-                        x:
-                            adjustedStartPositions.x +
-                            (adjustedEndPositions.x -
-                                adjustedStartPositions.x) /
-                                3,
-                        z:
-                            adjustedStartPositions.z +
-                            (adjustedEndPositions.z -
-                                adjustedStartPositions.z) /
-                                3,
-                    },
-                    {
-                        x:
-                            adjustedStartPositions.x +
-                            (2 *
-                                (adjustedEndPositions.x -
-                                    adjustedStartPositions.x)) /
-                                3,
-                        z:
-                            adjustedStartPositions.z +
-                            (2 *
-                                (adjustedEndPositions.z -
-                                    adjustedStartPositions.z)) /
-                                3,
-                    },
-                ];
-                // עדכון screwPositions עם כל הברגים המוזחים
-                screwPositions = [
-                    ...newPosition,
-                    adjustedStartPositions,
-                    adjustedEndPositions,
-                ];
+            // עדכון מיקומי כל הברגים לפי המרחק הסופי מהמרכז
+            screwPositions = screwPositions.map((pos) => ({
+                x: pos.x > 0 ? finalDistance : -finalDistance,
+                z: pos.z,
+            }));
+            
+            console.log('CHECK_SHORTEN_BEAM_SCREWS_COUNT', JSON.stringify({
+                isShortenedBeam: isShortenedBeam,
+                beamDepth: beam.depth,
+                L: L,
+                D: D,
+                D_half: D / 2,
+                condition1: `L > D: ${L > D}`,
+                condition2: `L > D/2: ${L > D / 2}`,
+                numScrewsPerSide_original: numScrewsPerSide,
+                numScrewsTotal: screwPositions.length,
+                screwPositionsCount: screwPositions.length,
+                threshold: threshold
+            }, null, 2));
         }
         // יצירת ברגים
         screwPositions.forEach((pos, index) => {
