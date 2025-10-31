@@ -1520,6 +1520,10 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       }, null, 2));
     }
     
+    // קבלת פרמטר is-reinforcement-beams-outside עבור ארון
+    const isReinforcementBeamsOutsideParam = !isTable ? this.product?.params?.find((p: any) => p.name === 'is-reinforcement-beams-outside') : null;
+    const isReinforcementBeamsOutside = !isTable && isReinforcementBeamsOutsideParam ? !!(isReinforcementBeamsOutsideParam.default === true) : false;
+    
     // קבלת טקסטורת עץ לקורות החיזוק
     const frameWoodTexture = this.getWoodTexture(frameType ? frameType.name : '');
     
@@ -1587,7 +1591,17 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         // Only shorten first and last beam in the length (depth) direction for non-top shelves
         // Top shelf (last shelf) gets full-length beams
         if (!isTopShelf && (i === 0 || i === surfaceBeams.length - 1)) {
-          beam.depth = beam.depth - 2 * actualFrameWidth;
+          // If is-reinforcement-beams-outside is true, shorten by (2 * frameBeamWidth) + (2 * legDepth)
+          // Otherwise, shorten by 2 * frameBeamWidth
+          if (isReinforcementBeamsOutside && !isTable) {
+            // For cabinet: legDepth = actualFrameWidth (after swap in line 1677), frameBeamWidth = actualFrameWidth
+            // So: (2 * actualFrameWidth) + (2 * actualFrameWidth) = 4 * actualFrameWidth
+            // But we need legDepth which is actualFrameWidth for cabinet (swapped)
+            const legDepthForCabinet = actualFrameWidth; // legDepth after swap (line 1677: legDepth = actualFrameWidth)
+            beam.depth = Math.max(0.1, beam.depth - ((2 * actualFrameWidth) + (2 * legDepthForCabinet)));
+          } else {
+            beam.depth = beam.depth - 2 * actualFrameWidth;
+          }
         }
         
         const beamGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
@@ -1613,8 +1627,28 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         );
         
         for (const beam of frameBeams) {
-          const frameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
-          this.setCorrectTextureMapping(frameGeometry, beam.width, beam.height, beam.depth);
+          // When is-reinforcement-beams-outside is true (cabinet only):
+          // - X-spanning pair: extend width by 2a (a = legWidth which is actualFrameHeight after swap)
+          // - Z-spanning pair: shorten depth by 2b (b = legDepth which is actualFrameWidth after swap)
+          let widthToUseCab = beam.width;
+          let depthToUseCab = beam.depth;
+          if (isReinforcementBeamsOutside) {
+            const tol = (2 * actualFrameHeight) + 0.001;
+            const isXSpan = Math.abs(beam.width - this.dynamicParams.width) <= tol;
+            const isZSpan = Math.abs(beam.depth - this.dynamicParams.length) <= tol;
+            // a = legWidth = actualFrameHeight (after swap), b = legDepth = actualFrameWidth (after swap)
+            const a_extend = actualFrameHeight;
+            const b_shorten = actualFrameWidth;
+            if (isXSpan && a_extend > 0) {
+              widthToUseCab = beam.width + (2 * a_extend);
+            }
+            if (isZSpan && b_shorten > 0) {
+              // Shorten on both ends: total reduction = 2 * b
+              depthToUseCab = Math.max(0.1, beam.depth - (2 * b_shorten));
+            }
+          }
+          const frameGeometry = new THREE.BoxGeometry(widthToUseCab, beam.height, depthToUseCab);
+          this.setCorrectTextureMapping(frameGeometry, widthToUseCab, beam.height, depthToUseCab);
           const frameMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
           const frameMesh = new THREE.Mesh(frameGeometry, frameMaterial);
           frameMesh.position.set(beam.x, currentY + beam.height / 2, beam.z);
@@ -1699,7 +1733,16 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.setCorrectTextureMapping(legGeometry, legWidth, legHeight, legDepth);
       const legMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
       const leg = new THREE.Mesh(legGeometry, legMaterial);
-      leg.position.set(pos[0], legHeight/2, pos[2]);
+      let legZPosition = pos[2];
+      // If is-reinforcement-beams-outside is true (cabinet only), move legs toward Z=0 by b (leg profile height in cm)
+      if (isReinforcementBeamsOutside && !isTable && frameBeam) {
+        const legProfileHeightCm = (frameBeam.height && typeof frameBeam.height === 'number') ? (frameBeam.height / 10) : 0;
+        if (legProfileHeightCm > 0) {
+          const dirZ = legZPosition >= 0 ? 1 : -1;
+          legZPosition = legZPosition - dirZ * legProfileHeightCm;
+        }
+      }
+      leg.position.set(pos[0], legHeight/2, legZPosition);
       leg.castShadow = true;
       leg.receiveShadow = true;
       this.scene.add(leg);
@@ -1921,6 +1964,10 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       }, null, 2));
     }
     
+    // קבלת פרמטר is-reinforcement-beams-outside עבור ארון
+    const isReinforcementBeamsOutsideParam = !isTable ? this.product?.params?.find((p: any) => p.name === 'is-reinforcement-beams-outside') : null;
+    const isReinforcementBeamsOutside = !isTable && isReinforcementBeamsOutsideParam ? !!(isReinforcementBeamsOutsideParam.default === true) : false;
+    
     // קבלת טקסטורת עץ לקורות החיזוק
     const frameWoodTexture = this.getWoodTexture(frameType ? frameType.name : '');
     
@@ -1988,7 +2035,17 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         // Only shorten first and last beam in the length (depth) direction for non-top shelves
         // Top shelf (last shelf) gets full-length beams
         if (!isTopShelf && (i === 0 || i === surfaceBeams.length - 1)) {
-          beam.depth = beam.depth - 2 * actualFrameWidth;
+          // If is-reinforcement-beams-outside is true, shorten by (2 * frameBeamWidth) + (2 * legDepth)
+          // Otherwise, shorten by 2 * frameBeamWidth
+          if (isReinforcementBeamsOutside && !isTable) {
+            // For cabinet: legDepth = actualFrameWidth (after swap in line 1677), frameBeamWidth = actualFrameWidth
+            // So: (2 * actualFrameWidth) + (2 * actualFrameWidth) = 4 * actualFrameWidth
+            // But we need legDepth which is actualFrameWidth for cabinet (swapped)
+            const legDepthForCabinet = actualFrameWidth; // legDepth after swap (line 1677: legDepth = actualFrameWidth)
+            beam.depth = Math.max(0.1, beam.depth - ((2 * actualFrameWidth) + (2 * legDepthForCabinet)));
+          } else {
+            beam.depth = beam.depth - 2 * actualFrameWidth;
+          }
         }
         
         const beamGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
@@ -2014,8 +2071,28 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         );
         
         for (const beam of frameBeams) {
-          const frameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
-          this.setCorrectTextureMapping(frameGeometry, beam.width, beam.height, beam.depth);
+          // When is-reinforcement-beams-outside is true (cabinet only):
+          // - X-spanning pair: extend width by 2a (a = legWidth which is actualFrameHeight after swap)
+          // - Z-spanning pair: shorten depth by 2b (b = legDepth which is actualFrameWidth after swap)
+          let widthToUseCab = beam.width;
+          let depthToUseCab = beam.depth;
+          if (isReinforcementBeamsOutside) {
+            const tol = (2 * actualFrameHeight) + 0.001;
+            const isXSpan = Math.abs(beam.width - this.dynamicParams.width) <= tol;
+            const isZSpan = Math.abs(beam.depth - this.dynamicParams.length) <= tol;
+            // a = legWidth = actualFrameHeight (after swap), b = legDepth = actualFrameWidth (after swap)
+            const a_extend = actualFrameHeight;
+            const b_shorten = actualFrameWidth;
+            if (isXSpan && a_extend > 0) {
+              widthToUseCab = beam.width + (2 * a_extend);
+            }
+            if (isZSpan && b_shorten > 0) {
+              // Shorten on both ends: total reduction = 2 * b
+              depthToUseCab = Math.max(0.1, beam.depth - (2 * b_shorten));
+            }
+          }
+          const frameGeometry = new THREE.BoxGeometry(widthToUseCab, beam.height, depthToUseCab);
+          this.setCorrectTextureMapping(frameGeometry, widthToUseCab, beam.height, depthToUseCab);
           const frameMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
           const frameMesh = new THREE.Mesh(frameGeometry, frameMaterial);
           frameMesh.position.set(beam.x, currentY + beam.height / 2, beam.z);
@@ -2100,7 +2177,16 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       this.setCorrectTextureMapping(legGeometry, legWidth, legHeight, legDepth);
       const legMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
       const leg = new THREE.Mesh(legGeometry, legMaterial);
-      leg.position.set(pos[0], legHeight/2, pos[2]);
+      let legZPosition = pos[2];
+      // If is-reinforcement-beams-outside is true (cabinet only), move legs toward Z=0 by b (leg profile height in cm)
+      if (isReinforcementBeamsOutside && !isTable && frameBeam) {
+        const legProfileHeightCm = (frameBeam.height && typeof frameBeam.height === 'number') ? (frameBeam.height / 10) : 0;
+        if (legProfileHeightCm > 0) {
+          const dirZ = legZPosition >= 0 ? 1 : -1;
+          legZPosition = legZPosition - dirZ * legProfileHeightCm;
+        }
+      }
+      leg.position.set(pos[0], legHeight/2, legZPosition);
       leg.castShadow = true;
       leg.receiveShadow = true;
       this.scene.add(leg);
