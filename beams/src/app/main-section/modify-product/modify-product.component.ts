@@ -3468,10 +3468,32 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 legDepth // עומק הרגל האמיתי - חזרה למצב התקין
             );
             for (const beam of frameBeams) {
+                // Adjust frame beams when reinforcement beams are outside (table):
+                // - X-spanning beams (depth == frameBeamWidth) extend by 2a (leg width)
+                // - Z-spanning beams (width == frameBeamWidth) shorten by 2b (leg height)
+                const outsideParamTable = this.getParam('is-reinforcement-beams-outside');
+                const isOutsideTable = !!(outsideParamTable && outsideParamTable.default === true);
+                let widthToUse = beam.width;
+                let depthToUse = beam.depth;
+                if (isOutsideTable) {
+                    // Determine a,b from selected leg beam
+                    const legParamForA = this.getParam('leg');
+                    const legBeamForA = legParamForA?.beams?.[legParamForA.selectedBeamIndex || 0];
+                    const a_legWidthCm = (legBeamForA?.width || 0) / 10;
+                    const b_legHeightCm = (legBeamForA?.height || legBeamForA?.depth || 0) / 10;
+                    const isXSpanning = Math.abs(beam.depth - frameBeamWidth) < 0.001; // front/back
+                    const isZSpanning = Math.abs(beam.width - frameBeamWidth) < 0.001; // left/right
+                    if (isXSpanning) {
+                        widthToUse = beam.width + (2 * a_legWidthCm);
+                    }
+                    if (isZSpanning) {
+                        depthToUse = Math.max(0.1, beam.depth - (2 * b_legHeightCm));
+                    }
+                }
                 const geometry = new THREE.BoxGeometry(
-                    beam.width,
+                    widthToUse,
                     beam.height,
-                    beam.depth
+                    depthToUse
                 );
                 const material = this.getWoodMaterial(frameType ? frameType.name : '');
                 const mesh = new THREE.Mesh(geometry, material);
@@ -3514,10 +3536,29 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // המרחק הכולל = הנתון החדש + רוחב קורות החיזוק
                 const totalDistance = extraBeamDistance + frameBeamHeight;
                 for (const beam of extraFrameBeams) {
+                    // Apply the same outside adjustments to duplicated lower frame beams
+                    const outsideParamTable = this.getParam('is-reinforcement-beams-outside');
+                    const isOutsideTable = !!(outsideParamTable && outsideParamTable.default === true);
+                    let widthToUse = beam.width;
+                    let depthToUse = beam.depth;
+                    if (isOutsideTable) {
+                        const legParamForA = this.getParam('leg');
+                        const legBeamForA = legParamForA?.beams?.[legParamForA.selectedBeamIndex || 0];
+                        const a_legWidthCm = (legBeamForA?.width || 0) / 10;
+                        const b_legHeightCm = (legBeamForA?.height || legBeamForA?.depth || 0) / 10;
+                        const isXSpanning = Math.abs(beam.depth - frameBeamWidth) < 0.001;
+                        const isZSpanning = Math.abs(beam.width - frameBeamWidth) < 0.001;
+                        if (isXSpanning) {
+                            widthToUse = beam.width + (2 * a_legWidthCm);
+                        }
+                        if (isZSpanning) {
+                            depthToUse = Math.max(0.1, beam.depth - (2 * b_legHeightCm));
+                        }
+                    }
                     const geometry = new THREE.BoxGeometry(
-                        beam.width,
+                        widthToUse,
                         beam.height,
-                        beam.depth
+                        depthToUse
                     );
                     const material = this.getWoodMaterial(frameType ? frameType.name : '');
                     const mesh = new THREE.Mesh(geometry, material);
@@ -5346,11 +5387,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const shorteningAmountEx = legBeamWidth * 2; // פעמיים רוחב קורת הרגל - לקורות לכיוון הרוחב
                     
                     if (this.isTable) {
-                        // עבור שולחן - 4 קורות חיזוק מקוצרות
-                        // קורות רוחב מקוצרות
+                        // עבור שולחן - קורות חיזוק: התאמות כש-outside=true
+                        const outsideParamTableForPricing = this.getParam('is-reinforcement-beams-outside');
+                        const isOutsideTableForPricing = !!(outsideParamTableForPricing && outsideParamTableForPricing.default === true);
+                        // Width beams (X-spanning): use width from getProductDimensionsRaw() when outside=true
+                        let widthLengthForTable;
+                        if (isOutsideTableForPricing) {
+                            const dimensions = this.getProductDimensionsRaw();
+                            widthLengthForTable = dimensions.width; // Use width from getProductDimensionsRaw()
+                        } else {
+                            widthLengthForTable = this.surfaceWidth - shorteningAmountEx; // -2a
+                        }
                         allBeams.push({
                             type: selectedType,
-                            length: this.surfaceWidth - shorteningAmountEx,
+                            length: widthLengthForTable,
                             width: frameWidth,
                             height: frameHeight,
                             name: 'Table Frame Beam Width 1',
@@ -5360,7 +5410,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         });
                         allBeams.push({
                             type: selectedType,
-                            length: this.surfaceWidth - shorteningAmountEx,
+                            length: widthLengthForTable,
                             width: frameWidth,
                             height: frameHeight,
                             name: 'Table Frame Beam Width 2',
@@ -5368,13 +5418,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             beamTranslatedName: selectedBeam.translatedName,
                             beamWoodType: selectedType.translatedName, // סוג העץ
                         });
-                        // קורות אורך מקוצרות (מקבילות לקורות המדפים)
-                        // אורך כולל פחות פעמיים גובה קורות הרגליים
-                        const lengthBeamLength =
-                            this.surfaceLength - shorteningAmount;
+                        // Length beams (Z-spanning):
+                        const lengthBeamLength = isOutsideTableForPricing
+                            ? this.surfaceLength - (4 * legBeamHeight) // -4b
+                            : this.surfaceLength - shorteningAmount;    // -2b
                         allBeams.push({
                             type: selectedType,
-                            length: lengthBeamLength,
+                            length: Math.max(0.1, lengthBeamLength),
                             width: frameWidth,
                             height: frameHeight,
                             name: 'Table Frame Beam Length 1',
@@ -5384,7 +5434,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         });
                         allBeams.push({
                             type: selectedType,
-                            length: lengthBeamLength,
+                            length: Math.max(0.1, lengthBeamLength),
                             width: frameWidth,
                             height: frameHeight,
                             name: 'Table Frame Beam Length 2',
