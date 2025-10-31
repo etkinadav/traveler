@@ -8586,6 +8586,78 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const headHeight = 0.2; // 2 מ"מ
             const screwLength = 4.0; // 40 מ"מ
             const screwY = shelfY + beamHeight; // הורדה של 20 מ"מ + 100 לראות את הברגים
+            
+            // לוג לבדיקת ההזזה בציר Y - רק לקורות מקוצרות
+            if (isShortenedBeam !== 'top') {
+                // קבלת מידות קורות רלוונטיות
+                const frameParam = this.getParam('frame');
+                const shelfsParam = this.getParam('shelfs');
+                let frameBeamHeight = frameBeamWidth; // fallback
+                let shelfBeamHeight = beamHeight; // fallback
+                
+                if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
+                    const frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
+                    if (frameBeam) {
+                        frameBeamHeight = frameBeam.width / 10; // המרה ממ"מ לס"מ
+                    }
+                }
+                
+                if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
+                    const shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
+                    if (shelfBeam) {
+                        shelfBeamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
+                    }
+                }
+                
+                // חישוב מיקום הקורה - shelfY הוא currentY + frameBeamHeightCorrect
+                // הקורה עצמה נמצאת ב: currentY + frameBeamHeightCorrect + beamHeightCorrect / 2
+                // החלק העליון של הקורה: currentY + frameBeamHeightCorrect + beamHeightCorrect
+                // החלק התחתון של הקורה: currentY + frameBeamHeightCorrect = shelfY
+                const beamCenterY = shelfY + beamHeight / 2; // מרכז הקורה
+                const beamTopY = shelfY + beamHeight; // חלק עליון של הקורה
+                const beamBottomY = shelfY; // חלק תחתון של הקורה (שווה ל-shelfY)
+                
+                console.log('CHECK_MOVED_BEAM', JSON.stringify({
+                    isShortenedBeam: isShortenedBeam,
+                    screwIndex: index,
+                    screwY: screwY,
+                    shelfY: shelfY,
+                    shelfY_meaning: 'shelfY = currentY + frameBeamHeightCorrect (החלק התחתון של קורת המדף/החלק העליון של קורת החיזוק)',
+                    beamHeight: beamHeight,
+                    beamWidth: beam.width,
+                    beamDepth: beam.depth,
+                    beamX: beam.x,
+                    frameBeamWidth: frameBeamWidth,
+                    frameBeamHeight: frameBeamHeight,
+                    shelfBeamHeight: shelfBeamHeight,
+                    calculation: `screwY = shelfY + beamHeight = ${shelfY} + ${beamHeight} = ${screwY}`,
+                    beamPositions: {
+                        centerY: beamCenterY,
+                        topY: beamTopY,
+                        bottomY: beamBottomY,
+                        x: beam.x,
+                        z: 0,
+                        explanation: 'הקורה נמצאת במרכז ב-beamCenterY, החלק העליון ב-beamTopY, התחתון ב-beamBottomY (שווה ל-shelfY)'
+                    },
+                    screwPosition: {
+                        x: pos.x,
+                        y: screwY,
+                        z: pos.z
+                    },
+                    yOffset: screwY - shelfY,
+                    yOffset_meaning: `הברגים נמצאים ${screwY - shelfY} ס"מ מעל shelfY (החלק התחתון של הקורה)`,
+                    relativeToBeam: {
+                        distanceFromBottom: screwY - beamBottomY,
+                        distanceFromCenter: screwY - beamCenterY,
+                        distanceFromTop: screwY - beamTopY,
+                        explanation: 'מיקום הברגים יחסית לקורה'
+                    },
+                    headHeight: headHeight,
+                    screwLength: screwLength,
+                    note: 'shelfY מייצג את הגובה של החלק התחתון של קורת המדף (או החלק העליון של קורת החיזוק שמתחת למדף)'
+                }, null, 2));
+            }
+            
             // מיקום הבורג: החלק התחתון של הראש על הקורה, מופנה כלפי מטה
             screwGroup.position.set(pos.x, screwY, pos.z);
             // הבורג כבר מופנה כלפי מטה - אין צורך בסיבוב
