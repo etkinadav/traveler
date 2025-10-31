@@ -235,13 +235,12 @@
                 </svg>
             </button>
             <ng-container *ngIf="drawerOpen">
+                <!-- כל התוכן הרגיל - מוסתר במצב הוראות הרכבה -->
+                <div *ngIf="!isInstructionMode">
                 <!-- Spinner Loading - מוצג רק בטעינה הראשונית -->
                 <div class="loading-spinner" *ngIf="isLoading && isModelLoading">
                     <div class="simple-spinner tiny"></div>
                 </div>
-                
-                <!-- כל התוכן הרגיל - מוצג תמיד -->
-                <div>
                 <!-- כותרת מוצר -->
                 <div class="product-header" *ngIf="selectedProductName" style="margin-bottom: 20px;">
                     <h3 style="margin: 0; padding: 10px; text-align: center;">
@@ -680,7 +679,9 @@
                     </table>
                 </div>
                 
-                <!-- כפתור הוראות הרכבה - בסוף התפריט -->
+                </div> <!-- סיום התוכן הרגיל -->
+                
+                <!-- כפתור הוראות הרכבה - תמיד גלוי -->
                 <div class="assembly-instructions-container">
                     <button class="assembly-instructions-button-inline" 
                             (click)="toggleAssemblyInstructions()"
@@ -688,8 +689,6 @@
                         <span>{{ isInstructionMode ? ('modify-product.view-edit-menu' | translate) : ('modify-product.view-assembly-instructions' | translate) }}</span>
                     </button>
                 </div>
-                
-                </div> <!-- סיום התוכן הרגיל -->
             </ng-container>
         </div>
         <div #rendererContainer class="renderer-container" [class.expanded]="!drawerOpen">
