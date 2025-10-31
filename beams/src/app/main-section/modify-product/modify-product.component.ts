@@ -8587,79 +8587,58 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const screwLength = 4.0; // 40 מ"מ
             const screwY = shelfY + beamHeight; // הורדה של 20 מ"מ + 100 לראות את הברגים
             
-            // לוג לבדיקת ההזזה בציר Y - רק לקורות מקוצרות
+            // חישוב מיקום הברגים בציר X (רוחב המוצר) - לקורות מקוצרות בלבד
+            let screwX = pos.x; // מיקום X הבסיסי של הבורג
             if (isShortenedBeam !== 'top') {
-                // קבלת מידות קורות רלוונטיות
-                const frameParam = this.getParam('frame');
-                const shelfsParam = this.getParam('shelfs');
-                let frameBeamHeight = frameBeamWidth; // fallback
-                let shelfBeamHeight = beamHeight; // fallback
+                // קבלת רוחב קורת הרגל (המידה השנייה - הרוחב, לא הגובה)
+                const legParam = this.getParam('leg');
+                let legBeamWidth = frameBeamWidth; // fallback - רוחב קורת הרגל (המידה השנייה)
                 
-                if (frameParam && Array.isArray(frameParam.beams) && frameParam.beams.length) {
-                    const frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
-                    if (frameBeam) {
-                        frameBeamHeight = frameBeam.width / 10; // המרה ממ"מ לס"מ
+                if (legParam && Array.isArray(legParam.beams) && legParam.beams.length) {
+                    const legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+                    if (legBeam && typeof legBeam.width === 'number') {
+                        legBeamWidth = legBeam.width / 10; // המרה ממ"מ לס"מ - רוחב קורת הרגל
                     }
                 }
                 
-                if (shelfsParam && Array.isArray(shelfsParam.beams) && shelfsParam.beams.length) {
-                    const shelfBeam = shelfsParam.beams[shelfsParam.selectedBeamIndex || 0];
-                    if (shelfBeam) {
-                        shelfBeamHeight = shelfBeam.height / 10; // המרה ממ"מ לס"מ
-                    }
-                }
-                
-                // חישוב מיקום הקורה - shelfY הוא currentY + frameBeamHeightCorrect
-                // הקורה עצמה נמצאת ב: currentY + frameBeamHeightCorrect + beamHeightCorrect / 2
-                // החלק העליון של הקורה: currentY + frameBeamHeightCorrect + beamHeightCorrect
-                // החלק התחתון של הקורה: currentY + frameBeamHeightCorrect = shelfY
-                const beamCenterY = shelfY + beamHeight / 2; // מרכז הקורה
-                const beamTopY = shelfY + beamHeight; // חלק עליון של הקורה
-                const beamBottomY = shelfY; // חלק תחתון של הקורה (שווה ל-shelfY)
+                // חישוב מיקום הברגים בציר X (רוחב): (רוחב המוצר / 2) - (רוחב קורת הרגל / 2)
+                // זה משנה רק את ציר X (screwX), לא את screwY או pos.z
+                const dimensions = this.getProductDimensionsRaw();
+                const productWidth = dimensions.width; // רוחב המוצר
+                const halfProductWidth = productWidth / 2;
+                const halfLegBeamWidth = legBeamWidth / 2;
+                screwX = halfProductWidth - halfLegBeamWidth;
                 
                 console.log('CHECK_MOVED_BEAM', JSON.stringify({
                     isShortenedBeam: isShortenedBeam,
                     screwIndex: index,
+                    originalX: pos.x,
+                    newScrewX: screwX,
                     screwY: screwY,
                     shelfY: shelfY,
-                    shelfY_meaning: 'shelfY = currentY + frameBeamHeightCorrect (החלק התחתון של קורת המדף/החלק העליון של קורת החיזוק)',
                     beamHeight: beamHeight,
                     beamWidth: beam.width,
                     beamDepth: beam.depth,
                     beamX: beam.x,
-                    frameBeamWidth: frameBeamWidth,
-                    frameBeamHeight: frameBeamHeight,
-                    shelfBeamHeight: shelfBeamHeight,
-                    calculation: `screwY = shelfY + beamHeight = ${shelfY} + ${beamHeight} = ${screwY}`,
-                    beamPositions: {
-                        centerY: beamCenterY,
-                        topY: beamTopY,
-                        bottomY: beamBottomY,
-                        x: beam.x,
-                        z: 0,
-                        explanation: 'הקורה נמצאת במרכז ב-beamCenterY, החלק העליון ב-beamTopY, התחתון ב-beamBottomY (שווה ל-shelfY)'
-                    },
+                    legBeamWidth: legBeamWidth,
+                    legBeamWidth_meaning: 'רוחב קורת הרגל (המידה השנייה של קורת הרגל)',
+                    productWidth: productWidth,
+                    calculation: `screwX = (productWidth / 2) - (legBeamWidth / 2) = (${productWidth} / 2) - (${legBeamWidth} / 2) = ${halfProductWidth} - ${halfLegBeamWidth} = ${screwX}`,
                     screwPosition: {
-                        x: pos.x,
+                        x: screwX,
                         y: screwY,
                         z: pos.z
                     },
-                    yOffset: screwY - shelfY,
-                    yOffset_meaning: `הברגים נמצאים ${screwY - shelfY} ס"מ מעל shelfY (החלק התחתון של הקורה)`,
-                    relativeToBeam: {
-                        distanceFromBottom: screwY - beamBottomY,
-                        distanceFromCenter: screwY - beamCenterY,
-                        distanceFromTop: screwY - beamTopY,
-                        explanation: 'מיקום הברגים יחסית לקורה'
-                    },
+                    xOffset: screwX - pos.x,
+                    xOffset_meaning: `הברגים הוזזו ${screwX - pos.x} ס"מ בציר X (רוחב המוצר)`,
                     headHeight: headHeight,
                     screwLength: screwLength,
-                    note: 'shelfY מייצג את הגובה של החלק התחתון של קורת המדף (או החלק העליון של קורת החיזוק שמתחת למדף)'
+                    note: 'הזזה בציר X בלבד - רוחב המוצר'
                 }, null, 2));
             }
             
             // מיקום הבורג: החלק התחתון של הראש על הקורה, מופנה כלפי מטה
-            screwGroup.position.set(pos.x, screwY, pos.z);
+            screwGroup.position.set(screwX, screwY, pos.z);
             // הבורג כבר מופנה כלפי מטה - אין צורך בסיבוב
             // screwGroup.rotation.x = Math.PI;
             this.scene.add(screwGroup);
