@@ -232,6 +232,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     
+    // פתיחה/סגירה של הוראות הרכבה
+    toggleAssemblyInstructions() {
+        this.showAssemblyInstructions = !this.showAssemblyInstructions;
+    }
+    
     // פתיחה/סגירה של תפריט ניהול המערכת
     toggleSystemMenu() {
         this.isSystemMenuOpen = !this.isSystemMenuOpen;
@@ -838,6 +843,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // משתנה לשליטה בתצוגת תפריט האזהרה
     showWarningMenu = false;
+    
+    // משתנה לשליטה בהצגת הוראות הרכבה
+    showAssemblyInstructions = false;
     
     // משתנים לשליטה בהצגת התרעות
     showHiddenBeamsWarning = true;
@@ -4424,7 +4432,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     if (isOutsideCabShelves) {
                         beam.depth = Math.max(0.1, beam.depth - ((2 * frameBeamWidth) + (2 * legDepth)));
                     } else {
-                        beam.depth = beam.depth - 2 * frameBeamWidth;
+                    beam.depth = beam.depth - 2 * frameBeamWidth;
                     }
                     try {
                         console.log('CHECK_SHORTEN_BEAM_is-reinforcement-beams-outside', JSON.stringify({
@@ -5808,7 +5816,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         rawLength = (minDimension * 2) + 3; // (מידת קורה קטנה * 2) + 3
                         console.log(`CHECK_SCREW_LENGTH_OUTSIDE - leg_width: min=${minDimension}, length=${rawLength} (min*2+3), product=${this.isTable ? 'table' : 'cabinet'}`);
                     } else {
-                        rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
+                    rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
                     }
                     this.debugLog(`🔧 Leg screw (width): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, min=${minDimension}, length=${rawLength}`);
                 } else {
@@ -5830,7 +5838,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         rawLength = (minDimension * 2) + 3; // (מידת קורה קטנה * 2) + 3
                         console.log(`CHECK_SCREW_LENGTH_OUTSIDE - leg_height: min=${minDimension}, length=${rawLength} (min*2+3), product=${this.isTable ? 'table' : 'cabinet'}`);
                     } else {
-                        rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
+                    rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
                     }
                     this.debugLog(`🔧 Leg screw (height): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, min=${minDimension}, length=${rawLength}`);
                 } else {

@@ -1,6 +1,13 @@
 <div class="threejs-box-wrapper">
     <!-- הודעת validation הוסרה - משתמשים ב-SnackBar -->
     
+    <!-- כפתור הוראות הרכבה - בפינה השמאלית העליונה -->
+    <button class="assembly-instructions-button" 
+            (click)="toggleAssemblyInstructions()"
+            [class.active]="showAssemblyInstructions">
+        <span>{{ showAssemblyInstructions ? ('modify-product.view-edit-menu' | translate) : ('modify-product.view-assembly-instructions' | translate) }}</span>
+    </button>
+    
     <!-- קונטיינר לכפתורי תצוגה -->
     <div class="view-controls-container">
         <!-- כפתור להצגת wireframe - מוסתר במובייל ובמוצר קורות -->
