@@ -5,6 +5,7 @@ import { DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { DialogService } from '../../dialog/dialog.service';
+import { ProductMiniPreviewComponent } from '../../main-section/choose-product/product-mini-preview/product-mini-preview.component';
 
 @Component({
   selector: 'app-shopping-cart',
@@ -255,10 +256,14 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
   
   // מערכת lazy loading לתלת מימד
   @ViewChildren('cartItem') cartItems!: QueryList<ElementRef>;
+  @ViewChildren('miniPreview') miniPreviews!: QueryList<ProductMiniPreviewComponent>;
   private visibleItemIndices = new Set<number>(); // אינדקסים נראים כרגע
   private loadedItemIndices = new Set<number>(); // אינדקסים של מוצרים שהתלת מימד שלהם נטען
   private previousVisibleIndices: number[] = []; // אינדקסים נראים בפעם הקודמת
   private visibilityCheckInterval: any = null;
+  
+  // לופ לבדיקת מודלים שלא מסתובבים
+  private rotationCheckInterval: any = null;
   
   constructor(
     private basketService: ProductBasketService,
@@ -879,10 +884,20 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
       }, 100);
     });
     
+    // עקוב אחרי שינויים ב-miniPreviews
+    this.miniPreviews.changes.subscribe(() => {
+      // אם יש שינוי במיני-פריוויים, הפעל מחדש את בדיקת הסיבוב
+      setTimeout(() => {
+        this.startRotationChecker();
+      }, 100);
+    });
+    
     // רישום ראשוני - עם setTimeout כדי לתת ל-DOM להתעדכן
     setTimeout(() => {
       // הפעל את מערכת הבדיקה מיד לאחר הרינדור הראשוני
       this.startVisibilityChecker();
+      // הפעל את בדיקת הסיבוב
+      this.startRotationChecker();
     }, 0);
   }
 
@@ -964,6 +979,43 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  // פונקציה לבדיקת מודלים שלא מסתובבים ותיקונם
+  private checkRotationStatus() {
+    if (!this.miniPreviews || this.miniPreviews.length === 0) {
+      return;
+    }
+
+    this.miniPreviews.forEach((miniPreview: ProductMiniPreviewComponent) => {
+      // בדיקה אם המודל פעיל ומופיע במסך
+      if (miniPreview && miniPreview.isVisible() && miniPreview.isInitialized()) {
+        // בדיקה אם המודל לא מסתובב (אבל אמור להסתובב)
+        if (!miniPreview.isRotating() && !miniPreview.getUserHasInteracted()) {
+          // התחל סיבוב מחדש
+          miniPreview.startRotation();
+        }
+      }
+    });
+  }
+
+  // הפעלת מערכת בדיקת סיבוב
+  private startRotationChecker() {
+    // Clear any existing interval
+    if (this.rotationCheckInterval) {
+      clearInterval(this.rotationCheckInterval);
+    }
+    
+    this.rotationCheckInterval = setInterval(() => {
+      this.checkRotationStatus();
+    }, 2000); // Check every 2 seconds
+  }
+
+  private stopRotationChecker() {
+    if (this.rotationCheckInterval) {
+      clearInterval(this.rotationCheckInterval);
+      this.rotationCheckInterval = null;
+    }
+  }
+
   @HostListener('window:scroll', ['$event'])
   onWindowScroll(): void {
     this.checkItemVisibility();
@@ -1001,5 +1053,7 @@ export class ShoppingCartComponent implements OnInit, OnDestroy, AfterViewInit {
     
     // ניקוי מערכת בדיקת הנראות
     this.stopVisibilityChecker();
+    // ניקוי מערכת בדיקת הסיבוב
+    this.stopRotationChecker();
   }
 }
