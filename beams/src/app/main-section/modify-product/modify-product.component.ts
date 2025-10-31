@@ -234,7 +234,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // פתיחה/סגירה של הוראות הרכבה
     toggleAssemblyInstructions() {
-        this.showAssemblyInstructions = !this.showAssemblyInstructions;
+        this.isInstructionMode = !this.isInstructionMode;
     }
     
     // פתיחה/סגירה של תפריט ניהול המערכת
@@ -1311,6 +1311,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     isSystemMenuOpen: boolean = false; // האם תפריט ניהול המערכת פתוח
     showNavigationCube: boolean = false; // קוביית ניווט במובייל
     isPriceMinimized: boolean = true; // האם תפריט המחיר מצומצם
+    isInstructionMode: boolean = false; // מצב הוראות הרכבה (false = מצב עריכה רגיל, true = מצב הוראות)
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
@@ -8732,24 +8733,24 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const startPositions = screwPositions[0];
             const endPositions = screwPositions[screwPositions.length - 1];
 
-            // חישוב הפרמטרים לפי הלוגיקה החדשה
-            const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
-            const X = this.frameHeight; // frameBeamHeight
-            const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
-            const Q = beam.width; // beam.width
+                // חישוב הפרמטרים לפי הלוגיקה החדשה
+                const A = this.surfaceWidth / 2; // הרוחב הכולל של הארון חלקי 2
+                const X = this.frameHeight; // frameBeamHeight
+                const Y = frameBeamWidth; // המידה השנייה של קורת הרגל (לא frameBeamHeight)
+                const Q = beam.width; // beam.width
 
-            // חישוב Z ו-R ו-L
-            const Z = (X - Y) / 2;
-            const R = (Q - Z) / 2;
+                // חישוב Z ו-R ו-L
+                const Z = (X - Y) / 2;
+                const R = (Q - Z) / 2;
             const L_calc = R + Z;
 
-            // המרחק הסופי של הברגים מהמרכז
-            let finalDistance;
-            if (Q > X) {
-                // מקרה קצה: Q > X
-                finalDistance = A - X / 2;
-            } else {
-                // מקרה רגיל: Q <= X
+                // המרחק הסופי של הברגים מהמרכז
+                let finalDistance;
+                if (Q > X) {
+                    // מקרה קצה: Q > X
+                    finalDistance = A - X / 2;
+                } else {
+                    // מקרה רגיל: Q <= X
                 finalDistance = A - L_calc;
             }
 
@@ -10741,9 +10742,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     // רק אם הקונפיגורציה מגדירה 50-25 והערך הנוכחי הוא 0 (100-25), ואם אין localStorage שמציין שהמשתמש בחר 0
                     if (configBeamName === '50-25' && savedIndex !== 0) {
                         console.log(`CHECK_LEG - TEMP FIX: Correcting leg parameter from index 0 to index 2 (config expects 50-25, no user override)`);
-                        legParam.selectedBeamIndex = 2;
-                        legParam.selectedTypeIndex = 0;
-                        console.log(`CHECK_LEG - TEMP FIX: Fixed! Now showing "${legParam.beams[2]?.translatedName}"`);
+                    legParam.selectedBeamIndex = 2;
+                    legParam.selectedTypeIndex = 0;
+                    console.log(`CHECK_LEG - TEMP FIX: Fixed! Now showing "${legParam.beams[2]?.translatedName}"`);
                     } else {
                         console.log(`CHECK_LEG - TEMP FIX: No fix needed. User selected index 0 or config doesn't match`);
                     }
