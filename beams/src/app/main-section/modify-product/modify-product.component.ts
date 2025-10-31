@@ -3660,11 +3660,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const legWidthTable = legParamTable?.beams?.[legParamTable.selectedBeamIndex || 0]?.width || 0;
             const dubbleThreshold = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
             
+            // When outside=true: skip Y-facing screws (screwIndex=1), keep Z-facing screws (screwIndex=0)
+            const outsideForTableScrews = this.getParam('is-reinforcement-beams-outside');
+            const isOutsideEnabledTable = !!(outsideForTableScrews && outsideForTableScrews.default === true);
             this.addScrewsToLegs(
                 1, // שולחן = 1 מדף
                 legs,
                 frameBeamHeight,
-                0
+                0,
+                isOutsideEnabledTable // skipYFacingScrews for table
             );
             
             // הוספת ברגים לקורות החיזוק התחתונות
@@ -3698,7 +3702,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // CHACK_TABLE_GAP - לוג לבדיקת נתונים לברגים של קורות חיזוק נוספות
             
             this.debugLog('Adding lower frame screws - tableHeight:', tableHeight, 'extraBeamDistance:', extraBeamDistance, 'totalDistance:', totalDistanceForLower, 'lowerFrameY:', lowerFrameY, 'frameBeamHeight:', calculatedFrameBeamHeightForLower);
-            this.addScrewsToLowerFrameBeams(legs, lowerFrameY, frameBeamHeight);
+            // Pass skipYFacingScrews flag to lower frame beams screws as well
+            this.addScrewsToLowerFrameBeams(legs, lowerFrameY, frameBeamHeight, isOutsideEnabledTable);
             
             // לא לחזור כאן - לתת לפונקציה להמשיך לסיום הרגיל
         }
@@ -5795,7 +5800,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // נבחר את המידה הגדולה יותר מבין dimension1 ו-dimension2
                 if (dimension2 !== undefined) {
                     const maxDimension = Math.max(dimension1, dimension2);
-                    rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
+                    const minDimension = Math.min(dimension1, dimension2);
+                    // אם is-reinforcement-beams-outside דולק, הוסף את המידה הקטנה (לשולחן וארון)
+                    const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                    const isOutside = !!(outsideParam && outsideParam.default === true);
+                    if (isOutside) {
+                        rawLength = maxDimension + 3 + minDimension; // המידה הגדולה + 3 + המידה הקטנה
+                        console.log(`CHECK_SCREW_LENGTH_OUTSIDE - leg_width: max=${maxDimension}, min=${minDimension}, length=${rawLength}, product=${this.isTable ? 'table' : 'cabinet'}`);
+                    } else {
+                        rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
+                    }
                     this.debugLog(`🔧 Leg screw (width): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, length=${rawLength}`);
                 } else {
                     // fallback למקרה שלא הועבר dimension2
@@ -5808,7 +5822,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // נבחר את המידה הגדולה יותר מבין dimension1 ו-dimension2
                 if (dimension2 !== undefined) {
                     const maxDimension = Math.max(dimension1, dimension2);
-                    rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
+                    const minDimension = Math.min(dimension1, dimension2);
+                    // אם is-reinforcement-beams-outside דולק, הוסף את המידה הקטנה (לשולחן וארון)
+                    const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                    const isOutside = !!(outsideParam && outsideParam.default === true);
+                    if (isOutside) {
+                        rawLength = maxDimension + 3 + minDimension; // המידה הגדולה + 3 + המידה הקטנה
+                        console.log(`CHECK_SCREW_LENGTH_OUTSIDE - leg_height: max=${maxDimension}, min=${minDimension}, length=${rawLength}, product=${this.isTable ? 'table' : 'cabinet'}`);
+                    } else {
+                        rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
+                    }
                     this.debugLog(`🔧 Leg screw (height): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, length=${rawLength}`);
                 } else {
                     // fallback למקרה שלא הועבר dimension2
@@ -6068,12 +6091,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     totalScrews = totalScrews * 2; // Double the screws (UP + DOWN instead of original)
                 }
                 
-                // REDUCE_LEG_SCREWS_WHEN_OUTSIDE - Reduce leg screws by half when is-reinforcement-beams-outside is true
+                // REDUCE_LEG_SCREWS_WHEN_OUTSIDE - Reduce leg screws by half when is-reinforcement-beams-outside is true (for table and cabinet)
                 const outsideParamForPricing = this.getParam('is-reinforcement-beams-outside');
                 const isOutsideForPricing = !!(outsideParamForPricing && outsideParamForPricing.default === true);
-                if (isOutsideForPricing && !this.isTable) {
+                if (isOutsideForPricing) {
                     totalScrews = Math.floor(totalScrews / 2); // Halve the screws (only Z-facing screws remain, Y-facing screws are removed)
-                    console.log(`CHECK_REMOVE_LEG_SCREWS_OUTSIDE - Reduced leg screws by half for pricing: ${totalScrews} screws remain`);
+                    console.log(`CHECK_REMOVE_LEG_SCREWS_OUTSIDE - Reduced leg screws by half for pricing: ${totalScrews} screws remain (product: ${this.isTable ? 'table' : 'cabinet'})`);
                 }
                 
                 // חלוקה לשתי קבוצות שוות - חצי לכל קבוצה
@@ -7450,7 +7473,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     private addScrewsToLowerFrameBeams(
         legPositions: any[],
         frameY: number,
-        frameBeamHeight: number
+        frameBeamHeight: number,
+        skipYFacingScrews: boolean = false
     ) {
         this.debugLog('=== Adding screws to lower frame beams for table ===');
         this.debugLog('frameY (screw height):', frameY);
@@ -7499,6 +7523,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             ];
             
             screwPositions.forEach((pos, screwIndex) => {
+                // Skip Y-facing screws (screwIndex=1) if skipYFacingScrews is true
+                if (skipYFacingScrews && screwIndex === 1) {
+                    console.log(`CHECK_REMOVE_LEG_SCREWS_OUTSIDE - Skipping Y-facing screw (screwIndex=${screwIndex}) for lower frame beam, leg ${legIndex + 1}`);
+                    return; // Skip this screw
+                }
                 // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
                 const screwType = screwIndex === 0 ? 'leg_height' : 'leg_width';
                 // מעביר גם את שתי המידות כדי לבחור את המקסימום + 3
