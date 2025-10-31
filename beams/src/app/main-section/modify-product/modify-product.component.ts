@@ -229,6 +229,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // סגירת תפריט ניהול המערכת אם הוא פתוח
         if (this.isOptionsMenuOpen) {
             this.isSystemMenuOpen = false;
+            // סגירת תפריט התחשיבים (fullscreen) כשפותחים את תפריט שלוש הנקודות
+            this.isPriceManuOpen = false;
         }
     }
     
