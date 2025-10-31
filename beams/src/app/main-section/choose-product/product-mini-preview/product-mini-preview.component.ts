@@ -1520,9 +1520,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       }, null, 2));
     }
     
-    // קבלת פרמטר is-reinforcement-beams-outside עבור ארון
-    const isReinforcementBeamsOutsideParam = !isTable ? this.product?.params?.find((p: any) => p.name === 'is-reinforcement-beams-outside') : null;
-    const isReinforcementBeamsOutside = !isTable && isReinforcementBeamsOutsideParam ? !!(isReinforcementBeamsOutsideParam.default === true) : false;
+    // קבלת פרמטר is-reinforcement-beams-outside עבור ארון ושולחן
+    const isReinforcementBeamsOutsideParam = this.product?.params?.find((p: any) => p.name === 'is-reinforcement-beams-outside');
+    const isReinforcementBeamsOutside = isReinforcementBeamsOutsideParam ? !!(isReinforcementBeamsOutsideParam.default === true) : false;
     
     // קבלת טקסטורת עץ לקורות החיזוק
     const frameWoodTexture = this.getWoodTexture(frameType ? frameType.name : '');
@@ -1734,8 +1734,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const legMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
       const leg = new THREE.Mesh(legGeometry, legMaterial);
       let legZPosition = pos[2];
-      // If is-reinforcement-beams-outside is true (cabinet only), move legs toward Z=0 by b (leg profile height in cm)
-      if (isReinforcementBeamsOutside && !isTable && frameBeam) {
+      // If is-reinforcement-beams-outside is true, move legs toward Z=0 by b (leg profile height in cm)
+      // This applies to both cabinet and table
+      if (isReinforcementBeamsOutside && frameBeam) {
         const legProfileHeightCm = (frameBeam.height && typeof frameBeam.height === 'number') ? (frameBeam.height / 10) : 0;
         if (legProfileHeightCm > 0) {
           const dirZ = legZPosition >= 0 ? 1 : -1;
@@ -1762,8 +1763,26 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       );
       
       for (const beam of frameBeams) {
-        const frameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
-        this.setCorrectTextureMapping(frameGeometry, beam.width, beam.height, beam.depth);
+        // Adjust frame beams when reinforcement beams are outside (table):
+        // - X-spanning beams (depth == actualFrameWidth) extend by 2a (leg width)
+        // - Z-spanning beams (width == actualFrameWidth) shorten by 2b (leg height)
+        let widthToUse = beam.width;
+        let depthToUse = beam.depth;
+        if (isReinforcementBeamsOutside && isTable && frameBeam) {
+          // Determine a,b from selected leg beam
+          const a_legWidthCm = (frameBeam.width || 0) / 10;
+          const b_legHeightCm = (frameBeam.height || frameBeam.depth || 0) / 10;
+          const isXSpanning = Math.abs(beam.depth - actualFrameWidth) < 0.001; // front/back
+          const isZSpanning = Math.abs(beam.width - actualFrameWidth) < 0.001; // left/right
+          if (isXSpanning) {
+            widthToUse = beam.width + (2 * a_legWidthCm);
+          }
+          if (isZSpanning) {
+            depthToUse = Math.max(0.1, beam.depth - (2 * b_legHeightCm));
+          }
+        }
+        const frameGeometry = new THREE.BoxGeometry(widthToUse, beam.height, depthToUse);
+        this.setCorrectTextureMapping(frameGeometry, widthToUse, beam.height, depthToUse);
         const frameMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
         const frameMesh = new THREE.Mesh(frameGeometry, frameMaterial);
         // מיקום קורות החיזוק מתחת למדף (בגובה הרגליים) - קיצור בגובה קורת המדף
@@ -1795,8 +1814,24 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         // if (this.debugLogsEnabled) console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
         
         for (const beam of extraFrameBeams) {
-          const extraFrameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
-          this.setCorrectTextureMapping(extraFrameGeometry, beam.width, beam.height, beam.depth);
+          // Apply the same outside adjustments to duplicated lower frame beams
+          let widthToUseExtra = beam.width;
+          let depthToUseExtra = beam.depth;
+          if (isReinforcementBeamsOutside && isTable && frameBeam) {
+            // Determine a,b from selected leg beam (same as upper frame beams)
+            const a_legWidthCm = (frameBeam.width || 0) / 10;
+            const b_legHeightCm = (frameBeam.height || frameBeam.depth || 0) / 10;
+            const isXSpanning = Math.abs(beam.depth - actualFrameWidth) < 0.001; // front/back
+            const isZSpanning = Math.abs(beam.width - actualFrameWidth) < 0.001; // left/right
+            if (isXSpanning) {
+              widthToUseExtra = beam.width + (2 * a_legWidthCm);
+            }
+            if (isZSpanning) {
+              depthToUseExtra = Math.max(0.1, beam.depth - (2 * b_legHeightCm));
+            }
+          }
+          const extraFrameGeometry = new THREE.BoxGeometry(widthToUseExtra, beam.height, depthToUseExtra);
+          this.setCorrectTextureMapping(extraFrameGeometry, widthToUseExtra, beam.height, depthToUseExtra);
           const extraFrameMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
           const extraFrameMesh = new THREE.Mesh(extraFrameGeometry, extraFrameMaterial);
           // מיקום יותר נמוך במידת totalDistance (הנתון החדש + גובה קורות החיזוק) - קיצור נוסף בגובה קורת המדף
@@ -1964,9 +1999,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       }, null, 2));
     }
     
-    // קבלת פרמטר is-reinforcement-beams-outside עבור ארון
-    const isReinforcementBeamsOutsideParam = !isTable ? this.product?.params?.find((p: any) => p.name === 'is-reinforcement-beams-outside') : null;
-    const isReinforcementBeamsOutside = !isTable && isReinforcementBeamsOutsideParam ? !!(isReinforcementBeamsOutsideParam.default === true) : false;
+    // קבלת פרמטר is-reinforcement-beams-outside עבור ארון ושולחן
+    const isReinforcementBeamsOutsideParam = this.product?.params?.find((p: any) => p.name === 'is-reinforcement-beams-outside');
+    const isReinforcementBeamsOutside = isReinforcementBeamsOutsideParam ? !!(isReinforcementBeamsOutsideParam.default === true) : false;
     
     // קבלת טקסטורת עץ לקורות החיזוק
     const frameWoodTexture = this.getWoodTexture(frameType ? frameType.name : '');
@@ -2178,8 +2213,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const legMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
       const leg = new THREE.Mesh(legGeometry, legMaterial);
       let legZPosition = pos[2];
-      // If is-reinforcement-beams-outside is true (cabinet only), move legs toward Z=0 by b (leg profile height in cm)
-      if (isReinforcementBeamsOutside && !isTable && frameBeam) {
+      // If is-reinforcement-beams-outside is true, move legs toward Z=0 by b (leg profile height in cm)
+      // This applies to both cabinet and table
+      if (isReinforcementBeamsOutside && frameBeam) {
         const legProfileHeightCm = (frameBeam.height && typeof frameBeam.height === 'number') ? (frameBeam.height / 10) : 0;
         if (legProfileHeightCm > 0) {
           const dirZ = legZPosition >= 0 ? 1 : -1;
@@ -2206,8 +2242,26 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       );
       
       for (const beam of frameBeams) {
-        const frameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
-        this.setCorrectTextureMapping(frameGeometry, beam.width, beam.height, beam.depth);
+        // Adjust frame beams when reinforcement beams are outside (table):
+        // - X-spanning beams (depth == actualFrameWidth) extend by 2a (leg width)
+        // - Z-spanning beams (width == actualFrameWidth) shorten by 2b (leg height)
+        let widthToUse = beam.width;
+        let depthToUse = beam.depth;
+        if (isReinforcementBeamsOutside && isTable && frameBeam) {
+          // Determine a,b from selected leg beam
+          const a_legWidthCm = (frameBeam.width || 0) / 10;
+          const b_legHeightCm = (frameBeam.height || frameBeam.depth || 0) / 10;
+          const isXSpanning = Math.abs(beam.depth - actualFrameWidth) < 0.001; // front/back
+          const isZSpanning = Math.abs(beam.width - actualFrameWidth) < 0.001; // left/right
+          if (isXSpanning) {
+            widthToUse = beam.width + (2 * a_legWidthCm);
+          }
+          if (isZSpanning) {
+            depthToUse = Math.max(0.1, beam.depth - (2 * b_legHeightCm));
+          }
+        }
+        const frameGeometry = new THREE.BoxGeometry(widthToUse, beam.height, depthToUse);
+        this.setCorrectTextureMapping(frameGeometry, widthToUse, beam.height, depthToUse);
         const frameMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
         const frameMesh = new THREE.Mesh(frameGeometry, frameMaterial);
         // מיקום קורות החיזוק מתחת למדף (בגובה הרגליים) - קיצור בגובה קורת המדף
@@ -2239,8 +2293,24 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         // if (this.debugLogsEnabled) console.log('Extra beam calculation:', { extraBeamDistance, actualFrameHeight, totalDistance });
         
         for (const beam of extraFrameBeams) {
-          const extraFrameGeometry = new THREE.BoxGeometry(beam.width, beam.height, beam.depth);
-          this.setCorrectTextureMapping(extraFrameGeometry, beam.width, beam.height, beam.depth);
+          // Apply the same outside adjustments to duplicated lower frame beams
+          let widthToUseExtra = beam.width;
+          let depthToUseExtra = beam.depth;
+          if (isReinforcementBeamsOutside && isTable && frameBeam) {
+            // Determine a,b from selected leg beam (same as upper frame beams)
+            const a_legWidthCm = (frameBeam.width || 0) / 10;
+            const b_legHeightCm = (frameBeam.height || frameBeam.depth || 0) / 10;
+            const isXSpanning = Math.abs(beam.depth - actualFrameWidth) < 0.001; // front/back
+            const isZSpanning = Math.abs(beam.width - actualFrameWidth) < 0.001; // left/right
+            if (isXSpanning) {
+              widthToUseExtra = beam.width + (2 * a_legWidthCm);
+            }
+            if (isZSpanning) {
+              depthToUseExtra = Math.max(0.1, beam.depth - (2 * b_legHeightCm));
+            }
+          }
+          const extraFrameGeometry = new THREE.BoxGeometry(widthToUseExtra, beam.height, depthToUseExtra);
+          this.setCorrectTextureMapping(extraFrameGeometry, widthToUseExtra, beam.height, depthToUseExtra);
           const extraFrameMaterial = new THREE.MeshStandardMaterial({ map: frameWoodTexture });
           const extraFrameMesh = new THREE.Mesh(extraFrameGeometry, extraFrameMaterial);
           // מיקום יותר נמוך במידת totalDistance (הנתון החדש + גובה קורות החיזוק) - קיצור נוסף בגובה קורת המדף
