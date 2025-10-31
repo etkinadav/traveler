@@ -261,6 +261,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (this.isPriceMinimized) {
             this.isPriceManuOpen = false;
         }
+        // סגירת תפריט שלוש הנקודות
+        this.isOptionsMenuOpen = false;
     }
     
     // הרחבת תפריט המחיר ופתיחת תפריט האופציות
@@ -1233,6 +1235,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // פונקציה לפתיחת/סגירת תפריט המחיר
     togglePriceMenu() {
         this.isPriceManuOpen = !this.isPriceManuOpen;
+        // סגירת תפריט שלוש הנקודות
+        this.isOptionsMenuOpen = false;
     }
     
     // פונקציה לטיפול בשינויי אינפוט מספרי (עדכון מיידי לחצים)
