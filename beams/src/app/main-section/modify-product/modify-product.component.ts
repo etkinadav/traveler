@@ -3601,6 +3601,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const legY = leg.height / 2;
                 
                 mesh.position.set(leg.x, legY, leg.z);
+                // If outside reinforcement flag is true, move table legs toward Z=0 by b (leg profile height in cm)
+                const outsideParamTableLegs = this.getParam('is-reinforcement-beams-outside');
+                if (outsideParamTableLegs && outsideParamTableLegs.default === true) {
+                    const legProfileHeightCm = (legBeam && typeof legBeam.height === 'number') ? (legBeam.height / 10) : 0;
+                    if (legProfileHeightCm > 0) {
+                        const dirZ = mesh.position.z >= 0 ? 1 : -1;
+                        mesh.position.z = mesh.position.z - dirZ * legProfileHeightCm;
+                    }
+                }
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
