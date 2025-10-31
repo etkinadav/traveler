@@ -2721,6 +2721,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             event.preventDefault();
             // סגירת חלונית חישוב המחיר בזום
             this.isPriceManuOpen = false;
+            // סגירת תפריט שלוש הנקודות בזום
+            this.isOptionsMenuOpen = false;
             const delta = event.deltaY;
             const zoomAmount = delta * 0.1; // פי 2 יותר מהיר (0.05 -> 0.1)
             const currentDistance = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
@@ -2739,6 +2741,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             (event: MouseEvent) => {
             // סגירת חלונית חישוב המחיר בלחיצת עכבר
             this.isPriceManuOpen = false;
+            // סגירת תפריט שלוש הנקודות בלחיצת עכבר
+            this.isOptionsMenuOpen = false;
             isDragging = true;
             lastX = event.clientX;
             lastY = event.clientY;
@@ -2746,6 +2750,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         );
         window.addEventListener('mousemove', (event: MouseEvent) => {
             if (!isDragging) return;
+            // סגירת תפריט שלוש הנקודות בתנועת עכבר
+            this.isOptionsMenuOpen = false;
             // בדיקה אם זה pan (גלגל עכבר או כפתור ימני)
             const isCurrentlyPanning = event.buttons === 4 || event.buttons === 2; // גלגל עכבר = 4, כפתור ימני = 2
             const dx = event.clientX - lastX;
@@ -2802,6 +2808,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             (event: TouchEvent) => {
             // סגירת חלונית חישוב המחיר במגע
             this.isPriceManuOpen = false;
+            // סגירת תפריט שלוש הנקודות במגע
+            this.isOptionsMenuOpen = false;
             if (event.touches.length === 1) {
                 isTouchRotating = true;
                 lastTouchX = event.touches[0].clientX;
@@ -2826,6 +2834,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             'touchmove',
             (event: TouchEvent) => {
             event.preventDefault();
+            // סגירת תפריט שלוש הנקודות בתנועת מגע
+            this.isOptionsMenuOpen = false;
             if (isTouchRotating && event.touches.length === 1) {
                 const touch = event.touches[0];
                 const dx = touch.clientX - lastTouchX;
@@ -10863,6 +10873,5 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         console.log('SAVE_PRO - ProductEditInfo dialog opened successfully');
     }
-
 }
 
