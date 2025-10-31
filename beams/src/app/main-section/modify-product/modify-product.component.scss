@@ -51,10 +51,7 @@
     font-weight: 500;
     transition: all 0.2s ease;
     text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    display: block;
     
     &:hover {
         background: rgba(0, 102, 204, 0.1);
@@ -68,11 +65,6 @@
     
     &:focus {
         outline: none;
-    }
-    
-    svg {
-        flex-shrink: 0;
-        color: #0066cc;
     }
     
     span {
