@@ -4517,19 +4517,78 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const isOutsideCabAdj = !!(outsideParamCabAdj && outsideParamCabAdj.default === true);
                     let widthToUseCab = beam.width;
                     let depthToUseCab = beam.depth;
+                    
+                    // Better identification: X-spanning beams have x=0 (centered), Z-spanning beams have z=0 (centered)
+                    // This is more reliable than comparing dimensions, especially when surfaceLength is small
+                    const positionTolerance = 0.001; // Small tolerance for floating point comparison
+                    const isXSpan = Math.abs(beam.x) <= positionTolerance; // X-spanning beams are centered on X-axis
+                    const isZSpan = Math.abs(beam.z) <= positionTolerance; // Z-spanning beams are centered on Z-axis
+                    
+                    console.log('CHECK_FLAT_BEAM', JSON.stringify({
+                        stage: 'beam_classification',
+                        shelfIndex: shelfIndex + 1,
+                        beamOriginal: {
+                            width: beam.width,
+                            depth: beam.depth,
+                            x: beam.x,
+                            z: beam.z
+                        },
+                        surfaceDimensions: {
+                            width: this.surfaceWidth,
+                            length: this.surfaceLength
+                        },
+                        positionTolerance: positionTolerance,
+                        checks: {
+                            xPosition: Math.abs(beam.x),
+                            zPosition: Math.abs(beam.z),
+                            isXSpan: isXSpan,
+                            isZSpan: isZSpan,
+                            identificationMethod: 'position-based (x=0 for X-spanning, z=0 for Z-spanning)'
+                        },
+                        note: 'X-spanning beams have x≈0 (centered), Z-spanning beams have z≈0 (centered)'
+                    }, null, 2));
+                    
                     if (isOutsideCabAdj) {
-                        const tol = (2 * frameBeamHeight) + 0.001;
-                        const isXSpan = Math.abs(beam.width - this.surfaceWidth) <= tol;
-                        const isZSpan = Math.abs(beam.depth - this.surfaceLength) <= tol;
                         // a = legWidth, b = legDepth (from earlier cabinet calculations)
                         const a_extend = legWidth;
                         const b_shorten = legDepth;
+                        
+                        console.log('CHECK_FLAT_BEAM', JSON.stringify({
+                            stage: 'adjustment_logic',
+                            shelfIndex: shelfIndex + 1,
+                            isOutsideCabAdj: isOutsideCabAdj,
+                            isXSpan: isXSpan,
+                            isZSpan: isZSpan,
+                            a_extend: a_extend,
+                            b_shorten: b_shorten,
+                            legWidth: legWidth,
+                            legDepth: legDepth,
+                            widthToUseCab_before: widthToUseCab,
+                            depthToUseCab_before: depthToUseCab,
+                            willExtendX: isXSpan && a_extend > 0,
+                            willShortenZ: isZSpan && b_shorten > 0
+                        }, null, 2));
+                        
                         if (isXSpan && a_extend > 0) {
                             widthToUseCab = beam.width + (2 * a_extend);
                         }
                         if (isZSpan && b_shorten > 0) {
                             // Shorten on both ends: total reduction = 2 * b
+                            const depthBeforeShorten = depthToUseCab;
                             depthToUseCab = Math.max(0.1, beam.depth - (2 * b_shorten));
+                            
+                            console.log('CHECK_FLAT_BEAM', JSON.stringify({
+                                stage: 'z_spanning_shorten_applied',
+                                shelfIndex: shelfIndex + 1,
+                                isZSpan: isZSpan,
+                                beamDepth_original: beam.depth,
+                                b_shorten: b_shorten,
+                                calculation: `${beam.depth} - (2 * ${b_shorten}) = ${beam.depth - (2 * b_shorten)}`,
+                                depthBeforeShorten: depthBeforeShorten,
+                                depthToUseCab_after: depthToUseCab,
+                                wasClamped: (beam.depth - (2 * b_shorten)) < 0.1,
+                                warning: isXSpan ? 'PROBLEM: This is an X-spanning beam but isZSpan is true!' : null
+                            }, null, 2));
                         }
                     }
                     const geometry = new THREE.BoxGeometry(
@@ -4544,6 +4603,96 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 const frameY = currentY + frameBeamHeightCorrect / 2;
                 mesh.position.set(beam.x, frameY, beam.z);
+                
+                // Calculate and log all 8 corners for X-spanning beams
+                if (isXSpan) {
+                    const halfWidth = widthToUseCab / 2;
+                    const halfHeight = frameBeamHeightCorrect / 2;
+                    const halfDepth = depthToUseCab / 2;
+                    
+                    // 8 corners of the beam box
+                    // Using standard box corner naming: front-back, left-right, bottom-top
+                    const corners = [
+                        // Front face (positive Z) - bottom left
+                        {
+                            name: 'front-left-bottom',
+                            x: beam.x - halfWidth,
+                            y: frameY - halfHeight,
+                            z: beam.z + halfDepth
+                        },
+                        // Front face - bottom right
+                        {
+                            name: 'front-right-bottom',
+                            x: beam.x + halfWidth,
+                            y: frameY - halfHeight,
+                            z: beam.z + halfDepth
+                        },
+                        // Front face - top left
+                        {
+                            name: 'front-left-top',
+                            x: beam.x - halfWidth,
+                            y: frameY + halfHeight,
+                            z: beam.z + halfDepth
+                        },
+                        // Front face - top right
+                        {
+                            name: 'front-right-top',
+                            x: beam.x + halfWidth,
+                            y: frameY + halfHeight,
+                            z: beam.z + halfDepth
+                        },
+                        // Back face (negative Z) - bottom left
+                        {
+                            name: 'back-left-bottom',
+                            x: beam.x - halfWidth,
+                            y: frameY - halfHeight,
+                            z: beam.z - halfDepth
+                        },
+                        // Back face - bottom right
+                        {
+                            name: 'back-right-bottom',
+                            x: beam.x + halfWidth,
+                            y: frameY - halfHeight,
+                            z: beam.z - halfDepth
+                        },
+                        // Back face - top left
+                        {
+                            name: 'back-left-top',
+                            x: beam.x - halfWidth,
+                            y: frameY + halfHeight,
+                            z: beam.z - halfDepth
+                        },
+                        // Back face - top right
+                        {
+                            name: 'back-right-top',
+                            x: beam.x + halfWidth,
+                            y: frameY + halfHeight,
+                            z: beam.z - halfDepth
+                        }
+                    ];
+                    
+                    console.log('CHECK_FLAT_BEAM', JSON.stringify({
+                        beamType: 'X-spanning',
+                        shelfIndex: shelfIndex + 1,
+                        beamCenter: {
+                            x: beam.x,
+                            y: frameY,
+                            z: beam.z
+                        },
+                        beamDimensions: {
+                            width: widthToUseCab,
+                            height: frameBeamHeightCorrect,
+                            depth: depthToUseCab
+                        },
+                        beamOriginal: {
+                            width: beam.width,
+                            depth: beam.depth
+                        },
+                        isOutsideCabAdj: isOutsideCabAdj,
+                        corners: corners
+                    }, null, 2));
+                }
+                
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
