@@ -5801,16 +5801,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 if (dimension2 !== undefined) {
                     const maxDimension = Math.max(dimension1, dimension2);
                     const minDimension = Math.min(dimension1, dimension2);
-                    // אם is-reinforcement-beams-outside דולק, הוסף את המידה הקטנה (לשולחן וארון)
+                    // אם is-reinforcement-beams-outside דולק, השתמש במידה הקטנה פעמיים + 3
                     const outsideParam = this.getParam('is-reinforcement-beams-outside');
                     const isOutside = !!(outsideParam && outsideParam.default === true);
                     if (isOutside) {
-                        rawLength = maxDimension + 3 + minDimension; // המידה הגדולה + 3 + המידה הקטנה
-                        console.log(`CHECK_SCREW_LENGTH_OUTSIDE - leg_width: max=${maxDimension}, min=${minDimension}, length=${rawLength}, product=${this.isTable ? 'table' : 'cabinet'}`);
+                        rawLength = (minDimension * 2) + 3; // (מידת קורה קטנה * 2) + 3
+                        console.log(`CHECK_SCREW_LENGTH_OUTSIDE - leg_width: min=${minDimension}, length=${rawLength} (min*2+3), product=${this.isTable ? 'table' : 'cabinet'}`);
                     } else {
                         rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
                     }
-                    this.debugLog(`🔧 Leg screw (width): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, length=${rawLength}`);
+                    this.debugLog(`🔧 Leg screw (width): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, min=${minDimension}, length=${rawLength}`);
                 } else {
                     // fallback למקרה שלא הועבר dimension2
                     rawLength = dimension1 + 3;
@@ -5823,16 +5823,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 if (dimension2 !== undefined) {
                     const maxDimension = Math.max(dimension1, dimension2);
                     const minDimension = Math.min(dimension1, dimension2);
-                    // אם is-reinforcement-beams-outside דולק, הוסף את המידה הקטנה (לשולחן וארון)
+                    // אם is-reinforcement-beams-outside דולק, השתמש במידה הקטנה פעמיים + 3
                     const outsideParam = this.getParam('is-reinforcement-beams-outside');
                     const isOutside = !!(outsideParam && outsideParam.default === true);
                     if (isOutside) {
-                        rawLength = maxDimension + 3 + minDimension; // המידה הגדולה + 3 + המידה הקטנה
-                        console.log(`CHECK_SCREW_LENGTH_OUTSIDE - leg_height: max=${maxDimension}, min=${minDimension}, length=${rawLength}, product=${this.isTable ? 'table' : 'cabinet'}`);
+                        rawLength = (minDimension * 2) + 3; // (מידת קורה קטנה * 2) + 3
+                        console.log(`CHECK_SCREW_LENGTH_OUTSIDE - leg_height: min=${minDimension}, length=${rawLength} (min*2+3), product=${this.isTable ? 'table' : 'cabinet'}`);
                     } else {
                         rawLength = maxDimension + 3; // המידה הגדולה + 3 ס"מ
                     }
-                    this.debugLog(`🔧 Leg screw (height): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, length=${rawLength}`);
+                    this.debugLog(`🔧 Leg screw (height): dim1=${dimension1}, dim2=${dimension2}, max=${maxDimension}, min=${minDimension}, length=${rawLength}`);
                 } else {
                     // fallback למקרה שלא הועבר dimension2
                     rawLength = dimension1 + 3;
