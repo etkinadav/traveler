@@ -6037,9 +6037,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         }
                     });
 
-                    const totalBeams =
-                        surfaceBeams.length * totalShelves - totalHiddenBeams; // כמות הקורות בפועל פחות הקורות המוסתרות
-
                     // CHACH_ALLERT - Log pricing calculation
 
                     // חישוב כמות ברגים לפי רוחב הקורה
@@ -6048,7 +6045,90 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         screwsPerBeam = 2; // 2 ברגים לקורה צרה (רוחב <= 4)
                     }
 
-                    const totalScrews = totalBeams * screwsPerBeam;
+                    // חישוב בסיסי של כל הברגים: כמות הקורות במדף × כמות המדפים × ברגים לקורה
+                    // ללא התחשבות בקורות מוסתרות - זה יחושב בנפרד
+                    const beamsPerShelf = surfaceBeams.length; // כמות הקורות במדף (25 במקרה הזה)
+                    let totalScrews = beamsPerShelf * totalShelves * screwsPerBeam; // 25 × 4 × 4 = 400
+                    
+                    // הפחתת ברגים בקורות מקוצרות לפי threshold
+                    // קריאת ערך threshold מה-restrictions של המוצר
+                    let threshold = 50; // ערך ברירת מחדל (50 ס"מ)
+                    if (this.product && Array.isArray(this.product.restrictions)) {
+                        const thresholdRestriction = this.product.restrictions.find(
+                            (r: any) => r.name === 'dubble-shorten-beam-screws-threshold'
+                        );
+                        if (thresholdRestriction && typeof thresholdRestriction.val === 'number') {
+                            threshold = thresholdRestriction.val;
+                        }
+                    }
+                    
+                    // חישוב הפחתת ברגים בקורות מקוצרות
+                    // קורות מקוצרות נמצאות רק במדפים שאינם המדף העליון (totalShelves - 1)
+                    // בכל מדף יש 2 קורות מקוצרות (start ו-end)
+                    const shelvesWithShortenedBeams = totalShelves - 1; // כל המדפים חוץ מהעליון
+                    const shortenedBeamsPerShelf = 2; // start ו-end
+                    const totalShortenedBeams = shelvesWithShortenedBeams * shortenedBeamsPerShelf;
+                    
+                    // חישוב אורך קורה מקוצרת (כמו ב-3D ובחישוב הקורות)
+                    const legBeamHeight = legBeamSelected?.height / 10 || 0;
+                    const frameParam = this.params.find((p) => p.type === 'beamSingle' && p.name !== 'shelfs' && p.name !== 'leg');
+                    const frameBeamSelected = frameParam?.beams?.[frameParam.selectedBeamIndex || 0];
+                    const frameBeamWidth = frameBeamSelected ? (frameBeamSelected.types?.[frameParam.selectedTypeIndex || 0]?.height / 10 || this.frameWidth) : this.frameWidth;
+                    
+                    const outsideParamCabForPricingShelves = this.getParam('is-reinforcement-beams-outside');
+                    const isOutsideCabForPricingShelves = !!(outsideParamCabForPricingShelves && outsideParamCabForPricingShelves.default === true);
+                    const defaultShorten = (legBeamHeight * 2);
+                    const extraShorten = isOutsideCabForPricingShelves ? (2 * frameBeamWidth) : 0;
+                    const shortenedBeamLength = Math.max(0.1, this.surfaceLength - (defaultShorten + extraShorten));
+                    
+                    // קביעת מספר הברגים לקורה מקוצרת לפי הכללים
+                    const L = shortenedBeamLength; // אורך הקורה המקוצרת
+                    const D = threshold; // ערך ה-threshold
+                    
+                    let screwsPerShortenedBeam: number;
+                    if (L > D) {
+                        // L > D → 4 ברגים (אין הפחתה)
+                        screwsPerShortenedBeam = 4;
+                    } else if (L > D / 2) {
+                        // L > D/2 → 3 ברגים (הפחתה של 1)
+                        screwsPerShortenedBeam = 3;
+                    } else {
+                        // L <= D/2 → 2 ברגים (הפחתה של 2)
+                        screwsPerShortenedBeam = 2;
+                    }
+                    
+                    // חישוב ההפחתה הכוללת
+                    // בכל קורה מקוצרת, במקום 4 ברגים יש screwsPerShortenedBeam
+                    const reductionPerShortenedBeam = 4 - screwsPerShortenedBeam;
+                    const totalReduction = totalShortenedBeams * reductionPerShortenedBeam;
+                    
+                    // הפחתת הברגים מהחישוב הכולל
+                    totalScrews = totalScrews - totalReduction;
+                    
+                    console.log('CHECK_SHORTEN_BEAM_SCREWS_PRICING', JSON.stringify({
+                        beamsPerShelf: beamsPerShelf,
+                        totalShelves: totalShelves,
+                        screwsPerBeam: screwsPerBeam,
+                        threshold: threshold,
+                        L: L,
+                        D: D,
+                        D_half: D / 2,
+                        condition1: `L > D: ${L > D}`,
+                        condition2: `L > D/2: ${L > D / 2}`,
+                        screwsPerShortenedBeam: screwsPerShortenedBeam,
+                        shelvesWithShortenedBeams: shelvesWithShortenedBeams,
+                        shortenedBeamsPerShelf: shortenedBeamsPerShelf,
+                        totalShortenedBeams: totalShortenedBeams,
+                        reductionPerShortenedBeam: reductionPerShortenedBeam,
+                        totalReduction: totalReduction,
+                        totalScrewsBeforeReduction: beamsPerShelf * totalShelves * screwsPerBeam,
+                        totalScrewsAfterReduction: totalScrews,
+                        shortenedBeamLength: shortenedBeamLength,
+                        defaultShorten: defaultShorten,
+                        extraShorten: extraShorten,
+                        isOutside: isOutsideCabForPricingShelves,
+                        calculation: `${beamsPerShelf} × ${totalShelves} × ${screwsPerBeam} = ${beamsPerShelf * totalShelves * screwsPerBeam}`
+                    }, null, 2));
                     shelfForgingData.push({
                         type: 'Shelf Screws',
                         beamName: selectedBeam.name,
