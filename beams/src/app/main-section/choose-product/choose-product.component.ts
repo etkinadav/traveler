@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, HostListener, AfterViewInit, ViewChildren, QueryList, ElementRef, ChangeDetectorRef, NgZone } from '@angular/core';
+import { ProductMiniPreviewComponent } from './product-mini-preview/product-mini-preview.component';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -86,7 +87,10 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
   private visibleProductIndices = new Set<number>(); // אינדקסים נראים כרגע
   private loadedProductIndices = new Set<number>(); // אינדקסים של מוצרים שהתלת מימד שלהם נטען
   @ViewChildren('productCard', { read: ElementRef }) productCards!: QueryList<ElementRef>;
+  @ViewChildren('miniPreview') miniPreviews!: QueryList<ProductMiniPreviewComponent>;
   
+  // לופ לבדיקת מודלים שלא מסתובבים
+  private rotationCheckInterval: any = null;
 
   // משתנה לעקיבה אחרי כמות האלמנטים ברוחב המסך
   elementsPerRow: number = 1; // ברירת מחדל - מובייל
@@ -444,6 +448,43 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
     }
   }
 
+  // פונקציה לבדיקת מודלים שלא מסתובבים ותיקונם
+  private checkRotationStatus() {
+    if (!this.miniPreviews || this.miniPreviews.length === 0) {
+      return;
+    }
+
+    this.miniPreviews.forEach((miniPreview: ProductMiniPreviewComponent) => {
+      // בדיקה אם המודל פעיל ומופיע במסך
+      if (miniPreview && miniPreview.isVisible() && miniPreview.isInitialized()) {
+        // בדיקה אם המודל לא מסתובב (אבל אמור להסתובב)
+        if (!miniPreview.isRotating() && !miniPreview.getUserHasInteracted()) {
+          // התחל סיבוב מחדש
+          miniPreview.startRotation();
+        }
+      }
+    });
+  }
+
+  // הפעלת מערכת בדיקת סיבוב
+  private startRotationChecker() {
+    // Clear any existing interval
+    if (this.rotationCheckInterval) {
+      clearInterval(this.rotationCheckInterval);
+    }
+    
+    this.rotationCheckInterval = setInterval(() => {
+      this.checkRotationStatus();
+    }, 2000); // Check every 2 seconds
+  }
+
+  private stopRotationChecker() {
+    if (this.rotationCheckInterval) {
+      clearInterval(this.rotationCheckInterval);
+      this.rotationCheckInterval = null;
+    }
+  }
+
   // Event listeners for scroll and resize
   @HostListener('window:scroll', ['$event'])
   onScroll(event: Event) {
@@ -552,16 +593,27 @@ export class ChooseProductComponent implements OnInit, OnDestroy, AfterViewInit 
       }, 100);
     });
     
+    // עקוב אחרי שינויים ב-miniPreviews
+    this.miniPreviews.changes.subscribe(() => {
+      // אם יש שינוי במיני-פריוויים, הפעל מחדש את בדיקת הסיבוב
+      setTimeout(() => {
+        this.startRotationChecker();
+      }, 100);
+    });
+    
     // רישום ראשוני - עם setTimeout כדי לתת ל-DOM להתעדכן
     setTimeout(() => {
       // הפעל את מערכת הבדיקה
       this.startVisibilityChecker();
+      // הפעל את בדיקת הסיבוב
+      this.startRotationChecker();
     }, 0);
   }
 
   ngOnDestroy() {
     // ניקוי subscriptions אם יש
     this.stopVisibilityChecker();
+    this.stopRotationChecker();
   }
 
   onHoverPrintingService(value: string) {

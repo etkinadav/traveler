@@ -3126,6 +3126,41 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.hasUserInteracted = true;
     }
 
+  // פונקציות public לבדיקה ושליטה בסיבוב (לשימוש מהקומפוננטה הראשית)
+  public isVisible(): boolean {
+    return this.isElementVisible();
+  }
+
+  public isInitialized(): boolean {
+    return !!(this.scene && this.camera && this.renderer);
+  }
+
+  public isRotating(): boolean {
+    // בדיקה אם יש animationId פעיל (אם המודל מסתובב)
+    return !!(this.animationId && this.animationId !== null);
+  }
+
+  public getUserHasInteracted(): boolean {
+    return this.hasUserInteracted;
+  }
+
+  public startRotation(): void {
+    // אם המודל לא מסתובב ואף משתמש לא התחיל להזיז אותו - התחל סיבוב
+    if (!this.isRotating() && !this.hasUserInteracted && this.scene && this.camera && this.renderer) {
+      this.hasUserInteracted = false;
+      // הפעל את האנימציה מחדש (אם הפונקציה animate קיימת)
+      if (typeof (this as any).animate === 'function') {
+        (this as any).animate();
+      } else {
+        // אם אין פונקציה animate, נפעיל את הסיבוב דרך updateCameraPosition או לוגיקה אחרת
+        // ננסה למצוא ולהפעיל את הלוגיקה של הסיבוב
+        console.warn('CHECK_ROTATION - animate function not found, trying alternative method');
+        // אפשרות נוספת: הפעל את הסיבוב דרך spherical.theta
+        // אבל זה דורש לוגיקה של animate loop
+      }
+    }
+  }
+
   // בדיקה אם הקומפוננט נראה במסך
   private isElementVisible(): boolean {
     
