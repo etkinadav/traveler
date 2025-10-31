@@ -4524,71 +4524,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const isXSpan = Math.abs(beam.x) <= positionTolerance; // X-spanning beams are centered on X-axis
                     const isZSpan = Math.abs(beam.z) <= positionTolerance; // Z-spanning beams are centered on Z-axis
                     
-                    console.log('CHECK_FLAT_BEAM', JSON.stringify({
-                        stage: 'beam_classification',
-                        shelfIndex: shelfIndex + 1,
-                        beamOriginal: {
-                            width: beam.width,
-                            depth: beam.depth,
-                            x: beam.x,
-                            z: beam.z
-                        },
-                        surfaceDimensions: {
-                            width: this.surfaceWidth,
-                            length: this.surfaceLength
-                        },
-                        positionTolerance: positionTolerance,
-                        checks: {
-                            xPosition: Math.abs(beam.x),
-                            zPosition: Math.abs(beam.z),
-                            isXSpan: isXSpan,
-                            isZSpan: isZSpan,
-                            identificationMethod: 'position-based (x=0 for X-spanning, z=0 for Z-spanning)'
-                        },
-                        note: 'X-spanning beams have x≈0 (centered), Z-spanning beams have z≈0 (centered)'
-                    }, null, 2));
-                    
                     if (isOutsideCabAdj) {
                         // a = legWidth, b = legDepth (from earlier cabinet calculations)
                         const a_extend = legWidth;
                         const b_shorten = legDepth;
-                        
-                        console.log('CHECK_FLAT_BEAM', JSON.stringify({
-                            stage: 'adjustment_logic',
-                            shelfIndex: shelfIndex + 1,
-                            isOutsideCabAdj: isOutsideCabAdj,
-                            isXSpan: isXSpan,
-                            isZSpan: isZSpan,
-                            a_extend: a_extend,
-                            b_shorten: b_shorten,
-                            legWidth: legWidth,
-                            legDepth: legDepth,
-                            widthToUseCab_before: widthToUseCab,
-                            depthToUseCab_before: depthToUseCab,
-                            willExtendX: isXSpan && a_extend > 0,
-                            willShortenZ: isZSpan && b_shorten > 0
-                        }, null, 2));
                         
                         if (isXSpan && a_extend > 0) {
                             widthToUseCab = beam.width + (2 * a_extend);
                         }
                         if (isZSpan && b_shorten > 0) {
                             // Shorten on both ends: total reduction = 2 * b
-                            const depthBeforeShorten = depthToUseCab;
                             depthToUseCab = Math.max(0.1, beam.depth - (2 * b_shorten));
-                            
-                            console.log('CHECK_FLAT_BEAM', JSON.stringify({
-                                stage: 'z_spanning_shorten_applied',
-                                shelfIndex: shelfIndex + 1,
-                                isZSpan: isZSpan,
-                                beamDepth_original: beam.depth,
-                                b_shorten: b_shorten,
-                                calculation: `${beam.depth} - (2 * ${b_shorten}) = ${beam.depth - (2 * b_shorten)}`,
-                                depthBeforeShorten: depthBeforeShorten,
-                                depthToUseCab_after: depthToUseCab,
-                                wasClamped: (beam.depth - (2 * b_shorten)) < 0.1,
-                                warning: isXSpan ? 'PROBLEM: This is an X-spanning beam but isZSpan is true!' : null
-                            }, null, 2));
                         }
                     }
                     const geometry = new THREE.BoxGeometry(
