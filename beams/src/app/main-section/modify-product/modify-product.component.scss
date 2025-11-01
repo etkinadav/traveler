@@ -4134,28 +4134,16 @@ mat-form-field {
             
             .preliminary-drill-check-item {
                 display: flex;
-                align-items: flex-start;
+                align-items: center;
                 margin-bottom: 6px;
                 font-size: 13px;
                 
-                .check-icon {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 18px;
-                    height: 18px;
+                .drill-status-icon {
                     margin-left: 8px;
                     flex-shrink: 0;
-                    font-size: 14px;
-                    font-weight: bold;
-                    
-                    &.check-pass {
-                        color: #4caf50;
-                    }
-                    
-                    &.check-fail {
-                        color: #f44336;
-                    }
+                    color: var(--zx-green, #0066cc);
+                    display: flex;
+                    align-items: center;
                 }
                 
                 .check-text {
@@ -4302,28 +4290,16 @@ mat-form-field {
             
             .preliminary-drill-check-item {
                 display: flex;
-                align-items: flex-start;
+                align-items: center;
                 margin-bottom: 6px;
                 font-size: 13px;
                 
-                .check-icon {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 18px;
-                    height: 18px;
+                .drill-status-icon {
                     margin-left: 8px;
                     flex-shrink: 0;
-                    font-size: 14px;
-                    font-weight: bold;
-                    
-                    &.check-pass {
-                        color: #4caf50;
-                    }
-                    
-                    &.check-fail {
-                        color: #f44336;
-                    }
+                    color: var(--zx-green, #0066cc);
+                    display: flex;
+                    align-items: center;
                 }
                 
                 .check-text {

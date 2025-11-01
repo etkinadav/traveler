@@ -708,9 +708,15 @@
                                             
                                             <!-- הודעת מצב אחת -->
                                             <div class="preliminary-drill-check-item">
-                                                <span class="check-icon" [class.check-pass]="!drillInfo.requiresPreliminaryScrews" [class.check-fail]="drillInfo.requiresPreliminaryScrews">
-                                                    {{ drillInfo.requiresPreliminaryScrews ? '✗' : '✓' }}
-                                                </span>
+                                                <!-- איקון V למצב רשות (לא חייב) -->
+                                                <svg *ngIf="!drillInfo.requiresPreliminaryScrews" class="drill-status-icon drill-status-icon-pass" width="18" height="18" viewBox="0 0 18 18">
+                                                    <path d="M 4 9 L 7.5 12.5 L 14 6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                <!-- איקון X למצב חובה (חייב) -->
+                                                <svg *ngIf="drillInfo.requiresPreliminaryScrews" class="drill-status-icon drill-status-icon-required" width="18" height="18" viewBox="0 0 18 18">
+                                                    <line x1="4" y1="4" x2="14" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    <line x1="14" y1="4" x2="4" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                </svg>
                                                 <span class="check-text">
                                                     {{ drillInfo.translationKey | translate }}
                                                 </span>
