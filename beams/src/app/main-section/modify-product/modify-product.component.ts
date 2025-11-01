@@ -38,6 +38,48 @@ interface Shelf {
             transition(':leave', [
                 animate('150ms ease-out', style({ opacity: 0 }))
             ])
+        ]),
+        trigger('slideUpDown', [
+            state('expanded', style({
+                maxHeight: '5000px',
+                opacity: 1,
+                overflow: 'visible',
+                transform: 'translateY(0)',
+                visibility: 'visible'
+            })),
+            state('collapsed', style({
+                maxHeight: '0',
+                opacity: 0,
+                overflow: 'hidden',
+                transform: 'translateY(-20px)',
+                marginTop: '0',
+                marginBottom: '0',
+                paddingTop: '0',
+                paddingBottom: '0',
+                visibility: 'hidden'
+            })),
+            transition('expanded => collapsed', [
+                animate('400ms ease-in-out')
+            ]),
+            transition('collapsed => expanded', [
+                animate('400ms ease-in-out')
+            ])
+        ]),
+        trigger('buttonSlide', [
+            state('up', style({
+                transform: 'translateY(0)',
+                marginTop: '20px'
+            })),
+            state('down', style({
+                transform: 'translateY(-100%)',
+                marginTop: '0'
+            })),
+            transition('up => down', [
+                animate('400ms ease-in-out')
+            ]),
+            transition('down => up', [
+                animate('400ms ease-in-out')
+            ])
         ])
     ]
 })

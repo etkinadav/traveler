@@ -32,11 +32,18 @@
 .quick-commit-btn svg path {
   stroke: #0066cc;
 }
+/* קונטיינר האינפוטים עם אנימציה */
+.inputs-container-animated {
+    transition: max-height 400ms ease-in-out, opacity 400ms ease-in-out, transform 400ms ease-in-out;
+    overflow: hidden;
+}
+
 /* כפתור הוראות הרכבה - בתוך התפריט */
 .assembly-instructions-container {
     width: 100%;
     padding: 15px 10px;
     margin-top: 20px;
+    transition: margin-top 400ms ease-in-out, transform 400ms ease-in-out;
 }
 
 .assembly-instructions-button-inline {

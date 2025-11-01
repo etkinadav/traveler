@@ -236,7 +236,7 @@
             </button>
             <ng-container *ngIf="drawerOpen">
                 <!-- כל התוכן הרגיל - מוסתר במצב הוראות הרכבה -->
-                <div *ngIf="!isInstructionMode">
+                <div class="inputs-container-animated" [@slideUpDown]="isInstructionMode ? 'collapsed' : 'expanded'">
                 <!-- Spinner Loading - מוצג רק בטעינה הראשונית -->
                 <div class="loading-spinner" *ngIf="isLoading && isModelLoading">
                     <div class="simple-spinner tiny"></div>
@@ -682,7 +682,7 @@
                 </div> <!-- סיום התוכן הרגיל -->
                 
                 <!-- כפתור הוראות הרכבה - תמיד גלוי -->
-                <div class="assembly-instructions-container">
+                <div class="assembly-instructions-container" [@buttonSlide]="isInstructionMode ? 'down' : 'up'">
                     <button class="assembly-instructions-button-inline" 
                             (click)="toggleAssemblyInstructions()"
                             [class.active]="isInstructionMode">
