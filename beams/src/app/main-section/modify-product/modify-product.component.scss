@@ -889,6 +889,15 @@ mat-form-field {
     margin-bottom: 0;
 }
 
+/* קונטיינר מידות המוצר - ללא רקע */
+.product-dimensions-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0;
+    margin-bottom: 1em;
+}
+
 /* Container for add shelf button, full width and flex-end */
 .add-shelf-btn-container {
     width: 100%;
