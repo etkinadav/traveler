@@ -44,6 +44,10 @@
     padding: 15px 10px;
     margin-top: 20px;
     transition: margin-top 400ms ease-in-out, transform 400ms ease-in-out;
+    
+    &.no-margin-top {
+        margin-top: 0;
+    }
 }
 
 .assembly-instructions-button-inline {

@@ -683,7 +683,7 @@
                 </div> <!-- סיום התוכן הרגיל -->
                 
                 <!-- כפתור הוראות הרכבה - תמיד גלוי -->
-                <div class="assembly-instructions-container">
+                <div class="assembly-instructions-container" [class.no-margin-top]="isInstructionMode">
                     <button class="assembly-instructions-button-inline" 
                             (click)="toggleAssemblyInstructions()"
                             [class.active]="isInstructionMode">
