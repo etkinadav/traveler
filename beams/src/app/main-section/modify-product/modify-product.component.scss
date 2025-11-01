@@ -83,6 +83,7 @@
                 cursor: pointer;
                 user-select: none;
                 transition: background-color 0.2s ease;
+                gap: 12px;
                 
                 &:hover {
                     background-color: rgba(0, 102, 204, 0.05);
@@ -90,6 +91,23 @@
                 
                 &.active {
                     background-color: rgba(0, 102, 204, 0.08);
+                }
+                
+                .instruction-accordion-number {
+                    position: relative;
+                    color: var(--zx-green, #0066cc);
+                    border-radius: 50%;
+                    width: 18px;
+                    height: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 12px;
+                    font-weight: 600;
+                    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+                    flex-shrink: 0;
+                    background: white;
+                    border: 1px solid var(--zx-green, #0066cc);
                 }
                 
                 .instruction-accordion-title {
@@ -103,7 +121,6 @@
                     color: #0066cc;
                     transition: transform 0.3s ease;
                     flex-shrink: 0;
-                    margin-left: 12px;
                     
                     &.open {
                         transform: rotate(180deg);

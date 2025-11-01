@@ -699,6 +699,7 @@
                                 <div class="instruction-accordion-header" 
                                      (click)="toggleInstructionStage(i)"
                                      [class.active]="isInstructionStageOpen(i)">
+                                    <span class="instruction-accordion-number">{{ i + 1 }}</span>
                                     <span class="instruction-accordion-title">{{ instruction.translatedName }}</span>
                                     <svg class="instruction-accordion-arrow" 
                                          [class.open]="isInstructionStageOpen(i)"
