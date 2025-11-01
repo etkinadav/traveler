@@ -64,22 +64,6 @@ interface Shelf {
             transition('collapsed => expanded', [
                 animate('400ms ease-in-out')
             ])
-        ]),
-        trigger('buttonSlide', [
-            state('up', style({
-                transform: 'translateY(0)',
-                marginTop: '20px'
-            })),
-            state('down', style({
-                transform: 'translateY(-100%)',
-                marginTop: '0'
-            })),
-            transition('up => down', [
-                animate('400ms ease-in-out')
-            ]),
-            transition('down => up', [
-                animate('400ms ease-in-out')
-            ])
         ])
     ]
 })
