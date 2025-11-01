@@ -50,6 +50,32 @@
     }
 }
 
+/* תוכן הוראות הרכבה */
+.assembly-instructions-content {
+    margin-top: 20px;
+    
+    .instructions-title {
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        text-align: center;
+    }
+    
+    .instructions-list {
+        margin: 0;
+        padding-right: 20px;
+        list-style-position: outside;
+        
+        .instruction-item {
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: #333;
+            line-height: 1.5;
+        }
+    }
+}
+
 .assembly-instructions-button-inline {
     width: 100%;
     padding: 10px 15px;

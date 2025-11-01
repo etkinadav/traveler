@@ -47,6 +47,10 @@ const productsSchema = new Schema({
     configurations: {
         type: Array,
         required: false
+    },
+    instructions: {
+        type: Array,
+        required: false
     }
 });
 

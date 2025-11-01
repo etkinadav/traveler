@@ -689,6 +689,16 @@
                             [class.active]="isInstructionMode">
                         <span>{{ isInstructionMode ? ('modify-product.view-edit-menu' | translate) : ('modify-product.view-assembly-instructions' | translate) }}</span>
                     </button>
+                    
+                    <!-- הוראות הרכבה - מוצג רק במצב isInstructionMode -->
+                    <div class="assembly-instructions-content" *ngIf="isInstructionMode && product?.instructions && product.instructions.length > 0">
+                        <h3 class="instructions-title">{{ 'modify-product.assembly-instructions-title' | translate }}</h3>
+                        <ol class="instructions-list">
+                            <li *ngFor="let instruction of product.instructions" class="instruction-item">
+                                {{ instruction.translatedName }}
+                            </li>
+                        </ol>
+                    </div>
                 </div>
             </ng-container>
         </div>

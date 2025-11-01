@@ -1170,5 +1170,6 @@
   "product-edit-info.delete-success": "הדגם נמחק בהצלחה!",
   "product-edit-info.delete-error": "שגיאה במחיקת הדגם",
   "modify-product.view-assembly-instructions": "צפה בהוראות ההרכבה",
-  "modify-product.view-edit-menu": "חזרה לעריכת המוצר"
+  "modify-product.view-edit-menu": "חזרה לעריכת המוצר",
+  "modify-product.assembly-instructions-title": "הוראות הרכבה"
 }
