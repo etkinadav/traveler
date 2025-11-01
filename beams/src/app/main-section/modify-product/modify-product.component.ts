@@ -1084,6 +1084,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         localStorage.setItem(storageKey, index.toString());
         
         this.updateBeams();
+        // בדיקת hardness לאחר שינוי קורה (כי סוג העץ יכול להשתנות)
+        if (this.woods.length > 0) {
+            this.checkWoodHardness();
+        }
         this.closeDropdown('beam', param);
     }
 
@@ -1110,6 +1114,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         param.selectedTypeIndex = index;
         
         this.updateBeams();
+        // בדיקת hardness לאחר שינוי סוג עץ
+        if (this.woods.length > 0) {
+            this.checkWoodHardness();
+        }
         this.closeDropdown('type', param);
     }
 
@@ -1155,6 +1163,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
         // קריאה לעדכון
         this.updateBeams();
+        // בדיקת hardness לאחר שינוי קורה (כי סוג העץ יכול להשתנות)
+        if (this.woods.length > 0) {
+            this.checkWoodHardness();
+        }
     }
     
     onTypeSelectionChange(event: any, param: any) {
@@ -1179,6 +1191,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
         // קריאה לעדכון
         this.updateBeams();
+        // בדיקת hardness לאחר שינוי סוג עץ
+        if (this.woods.length > 0) {
+            this.checkWoodHardness();
+        }
     }
     
     // בדיקת מגבלות המוצר
@@ -1369,6 +1385,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
+    woods: any[] = []; // רשימת סוגי עצים מהמסד
+    mustPerlimenaryScrewsByWoodTypeArray: { 
+        paramName: string; 
+        requiresPreliminaryScrews: boolean;
+        woodName?: string;
+        woodHardness?: number | null;
+        translatedName?: string | null;
+        testResult?: string;
+    }[] = []; // מערך של תוצאות בדיקת hardness לכל פרמטר קורה בנפרד
+    maxHardnessForPerlimenaryScrews: number = 6; // ערך קבוע למקסימום hardness שבו לא דורשים ברגי הקדמה
     isTable: boolean = false; // האם זה שולחן או ארון
     isPlanter: boolean = false; // האם זה עדנית עץ
     isBox: boolean = false; // האם זה קופסת עץ (זהה לעדנית)
@@ -2051,6 +2077,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // 🎯 תיקון זמני לleg parameter לפני עדכון הbeams
                 this.fixLegParameterIfNeeded();
                 
+                // טעינת woods לפני בדיקת hardness (אם עדיין לא נטענו)
+                if (this.woods.length === 0) {
+                    this.loadWoods();
+                } else {
+                    // אם woods כבר נטענו, רק בדוק hardness אחרי שה-params מוגדרים
+                    setTimeout(() => {
+                        this.checkWoodHardness();
+                    }, 0);
+                }
+                
                 this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
             error: (err) => {
@@ -2058,8 +2094,108 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             },
         });
     }
+    // טעינת סוגי עצים מהמסד
+    loadWoods() {
+        this.http.get(`/api/woods`).subscribe({
+            next: (data: any) => {
+                this.woods = data;
+                console.log('Loaded woods from DB:', JSON.stringify(this.woods, null, 2));
+                // ביצוע בדיקת hardness לאחר טעינת ה-woods (אם ה-params כבר מוגדרים)
+                if (this.params && this.params.length > 0) {
+                    this.checkWoodHardness();
+                }
+            },
+            error: (err) => {
+                console.error('Failed to load woods:', err);
+                this.woods = []; // איפוס לרשימה ריקה במקרה של שגיאה
+            }
+        });
+    }
+    
+    // בדיקת hardness של סוגי העץ בשימוש - לכל פרמטר קורה בנפרד
+    checkWoodHardness() {
+        // איפוס המערך
+        this.mustPerlimenaryScrewsByWoodTypeArray = [];
+        
+        // מעבר על כל הפרמטרים של סוגי קורות - בדיקה נפרדת לכל פרמטר
+        this.params.forEach(param => {
+            // בדיקה אם זה פרמטר קורות (beamArray או beamSingle)
+            if ((param.type === 'beamArray' || param.type === 'beamSingle') && 
+                param.beams && Array.isArray(param.beams) &&
+                param.selectedBeamIndex !== undefined && param.selectedBeamIndex !== null) {
+                
+                const selectedBeam = param.beams[param.selectedBeamIndex];
+                if (selectedBeam && selectedBeam.types && Array.isArray(selectedBeam.types)) {
+                    // בדיקה אם יש selectedTypeIndex נבחר
+                    const selectedTypeIndex = param.selectedTypeIndex !== undefined && param.selectedTypeIndex !== null 
+                        ? param.selectedTypeIndex 
+                        : 0; // ברירת מחדל לסוג הראשון
+                    
+                    const selectedType = selectedBeam.types[selectedTypeIndex];
+                    if (selectedType) {
+                        // קבלת שם סוג העץ מ-type.name או type.woodType
+                        const woodName = selectedType.name || selectedType.woodType || selectedType.wood;
+                        if (woodName) {
+                            // מציאת העץ ב-woods לפי name
+                            const wood = this.woods.find(w => w.name === woodName);
+                            let requiresPreliminaryScrews = false;
+                            let woodHardness = null;
+                            let translatedName = null;
+                            let testResult = '';
+                            
+                            if (wood) {
+                                woodHardness = wood.hardness;
+                                translatedName = wood.translatedName;
+                                const exceedsThreshold = wood.hardness > this.maxHardnessForPerlimenaryScrews;
+                                requiresPreliminaryScrews = exceedsThreshold;
+                                testResult = exceedsThreshold 
+                                    ? `FAILED - hardness (${wood.hardness}) > maxHardness (${this.maxHardnessForPerlimenaryScrews})`
+                                    : `PASSED - hardness (${wood.hardness}) <= maxHardness (${this.maxHardnessForPerlimenaryScrews})`;
+                            } else {
+                                // עץ לא נמצא ב-woods
+                                requiresPreliminaryScrews = false;
+                                testResult = `WOOD NOT FOUND IN DB - could not check hardness`;
+                            }
+                            
+                            // הוספה למערך
+                            this.mustPerlimenaryScrewsByWoodTypeArray.push({
+                                paramName: param.name,
+                                requiresPreliminaryScrews: requiresPreliminaryScrews,
+                                woodName: woodName,
+                                woodHardness: woodHardness,
+                                translatedName: translatedName,
+                                testResult: testResult
+                            });
+                        }
+                    }
+                }
+            }
+        });
+        
+        // לוג מפורט עם כל התוצאות
+        const totalChecked = this.mustPerlimenaryScrewsByWoodTypeArray.length;
+        const requiresScrews = this.mustPerlimenaryScrewsByWoodTypeArray.filter(p => p.requiresPreliminaryScrews).length;
+        const passedTest = this.mustPerlimenaryScrewsByWoodTypeArray.filter(p => !p.requiresPreliminaryScrews && p.woodHardness !== null).length;
+        
+        console.log(`INSTRUCTIONS_START - Wood hardness check results (per parameter):`, JSON.stringify({
+            maxHardnessForPerlimenaryScrews: this.maxHardnessForPerlimenaryScrews,
+            totalParametersChecked: totalChecked,
+            parametersRequiringScrews: requiresScrews,
+            parametersPassedTest: passedTest,
+            resultsPerParameter: this.mustPerlimenaryScrewsByWoodTypeArray,
+            summary: requiresScrews > 0
+                ? `REQUIRES PRELIMINARY SCREWS - ${requiresScrews} parameter(s) exceed hardness threshold`
+                : `NO PRELIMINARY SCREWS REQUIRED - All parameters are within hardness threshold`
+        }, null, 2));
+    }
+    
     // טעינת מוצר לפי שם
     getProductByName(name: string) {
+        // טעינת woods לפני טעינת המוצר
+        if (this.woods.length === 0) {
+            this.loadWoods();
+        }
+        
         this.http.get(`/api/products/name/${name}`).subscribe({
             next: (data) => {
                 this.product = data;
@@ -2287,6 +2423,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 // 🎯 תיקון זמני לleg parameter לפני עדכון הbeams
                 this.fixLegParameterIfNeeded();
+                
+                // ביצוע בדיקת hardness לאחר שה-params מוגדרים
+                if (this.woods.length > 0) {
+                    this.checkWoodHardness();
+                }
                 
                 this.updateBeams(true); // טעינת מוצר - עם אנימציה
             },
