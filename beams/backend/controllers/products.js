@@ -552,6 +552,15 @@ async function updateParameter(product, paramData, configIndex, isNewModel) {
             console.log(`SAVE_PRO_BACK - ERROR: beamConfiguration is missing for beamArray: ${name}`);
         }
         updateBeamArrayParameter(param, value, beamConfiguration, configIndex, isNewModel);
+    } else if (paramType === 'boolian' || incomingType === 'boolian' || paramType === 'boolean' || incomingType === 'boolean') {
+        // פרמטרים בוליאניים - משתמשים באותו לוגיקה כמו פרמטרים מספריים
+        console.log(`SAVE_PRO_BACK - Updating boolean parameter: ${name}, type: ${paramType}, value: ${value}`);
+        // 🎯 ניקוי beamsConfigurations אם קיים (למנוע nulls)
+        if (param.beamsConfigurations && Array.isArray(param.beamsConfigurations)) {
+            delete param.beamsConfigurations;
+            console.log(`SAVE_PRO_BACK - Deleted beamsConfigurations for boolean parameter: ${name}`);
+        }
+        updateNumericParameter(param, value, configIndex, isNewModel);
     } else if (paramType === '0' || paramType === '1' || paramType === '2' || 
                paramType === 0 || paramType === 1 || paramType === 2 ||
                incomingType === '0' || incomingType === '1' || incomingType === '2') {
