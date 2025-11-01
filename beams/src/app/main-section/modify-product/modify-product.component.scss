@@ -115,6 +115,11 @@
                     font-weight: 500;
                     color: #333;
                     flex: 1;
+                    transition: color 0.2s ease;
+                }
+                
+                &.active .instruction-accordion-title {
+                    color: var(--zx-green, #0066cc);
                 }
                 
                 .instruction-accordion-arrow {
@@ -151,7 +156,7 @@
                             }
                             
                             .preliminary-drill-beam-title {
-                                font-weight: 600;
+                                font-weight: 400;
                                 margin-bottom: 8px;
                                 color: #333;
                                 font-size: 14px;
