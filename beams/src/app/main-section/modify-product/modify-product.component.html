@@ -235,18 +235,19 @@
                 </svg>
             </button>
             <ng-container *ngIf="drawerOpen">
-                <!-- כל התוכן הרגיל - מוסתר במצב הוראות הרכבה -->
-                <div class="inputs-container-animated" [@slideUpDown]="isInstructionMode ? 'collapsed' : 'expanded'">
-                <!-- Spinner Loading - מוצג רק בטעינה הראשונית -->
-                <div class="loading-spinner" *ngIf="isLoading && isModelLoading">
-                    <div class="simple-spinner tiny"></div>
-                </div>
-                <!-- כותרת מוצר -->
+                <!-- כותרת מוצר - תמיד גלויה -->
                 <div class="product-header" *ngIf="selectedProductName" style="margin-bottom: 20px;">
                     <h3 style="margin: 0; padding: 10px; text-align: center;">
                         {{getDisplayProductName}}<br>
                             <span style="margin-top: 8px; font-weight: normal; font-size: 0.8em; display: block; color: #0066cc;">{{ 'modify-product.model-label' | translate }} {{product?.model || product?.name || selectedProductName}}</span>
                     </h3>
+                </div>
+                
+                <!-- כל התוכן הרגיל - מוסתר במצב הוראות הרכבה -->
+                <div class="inputs-container-animated" [@slideUpDown]="isInstructionMode ? 'collapsed' : 'expanded'">
+                <!-- Spinner Loading - מוצג רק בטעינה הראשונית -->
+                <div class="loading-spinner" *ngIf="isLoading && isModelLoading">
+                    <div class="simple-spinner tiny"></div>
                 </div>
                 
                 <div *ngFor="let param of params" class="param-box">
