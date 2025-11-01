@@ -1034,10 +1034,10 @@
 	"modify-product.view-edit-menu": "Back to Product Edit",
 	"modify-product.assembly-instructions-title": "Assembly Instructions",
 	"modify-product.preliminary-drills-subtitle": "Can the product be built without pre-drilling holes in the beams?",
-	"modify-product.preliminary-drills-not-required": "Yes, no preliminary drilling required due to wood type or beam thickness",
-	"modify-product.preliminary-drills-required-wood-type-only": "No, preliminary drilling required due to wood type",
-	"modify-product.preliminary-drills-required-dimension-only": "No, preliminary drilling required due to beam thickness",
-	"modify-product.preliminary-drills-required-both": "No, preliminary drilling required due to wood type and beam thickness",
+	"modify-product.preliminary-drills-not-required": "No preliminary drilling required due to wood type or beam thickness",
+	"modify-product.preliminary-drills-required-wood-type-only": "Preliminary drilling required due to wood type",
+	"modify-product.preliminary-drills-required-dimension-only": "Preliminary drilling required due to beam thickness",
+	"modify-product.preliminary-drills-required-both": "Preliminary drilling required due to wood type and beam thickness",
 	"modify-product.no-preliminary-drilling-needed": "No preliminary drilling needed!",
 	"modify-product.understood-continue-next": "Understood, continue to next step"
 }

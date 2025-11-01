@@ -167,13 +167,55 @@
                                 align-items: center;
                                 margin-bottom: 6px;
                                 font-size: 13px;
+                                gap: 8px;
                                 
                                 .drill-status-icon {
-                                    margin-left: 8px;
                                     flex-shrink: 0;
                                     color: var(--zx-green, #0066cc);
                                     display: flex;
                                     align-items: center;
+                                }
+                                
+                                .preliminary-drill-checkbox {
+                                    width: 18px;
+                                    height: 18px;
+                                    border: 2px solid var(--zx-green, #0066cc);
+                                    border-radius: 4px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    flex-shrink: 0;
+                                    transition: all 0.2s ease;
+                                    background: white;
+                                    
+                                    // צ'קבוקס שצריך לסמן (דורש קדחים) - ניתן ללחיצה
+                                    &:not(.already-checked) {
+                                        cursor: pointer;
+                                        
+                                        &:hover {
+                                            background: rgba(0, 102, 204, 0.05);
+                                        }
+                                    }
+                                    
+                                    // צ'קבוקס שכבר מסומן (V) - לא ניתן ללחיצה
+                                    &.already-checked {
+                                        cursor: default;
+                                        background: var(--zx-green, #0066cc);
+                                        border-color: var(--zx-green, #0066cc);
+                                    }
+                                    
+                                    &.checked {
+                                        background: var(--zx-green, #0066cc);
+                                        border-color: var(--zx-green, #0066cc);
+                                        
+                                        .checkbox-check-icon {
+                                            display: block;
+                                        }
+                                    }
+                                    
+                                    .checkbox-check-icon {
+                                        display: none;
+                                    }
                                 }
                                 
                                 .check-text {
@@ -197,6 +239,33 @@
                             color: var(--zx-green, #0066cc);
                             margin-bottom: 16px;
                         }
+                        
+                        .preliminary-drills-continue-button {
+                            padding: 10px 20px;
+                            background: rgba(0, 102, 204, 0.1);
+                            border: 1px solid var(--zx-green, #0066cc);
+                            border-radius: 4px;
+                            color: var(--zx-green, #0066cc);
+                            font-size: 14px;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            
+                            &:hover {
+                                background: rgba(0, 102, 204, 0.15);
+                                transform: translateY(-1px);
+                            }
+                            
+                            &:active {
+                                transform: translateY(0);
+                            }
+                        }
+                    }
+                    
+                    /* כפתור המשך אחרי שסומנו כל הקורות */
+                    .preliminary-drills-continue-container {
+                        margin-top: 20px;
+                        text-align: center;
                         
                         .preliminary-drills-continue-button {
                             padding: 10px 20px;

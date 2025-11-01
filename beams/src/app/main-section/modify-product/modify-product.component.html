@@ -726,15 +726,17 @@
                                                 
                                                 <!-- הודעת מצב אחת -->
                                                 <div class="preliminary-drill-check-item">
-                                                    <!-- איקון V למצב רשות (לא חייב) -->
-                                                    <svg *ngIf="!drillInfo.requiresPreliminaryScrews" class="drill-status-icon drill-status-icon-pass" width="18" height="18" viewBox="0 0 18 18">
-                                                        <path d="M 4 9 L 7.5 12.5 L 14 6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
-                                                    <!-- איקון X למצב חובה (חייב) -->
-                                                    <svg *ngIf="drillInfo.requiresPreliminaryScrews" class="drill-status-icon drill-status-icon-required" width="18" height="18" viewBox="0 0 18 18">
-                                                        <line x1="4" y1="4" x2="14" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                                        <line x1="14" y1="4" x2="4" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                                    </svg>
+                                                    <!-- צ'קבוקס - תמיד מוצג -->
+                                                    <div class="preliminary-drill-checkbox"
+                                                         [class.checked]="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.paramName)"
+                                                         [class.already-checked]="!drillInfo.requiresPreliminaryScrews"
+                                                         (click)="drillInfo.requiresPreliminaryScrews && toggleBeamCompleted(drillInfo.paramName)">
+                                                        <svg *ngIf="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.paramName)" 
+                                                             class="checkbox-check-icon" 
+                                                             width="12" height="12" viewBox="0 0 12 12">
+                                                            <path d="M 2 6 L 5 9 L 10 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                    </div>
                                                     <span class="check-text">
                                                         {{ drillInfo.translationKey | translate }}
                                                     </span>
@@ -747,6 +749,14 @@
                                             <div class="preliminary-drills-success-text">
                                                 {{ 'modify-product.no-preliminary-drilling-needed' | translate }}
                                             </div>
+                                            <button class="preliminary-drills-continue-button" (click)="goToNextInstructionStage()">
+                                                {{ 'modify-product.understood-continue-next' | translate }}
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- כפתור המשך אם יש קורות שדורשות קדחים וכולן סומנו -->
+                                        <div class="preliminary-drills-continue-container" 
+                                             *ngIf="!areAllBeamsNoPreliminaryDrilling() && areAllRequiredBeamsCompleted()">
                                             <button class="preliminary-drills-continue-button" (click)="goToNextInstructionStage()">
                                                 {{ 'modify-product.understood-continue-next' | translate }}
                                             </button>

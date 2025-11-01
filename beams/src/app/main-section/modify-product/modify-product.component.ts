@@ -288,8 +288,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 instructions: this.product?.instructions || []
             }, null, 2));
         } else {
-            // חזרה למצב רגיל - איפוס currentInstructionStage
+            // חזרה למצב רגיל - איפוס currentInstructionStage וסימוני הקדחים
             this.currentInstructionStage = 0;
+            this.completedPreliminaryDrills.clear();
         }
     }
     
@@ -321,6 +322,29 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
         // בודק אם כל הקורות לא דורשות קדחים מקדימים
         return drillsInfo.every(info => !info.requiresPreliminaryScrews);
+    }
+    
+    // בדיקה אם קורה מסומנת
+    isBeamMarkedAsCompleted(paramName: string): boolean {
+        return this.completedPreliminaryDrills.has(paramName);
+    }
+    
+    // סמן/בטל סימון קורה
+    toggleBeamCompleted(paramName: string) {
+        if (this.completedPreliminaryDrills.has(paramName)) {
+            this.completedPreliminaryDrills.delete(paramName);
+        } else {
+            this.completedPreliminaryDrills.add(paramName);
+        }
+    }
+    
+    // בדיקה אם כל הקורות שדורשות קדחים סומנו
+    areAllRequiredBeamsCompleted(): boolean {
+        const requiringBeams = this.getPreliminaryDrillsInfo().filter(info => info.requiresPreliminaryScrews);
+        if (requiringBeams.length === 0) {
+            return false;
+        }
+        return requiringBeams.every(info => this.completedPreliminaryDrills.has(info.paramName));
     }
     
     // מעבר לשלב הבא בהוראות (פתיחת ההוראה הבאה)
@@ -1430,6 +1454,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     isPriceMinimized: boolean = true; // האם תפריט המחיר מצומצם
     isInstructionMode: boolean = false; // מצב הוראות הרכבה (false = מצב עריכה רגיל, true = מצב הוראות)
     currentInstructionStage: number = 0; // סעיף ההוראה הפתוח כרגע (0 = מצב רגיל, 1+ = מצב הוראות עם סעיף פתוח)
+    completedPreliminaryDrills: Set<string> = new Set(); // קורות שסומנו כבוצעו קדחים מקדימים
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
