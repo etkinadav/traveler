@@ -2278,14 +2278,25 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                                 requiresPreliminaryScrews = false;
                                 testResult = `PASSED - beamHeight (${beamHeight}) <= legHeightThreshold (${legHeightThreshold}) AND not a leg beam`;
                             } else {
-                                // שלב 4: זה leg - בדיקת width
+                                // שלב 4: זה leg - בדיקת width (או height*2 אם is-reinforcement-beams-outside הוא true)
                                 if (legWidthThreshold !== undefined && legWidthThreshold !== null) {
-                                    if (beamWidth > legWidthThreshold) {
+                                    // בדיקה אם יש פרמטר is-reinforcement-beams-outside ושווה ל-true
+                                    const reinforcementBeamsOutsideParam = this.params.find(p => p.name === 'is-reinforcement-beams-outside');
+                                    const isReinforcementBeamsOutside = reinforcementBeamsOutsideParam && 
+                                                                       (reinforcementBeamsOutsideParam.editingValue !== undefined 
+                                                                        ? reinforcementBeamsOutsideParam.editingValue 
+                                                                        : reinforcementBeamsOutsideParam.default) === true;
+                                    
+                                    // אם is-reinforcement-beams-outside הוא true, נבדוק height*2 במקום width
+                                    const valueToCheck = isReinforcementBeamsOutside ? (beamHeight * 2) : beamWidth;
+                                    const valueName = isReinforcementBeamsOutside ? 'beamHeight*2' : 'beamWidth';
+                                    
+                                    if (valueToCheck > legWidthThreshold) {
                                         requiresPreliminaryScrews = true;
-                                        testResult = `FAILED - isLegBeam=true AND beamWidth (${beamWidth}) > legWidthThreshold (${legWidthThreshold})`;
+                                        testResult = `FAILED - isLegBeam=true AND ${valueName} (${valueToCheck}) > legWidthThreshold (${legWidthThreshold})${isReinforcementBeamsOutside ? ' (is-reinforcement-beams-outside=true)' : ''}`;
                                     } else {
                                         requiresPreliminaryScrews = false;
-                                        testResult = `PASSED - isLegBeam=true AND beamWidth (${beamWidth}) <= legWidthThreshold (${legWidthThreshold}) AND beamHeight (${beamHeight}) <= legHeightThreshold (${legHeightThreshold})`;
+                                        testResult = `PASSED - isLegBeam=true AND ${valueName} (${valueToCheck}) <= legWidthThreshold (${legWidthThreshold}) AND beamHeight (${beamHeight}) <= legHeightThreshold (${legHeightThreshold})${isReinforcementBeamsOutside ? ' (is-reinforcement-beams-outside=true)' : ''}`;
                                     }
                                 } else {
                                     // אין leg-width-threshold - רק height נבדק
