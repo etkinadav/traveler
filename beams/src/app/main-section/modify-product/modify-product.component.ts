@@ -263,6 +263,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // פתיחה/סגירה של הוראות הרכבה
     toggleAssemblyInstructions() {
         this.isInstructionMode = !this.isInstructionMode;
+        
+        // לוג כשעוברים למצב הוראות הרכבה
+        if (this.isInstructionMode) {
+            // קבלת מידות קורת הרגל
+            const legParam = this.getParam('leg');
+            let legWidth = null;
+            let legLength = null;
+            
+            if (legParam && legParam.beams && legParam.beams.length > 0) {
+                const legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+                if (legBeam) {
+                    legWidth = legBeam.width / 10; // המרה ממ"מ לס"מ
+                    legLength = legBeam.height / 10; // המרה ממ"מ לס"מ
+                }
+            }
+            
+            console.log('INSTRUCTIONS_START', JSON.stringify({
+                legBeamWidth: legWidth,
+                legBeamLength: legLength,
+                instructions: this.product?.instructions || []
+            }, null, 2));
+        }
     }
     
     // פתיחה/סגירה של תפריט ניהול המערכת
