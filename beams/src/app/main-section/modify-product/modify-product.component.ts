@@ -1394,6 +1394,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         translatedName?: string | null;
         testResult?: string;
     }[] = []; // מערך של תוצאות בדיקת hardness לכל פרמטר קורה בנפרד
+    mustPerlimenaryScrewsByDimensionArray: {
+        paramName: string;
+        requiresPreliminaryScrews: boolean;
+        beamWidth?: number | null; // רוחב הקורה בס"מ
+        beamHeight?: number | null; // גובה הקורה בס"מ
+        isLegBeam?: boolean;
+        legHeightThreshold?: number | null;
+        legWidthThreshold?: number | null;
+        testResult?: string;
+    }[] = []; // מערך של תוצאות בדיקת מידות לכל פרמטר קורה בנפרד
     maxHardnessForPerlimenaryScrews: number = 6; // ערך קבוע למקסימום hardness שבו לא דורשים ברגי הקדמה
     isTable: boolean = false; // האם זה שולחן או ארון
     isPlanter: boolean = false; // האם זה עדנית עץ
@@ -2116,9 +2126,34 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     runAllChecks() {
         // הרצת כל הבדיקות הנדרשות
         this.checkWoodHardness();
-        // כאן ניתן להוסיף בדיקות נוספות בעתיד
-        // this.checkAnotherThing();
-        // this.checkYetAnotherThing();
+        this.checkDimensionRequirements();
+        
+        // לוג סיכום כל הבדיקות
+        console.log(`INSTRUCTIONS_END - All checks summary:`, JSON.stringify({
+            woodHardnessCheck: {
+                totalParametersChecked: this.mustPerlimenaryScrewsByWoodTypeArray.length,
+                parametersRequiringScrews: this.mustPerlimenaryScrewsByWoodTypeArray.filter(p => p.requiresPreliminaryScrews).length,
+                resultsPerParameter: this.mustPerlimenaryScrewsByWoodTypeArray
+            },
+            dimensionCheck: {
+                totalParametersChecked: this.mustPerlimenaryScrewsByDimensionArray.length,
+                parametersRequiringScrews: this.mustPerlimenaryScrewsByDimensionArray.filter(p => p.requiresPreliminaryScrews).length,
+                resultsPerParameter: this.mustPerlimenaryScrewsByDimensionArray
+            },
+            combinedResults: this.mustPerlimenaryScrewsByWoodTypeArray.map(woodResult => {
+                const dimensionResult = this.mustPerlimenaryScrewsByDimensionArray.find(d => d.paramName === woodResult.paramName);
+                return {
+                    paramName: woodResult.paramName,
+                    requiresPreliminaryScrewsByWoodType: woodResult.requiresPreliminaryScrews,
+                    requiresPreliminaryScrewsByDimension: dimensionResult ? dimensionResult.requiresPreliminaryScrews : null,
+                    requiresPreliminaryScrewsOverall: woodResult.requiresPreliminaryScrews || (dimensionResult ? dimensionResult.requiresPreliminaryScrews : false),
+                    woodHardness: woodResult.woodHardness,
+                    beamWidth: dimensionResult?.beamWidth,
+                    beamHeight: dimensionResult?.beamHeight,
+                    isLegBeam: dimensionResult?.isLegBeam
+                };
+            })
+        }, null, 2));
     }
     
     // בדיקת hardness של סוגי העץ בשימוש - לכל פרמטר קורה בנפרד
@@ -2196,6 +2231,89 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 ? `REQUIRES PRELIMINARY SCREWS - ${requiresScrews} parameter(s) exceed hardness threshold`
                 : `NO PRELIMINARY SCREWS REQUIRED - All parameters are within hardness threshold`
         }, null, 2));
+    }
+    
+    // בדיקת מידות קורה - האם נדרשים קדחים מקדימים לפי מידות
+    private checkDimensionRequirements() {
+        // איפוס המערך
+        this.mustPerlimenaryScrewsByDimensionArray = [];
+        
+        // מציאת ה-instruction של preliminary-drills
+        const preliminaryDrillsInstruction = this.product?.instructions?.find((inst: any) => inst.name === 'preliminary-drills');
+        
+        if (!preliminaryDrillsInstruction) {
+            // אין instruction של preliminary-drills - אין מה לבדוק
+            return;
+        }
+        
+        const legHeightThreshold = preliminaryDrillsInstruction['leg-height-threshold'];
+        const legWidthThreshold = preliminaryDrillsInstruction['leg-width-threshold'];
+        
+        // מעבר על כל הפרמטרים של סוגי קורות - בדיקה נפרדת לכל פרמטר
+        this.params.forEach(param => {
+            // בדיקה אם זה פרמטר קורות (beamArray או beamSingle)
+            if ((param.type === 'beamArray' || param.type === 'beamSingle') && 
+                param.beams && Array.isArray(param.beams) &&
+                param.selectedBeamIndex !== undefined && param.selectedBeamIndex !== null) {
+                
+                const selectedBeam = param.beams[param.selectedBeamIndex];
+                if (selectedBeam) {
+                    // המרת מידות ממ"מ לס"מ
+                    const beamWidth = selectedBeam.width / 10; // רוחב הקורה בס"מ
+                    const beamHeight = selectedBeam.height / 10; // גובה הקורה בס"מ
+                    const isLegBeam = param.name === 'leg';
+                    
+                    let requiresPreliminaryScrews = false;
+                    let testResult = '';
+                    
+                    // שלב 1: בדיקה אם height > leg-height-threshold
+                    if (legHeightThreshold !== undefined && legHeightThreshold !== null) {
+                        if (beamHeight > legHeightThreshold) {
+                            requiresPreliminaryScrews = true;
+                            testResult = `FAILED - beamHeight (${beamHeight}) > legHeightThreshold (${legHeightThreshold})`;
+                        } else {
+                            // שלב 2: אם height עבר, בדיקה אם זה leg
+                            if (!isLegBeam) {
+                                // שלב 3: לא leg - לא צריך קדחים מבחינת מידות
+                                requiresPreliminaryScrews = false;
+                                testResult = `PASSED - beamHeight (${beamHeight}) <= legHeightThreshold (${legHeightThreshold}) AND not a leg beam`;
+                            } else {
+                                // שלב 4: זה leg - בדיקת width
+                                if (legWidthThreshold !== undefined && legWidthThreshold !== null) {
+                                    if (beamWidth > legWidthThreshold) {
+                                        requiresPreliminaryScrews = true;
+                                        testResult = `FAILED - isLegBeam=true AND beamWidth (${beamWidth}) > legWidthThreshold (${legWidthThreshold})`;
+                                    } else {
+                                        requiresPreliminaryScrews = false;
+                                        testResult = `PASSED - isLegBeam=true AND beamWidth (${beamWidth}) <= legWidthThreshold (${legWidthThreshold}) AND beamHeight (${beamHeight}) <= legHeightThreshold (${legHeightThreshold})`;
+                                    }
+                                } else {
+                                    // אין leg-width-threshold - רק height נבדק
+                                    requiresPreliminaryScrews = false;
+                                    testResult = `PASSED - isLegBeam=true BUT no legWidthThreshold defined, beamHeight (${beamHeight}) <= legHeightThreshold (${legHeightThreshold})`;
+                                }
+                            }
+                        }
+                    } else {
+                        // אין leg-height-threshold - לא ניתן לבדוק
+                        requiresPreliminaryScrews = false;
+                        testResult = `SKIPPED - no legHeightThreshold defined in instructions`;
+                    }
+                    
+                    // הוספה למערך
+                    this.mustPerlimenaryScrewsByDimensionArray.push({
+                        paramName: param.name,
+                        requiresPreliminaryScrews: requiresPreliminaryScrews,
+                        beamWidth: beamWidth,
+                        beamHeight: beamHeight,
+                        isLegBeam: isLegBeam,
+                        legHeightThreshold: legHeightThreshold,
+                        legWidthThreshold: legWidthThreshold,
+                        testResult: testResult
+                    });
+                }
+            }
+        });
     }
     
     // טעינת מוצר לפי שם
