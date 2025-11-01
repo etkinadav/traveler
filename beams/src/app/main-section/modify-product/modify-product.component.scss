@@ -62,16 +62,108 @@
         text-align: center;
     }
     
-    .instructions-list {
-        margin: 0;
-        padding-right: 20px;
-        list-style-position: outside;
+    /* Accordion להוראות */
+    .instructions-accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
         
-        .instruction-item {
-            margin-bottom: 12px;
-            font-size: 15px;
-            color: #333;
-            line-height: 1.5;
+        .instruction-accordion-item {
+            border-bottom: 1px solid #e0e0e0;
+            
+            &:last-child {
+                border-bottom: none;
+            }
+            
+            .instruction-accordion-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 0;
+                cursor: pointer;
+                user-select: none;
+                transition: background-color 0.2s ease;
+                
+                &:hover {
+                    background-color: rgba(0, 102, 204, 0.05);
+                }
+                
+                &.active {
+                    background-color: rgba(0, 102, 204, 0.08);
+                }
+                
+                .instruction-accordion-title {
+                    font-size: 15px;
+                    font-weight: 500;
+                    color: #333;
+                    flex: 1;
+                }
+                
+                .instruction-accordion-arrow {
+                    color: #0066cc;
+                    transition: transform 0.3s ease;
+                    flex-shrink: 0;
+                    margin-left: 12px;
+                    
+                    &.open {
+                        transform: rotate(180deg);
+                    }
+                }
+            }
+            
+            .instruction-accordion-content {
+                overflow: hidden;
+                
+                .instruction-content-text {
+                    padding: 8px 0;
+                    font-size: 14px;
+                    color: #666;
+                    line-height: 1.6;
+                }
+                
+                /* תוכן קדחים מקדימים - ללא כרטיסיה */
+                .preliminary-drills-content {
+                    padding: 12px 0;
+                    
+                    .preliminary-drills-list {
+                        .preliminary-drill-item {
+                            margin-bottom: 16px;
+                            
+                            &:last-child {
+                                margin-bottom: 0;
+                            }
+                            
+                            .preliminary-drill-beam-title {
+                                font-weight: 600;
+                                margin-bottom: 8px;
+                                color: #333;
+                                font-size: 14px;
+                            }
+                            
+                            .preliminary-drill-check-item {
+                                display: flex;
+                                align-items: center;
+                                margin-bottom: 6px;
+                                font-size: 13px;
+                                
+                                .drill-status-icon {
+                                    margin-left: 8px;
+                                    flex-shrink: 0;
+                                    color: var(--zx-green, #0066cc);
+                                    display: flex;
+                                    align-items: center;
+                                }
+                                
+                                .check-text {
+                                    flex: 1;
+                                    color: var(--zx-green, #0066cc);
+                                    line-height: 1.5;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -266,6 +266,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // לוג כשעוברים למצב הוראות הרכבה
         if (this.isInstructionMode) {
+            // פתיחה אוטומטית של ההוראה הראשונה (index 1 כי 0 הוא מצב רגיל)
+            this.currentInstructionStage = 1;
+            
             // קבלת מידות קורת הרגל
             const legParam = this.getParam('leg');
             let legWidth = null;
@@ -284,7 +287,30 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 legBeamLength: legLength,
                 instructions: this.product?.instructions || []
             }, null, 2));
+        } else {
+            // חזרה למצב רגיל - איפוס currentInstructionStage
+            this.currentInstructionStage = 0;
         }
+    }
+    
+    // פתיחה/סגירה של סעיף הוראה ספציפי
+    toggleInstructionStage(stageIndex: number) {
+        // stageIndex הוא האינדקס של ההוראה (0-based)
+        // currentInstructionStage הוא האינדקס + 1 (1-based)
+        const stageNumber = stageIndex + 1;
+        
+        if (this.currentInstructionStage === stageNumber) {
+            // אם כבר פתוח - סגירה
+            this.currentInstructionStage = 0;
+        } else {
+            // פתיחה של הסעיף הנבחר
+            this.currentInstructionStage = stageNumber;
+        }
+    }
+    
+    // בדיקה אם סעיף הוראה פתוח
+    isInstructionStageOpen(stageIndex: number): boolean {
+        return this.currentInstructionStage === (stageIndex + 1);
     }
     
     // פתיחה/סגירה של תפריט ניהול המערכת
@@ -1382,6 +1408,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     showNavigationCube: boolean = false; // קוביית ניווט במובייל
     isPriceMinimized: boolean = true; // האם תפריט המחיר מצומצם
     isInstructionMode: boolean = false; // מצב הוראות הרכבה (false = מצב עריכה רגיל, true = מצב הוראות)
+    currentInstructionStage: number = 0; // סעיף ההוראה הפתוח כרגע (0 = מצב רגיל, 1+ = מצב הוראות עם סעיף פתוח)
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
