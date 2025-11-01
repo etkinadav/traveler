@@ -706,27 +706,13 @@
                                             <!-- כותרת קורה -->
                                             <div class="preliminary-drill-beam-title">{{ drillInfo.beamDisplayName }}</div>
                                             
-                                            <!-- בדיקת סוג עץ -->
+                                            <!-- הודעת מצב אחת -->
                                             <div class="preliminary-drill-check-item">
-                                                <span class="check-icon" [class.check-pass]="!drillInfo.requiresByWoodType" [class.check-fail]="drillInfo.requiresByWoodType">
-                                                    {{ drillInfo.requiresByWoodType ? '✗' : '✓' }}
+                                                <span class="check-icon" [class.check-pass]="!drillInfo.requiresPreliminaryScrews" [class.check-fail]="drillInfo.requiresPreliminaryScrews">
+                                                    {{ drillInfo.requiresPreliminaryScrews ? '✗' : '✓' }}
                                                 </span>
                                                 <span class="check-text">
-                                                    {{ drillInfo.requiresByWoodType 
-                                                        ? ('modify-product.requires-preliminary-drills-by-wood-type' | translate)
-                                                        : ('modify-product.no-preliminary-drills-by-wood-type' | translate) }}
-                                                </span>
-                                            </div>
-                                            
-                                            <!-- בדיקת מידות -->
-                                            <div class="preliminary-drill-check-item">
-                                                <span class="check-icon" [class.check-pass]="!drillInfo.requiresByDimension" [class.check-fail]="drillInfo.requiresByDimension">
-                                                    {{ drillInfo.requiresByDimension ? '✗' : '✓' }}
-                                                </span>
-                                                <span class="check-text">
-                                                    {{ drillInfo.requiresByDimension 
-                                                        ? ('modify-product.requires-preliminary-drills-by-dimension' | translate)
-                                                        : ('modify-product.no-preliminary-drills-by-dimension' | translate) }}
+                                                    {{ drillInfo.translationKey | translate }}
                                                 </span>
                                             </div>
                                         </div>

@@ -2352,11 +2352,39 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // שם הקורה בפורמט: "קורת רגל, 5 על 2.5 ס"מ, אלון" (בלי כפילות)
             const beamDisplayName = `${beamTypeName}, ${beamWidth} על ${beamHeight} ס"מ${woodTranslatedName ? `, ${woodTranslatedName}` : ''}`;
             
+            // קביעת המצב לפי שתי הבדיקות
+            const requiresByWoodType = woodResult.requiresPreliminaryScrews;
+            const requiresByDimension = dimensionResult ? dimensionResult.requiresPreliminaryScrews : false;
+            
+            // קביעת מפתח התרגום לפי המצב
+            let translationKey: string;
+            let requiresPreliminaryScrews: boolean;
+            
+            if (!requiresByWoodType && !requiresByDimension) {
+                // מצב 1: אין צורך בקדחים מקדימים
+                translationKey = 'modify-product.preliminary-drills-not-required';
+                requiresPreliminaryScrews = false;
+            } else if (requiresByWoodType && !requiresByDimension) {
+                // מצב 2: יש צורך רק בשל סוג העץ
+                translationKey = 'modify-product.preliminary-drills-required-wood-type-only';
+                requiresPreliminaryScrews = true;
+            } else if (!requiresByWoodType && requiresByDimension) {
+                // מצב 3: יש צורך רק בשל עובי הקורה
+                translationKey = 'modify-product.preliminary-drills-required-dimension-only';
+                requiresPreliminaryScrews = true;
+            } else {
+                // מצב 4: יש צורך בשניהם
+                translationKey = 'modify-product.preliminary-drills-required-both';
+                requiresPreliminaryScrews = true;
+            }
+            
             results.push({
                 paramName: woodResult.paramName,
                 beamDisplayName: beamDisplayName,
-                requiresByWoodType: woodResult.requiresPreliminaryScrews,
-                requiresByDimension: dimensionResult ? dimensionResult.requiresPreliminaryScrews : false,
+                requiresByWoodType: requiresByWoodType,
+                requiresByDimension: requiresByDimension,
+                requiresPreliminaryScrews: requiresPreliminaryScrews,
+                translationKey: translationKey,
                 woodTypeResult: woodResult.testResult || '',
                 dimensionResult: dimensionResult ? dimensionResult.testResult : ''
             });
