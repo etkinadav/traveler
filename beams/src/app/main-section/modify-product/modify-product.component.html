@@ -694,8 +694,44 @@
                     <div class="assembly-instructions-content" *ngIf="isInstructionMode && product?.instructions && product.instructions.length > 0">
                         <h3 class="instructions-title">{{ 'modify-product.assembly-instructions-title' | translate }}</h3>
                         <ol class="instructions-list">
-                            <li *ngFor="let instruction of product.instructions" class="instruction-item">
+                            <li *ngFor="let instruction of product.instructions; let i = index" class="instruction-item">
                                 {{ instruction.translatedName }}
+                                
+                                <!-- קדיחת קדחים מקדימים - מוצג מתחת להוראה הראשונה אם היא preliminary-drills -->
+                                <div class="preliminary-drills-instruction-section" 
+                                     *ngIf="i === 0 && instruction.name === 'preliminary-drills' && getPreliminaryDrillsInfo().length > 0">
+                                    <div class="preliminary-drills-subtitle">{{ 'modify-product.preliminary-drills-subtitle' | translate }}</div>
+                                    <div class="preliminary-drills-list">
+                                        <div *ngFor="let drillInfo of getPreliminaryDrillsInfo()" class="preliminary-drill-item">
+                                            <!-- כותרת קורה -->
+                                            <div class="preliminary-drill-beam-title">{{ drillInfo.beamDisplayName }}</div>
+                                            
+                                            <!-- בדיקת סוג עץ -->
+                                            <div class="preliminary-drill-check-item">
+                                                <span class="check-icon" [class.check-pass]="!drillInfo.requiresByWoodType" [class.check-fail]="drillInfo.requiresByWoodType">
+                                                    {{ drillInfo.requiresByWoodType ? '✗' : '✓' }}
+                                                </span>
+                                                <span class="check-text">
+                                                    {{ drillInfo.requiresByWoodType 
+                                                        ? ('modify-product.requires-preliminary-drills-by-wood-type' | translate)
+                                                        : ('modify-product.no-preliminary-drills-by-wood-type' | translate) }}
+                                                </span>
+                                            </div>
+                                            
+                                            <!-- בדיקת מידות -->
+                                            <div class="preliminary-drill-check-item">
+                                                <span class="check-icon" [class.check-pass]="!drillInfo.requiresByDimension" [class.check-fail]="drillInfo.requiresByDimension">
+                                                    {{ drillInfo.requiresByDimension ? '✗' : '✓' }}
+                                                </span>
+                                                <span class="check-text">
+                                                    {{ drillInfo.requiresByDimension 
+                                                        ? ('modify-product.requires-preliminary-drills-by-dimension' | translate)
+                                                        : ('modify-product.no-preliminary-drills-by-dimension' | translate) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </li>
                         </ol>
                     </div>

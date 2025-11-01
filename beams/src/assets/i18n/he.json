@@ -1171,5 +1171,10 @@
   "product-edit-info.delete-error": "שגיאה במחיקת הדגם",
   "modify-product.view-assembly-instructions": "צפה בהוראות ההרכבה",
   "modify-product.view-edit-menu": "חזרה לעריכת המוצר",
-  "modify-product.assembly-instructions-title": "הוראות הרכבה"
+  "modify-product.assembly-instructions-title": "הוראות הרכבה",
+  "modify-product.preliminary-drills-subtitle": "האם חובה לקדוח קדחים מקדימים?",
+  "modify-product.requires-preliminary-drills-by-wood-type": "חובת קידוח קדחים מקדימים בשל קושי סוג העץ.",
+  "modify-product.no-preliminary-drills-by-wood-type": "אין צורך בקדחים מקדימים בשל סוג העץ.",
+  "modify-product.requires-preliminary-drills-by-dimension": "חובת קידוח קדחים מקדימים בשל מידות הקורה.",
+  "modify-product.no-preliminary-drills-by-dimension": "אין צורך בקדחים מקדימים בשל מידות הקורה."
 }

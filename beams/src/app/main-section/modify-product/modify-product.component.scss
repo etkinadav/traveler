@@ -4101,6 +4101,73 @@ mat-form-field {
     }
 }
 
+// עיצוב לקדחים מקדימים בהוראות הרכבה
+.preliminary-drills-instruction-section {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: rgba(0, 102, 204, 0.03);
+    border-radius: 8px;
+    border-right: 3px solid var(--zx-green, #0066cc);
+    
+    .preliminary-drills-subtitle {
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .preliminary-drills-list {
+        .preliminary-drill-item {
+            margin-bottom: 16px;
+            
+            &:last-child {
+                margin-bottom: 0;
+            }
+            
+            .preliminary-drill-beam-title {
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: #333;
+                font-size: 14px;
+            }
+            
+            .preliminary-drill-check-item {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 6px;
+                font-size: 13px;
+                
+                .check-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 18px;
+                    height: 18px;
+                    margin-left: 8px;
+                    flex-shrink: 0;
+                    font-size: 14px;
+                    font-weight: bold;
+                    
+                    &.check-pass {
+                        color: #4caf50;
+                    }
+                    
+                    &.check-fail {
+                        color: #f44336;
+                    }
+                }
+                
+                .check-text {
+                    flex: 1;
+                    color: var(--zx-green, #0066cc);
+                    line-height: 1.5;
+                }
+            }
+        }
+    }
+}
+
 // מצב loading לתפריט המחיר
 .pricing-menu-loading {
     display: flex;
@@ -4198,6 +4265,73 @@ mat-form-field {
         
         &:active {
             transform: translateY(1px);
+        }
+    }
+}
+
+// עיצוב לקדחים מקדימים בהוראות הרכבה
+.preliminary-drills-instruction-section {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: rgba(0, 102, 204, 0.03);
+    border-radius: 8px;
+    border-right: 3px solid var(--zx-green, #0066cc);
+    
+    .preliminary-drills-subtitle {
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .preliminary-drills-list {
+        .preliminary-drill-item {
+            margin-bottom: 16px;
+            
+            &:last-child {
+                margin-bottom: 0;
+            }
+            
+            .preliminary-drill-beam-title {
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: #333;
+                font-size: 14px;
+            }
+            
+            .preliminary-drill-check-item {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 6px;
+                font-size: 13px;
+                
+                .check-icon {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 18px;
+                    height: 18px;
+                    margin-left: 8px;
+                    flex-shrink: 0;
+                    font-size: 14px;
+                    font-weight: bold;
+                    
+                    &.check-pass {
+                        color: #4caf50;
+                    }
+                    
+                    &.check-fail {
+                        color: #f44336;
+                    }
+                }
+                
+                .check-text {
+                    flex: 1;
+                    color: var(--zx-green, #0066cc);
+                    line-height: 1.5;
+                }
+            }
         }
     }
 }

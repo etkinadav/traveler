@@ -2316,6 +2316,55 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         });
     }
     
+    // קבלת מידע על קדחים מקדימים לכל קורה לתצוגה
+    getPreliminaryDrillsInfo(): any[] {
+        const results: any[] = [];
+        
+        // מעבר על כל הפרמטרים שיש להם תוצאות
+        this.mustPerlimenaryScrewsByWoodTypeArray.forEach(woodResult => {
+            const dimensionResult = this.mustPerlimenaryScrewsByDimensionArray.find(d => d.paramName === woodResult.paramName);
+            const param = this.params.find(p => p.name === woodResult.paramName);
+            
+            if (!param || !param.beams || param.selectedBeamIndex === undefined) {
+                return;
+            }
+            
+            const selectedBeam = param.beams[param.selectedBeamIndex];
+            if (!selectedBeam) {
+                return;
+            }
+            
+            const selectedTypeIndex = param.selectedTypeIndex !== undefined && param.selectedTypeIndex !== null 
+                ? param.selectedTypeIndex 
+                : 0;
+            const selectedType = selectedBeam.types?.[selectedTypeIndex];
+            
+            // בניית שם הקורה
+            const beamWidth = selectedBeam.width / 10;
+            const beamHeight = selectedBeam.height / 10;
+            
+            // מציאת שם הקורה - נשתמש בשם הפרמטר בלבד (לא בשם הקורה שכולל כבר מידות)
+            const beamTypeName = param.translatedName || woodResult.paramName;
+            
+            // שם סוג העץ - נשתמש רק ב-translatedName מהעץ, לא מ-woodResult (שיכול לכלול מידות)
+            const woodTranslatedName = selectedType?.translatedName || '';
+            
+            // שם הקורה בפורמט: "קורת רגל, 5 על 2.5 ס"מ, אלון" (בלי כפילות)
+            const beamDisplayName = `${beamTypeName}, ${beamWidth} על ${beamHeight} ס"מ${woodTranslatedName ? `, ${woodTranslatedName}` : ''}`;
+            
+            results.push({
+                paramName: woodResult.paramName,
+                beamDisplayName: beamDisplayName,
+                requiresByWoodType: woodResult.requiresPreliminaryScrews,
+                requiresByDimension: dimensionResult ? dimensionResult.requiresPreliminaryScrews : false,
+                woodTypeResult: woodResult.testResult || '',
+                dimensionResult: dimensionResult ? dimensionResult.testResult : ''
+            });
+        });
+        
+        return results;
+    }
+    
     // טעינת מוצר לפי שם
     getProductByName(name: string) {
         // טעינת woods לפני טעינת המוצר

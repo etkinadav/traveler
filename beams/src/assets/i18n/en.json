@@ -1029,5 +1029,13 @@
 	"product-edit-info.save-changes": "Save Changes",
 	"product-edit-info.delete-model": "Delete Model",
 	"product-edit-info.serial-name": "Serial Name",
-	"product-edit-info.serial-name-placeholder": "Enter serial name"
+	"product-edit-info.serial-name-placeholder": "Enter serial name",
+	"modify-product.view-assembly-instructions": "View Assembly Instructions",
+	"modify-product.view-edit-menu": "Back to Product Edit",
+	"modify-product.assembly-instructions-title": "Assembly Instructions",
+	"modify-product.preliminary-drills-subtitle": "Is preliminary drilling required?",
+	"modify-product.requires-preliminary-drills-by-wood-type": "Preliminary drilling required due to wood hardness.",
+	"modify-product.no-preliminary-drills-by-wood-type": "No preliminary drilling needed due to wood type.",
+	"modify-product.requires-preliminary-drills-by-dimension": "Preliminary drilling required due to beam dimensions.",
+	"modify-product.no-preliminary-drills-by-dimension": "No preliminary drilling needed due to beam dimensions."
 }
