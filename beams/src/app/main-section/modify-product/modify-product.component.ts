@@ -316,12 +316,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // בדיקה אם כל הקורות לא דורשות קדחים מקדימים (כל הקורות הן V)
     areAllBeamsNoPreliminaryDrilling(): boolean {
-        const drillsInfo = this.getPreliminaryDrillsInfo();
-        if (drillsInfo.length === 0) {
+        if (this.preliminaryDrillsInfo.length === 0) {
             return false;
         }
         // בודק אם כל הקורות לא דורשות קדחים מקדימים
-        return drillsInfo.every(info => !info.requiresPreliminaryScrews);
+        return this.preliminaryDrillsInfo.every(info => !info.requiresPreliminaryScrews);
+    }
+    
+    // trackBy function למניעת רינדור מיותר
+    trackByParamName(index: number, item: any): string {
+        return item.paramName || index;
     }
     
     // בדיקה אם קורה מסומנת
@@ -329,18 +333,43 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return this.completedPreliminaryDrills.has(paramName);
     }
     
-    // סמן/בטל סימון קורה
-    toggleBeamCompleted(paramName: string) {
-        if (this.completedPreliminaryDrills.has(paramName)) {
-            this.completedPreliminaryDrills.delete(paramName);
-        } else {
-            this.completedPreliminaryDrills.add(paramName);
+    // סמן/בטל סימון קורה (רק אם הקורה דורשת קדחים)
+    toggleBeamCompleted(drillInfo: any) {
+        // רק אם הקורה דורשת קדחים - אפשר לסמן
+        if (!drillInfo || !drillInfo.requiresPreliminaryScrews) {
+            return;
         }
+        
+        const paramName = drillInfo.paramName;
+        if (!paramName) {
+            return;
+        }
+        
+        // יצירת Set חדש כדי לעורר change detection
+        const newSet = new Set(this.completedPreliminaryDrills);
+        
+        if (newSet.has(paramName)) {
+            newSet.delete(paramName);
+        } else {
+            newSet.add(paramName);
+        }
+        
+        this.completedPreliminaryDrills = newSet;
+        
+        console.log('CHECKBOX_TOGGLE:', JSON.stringify({
+            paramName: paramName,
+            isChecked: newSet.has(paramName),
+            allCompleted: Array.from(newSet),
+            setSize: newSet.size
+        }));
+        
+        // עדכון המשתנה הישיר כדי לעורר change detection
+        this.preliminaryDrillsInfo = [...this.preliminaryDrillsInfo];
     }
     
     // בדיקה אם כל הקורות שדורשות קדחים סומנו
     areAllRequiredBeamsCompleted(): boolean {
-        const requiringBeams = this.getPreliminaryDrillsInfo().filter(info => info.requiresPreliminaryScrews);
+        const requiringBeams = this.preliminaryDrillsInfo.filter(info => info.requiresPreliminaryScrews);
         if (requiringBeams.length === 0) {
             return false;
         }
@@ -1455,6 +1484,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     isInstructionMode: boolean = false; // מצב הוראות הרכבה (false = מצב עריכה רגיל, true = מצב הוראות)
     currentInstructionStage: number = 0; // סעיף ההוראה הפתוח כרגע (0 = מצב רגיל, 1+ = מצב הוראות עם סעיף פתוח)
     completedPreliminaryDrills: Set<string> = new Set(); // קורות שסומנו כבוצעו קדחים מקדימים
+    preliminaryDrillsInfoCache: any[] = []; // cache לתוצאות getPreliminaryDrillsInfo
+    preliminaryDrillsInfo: any[] = []; // משתנה ישיר לשימוש ב-HTML (מתעדכן רק כש-runAllChecks נקרא)
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL
@@ -2197,9 +2228,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // פונקציה כללית להרצת כל הבדיקות
     runAllChecks() {
+        // ניקוי cache לפני הרצת בדיקות חדשות
+        this.clearPreliminaryDrillsInfoCache();
+        
         // הרצת כל הבדיקות הנדרשות
         this.checkWoodHardness();
         this.checkDimensionRequirements();
+        
+        // עדכון preliminaryDrillsInfo לאחר הבדיקות
+        this.getPreliminaryDrillsInfo();
         
         // לוג סיכום כל הבדיקות
         console.log(`INSTRUCTIONS_END - All checks summary:`, JSON.stringify({
@@ -2474,7 +2511,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             });
         });
         
+        // שמירה ב-cache ובמשתנה הישיר
+        this.preliminaryDrillsInfoCache = results;
+        this.preliminaryDrillsInfo = results;
         return results;
+    }
+    
+    // איפוס cache של preliminary drills info (כשצריך לעדכן)
+    clearPreliminaryDrillsInfoCache() {
+        this.preliminaryDrillsInfoCache = [];
+        this.preliminaryDrillsInfo = [];
     }
     
     // טעינת מוצר לפי שם

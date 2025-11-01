@@ -718,9 +718,9 @@
                                     
                                     <!-- קדיחת קדחים מקדימים - מוצג רק אם זו ההוראה הראשונה והיא preliminary-drills -->
                                     <div class="preliminary-drills-content" 
-                                         *ngIf="i === 0 && instruction.name === 'preliminary-drills' && getPreliminaryDrillsInfo().length > 0">
+                                         *ngIf="i === 0 && instruction.name === 'preliminary-drills' && preliminaryDrillsInfo.length > 0">
                                         <div class="preliminary-drills-list">
-                                            <div *ngFor="let drillInfo of getPreliminaryDrillsInfo()" class="preliminary-drill-item">
+                                            <div *ngFor="let drillInfo of preliminaryDrillsInfo; trackBy: trackByParamName" class="preliminary-drill-item">
                                                 <!-- כותרת קורה -->
                                                 <div class="preliminary-drill-beam-title">{{ drillInfo.beamDisplayName }}</div>
                                                 
@@ -730,7 +730,7 @@
                                                     <div class="preliminary-drill-checkbox"
                                                          [class.checked]="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.paramName)"
                                                          [class.already-checked]="!drillInfo.requiresPreliminaryScrews"
-                                                         (click)="drillInfo.requiresPreliminaryScrews && toggleBeamCompleted(drillInfo.paramName)">
+                                                         (click)="toggleBeamCompleted(drillInfo)">
                                                         <svg *ngIf="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.paramName)" 
                                                              class="checkbox-check-icon" 
                                                              width="12" height="12" viewBox="0 0 12 12">
@@ -756,7 +756,7 @@
                                         
                                         <!-- כפתור המשך אם יש קורות שדורשות קדחים וכולן סומנו -->
                                         <div class="preliminary-drills-continue-container" 
-                                             *ngIf="!areAllBeamsNoPreliminaryDrilling() && areAllRequiredBeamsCompleted()">
+                                             *ngIf="!areAllBeamsNoPreliminaryDrilling() && areAllRequiredBeamsCompleted() && preliminaryDrillsInfo.length > 0">
                                             <button class="preliminary-drills-continue-button" (click)="goToNextInstructionStage()">
                                                 {{ 'modify-product.understood-continue-next' | translate }}
                                             </button>
