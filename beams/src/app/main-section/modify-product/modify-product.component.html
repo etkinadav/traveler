@@ -741,6 +741,16 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        
+                                        <!-- הודעה וכפתור אם כל הקורות הן V -->
+                                        <div class="preliminary-drills-success-message" *ngIf="areAllBeamsNoPreliminaryDrilling()">
+                                            <div class="preliminary-drills-success-text">
+                                                {{ 'modify-product.no-preliminary-drilling-needed' | translate }}
+                                            </div>
+                                            <button class="preliminary-drills-continue-button" (click)="goToNextInstructionStage()">
+                                                {{ 'modify-product.understood-continue-next' | translate }}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -313,6 +313,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return this.currentInstructionStage === (stageIndex + 1);
     }
     
+    // בדיקה אם כל הקורות לא דורשות קדחים מקדימים (כל הקורות הן V)
+    areAllBeamsNoPreliminaryDrilling(): boolean {
+        const drillsInfo = this.getPreliminaryDrillsInfo();
+        if (drillsInfo.length === 0) {
+            return false;
+        }
+        // בודק אם כל הקורות לא דורשות קדחים מקדימים
+        return drillsInfo.every(info => !info.requiresPreliminaryScrews);
+    }
+    
+    // מעבר לשלב הבא בהוראות (פתיחת ההוראה הבאה)
+    goToNextInstructionStage() {
+        const currentIndex = this.currentInstructionStage - 1; // המרה מ-1-based ל-0-based
+        const nextIndex = currentIndex + 1;
+        
+        if (this.product?.instructions && nextIndex < this.product.instructions.length) {
+            // פתיחת ההוראה הבאה
+            this.currentInstructionStage = nextIndex + 1; // המרה חזרה ל-1-based
+        }
+    }
+    
     // פתיחה/סגירה של תפריט ניהול המערכת
     toggleSystemMenu() {
         this.isSystemMenuOpen = !this.isSystemMenuOpen;
