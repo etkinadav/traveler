@@ -1084,9 +1084,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         localStorage.setItem(storageKey, index.toString());
         
         this.updateBeams();
-        // בדיקת hardness לאחר שינוי קורה (כי סוג העץ יכול להשתנות)
+        // הרצת כל הבדיקות לאחר שינוי קורה (כי סוג העץ יכול להשתנות)
         if (this.woods.length > 0) {
-            this.checkWoodHardness();
+            this.runAllChecks();
         }
         this.closeDropdown('beam', param);
     }
@@ -1114,9 +1114,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         param.selectedTypeIndex = index;
         
         this.updateBeams();
-        // בדיקת hardness לאחר שינוי סוג עץ
+        // הרצת כל הבדיקות לאחר שינוי סוג עץ
         if (this.woods.length > 0) {
-            this.checkWoodHardness();
+            this.runAllChecks();
         }
         this.closeDropdown('type', param);
     }
@@ -1163,9 +1163,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
         // קריאה לעדכון
         this.updateBeams();
-        // בדיקת hardness לאחר שינוי קורה (כי סוג העץ יכול להשתנות)
+        // הרצת כל הבדיקות לאחר שינוי קורה (כי סוג העץ יכול להשתנות)
         if (this.woods.length > 0) {
-            this.checkWoodHardness();
+            this.runAllChecks();
         }
     }
     
@@ -1191,9 +1191,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
         // קריאה לעדכון
         this.updateBeams();
-        // בדיקת hardness לאחר שינוי סוג עץ
+        // הרצת כל הבדיקות לאחר שינוי סוג עץ
         if (this.woods.length > 0) {
-            this.checkWoodHardness();
+            this.runAllChecks();
         }
     }
     
@@ -2100,9 +2100,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             next: (data: any) => {
                 this.woods = data;
                 console.log('Loaded woods from DB:', JSON.stringify(this.woods, null, 2));
-                // ביצוע בדיקת hardness לאחר טעינת ה-woods (אם ה-params כבר מוגדרים)
+                // ביצוע בדיקות לאחר טעינת ה-woods (אם ה-params כבר מוגדרים)
                 if (this.params && this.params.length > 0) {
-                    this.checkWoodHardness();
+                    this.runAllChecks();
                 }
             },
             error: (err) => {
@@ -2112,8 +2112,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         });
     }
     
+    // פונקציה כללית להרצת כל הבדיקות
+    runAllChecks() {
+        // הרצת כל הבדיקות הנדרשות
+        this.checkWoodHardness();
+        // כאן ניתן להוסיף בדיקות נוספות בעתיד
+        // this.checkAnotherThing();
+        // this.checkYetAnotherThing();
+    }
+    
     // בדיקת hardness של סוגי העץ בשימוש - לכל פרמטר קורה בנפרד
-    checkWoodHardness() {
+    private checkWoodHardness() {
         // איפוס המערך
         this.mustPerlimenaryScrewsByWoodTypeArray = [];
         
@@ -2424,9 +2433,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // 🎯 תיקון זמני לleg parameter לפני עדכון הbeams
                 this.fixLegParameterIfNeeded();
                 
-                // ביצוע בדיקת hardness לאחר שה-params מוגדרים
+                // ביצוע כל הבדיקות לאחר שה-params מוגדרים
                 if (this.woods.length > 0) {
-                    this.checkWoodHardness();
+                    this.runAllChecks();
                 }
                 
                 this.updateBeams(true); // טעינת מוצר - עם אנימציה
