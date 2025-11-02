@@ -391,12 +391,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // עדכון המשתנה הישיר כדי לעורר change detection
         this.preliminaryDrillsInfo = [...this.preliminaryDrillsInfo];
         
-        // אם כל הקורות שדורשות קדחים סומנו - מעבר אוטומטי לשלב הבא
+        // אם כל הקורות שדורשות קדחים סומנו - מעבר אוטומטי מיידי לשלב הבא
         if (this.areAllRequiredBeamsCompleted() && !this.areAllBeamsNoPreliminaryDrilling()) {
-            // מעבר אוטומטי לשלב הבא אחרי 300ms
-            setTimeout(() => {
-                this.goToNextInstructionStage();
-            }, 300);
+            // מעבר אוטומטי מיידי לשלב הבא (ללא delay)
+            this.goToNextInstructionStage();
         }
     }
     
