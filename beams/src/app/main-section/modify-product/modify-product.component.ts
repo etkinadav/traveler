@@ -465,11 +465,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     getControlsRightPosition(): number {
         // ברוחב דסקטופ: max-width של .controls הוא 340px
         // אבל צריך לחשב גם לפי המסך בפועל
+        let position = 0;
         if (window.innerWidth >= 769) {
-            return 340; // רוחב התפריט בדסקטופ
+            position = 340; // רוחב התפריט בדסקטופ
         } else {
-            return 220; // רוחב התפריט במובייל
+            position = 220; // רוחב התפריט במובייל
         }
+        
+        // מזיזים את החץ שמאלה ב-100% מהרוחב שלו (20px)
+        return position - 20;
     }
     
     // חישוב גובה החץ לפי האלמנט המטרה - מחזיר גובה בפיקסלים מהתחלה של המסך
