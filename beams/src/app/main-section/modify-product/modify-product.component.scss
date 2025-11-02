@@ -36,6 +36,21 @@
 .inputs-container-animated {
     transition: max-height 400ms ease-in-out, opacity 400ms ease-in-out, transform 400ms ease-in-out;
     overflow: hidden;
+    position: relative; // לצורך מיקום הספינר
+}
+
+/* ספינר טעינה - ממורכז במרכז התפריט */
+.loading-spinner {
+    display: flex;
+    justify-content: center; // מרכז אופקי
+    align-items: center; // מרכז אנכי
+    width: 100%;
+    padding: 40px 0;
+    position: relative;
+    
+    .simple-spinner {
+        margin: 0 auto; // מרכז אופקי נוסף
+    }
 }
 
 /* כפתור הוראות הרכבה - בתוך התפריט */
