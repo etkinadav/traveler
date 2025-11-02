@@ -5317,13 +5317,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         }
                     }
                 // הוספת ברגים לקורת מדף - תמיד (גם במצב preliminary-drills)
-                this.addScrewsToShelfBeam(
-                    beam,
-                    currentY + frameBeamHeightCorrect,
-                    beamHeightCorrect,
-                    frameBeamWidth,
-                    isShortenedBeam
-                );
+                    this.addScrewsToShelfBeam(
+                        beam,
+                        currentY + frameBeamHeightCorrect,
+                        beamHeightCorrect,
+                        frameBeamWidth,
+                        isShortenedBeam
+                    );
                 }
             this.endTimer(`CABINET - Render ${surfaceBeams.length} Beams for Shelf ${shelfIndex + 1}`);
             } // סיום if (shouldShowShelfBeamsCabinet)
@@ -5486,8 +5486,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     if (isPreliminaryDrillsCabinet && firstUncheckedParamCabinet === 'leg' && isOutsideCabAdj) {
                         // הצג רק קורות X-spanning (שברגים פונים אליהן)
                         if (isXSpan) {
-                            this.scene.add(mesh);
-                            this.beamMeshes.push(mesh);
+                this.scene.add(mesh);
+                this.beamMeshes.push(mesh);
                         }
                     } else {
                         // במצב רגיל - הצג את כל קורות החיזוק
@@ -9408,8 +9408,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             8
         );
         const headMaterial = new THREE.MeshStandardMaterial({
-            color: 0x333333,
-        }); // כהה יותר
+            color: 0x888888,
+        }); // אפור מתכתי (זהה לבורג)
         const headMesh = new THREE.Mesh(headGeometry, headMaterial);
         headMesh.rotation.z = Math.PI / 2; // סיבוב לרוחב
         headMesh.position.x = -this.headHeight / 2; // ראש בחלק הקדמי של הבורג
@@ -9430,8 +9430,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             8
         );
         const screwMaterial = new THREE.MeshStandardMaterial({
-            color: 0x444444,
-        }); // כמעט שחור
+            color: 0x888888,
+        }); // אפור מתכתי
         const screwMesh = new THREE.Mesh(screwGeometry, screwMaterial);
         screwMesh.position.y = -actualScrewLength / 2; // מרכז את הבורג
         screwGroup.add(screwMesh);
@@ -9443,8 +9443,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             8
         );
         const headMaterial = new THREE.MeshStandardMaterial({
-            color: 0x444444,
-        }); // צבע בהיר יותר לראש
+            color: 0x888888,
+        }); // אפור מתכתי (זהה לבורג)
         const headMesh = new THREE.Mesh(headGeometry, headMaterial);
         headMesh.position.y = this.headHeight / 2; // ראש בחלק העליון של הבורג
         screwGroup.add(headMesh);
