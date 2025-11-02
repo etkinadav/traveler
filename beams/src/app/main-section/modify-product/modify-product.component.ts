@@ -287,10 +287,24 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 legBeamLength: legLength,
                 instructions: this.product?.instructions || []
             }, null, 2));
+            
+            // עדכון מיקום החץ אחרי כניסה למצב הוראות - מחכים 500ms שהכל יטען
+            setTimeout(() => {
+                // איפוס הלוגים כדי שיתעדכנו מחדש
+                this.hasNextActionLogged = false;
+                this.updateArrowPositionLogged = false;
+                this.getCurrentArrowTopLogged = false;
+                this.getArrowTopLogged = false;
+                this.shouldShowArrowLogged = false;
+                
+                // עדכון מיקום החץ עם retry mechanism
+                this.updateArrowPositionWithRetry();
+            }, 500);
         } else {
             // חזרה למצב רגיל - איפוס currentInstructionStage וסימוני הקדחים
             this.currentInstructionStage = 0;
             this.completedPreliminaryDrills.clear();
+            this.currentArrowTop = 0;
         }
     }
     
@@ -307,6 +321,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // פתיחה של הסעיף הנבחר
             this.currentInstructionStage = stageNumber;
         }
+        
+        // עדכון מיקום החץ אחרי שינוי שלב - מחכים 500ms שהכל יטען
+        setTimeout(() => {
+            // איפוס הלוגים כדי שיתעדכנו מחדש
+            this.hasNextActionLogged = false;
+            this.updateArrowPositionLogged = false;
+            this.getCurrentArrowTopLogged = false;
+            this.getArrowTopLogged = false;
+            this.shouldShowArrowLogged = false;
+            
+            // עדכון מיקום החץ עם retry mechanism
+            this.updateArrowPositionWithRetry();
+        }, 500);
     }
     
     // בדיקה אם סעיף הוראה פתוח
@@ -365,6 +392,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // עדכון המשתנה הישיר כדי לעורר change detection
         this.preliminaryDrillsInfo = [...this.preliminaryDrillsInfo];
+        
+        // עדכון מיקום החץ - חישוב מחדש של הגובה (בלי delay ארוך כי זה אחרי שינוי צ'קבוקס)
+        setTimeout(() => {
+            // איפוס הלוגים כדי שיתעדכנו מחדש
+            this.hasNextActionLogged = false;
+            this.updateArrowPositionLogged = false;
+            this.getCurrentArrowTopLogged = false;
+            this.getArrowTopLogged = false;
+            this.shouldShowArrowLogged = false;
+            
+            // עדכון מיקום החץ עם retry mechanism (אבל עם פחות retries כי זה אחרי פעולה)
+            this.updateArrowPositionWithRetry(0, 5);
+        }, 100);
     }
     
     // בדיקה אם כל הקורות שדורשות קדחים סומנו
@@ -386,6 +426,339 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.currentInstructionStage = nextIndex + 1; // המרה חזרה ל-1-based
         }
     }
+    
+    // בדיקה אם זה הצ'קבוקס הבא שצריך לסמן
+    isNextCheckboxToComplete(paramName: string): boolean {
+        if (!this.isInstructionMode || !this.preliminaryDrillsInfo || this.preliminaryDrillsInfo.length === 0) {
+            return false;
+        }
+        
+        // בדיקה אם יש צ'קבוקס שלא סומן
+        const firstUncheckedBeam = this.preliminaryDrillsInfo.find(info => 
+            info.requiresPreliminaryScrews && !this.completedPreliminaryDrills.has(info.paramName)
+        );
+        
+        // אם יש צ'קבוקס שלא סומן - רק הראשון צריך חץ
+        return firstUncheckedBeam?.paramName === paramName;
+    }
+    
+    // בדיקה אם זה הכפתור הבא שצריך ללחוץ עליו
+    isNextButtonToClick(): boolean {
+        if (!this.isInstructionMode || !this.preliminaryDrillsInfo || this.preliminaryDrillsInfo.length === 0) {
+            return false;
+        }
+        
+        // אם כל הקורות הן V (לא דורשות קדחים) - הכפתור צריך חץ
+        if (this.areAllBeamsNoPreliminaryDrilling()) {
+            return true;
+        }
+        
+        // אם יש קורות שדורשות קדחים וכולן סומנו - הכפתור צריך חץ
+        if (this.areAllRequiredBeamsCompleted()) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // חישוב מיקום ימין של התפריט (מהשמאל של המסך) - מיקום קבוע
+    getControlsRightPosition(): number {
+        // ברוחב דסקטופ: max-width של .controls הוא 340px
+        // אבל צריך לחשב גם לפי המסך בפועל
+        if (window.innerWidth >= 769) {
+            return 340; // רוחב התפריט בדסקטופ
+        } else {
+            return 220; // רוחב התפריט במובייל
+        }
+    }
+    
+    // חישוב גובה החץ לפי האלמנט המטרה - מחזיר גובה בפיקסלים מהתחלה של המסך
+    getArrowTop(targetIdentifier: string): number {
+        if (!this.isInstructionMode) {
+            return 0;
+        }
+        
+        // מציאת האלמנט המטרה
+        const element = document.querySelector(`[data-checkbox-element="${targetIdentifier}"], [data-button-element="${targetIdentifier}"]`);
+        if (element) {
+            const rect = element.getBoundingClientRect();
+            // מחזיר את הגובה הממוצע של האלמנט (top + height/2 - חצי גובה החץ שהוא 10px)
+            const top = rect.top + (rect.height / 2) - 10;
+            
+            // לוג חד-פעמי (לא בלופ)
+            if (!this.getArrowTopLogged) {
+                this.getArrowTopLogged = true;
+                console.log('CHECK_INST_ARROW - getArrowTop calculation:', JSON.stringify({
+                    targetIdentifier: targetIdentifier,
+                    elementFound: true,
+                    rect: {
+                        top: rect.top,
+                        height: rect.height,
+                        left: rect.left,
+                        width: rect.width
+                    },
+                    calculatedTop: top
+                }, null, 2));
+            }
+            
+            return top;
+        }
+        
+        // לוג אם לא נמצא אלמנט
+        if (!this.getArrowTopLogged) {
+            this.getArrowTopLogged = true;
+            console.log('CHECK_INST_ARROW - getArrowTop: element not found', JSON.stringify({
+                targetIdentifier: targetIdentifier,
+                selector: `[data-checkbox-element="${targetIdentifier}"], [data-button-element="${targetIdentifier}"]`,
+                elementFound: false
+            }, null, 2));
+        }
+        
+        return 0;
+    }
+    
+    private getArrowTopLogged = false;
+    
+    // פונקציה שמחזירה את הגובה עבור החץ הנוכחי - מתעדכן אוטומטית
+    getCurrentArrowTop(): number {
+        // רק אם השלב הנוכחי הוא preliminary-drills
+        if (!this.isCurrentStagePreliminaryDrills()) {
+            this.currentArrowTop = 0;
+            return 0;
+        }
+        
+        if (!this.isInstructionMode || !this.preliminaryDrillsInfo || this.preliminaryDrillsInfo.length === 0) {
+            this.currentArrowTop = 0;
+            
+            // לוג
+            if (!this.getCurrentArrowTopLogged) {
+                this.getCurrentArrowTopLogged = true;
+                console.log('CHECK_INST_ARROW - getCurrentArrowTop: early return', JSON.stringify({
+                    isInstructionMode: this.isInstructionMode,
+                    currentInstructionStage: this.currentInstructionStage,
+                    isCurrentStagePreliminaryDrills: this.isCurrentStagePreliminaryDrills(),
+                    preliminaryDrillsInfoLength: this.preliminaryDrillsInfo?.length || 0,
+                    top: 0
+                }, null, 2));
+            }
+            
+            return 0;
+        }
+        
+        // בדיקה אם יש צ'קבוקס שלא סומן
+        const firstUncheckedBeam = this.preliminaryDrillsInfo.find(info => 
+            info.requiresPreliminaryScrews && !this.completedPreliminaryDrills.has(info.paramName)
+        );
+        
+        if (firstUncheckedBeam) {
+            const top = this.getArrowTop(firstUncheckedBeam.paramName);
+            this.currentArrowTop = top;
+            
+            // לוג חד-פעמי
+            if (!this.getCurrentArrowTopLogged) {
+                this.getCurrentArrowTopLogged = true;
+                const element = document.querySelector(`[data-checkbox-element="${firstUncheckedBeam.paramName}"]`);
+                console.log('CHECK_INST_ARROW - getCurrentArrowTop for checkbox:', JSON.stringify({
+                    paramName: firstUncheckedBeam.paramName,
+                    top: top,
+                    elementFound: !!element,
+                    elementSelector: `[data-checkbox-element="${firstUncheckedBeam.paramName}"]`,
+                    allElementsWithDataCheckbox: Array.from(document.querySelectorAll('[data-checkbox-element]')).map(el => ({
+                        paramName: el.getAttribute('data-checkbox-element'),
+                        visible: (el as HTMLElement).offsetParent !== null
+                    }))
+                }, null, 2));
+            }
+            
+            return this.currentArrowTop;
+        }
+        
+        // אם הכפתור צריך חץ
+        if (this.isNextButtonToClick()) {
+            const top = this.getArrowTop('continue-button');
+            this.currentArrowTop = top;
+            
+            // לוג חד-פעמי
+            if (!this.getCurrentArrowTopLogged) {
+                this.getCurrentArrowTopLogged = true;
+                const element = document.querySelector(`[data-button-element="continue-button"]`);
+                console.log('CHECK_INST_ARROW - getCurrentArrowTop for button:', JSON.stringify({
+                    top: top,
+                    elementFound: !!element,
+                    elementSelector: `[data-button-element="continue-button"]`,
+                    allElementsWithDataButton: Array.from(document.querySelectorAll('[data-button-element]')).map(el => ({
+                        buttonType: el.getAttribute('data-button-element'),
+                        visible: (el as HTMLElement).offsetParent !== null
+                    }))
+                }, null, 2));
+            }
+            
+            return this.currentArrowTop;
+        }
+        
+        this.currentArrowTop = 0;
+        return 0;
+    }
+    
+    private getCurrentArrowTopLogged = false;
+    
+    // בדיקה אם השלב הנוכחי הוא preliminary-drills
+    isCurrentStagePreliminaryDrills(): boolean {
+        if (!this.isInstructionMode || !this.product?.instructions || this.currentInstructionStage === 0) {
+            return false;
+        }
+        
+        // currentInstructionStage הוא 1-based, אבל האינדקס של המערך הוא 0-based
+        const stageIndex = this.currentInstructionStage - 1;
+        const currentInstruction = this.product.instructions[stageIndex];
+        
+        return currentInstruction?.name === 'preliminary-drills';
+    }
+    
+    // בדיקה אם יש פעולה הבאה (לצורך הצגת החץ)
+    hasNextAction(): boolean {
+        // רק אם השלב הנוכחי הוא preliminary-drills
+        if (!this.isCurrentStagePreliminaryDrills()) {
+            return false;
+        }
+        
+        const result = this._hasNextActionInternal();
+        
+        // לוג חד-פעמי (לא בלופ)
+        if (!this.hasNextActionLogged) {
+            this.hasNextActionLogged = true;
+            console.log('CHECK_INST_ARROW - hasNextAction check:', JSON.stringify({
+                isInstructionMode: this.isInstructionMode,
+                currentInstructionStage: this.currentInstructionStage,
+                isCurrentStagePreliminaryDrills: this.isCurrentStagePreliminaryDrills(),
+                preliminaryDrillsInfoLength: this.preliminaryDrillsInfo?.length || 0,
+                preliminaryDrillsInfo: this.preliminaryDrillsInfo,
+                completedPreliminaryDrills: Array.from(this.completedPreliminaryDrills),
+                result: result
+            }, null, 2));
+        }
+        
+        return result;
+    }
+    
+    private hasNextActionLogged = false;
+    
+    // בדיקה אם צריך להציג את החץ (כולל כל התנאים)
+    shouldShowArrow(): boolean {
+        const show = this.isInstructionMode && this.isCurrentStagePreliminaryDrills() && this.hasNextAction();
+        
+        // לוג חד-פעמי
+        if (!this.shouldShowArrowLogged) {
+            this.shouldShowArrowLogged = true;
+            console.log('CHECK_INST_ARROW - shouldShowArrow:', JSON.stringify({
+                isInstructionMode: this.isInstructionMode,
+                isCurrentStagePreliminaryDrills: this.isCurrentStagePreliminaryDrills(),
+                hasNextAction: this.hasNextAction(),
+                currentInstructionStage: this.currentInstructionStage,
+                result: show
+            }, null, 2));
+        }
+        
+        return show;
+    }
+    
+    private shouldShowArrowLogged = false;
+    
+    private _hasNextActionInternal(): boolean {
+        if (!this.isInstructionMode || !this.preliminaryDrillsInfo || this.preliminaryDrillsInfo.length === 0) {
+            return false;
+        }
+        
+        // בדיקה אם יש צ'קבוקס שלא סומן
+        const firstUncheckedBeam = this.preliminaryDrillsInfo.find(info => 
+            info.requiresPreliminaryScrews && !this.completedPreliminaryDrills.has(info.paramName)
+        );
+        
+        if (firstUncheckedBeam) {
+            return true;
+        }
+        
+        // בדיקה אם הכפתור צריך חץ
+        return this.isNextButtonToClick();
+    }
+    
+    // משתנה לשמירת גובה החץ הנוכחי
+    currentArrowTop: number = 0;
+    
+    // משתנה לעדכון החץ (מעורר change detection)
+    arrowUpdateTrigger: number = 0;
+    
+    // עדכון מיקום החץ עם retry mechanism - מנסה עד שהאלמנטים מוכנים
+    updateArrowPositionWithRetry(retryCount: number = 0, maxRetries: number = 10) {
+        // בדיקה אם האלמנטים קיימים ב-DOM
+        const firstUncheckedBeam = this.preliminaryDrillsInfo?.find(info => 
+            info.requiresPreliminaryScrews && !this.completedPreliminaryDrills.has(info.paramName)
+        );
+        
+        let elementExists = false;
+        if (firstUncheckedBeam) {
+            const element = document.querySelector(`[data-checkbox-element="${firstUncheckedBeam.paramName}"]`);
+            elementExists = !!element && (element as HTMLElement).offsetParent !== null;
+        } else if (this.isNextButtonToClick()) {
+            const element = document.querySelector(`[data-button-element="continue-button"]`);
+            elementExists = !!element && (element as HTMLElement).offsetParent !== null;
+        }
+        
+        // אם האלמנטים לא קיימים עדיין - ננסה שוב
+        if (!elementExists && retryCount < maxRetries) {
+            setTimeout(() => {
+                this.updateArrowPositionWithRetry(retryCount + 1, maxRetries);
+            }, 200); // מחכה 200ms בין נסיונות
+            return;
+        }
+        
+        // אם הגענו לכאן - האלמנטים מוכנים או הגענו למקסימום נסיונות
+        this.updateArrowPosition();
+    }
+    
+    // עדכון מיקום החץ
+    updateArrowPosition() {
+        // חישוב מחדש של הגובה
+        const newTop = this.getCurrentArrowTop();
+        this.currentArrowTop = newTop;
+        // מעורר change detection לעדכון ה-top של החץ
+        this.arrowUpdateTrigger = Date.now();
+        
+        // לוג חד-פעמי (לא בלופ)
+        if (!this.updateArrowPositionLogged) {
+            this.updateArrowPositionLogged = true;
+            setTimeout(() => {
+                // בדיקה אם החץ קיים ב-DOM
+                const arrowElement = document.querySelector('.instruction-action-arrow');
+                console.log('CHECK_INST_ARROW - updateArrowPosition:', JSON.stringify({
+                    hasNextAction: this._hasNextActionInternal(),
+                    isCurrentStagePreliminaryDrills: this.isCurrentStagePreliminaryDrills(),
+                    currentArrowTop: this.currentArrowTop,
+                    leftPosition: this.getControlsRightPosition(),
+                    isInstructionMode: this.isInstructionMode,
+                    currentInstructionStage: this.currentInstructionStage,
+                    preliminaryDrillsInfoLength: this.preliminaryDrillsInfo?.length || 0,
+                    arrowUpdateTrigger: this.arrowUpdateTrigger,
+                    arrowElementInDOM: !!arrowElement,
+                    arrowElementStyles: arrowElement ? {
+                        display: window.getComputedStyle(arrowElement as Element).display,
+                        visibility: window.getComputedStyle(arrowElement as Element).visibility,
+                        opacity: window.getComputedStyle(arrowElement as Element).opacity,
+                        position: window.getComputedStyle(arrowElement as Element).position,
+                        top: window.getComputedStyle(arrowElement as Element).top,
+                        left: window.getComputedStyle(arrowElement as Element).left,
+                        zIndex: window.getComputedStyle(arrowElement as Element).zIndex,
+                        width: window.getComputedStyle(arrowElement as Element).width,
+                        height: window.getComputedStyle(arrowElement as Element).height
+                    } : null,
+                    windowHeight: window.innerHeight,
+                    windowWidth: window.innerWidth
+                }, null, 2));
+            }, 100);
+        }
+    }
+    
+    private updateArrowPositionLogged = false;
     
     // פתיחה/סגירה של תפריט ניהול המערכת
     toggleSystemMenu() {

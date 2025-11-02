@@ -74,6 +74,23 @@
 /* תוכן הוראות הרכבה */
 .assembly-instructions-content {
     margin-top: 20px;
+    position: relative;
+    
+    // חץ מסמן פעולה - מופיע מחוץ לתפריט, בצד ימין (בעברית)
+    .instruction-action-arrow {
+        position: fixed !important;
+        width: 20px !important;
+        height: 20px !important;
+        z-index: 9999 !important;
+        pointer-events: none;
+        transition: top 0.3s ease, left 0.3s ease;
+        // left ו-top מתעדכנים דינמית ב-HTML
+        // נוסיף visibility ו-opacity כדי לוודא שהוא מוצג
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+        background: transparent;
+    }
     
     .instructions-title {
         margin: 0 0 15px 0;
@@ -167,6 +184,22 @@
                 /* תוכן קדחים מקדימים - ללא כרטיסיה */
                 .preliminary-drills-content {
                     padding: 12px 0;
+                    position: relative; // לצורך מיקום החצים
+                    
+                    // חץ מסמן פעולה - מופיע מחוץ לתפריט, בצד ימין (בעברית)
+                    .instruction-action-arrow {
+                        position: fixed;
+                        width: 20px;
+                        height: 20px;
+                        z-index: 1000;
+                        pointer-events: none;
+                        transition: top 0.3s ease, left 0.3s ease;
+                        // left ו-top מתעדכנים דינמית ב-HTML
+                        // נוסיף visibility ו-opacity כדי לוודא שהוא מוצג
+                        visibility: visible;
+                        opacity: 1;
+                        display: block;
+                    }
                     
                     .preliminary-drills-list {
                         .preliminary-drill-item {
@@ -189,6 +222,7 @@
                                 margin-bottom: 6px;
                                 font-size: 13px;
                                 gap: 8px;
+                                position: relative; // לצורך מיקום החץ
                                 
                                 .drill-status-icon {
                                     flex-shrink: 0;
@@ -261,6 +295,14 @@
                             margin-bottom: 16px;
                         }
                         
+                        .preliminary-drills-button-wrapper {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            position: relative;
+                            gap: 8px;
+                        }
+                        
                         .preliminary-drills-continue-button {
                             padding: 10px 20px;
                             background: rgba(0, 102, 204, 0.1);
@@ -283,10 +325,29 @@
                         }
                     }
                     
-                    /* כפתור המשך אחרי שסומנו כל הקורות */
-                    .preliminary-drills-continue-container {
-                        margin-top: 20px;
-                        text-align: center;
+                                /* כפתור המשך אחרי שסומנו כל הקורות */
+                                .preliminary-drills-continue-container {
+                                    margin-top: 20px;
+                                    text-align: center;
+                                    position: relative;
+                                    
+                                    .preliminary-drills-button-wrapper {
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        position: relative;
+                                        gap: 8px;
+                                        
+                                        // חץ מסמן פעולה - בצד שמאל של הכפתור
+                                        .instruction-action-arrow {
+                                            flex-shrink: 0;
+                                            width: 20px;
+                                            height: 20px;
+                                            position: absolute;
+                                            left: -25px; // מחוץ לתפריט, מעל הדופן השמאלית
+                                            z-index: 5;
+                                        }
+                                    }
                         
                         .preliminary-drills-continue-button {
                             padding: 10px 20px;

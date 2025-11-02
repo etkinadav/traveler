@@ -719,13 +719,32 @@
                                     <!-- קדיחת קדחים מקדימים - מוצג רק אם זו ההוראה הראשונה והיא preliminary-drills -->
                                     <div class="preliminary-drills-content" 
                                          *ngIf="i === 0 && instruction.name === 'preliminary-drills' && preliminaryDrillsInfo.length > 0">
+                                        
+                                        <!-- חץ מסמן פעולה יחיד - מופיע רק אם יש פעולה הבאה, מחוץ לתפריט -->
+                                        <svg class="instruction-action-arrow" 
+                                             *ngIf="hasNextAction()"
+                                             [style.left.px]="getControlsRightPosition()"
+                                             [style.top.px]="currentArrowTop"
+                                             [attr.data-arrow-trigger]="arrowUpdateTrigger"
+                                             style="display: block !important; visibility: visible !important; opacity: 1 !important;"
+                                             width="20" height="20" viewBox="0 0 20 20">
+                                            <!-- קו עליון -->
+                                            <line x1="0" y1="6" x2="14" y2="6" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
+                                            <!-- קו אמצעי -->
+                                            <line x1="0" y1="10" x2="18" y2="10" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
+                                            <!-- קו תחתון -->
+                                            <line x1="0" y1="14" x2="14" y2="14" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
+                                            <!-- ראש החץ (V) - בסוף -->
+                                            <path d="M 14 6 L 18 10 L 14 14" stroke="var(--zx-green, #0066cc)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
                                         <div class="preliminary-drills-list">
                                             <div *ngFor="let drillInfo of preliminaryDrillsInfo; trackBy: trackByParamName" class="preliminary-drill-item">
                                                 <!-- כותרת קורה -->
                                                 <div class="preliminary-drill-beam-title">{{ drillInfo.beamDisplayName }}</div>
                                                 
                                                 <!-- הודעת מצב אחת -->
-                                                <div class="preliminary-drill-check-item">
+                                                <div class="preliminary-drill-check-item"
+                                                     [attr.data-checkbox-element]="drillInfo.paramName">
                                                     <!-- צ'קבוקס - תמיד מוצג -->
                                                     <div class="preliminary-drill-checkbox"
                                                          [class.checked]="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.paramName)"
@@ -741,6 +760,7 @@
                                                         {{ drillInfo.translationKey | translate }}
                                                     </span>
                                                 </div>
+                                                
                                             </div>
                                         </div>
                                         
@@ -749,17 +769,25 @@
                                             <div class="preliminary-drills-success-text">
                                                 {{ 'modify-product.no-preliminary-drilling-needed' | translate }}
                                             </div>
-                                            <button class="preliminary-drills-continue-button" (click)="goToNextInstructionStage()">
-                                                {{ 'modify-product.understood-continue-next' | translate }}
-                                            </button>
+                                            <div class="preliminary-drills-button-wrapper"
+                                                 [attr.data-button-element]="'continue-button'">
+                                                <button class="preliminary-drills-continue-button" (click)="goToNextInstructionStage()">
+                                                    {{ 'modify-product.understood-continue-next' | translate }}
+                                                </button>
+                                            </div>
+                                            
                                         </div>
                                         
                                         <!-- כפתור המשך אם יש קורות שדורשות קדחים וכולן סומנו -->
                                         <div class="preliminary-drills-continue-container" 
                                              *ngIf="!areAllBeamsNoPreliminaryDrilling() && areAllRequiredBeamsCompleted() && preliminaryDrillsInfo.length > 0">
-                                            <button class="preliminary-drills-continue-button" (click)="goToNextInstructionStage()">
-                                                {{ 'modify-product.understood-continue-next' | translate }}
-                                            </button>
+                                            <div class="preliminary-drills-button-wrapper"
+                                                 [attr.data-button-element]="'continue-button'">
+                                                <button class="preliminary-drills-continue-button" (click)="goToNextInstructionStage()">
+                                                    {{ 'modify-product.understood-continue-next' | translate }}
+                                                </button>
+                                            </div>
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -1227,9 +1255,30 @@
                             <span class="size-count">{{ package.totalPrice }} ₪</span>
                         </div>
                     </div>
-                </div>
+                        </div>
+                    </div>
+                </ng-container>
             </div>
-            </ng-container>
+            
+            <!-- חץ מסמן פעולה יחיד - מופיע מחוץ לכל הקונטיינרים, בצד ימין של התפריט -->
+            <svg class="instruction-action-arrow" 
+                 *ngIf="shouldShowArrow()"
+                 [style.left.px]="getControlsRightPosition()"
+                 [style.top.px]="currentArrowTop"
+                 [attr.data-arrow-trigger]="arrowUpdateTrigger"
+                 [attr.data-arrow-left]="getControlsRightPosition()"
+                 [attr.data-arrow-top]="currentArrowTop"
+                 [attr.data-arrow-current-stage]="currentInstructionStage"
+                 width="20" height="20" viewBox="0 0 20 20"
+                 style="display: block !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; z-index: 9999 !important;">
+                <!-- קו עליון -->
+                <line x1="0" y1="6" x2="14" y2="6" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
+                <!-- קו אמצעי -->
+                <line x1="0" y1="10" x2="18" y2="10" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
+                <!-- קו תחתון -->
+                <line x1="0" y1="14" x2="14" y2="14" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
+                <!-- ראש החץ (V) - בסוף -->
+                <path d="M 14 6 L 18 10 L 14 14" stroke="var(--zx-green, #0066cc)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         </div>
-    </div>
 </div>
