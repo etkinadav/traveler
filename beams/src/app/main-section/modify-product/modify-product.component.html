@@ -687,6 +687,9 @@
                     <button class="assembly-instructions-button-inline" 
                             (click)="toggleAssemblyInstructions()"
                             [class.active]="isInstructionMode">
+                        <svg *ngIf="isInstructionMode" class="back-arrow-icon" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M 10 2 L 4 8 L 10 14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                         <span>{{ isInstructionMode ? ('modify-product.view-edit-menu' | translate) : ('modify-product.view-assembly-instructions' | translate) }}</span>
                     </button>
                     

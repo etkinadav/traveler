@@ -389,16 +389,23 @@
     font-weight: 500;
     transition: all 0.2s ease;
     text-align: center;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     
     &:hover {
         background: rgba(0, 102, 204, 0.1);
         border-color: #0066cc;
+        
+        &.active {
+            border: 1px solid #0066cc;
+        }
     }
     
     &.active {
         background: transparent;
-        border: none;
+        border: 1px solid rgba(0, 102, 204, 0.2);
     }
     
     &:active {
@@ -407,6 +414,11 @@
     
     &:focus {
         outline: none;
+    }
+    
+    .back-arrow-icon {
+        flex-shrink: 0;
+        color: #0066cc;
     }
     
     span {
