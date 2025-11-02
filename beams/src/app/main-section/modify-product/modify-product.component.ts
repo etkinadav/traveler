@@ -6739,6 +6739,56 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return Math.ceil(length * 2) / 2; // עיגול לחצי הקרוב למעלה
     }
     
+    /**
+     * חישוב אורך בורג במצב preliminary-drills (כמו חורים)
+     * @param screwType סוג הבורג: 'shelf', 'leg_height', 'leg_width'
+     * @param dimension1 מידה ראשונה (beamHeight או legBeamHeight/legBeamWidth)
+     * @param dimension2 מידה שנייה (רק לרגליים: legBeamWidth/legBeamHeight)
+     * @param screwIndex אינדקס הבורג (0 = height, 1 = width) - רק לרגליים
+     * @returns אורך הבורג בס"מ
+     */
+    private calculatePreliminaryDrillScrewLength(
+        screwType: string, 
+        dimension1: number, 
+        dimension2?: number,
+        screwIndex?: number
+    ): number {
+        switch (screwType) {
+            case 'shelf':
+                // ברגי מדף - לפי height של קורת המדף
+                return dimension1;
+                
+            case 'leg_height':
+            case 'leg_width':
+                // ברגי רגל
+                const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                const isOutside = !!(outsideParam && outsideParam.default === true);
+                
+                if (isOutside) {
+                    // isOutside = true: פי 2 מה-height של קורת הרגל (חוצה 2 קורות)
+                    // legBeamHeight = dimension1 (כאשר screwIndex=0) או dimension2 (כאשר screwIndex=1)
+                    const legBeamHeight = dimension2 !== undefined 
+                        ? (screwIndex === 0 ? dimension1 : dimension2)
+                        : dimension1;
+                    return legBeamHeight * 2;
+                } else {
+                    // isOutside = false: לפי המידה הנכונה של קורת הרגל - לפי כיוון הבורג
+                    // בורג 0 (screwIndex=0) = מבוסס height - אורך הבורג יהיה לפי height של קורת הרגל
+                    // בורג 1 (screwIndex=1) = מבוסס width - אורך הבורג יהיה לפי width של קורת הרגל
+                    if (screwIndex === 0) {
+                        // בורג לפי height - dimension1 = legBeamHeight
+                        return dimension1;
+                    } else {
+                        // בורג לפי width - dimension1 = legBeamWidth
+                        return dimension1;
+                    }
+                }
+                
+            default:
+                return dimension1;
+        }
+    }
+    
     // פונקציה מרכזית לחישוב אורך בורג לפי סוג הבורג והמידות
     private calculateScrewLength(screwType: string, dimension1: number, dimension2?: number): number {
         let rawLength = 0;
@@ -8790,20 +8840,36 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         return; // Skip this screw
                     }
                     
+                    // בדיקה אם אנחנו במצב preliminary-drills
+                    const isPreliminaryDrills = this.isPreliminaryDrillsMode();
+                    const firstUncheckedParam = isPreliminaryDrills ? this.getFirstUncheckedBeamParamName() : null;
+                    const isPreliminaryDrillsLeg = isPreliminaryDrills && firstUncheckedParam === 'leg';
+                    
                     // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
                     const screwType = screwIndex === 0 ? 'leg_height' : 'leg_width';
-                    // מעביר גם את שתי המידות כדי לבחור את המקסימום + 3
-                    const calculatedScrewLength = this.calculateScrewLength(
-                        screwType,
-                        screwIndex === 0 ? legBeamHeight : legBeamWidth,
-                        screwIndex === 0 ? legBeamWidth : legBeamHeight
-                    );
+                    
+                    // חישוב אורך הבורג - במצב preliminary-drills לפי הלוגיקה החדשה, אחרת לפי הלוגיקה הרגילה
+                    const calculatedScrewLength = isPreliminaryDrillsLeg
+                        ? this.calculatePreliminaryDrillScrewLength(
+                            screwType,
+                            screwIndex === 0 ? legBeamHeight : legBeamWidth,
+                            screwIndex === 0 ? legBeamWidth : legBeamHeight,
+                            screwIndex
+                          )
+                        : this.calculateScrewLength(
+                            screwType,
+                            screwIndex === 0 ? legBeamHeight : legBeamWidth,
+                            screwIndex === 0 ? legBeamWidth : legBeamHeight
+                          );
+                    
+                    // במצב preliminary-drills - ברגים ללא ראש (כמו חורים)
+                    const showHead = !isPreliminaryDrillsLeg;
                     
                     // DUBBLE_LEG_SCREWS - Create screws based on condition
                     if (shouldDuplicateScrews) {
                         // Screw moved up by 25% of frameBeamHeight
                         const upOffset = frameBeamHeight * 0.25;
-                        const upScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                        const upScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength, showHead);
                         upScrewGroup.position.set(pos.x, pos.y + upOffset, pos.z);
                         if (screwIndex === 0) {
                             upScrewGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
@@ -8818,7 +8884,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         
                         // Screw duplicated down by 25% of frameBeamHeight
                         const downOffset = frameBeamHeight * 0.25;
-                        const downScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                        const downScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength, showHead);
                         downScrewGroup.position.set(pos.x, pos.y - downOffset, pos.z);
                         if (screwIndex === 0) {
                             downScrewGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
@@ -8832,7 +8898,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         );
                     } else {
                         // Create original screw only if not duplicating
-                    const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength);
+                    const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength, showHead);
                     screwGroup.position.set(pos.x, pos.y, pos.z);
                     if (screwIndex === 0) {
                             screwGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
@@ -9381,7 +9447,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     // יצירת גיאומטריית בורג אופקי (להרגליים)
-    private createHorizontalScrewGeometry(screwLength?: number): THREE.Group {
+    private createHorizontalScrewGeometry(screwLength?: number, showHead: boolean = true): THREE.Group {
         const screwGroup = new THREE.Group();
         // פרמטרים של הבורג (מידות אמיתיות)
         // אם לא סופק אורך, נשתמש באורך ברירת המחדל
@@ -9394,30 +9460,32 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             8
         );
         const screwMaterial = new THREE.MeshStandardMaterial({
-            color: 0x888888,
-        }); // אפור מתכתי
+            color: 0x666666,
+        }); // אפור מתכתי כהה
         const screwMesh = new THREE.Mesh(screwGeometry, screwMaterial);
         screwMesh.rotation.z = Math.PI / 2; // סיבוב לרוחב
         screwMesh.position.x = -actualScrewLength / 2; // מרכז את הבורג
         screwGroup.add(screwMesh);
-        // יצירת ראש הבורג (גליל נפרד) - בחלק הקדמי של הבורג
-        const headGeometry = new THREE.CylinderGeometry(
-            this.headRadius,
-            this.headRadius,
-            this.headHeight,
-            8
-        );
-        const headMaterial = new THREE.MeshStandardMaterial({
-            color: 0x888888,
-        }); // אפור מתכתי (זהה לבורג)
-        const headMesh = new THREE.Mesh(headGeometry, headMaterial);
-        headMesh.rotation.z = Math.PI / 2; // סיבוב לרוחב
-        headMesh.position.x = -this.headHeight / 2; // ראש בחלק הקדמי של הבורג
-        screwGroup.add(headMesh);
+        // יצירת ראש הבורג רק אם showHead = true
+        if (showHead) {
+            const headGeometry = new THREE.CylinderGeometry(
+                this.headRadius,
+                this.headRadius,
+                this.headHeight,
+                8
+            );
+            const headMaterial = new THREE.MeshStandardMaterial({
+                color: 0x666666,
+            }); // אפור מתכתי כהה (זהה לבורג)
+            const headMesh = new THREE.Mesh(headGeometry, headMaterial);
+            headMesh.rotation.z = Math.PI / 2; // סיבוב לרוחב
+            headMesh.position.x = -this.headHeight / 2; // ראש בחלק הקדמי של הבורג
+            screwGroup.add(headMesh);
+        }
         return screwGroup;
     }
     // יצירת גיאומטריית בורג
-    private createScrewGeometry(screwLength?: number): THREE.Group {
+    private createScrewGeometry(screwLength?: number, showHead: boolean = true): THREE.Group {
         const screwGroup = new THREE.Group();
         // פרמטרים של הבורג (מידות אמיתיות)
         // אם לא סופק אורך, נשתמש באורך ברירת המחדל
@@ -9430,24 +9498,26 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             8
         );
         const screwMaterial = new THREE.MeshStandardMaterial({
-            color: 0x888888,
-        }); // אפור מתכתי
+            color: 0x666666,
+        }); // אפור מתכתי כהה
         const screwMesh = new THREE.Mesh(screwGeometry, screwMaterial);
         screwMesh.position.y = -actualScrewLength / 2; // מרכז את הבורג
         screwGroup.add(screwMesh);
-        // יצירת ראש הבורג (גליל נפרד) - בחלק העליון של הבורג
-        const headGeometry = new THREE.CylinderGeometry(
-            this.headRadius,
-            this.headRadius,
-            this.headHeight,
-            8
-        );
-        const headMaterial = new THREE.MeshStandardMaterial({
-            color: 0x888888,
-        }); // אפור מתכתי (זהה לבורג)
-        const headMesh = new THREE.Mesh(headGeometry, headMaterial);
-        headMesh.position.y = this.headHeight / 2; // ראש בחלק העליון של הבורג
-        screwGroup.add(headMesh);
+        // יצירת ראש הבורג רק אם showHead = true
+        if (showHead) {
+            const headGeometry = new THREE.CylinderGeometry(
+                this.headRadius,
+                this.headRadius,
+                this.headHeight,
+                8
+            );
+            const headMaterial = new THREE.MeshStandardMaterial({
+                color: 0x666666,
+            }); // אפור מתכתי כהה (זהה לבורג)
+            const headMesh = new THREE.Mesh(headGeometry, headMaterial);
+            headMesh.position.y = this.headHeight / 2; // ראש בחלק העליון של הבורג
+            screwGroup.add(headMesh);
+        }
         // ביטול החריצים - אין צורך בהם
         return screwGroup;
     }
@@ -9459,8 +9529,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         frameBeamWidth: number,
         isShortenedBeam: string = 'top'
     ) {
-        // חישוב אורך הבורג לפי סוג הבורג והמידות
-        const calculatedScrewLength = this.calculateScrewLength('shelf', beamHeight);
+        // בדיקה אם אנחנו במצב preliminary-drills
+        const isPreliminaryDrills = this.isPreliminaryDrillsMode();
+        const firstUncheckedParam = isPreliminaryDrills ? this.getFirstUncheckedBeamParamName() : null;
+        const isPreliminaryDrillsShelf = isPreliminaryDrills && firstUncheckedParam === 'shelfs';
+        
+        // חישוב אורך הבורג - במצב preliminary-drills לפי height של קורת המדף, אחרת לפי הלוגיקה הרגילה
+        const calculatedScrewLength = isPreliminaryDrillsShelf 
+            ? this.calculatePreliminaryDrillScrewLength('shelf', beamHeight)
+            : this.calculateScrewLength('shelf', beamHeight);
+        
+        // במצב preliminary-drills - ברגים ללא ראש (כמו חורים)
+        const showHead = !isPreliminaryDrillsShelf;
         
         // חישוב מיקומי הברגים
         // הזחה מהקצוות: מחצית ממידת ה-height של קורת החיזוק
@@ -9658,7 +9738,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
         // יצירת ברגים
         screwPositions.forEach((pos, index) => {
-            const screwGroup = this.createScrewGeometry(calculatedScrewLength);
+            const screwGroup = this.createScrewGeometry(calculatedScrewLength, showHead);
             // הבורג צריך להיות כך שהראש שלו נוגע בקורה
             // הבורג לא מסובב, אז הראש נמצא ב-(screwLength/2 + headHeight/2) מהמרכז
             // כדי שהראש יהיה על הקורה, המרכז צריך להיות מתחת לקורה ב-(screwLength/2 + headHeight/2)
