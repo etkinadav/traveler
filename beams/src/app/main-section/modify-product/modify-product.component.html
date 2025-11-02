@@ -752,10 +752,22 @@
                                                 <!-- טקסט הוראות קידוח - מוצג רק כשצריך קידוח וזה השלב הנוכחי ויש כפתור -->
                                                 <div class="preliminary-drills-instruction-text-wrapper" 
                                                      *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.paramName) && isFirstUncheckedBeam(drillInfo.paramName)">
-                                                    <p class="preliminary-drills-instruction-text" 
-                                                       *ngFor="let instructionText of getPreliminaryDrillsInstructionText(drillInfo); let i = index"
-                                                       [innerHTML]="instructionText">
-                                                    </p>
+                                                    <div *ngFor="let instructionText of getPreliminaryDrillsInstructionText(drillInfo); let i = index" class="instruction-text-with-drawing">
+                                                        <p class="preliminary-drills-instruction-text" 
+                                                           [innerHTML]="instructionText">
+                                                        </p>
+                                                        
+                                                        <!-- מלבן שרטוט - מתחת לכל טקסט הוראה -->
+                                                        <div class="drilling-drawing-wrapper">
+                                                            <app-drawing
+                                                                [isDrillingMode]="true"
+                                                                [beamType]="drillInfo.beamTypeName || drillInfo.beamDisplayName || ''"
+                                                                [product]="getCurrentProductConfiguration()"
+                                                                [beamLength]="getBeamDimensionsForInstruction(drillInfo, i).length"
+                                                                [beamWidth]="getBeamDimensionsForInstruction(drillInfo, i).width">
+                                                            </app-drawing>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 
                                                 <!-- כפתור "הקידוחים בוצעו" - מתחת לצ'קבוקס הראשון שלא סומן -->

@@ -480,19 +480,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         );
         
         if (firstUncheckedBeam) {
-            console.log('FIRST_UNCHECKED_BEAM', JSON.stringify({
-                paramName: firstUncheckedBeam.paramName,
-                beamDisplayName: firstUncheckedBeam.beamDisplayName,
-                requiresPreliminaryScrews: firstUncheckedBeam.requiresPreliminaryScrews,
-                isCompleted: this.completedPreliminaryDrills.has(firstUncheckedBeam.paramName)
-            }, null, 2));
+            // לוג הוסר - היה יוצר לוגים חוזרים
             return firstUncheckedBeam.paramName;
         }
         
-        console.log('FIRST_UNCHECKED_BEAM', JSON.stringify({
-            result: null,
-            reason: 'All required beams are completed or no beams require drilling'
-        }, null, 2));
+        // לוג הוסר - היה יוצר לוגים חוזרים
         return null;
     }
     
@@ -738,16 +730,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (this.screwsPackagingPlan && this.screwsPackagingPlan.length > 0) {
             let matchingScrewPackage = null;
             
-            console.log('CHECK_DRILL_DIAMETER - חיפוש ב-screwsPackagingPlan:', {
-                paramName: paramName,
-                screwsPackagingPlanLength: this.screwsPackagingPlan.length,
-                allPackages: this.screwsPackagingPlan.map(pkg => ({
-                    screwTranslatedName: pkg.screwTranslatedName,
-                    screwTypeName: pkg.screwTypeName,
-                    screwWidth: pkg.screwWidth,
-                    originalRequirementsTypes: pkg.originalRequirements?.map((req: any) => req?.type) || []
-                }))
-            });
+            // לוג הוסר - היה יוצר לוגים חוזרים
             
             // חיפוש משופר: בדיקה דרך originalRequirements שמקשר ל-ForgingDataForPricing
             const targetType = paramName === 'shelfs' ? 'shelf' : paramName === 'leg' ? 'leg' : null;
@@ -777,32 +760,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 });
             }
             
-            console.log('CHECK_DRILL_DIAMETER - matchingScrewPackage:', matchingScrewPackage ? {
-                screwTranslatedName: matchingScrewPackage.screwTranslatedName,
-                screwTypeName: matchingScrewPackage.screwTypeName,
-                screwWidth: matchingScrewPackage.screwWidth,
-                hasScrewWidth: !!matchingScrewPackage.screwWidth,
-                originalRequirementsCount: matchingScrewPackage.originalRequirements?.length || 0,
-                originalRequirementsTypes: matchingScrewPackage.originalRequirements?.map((req: any) => req?.type) || []
-            } : 'לא נמצא');
+            // לוג הוסר - היה יוצר לוגים חוזרים
             
             // אם מצאנו חבילה, נשתמש ב-screwWidth (קוטר הבורג במ"מ)
             if (matchingScrewPackage && matchingScrewPackage.screwWidth) {
                 drillDiameter = matchingScrewPackage.screwWidth;
-                console.log('CHECK_DRILL_DIAMETER - מצאנו קוטר דרך screwsPackagingPlan:', drillDiameter, 'מ"מ');
+                // לוג הוסר - היה יוצר לוגים חוזרים
             }
         }
         
         // נסיון שני: חיפוש דרך ForgingDataForPricing (אם לא מצאנו דרך packaging)
         if (drillDiameter === 0 && this.ForgingDataForPricing && this.ForgingDataForPricing.length > 0) {
-            console.log('CHECK_DRILL_DIAMETER - נסיון שני דרך ForgingDataForPricing:', {
-                ForgingDataForPricingLength: this.ForgingDataForPricing.length,
-                allScrews: this.ForgingDataForPricing.map(screw => ({
-                    type: screw.type,
-                    width: screw.width,
-                    diameter: screw.diameter
-                }))
-            });
+            // לוג הוסר - היה יוצר לוגים חוזרים
             
             // חיפוש בורג לפי paramName
             let matchingScrew = null;
@@ -819,23 +788,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 );
             }
             
-            console.log('CHECK_DRILL_DIAMETER - matchingScrew מ-ForgingDataForPricing:', matchingScrew ? {
-                type: matchingScrew.type,
-                width: matchingScrew.width,
-                diameter: matchingScrew.diameter
-            } : 'לא נמצא');
+            // לוג הוסר - היה יוצר לוגים חוזרים
             
             // אם יש width במקום diameter
             if (matchingScrew && matchingScrew.width) {
                 drillDiameter = matchingScrew.width;
-                console.log('CHECK_DRILL_DIAMETER - מצאנו קוטר דרך ForgingDataForPricing (width):', drillDiameter);
+                // לוג הוסר - היה יוצר לוגים חוזרים
             } else if (matchingScrew && matchingScrew.diameter) {
                 drillDiameter = matchingScrew.diameter;
-                console.log('CHECK_DRILL_DIAMETER - מצאנו קוטר דרך ForgingDataForPricing (diameter):', drillDiameter);
+                // לוג הוסר - היה יוצר לוגים חוזרים
             }
         }
         
-        console.log('CHECK_DRILL_DIAMETER - קוטר סופי:', drillDiameter, '(0 = לא נמצא)');
+        // לוג הוסר - היה יוצר לוגים חוזרים
         
         // בניית טקסט נפרד לכל אורך קורה
         const instructionTexts: string[] = [];
@@ -12294,6 +12259,132 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.dialogService.onOpenProductEditInfoDialog(productDataForDialog);
         
         console.log('SAVE_PRO - ProductEditInfo dialog opened successfully');
+    }
+    
+    /**
+     * החזרת קונפיגורציה נוכחית של המוצר עבור קומפוננטת השרטוט
+     */
+    getCurrentProductConfiguration(): any {
+        return {
+            product: this.product || null,
+            params: this.params || [],
+            surfaceWidth: this.surfaceWidth,
+            surfaceLength: this.surfaceLength,
+            quantity: this.quantity,
+            isTable: this.isTable,
+            isPlanter: this.isPlanter,
+            isBox: this.isBox,
+            isFuton: this.isFuton,
+            isBelams: this.isBelams,
+            shelves: this.shelves || []
+        };
+    }
+    
+    /**
+     * החזרת מידות הקורה לכל הוראה (אורך ורוחב)
+     */
+    getBeamDimensionsForInstruction(drillInfo: any, instructionIndex: number): { length: number; width: number; height: number } {
+        const paramName = drillInfo.paramName;
+        const param = this.getParam(paramName);
+        if (!param || !param.beams || param.beams.length === 0) {
+            return { length: 0, width: 0, height: 0 };
+        }
+        
+        const selectedBeam = param.beams[param.selectedBeamIndex || 0];
+        const selectedType = selectedBeam?.types?.[param.selectedTypeIndex || 0];
+        
+        if (!selectedBeam || !selectedType) {
+            return { length: 0, width: 0, height: 0 };
+        }
+        
+        const beamWidth = selectedBeam.width / 10; // המרה ממ"מ לס"מ
+        const beamHeight = selectedBeam.height / 10; // המרה ממ"מ לס"מ
+        
+        // חישוב הקורות לפי מה שמוצג בתלת מימד
+        const allSizes = new Map<number, number>();
+        
+        if (paramName === 'shelfs') {
+            // קורות מדף
+            if (!this.isTable && !this.isFuton && !this.isPlanter && !this.isBox) {
+                const shelfBeamWidth = beamWidth;
+                const beamsInShelf = Math.floor((this.surfaceWidth + this.minGap) / (shelfBeamWidth + this.minGap));
+                
+                const legParamForShortening = this.getParam('leg');
+                const legBeamSelected = legParamForShortening?.beams?.[legParamForShortening.selectedBeamIndex || 0];
+                const legBeamHeight = legBeamSelected?.height / 10 || 0;
+                
+                const totalShelves = this.shelves.length;
+                
+                for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
+                    const isTopShelf = shelfIndex === totalShelves - 1;
+                    
+                    for (let beamIndex = 0; beamIndex < beamsInShelf; beamIndex++) {
+                        let beamLength = this.surfaceLength;
+                        
+                        if (!isTopShelf) {
+                            if (beamIndex === 0 || beamIndex === beamsInShelf - 1) {
+                                const outsideParamCabForShortening = this.getParam('is-reinforcement-beams-outside');
+                                const isOutsideCabForShortening = !!(outsideParamCabForShortening && outsideParamCabForShortening.default === true);
+                                const defaultShorten = (legBeamHeight * 2);
+                                const extraShorten = isOutsideCabForShortening ? (2 * (this.frameWidth || 0)) : 0;
+                                beamLength = Math.max(0.1, beamLength - (defaultShorten + extraShorten));
+                            }
+                        }
+                        
+                        allSizes.set(beamLength, (allSizes.get(beamLength) || 0) + this.quantity);
+                    }
+                }
+            } else if (this.isTable) {
+                const surfaceBeams = this.createSurfaceBeams(
+                    this.surfaceWidth,
+                    this.surfaceLength,
+                    beamWidth,
+                    beamHeight,
+                    this.minGap
+                );
+                
+                surfaceBeams.forEach(beam => {
+                    allSizes.set(beam.depth, (allSizes.get(beam.depth) || 0) + this.quantity);
+                });
+            }
+        } else if (paramName === 'leg') {
+            // קורות רגל
+            if (!this.isTable && !this.isFuton && !this.isPlanter && !this.isBox) {
+                const dimensions = this.getProductDimensionsRaw();
+                const totalHeight = dimensions.height;
+                const shelfBeamHeight = selectedBeam?.height / 10 || 0;
+                const legHeight = totalHeight - shelfBeamHeight;
+                
+                for (let i = 0; i < 4; i++) {
+                    allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
+                }
+            } else if (this.isTable) {
+                const dimensions = this.getProductDimensionsRaw();
+                const totalHeight = dimensions.height;
+                const plataParam = this.getParam('plata');
+                const plataBeam = plataParam?.beams?.[plataParam.selectedBeamIndex || 0];
+                const plataBeamHeight = plataBeam?.height / 10 || 0;
+                const legHeight = totalHeight - plataBeamHeight;
+                
+                for (let i = 0; i < 4; i++) {
+                    allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
+                }
+            }
+        }
+        
+        const totalSizes = Array.from(allSizes.entries())
+            .map(([length, count]) => ({ length, count }))
+            .sort((a, b) => a.length - b.length);
+        
+        if (instructionIndex >= 0 && instructionIndex < totalSizes.length) {
+            return {
+                length: totalSizes[instructionIndex].length,
+                width: beamWidth,
+                height: beamHeight
+            };
+        }
+        
+        return { length: 0, width: beamWidth, height: beamHeight };
     }
 }
 

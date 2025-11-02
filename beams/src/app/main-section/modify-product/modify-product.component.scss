@@ -5259,9 +5259,17 @@ mat-form-field {
                 border-right: 2px solid var(--zx-green, #0066cc);
                 font-size: 14px !important;
                 
+                .instruction-text-with-drawing {
+                    margin-bottom: 10px;
+                    
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+                
                 .preliminary-drills-instruction-text {
                     margin: 0 !important;
-                    margin-bottom: 10px !important;
+                    margin-bottom: 8px !important;
                     font-size: 14px !important;
                     line-height: 1.6 !important;
                     color: #333 !important;
@@ -5274,10 +5282,6 @@ mat-form-field {
                         font-weight: 400 !important;
                     }
                     
-                    &:last-child {
-                        margin-bottom: 0 !important;
-                    }
-                    
                     // הדגשת מספרים בכחול מודגש (ללא bold)
                     .drill-number,
                     ::ng-deep .drill-number,
@@ -5286,6 +5290,20 @@ mat-form-field {
                         color: #0066cc !important;
                         font-weight: 400 !important;
                         font-size: 14px !important;
+                    }
+                }
+                
+                // מלבן שרטוט - מתחת לכל טקסט הוראה
+                .drilling-drawing-wrapper {
+                    width: 100%;
+                    margin-top: 8px;
+                    margin-bottom: 0;
+                    
+                    app-drawing {
+                        display: block;
+                        width: 100%;
+                        height: 50px;
+                        box-sizing: border-box;
                     }
                 }
             }
@@ -5534,9 +5552,17 @@ mat-form-field {
                 border-right: 2px solid var(--zx-green, #0066cc);
                 font-size: 14px !important;
                 
+                .instruction-text-with-drawing {
+                    margin-bottom: 10px;
+                    
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+                
                 .preliminary-drills-instruction-text {
                     margin: 0 !important;
-                    margin-bottom: 10px !important;
+                    margin-bottom: 8px !important;
                     font-size: 14px !important;
                     line-height: 1.6 !important;
                     color: #333 !important;
@@ -5549,10 +5575,6 @@ mat-form-field {
                         font-weight: 400 !important;
                     }
                     
-                    &:last-child {
-                        margin-bottom: 0 !important;
-                    }
-                    
                     // הדגשת מספרים בכחול מודגש (ללא bold)
                     .drill-number,
                     ::ng-deep .drill-number,
@@ -5561,6 +5583,20 @@ mat-form-field {
                         color: #0066cc !important;
                         font-weight: 400 !important;
                         font-size: 14px !important;
+                    }
+                }
+                
+                // מלבן שרטוט - מתחת לכל טקסט הוראה
+                .drilling-drawing-wrapper {
+                    width: 100%;
+                    margin-top: 8px;
+                    margin-bottom: 0;
+                    
+                    app-drawing {
+                        display: block;
+                        width: 100%;
+                        height: 50px;
+                        box-sizing: border-box;
                     }
                 }
             }
