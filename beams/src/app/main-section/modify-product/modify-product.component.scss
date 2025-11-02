@@ -36,7 +36,6 @@
 .inputs-container-animated {
     transition: max-height 400ms ease-in-out, opacity 400ms ease-in-out, transform 400ms ease-in-out;
     overflow: hidden;
-    position: relative; // לצורך מיקום הספינר
 }
 
 /* ספינר טעינה - ממורכז במרכז התפריט */
@@ -50,6 +49,13 @@
     
     .simple-spinner {
         margin: 0 auto; // מרכז אופקי נוסף
+    }
+}
+
+// תיקון מיקום הספינר בדסקטופ - הזזה שמאלה ולמעלה
+@media (min-width: 769px) {
+    .loading-spinner {
+        transform: translateX(-30px) translateY(-50px);
     }
 }
 
