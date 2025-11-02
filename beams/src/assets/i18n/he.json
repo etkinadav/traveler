@@ -1173,10 +1173,8 @@
   "modify-product.view-edit-menu": "חזרה לעריכת המוצר",
   "modify-product.assembly-instructions-title": "הוראות הרכבה",
   "modify-product.preliminary-drills-subtitle": "האם ניתן לבנות בלי לקדוח בקורות קדחים מקדימים?",
-  "modify-product.preliminary-drills-not-required": "אין צורך בקדחים מקדימים בשל סוג העץ או עובי הקורה",
-  "modify-product.preliminary-drills-required-wood-type-only": "יש צורך בקדחים מקדימים בשל סוג העץ",
-  "modify-product.preliminary-drills-required-dimension-only": "יש צורך בקדחים מקדימים בשל עובי הקורה",
-  "modify-product.preliminary-drills-required-both": "יש צורך בקדחים מקדימים בשל סוג העץ ועובי הקורה",
+  "modify-product.preliminary-drills-not-required": "אין צורך לקדוח קדחים מקדימים ב{{beamName}}",
+  "modify-product.preliminary-drills-required": "קדח קדחים מקדימים ב{{beamName}}",
   "modify-product.no-preliminary-drilling-needed": "אין צורך לבצע קידוחים מקדימים!",
   "modify-product.understood-continue-next": "הבנתי, נמשיך לשלב הבא"
 }

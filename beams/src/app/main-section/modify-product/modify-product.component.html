@@ -757,7 +757,12 @@
                                                         </svg>
                                                     </div>
                                                     <span class="check-text">
-                                                        {{ drillInfo.translationKey | translate }}
+                                                        <span *ngIf="drillInfo.requiresPreliminaryScrews">
+                                                            {{ 'modify-product.preliminary-drills-required' | translate: {beamName: drillInfo.beamTypeName} }}
+                                                        </span>
+                                                        <span *ngIf="!drillInfo.requiresPreliminaryScrews">
+                                                            {{ 'modify-product.preliminary-drills-not-required' | translate: {beamName: drillInfo.beamTypeName} }}
+                                                        </span>
                                                     </span>
                                                 </div>
                                                 

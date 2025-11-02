@@ -2854,7 +2854,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const requiresByWoodType = woodResult.requiresPreliminaryScrews;
             const requiresByDimension = dimensionResult ? dimensionResult.requiresPreliminaryScrews : false;
             
-            // קביעת מפתח התרגום לפי המצב
+            // קביעת מפתח התרגום לפי המצב - עם שם הקורה
             let translationKey: string;
             let requiresPreliminaryScrews: boolean;
             
@@ -2862,23 +2862,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // מצב 1: אין צורך בקדחים מקדימים
                 translationKey = 'modify-product.preliminary-drills-not-required';
                 requiresPreliminaryScrews = false;
-            } else if (requiresByWoodType && !requiresByDimension) {
-                // מצב 2: יש צורך רק בשל סוג העץ
-                translationKey = 'modify-product.preliminary-drills-required-wood-type-only';
-                requiresPreliminaryScrews = true;
-            } else if (!requiresByWoodType && requiresByDimension) {
-                // מצב 3: יש צורך רק בשל עובי הקורה
-                translationKey = 'modify-product.preliminary-drills-required-dimension-only';
-                requiresPreliminaryScrews = true;
             } else {
-                // מצב 4: יש צורך בשניהם
-                translationKey = 'modify-product.preliminary-drills-required-both';
+                // מצב 2-4: יש צורך בקדחים מקדימים (לא משנה הסיבה)
+                translationKey = 'modify-product.preliminary-drills-required';
                 requiresPreliminaryScrews = true;
             }
             
             results.push({
                 paramName: woodResult.paramName,
                 beamDisplayName: beamDisplayName,
+                beamTypeName: beamTypeName, // שם הקורה ללא מידות (לצורך התרגום)
                 requiresByWoodType: requiresByWoodType,
                 requiresByDimension: requiresByDimension,
                 requiresPreliminaryScrews: requiresPreliminaryScrews,
