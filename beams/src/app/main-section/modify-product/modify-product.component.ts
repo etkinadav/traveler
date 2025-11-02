@@ -579,6 +579,283 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return false;
     }
     
+    // פונקציה לחישוב טקסט ההוראות לקדחים מקדימים - מחזירה מערך של טקסטים (אחד לכל אורך קורה)
+    getPreliminaryDrillsInstructionText(drillInfo: any): string[] {
+        if (!drillInfo || !drillInfo.requiresPreliminaryScrews) {
+            return [];
+        }
+        
+        const paramName = drillInfo.paramName;
+        
+        // בדיקה שהשלב הנוכחי תואם - רק אם זה השלב הראשון שלא סומן
+        const firstUncheckedParam = this.getFirstUncheckedBeamParamName();
+        if (firstUncheckedParam !== paramName) {
+            // אם זה לא השלב הנוכחי - לא להציג טקסט
+            return [];
+        }
+        
+        // מציאת הפרמטר לפי paramName
+        const param = this.getParam(paramName);
+        if (!param || !param.beams || param.beams.length === 0) {
+            return [];
+        }
+        
+        const selectedBeam = param.beams[param.selectedBeamIndex || 0];
+        const selectedType = selectedBeam?.types?.[param.selectedTypeIndex || 0];
+        
+        if (!selectedBeam || !selectedType) {
+            return [];
+        }
+        
+        // מידות הקורה
+        const beamWidth = selectedBeam.width / 10; // המרה ממ"מ לס"מ
+        const beamHeight = selectedBeam.height / 10; // המרה ממ"מ לס"מ
+        const woodType = selectedType.translatedName || selectedType.name || '';
+        
+        // חישוב הקורות ישירות לפי מה שמוצג בתלת מימד - לא מ-BeamsDataForPricing
+        const allSizes = new Map<number, number>();
+        
+        if (paramName === 'shelfs') {
+            // קורות מדף - חישוב ישיר כמו ב-calculateBeamsData
+            if (!this.isTable && !this.isFuton && !this.isPlanter && !this.isBox) {
+                // עבור ארון
+                const shelfBeamWidth = beamWidth;
+                const beamsInShelf = Math.floor((this.surfaceWidth + this.minGap) / (shelfBeamWidth + this.minGap));
+                
+                // חישוב קיצור קורות המדף
+                const legParamForShortening = this.getParam('leg');
+                const legBeamSelected = legParamForShortening?.beams?.[legParamForShortening.selectedBeamIndex || 0];
+                const legBeamHeight = legBeamSelected?.height / 10 || 0;
+                
+                const totalShelves = this.shelves.length;
+                
+                for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
+                    const isTopShelf = shelfIndex === totalShelves - 1;
+                    
+                    for (let beamIndex = 0; beamIndex < beamsInShelf; beamIndex++) {
+                        let beamLength = this.surfaceLength;
+                        
+                        // קיצור קורות בקצוות (רק במדפים שאינם עליונים)
+                        if (!isTopShelf) {
+                            if (beamIndex === 0 || beamIndex === beamsInShelf - 1) {
+                                const outsideParamCabForShortening = this.getParam('is-reinforcement-beams-outside');
+                                const isOutsideCabForShortening = !!(outsideParamCabForShortening && outsideParamCabForShortening.default === true);
+                                const defaultShorten = (legBeamHeight * 2);
+                                const extraShorten = isOutsideCabForShortening ? (2 * (this.frameWidth || 0)) : 0;
+                                beamLength = Math.max(0.1, beamLength - (defaultShorten + extraShorten));
+                            }
+                        }
+                        
+                        // הוספה ל-map
+                        allSizes.set(beamLength, (allSizes.get(beamLength) || 0) + this.quantity);
+                    }
+                }
+            } else if (this.isTable) {
+                // עבור שולחן - קורות פלטה
+                const surfaceBeams = this.createSurfaceBeams(
+                    this.surfaceWidth,
+                    this.surfaceLength,
+                    beamWidth,
+                    beamHeight,
+                    this.minGap
+                );
+                
+                surfaceBeams.forEach(beam => {
+                    allSizes.set(beam.depth, (allSizes.get(beam.depth) || 0) + this.quantity);
+                });
+            }
+        } else if (paramName === 'leg') {
+            // קורות רגל - חישוב ישיר
+            if (!this.isTable && !this.isFuton && !this.isPlanter && !this.isBox) {
+                // עבור ארון - קורות רגליים
+                const dimensions = this.getProductDimensionsRaw();
+                const totalHeight = dimensions.height;
+                const shelfBeamHeight = selectedBeam?.height / 10 || 0;
+                const legHeight = totalHeight - shelfBeamHeight;
+                
+                // 4 רגליים תמיד מוצגות
+                for (let i = 0; i < 4; i++) {
+                    allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
+                }
+                
+                // אם is-reinforcement-beams-outside הוא true, גם קורות החיזוק X-spanning מוצגות
+                const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                const isOutside = !!(outsideParam && outsideParam.default === true);
+                
+                if (isOutside) {
+                    const frameParam = this.getParam('frame');
+                    if (frameParam && frameParam.beams && frameParam.beams.length > 0) {
+                        const frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
+                        const frameType = frameBeam?.types?.[frameParam.selectedTypeIndex || 0];
+                        
+                        if (frameBeam && frameType) {
+                            // קורות חיזוק X-spanning - 2 לכל מדף
+                            const totalShelves = this.shelves.length;
+                            const widthLength = this.surfaceWidth; // אורך = רוחב המודל
+                            
+                            for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
+                                // 2 קורות חיזוק X-spanning לכל מדף
+                                for (let i = 0; i < 2; i++) {
+                                    allSizes.set(widthLength, (allSizes.get(widthLength) || 0) + this.quantity);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (this.isTable) {
+                // עבור שולחן - 4 רגליים
+                const dimensions = this.getProductDimensionsRaw();
+                const totalHeight = dimensions.height;
+                const plataParam = this.getParam('plata');
+                const plataBeam = plataParam?.beams?.[plataParam.selectedBeamIndex || 0];
+                const plataBeamHeight = plataBeam?.height / 10 || 0;
+                const legHeight = totalHeight - plataBeamHeight;
+                
+                for (let i = 0; i < 4; i++) {
+                    allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
+                }
+            }
+        }
+        
+        if (allSizes.size === 0) {
+            return [];
+        }
+        
+        // המרה למערך ממוין
+        const totalSizes = Array.from(allSizes.entries())
+            .map(([length, count]) => ({ length, count }))
+            .sort((a, b) => a.length - b.length);
+        
+        if (totalSizes.length === 0) {
+            return [];
+        }
+        
+        // חישוב קוטר הקדח - מציאת הברגים המתאימים
+        let drillDiameter = 0; // ברירת מחדל - 0 אם לא נמצא
+        
+        // נסיון ראשון: חיפוש דרך screwsPackagingPlan - שם יש screwWidth (קוטר/עובי הבורג)
+        // השיטה: חיפוש לפי originalRequirements שמקשר ל-ForgingDataForPricing עם type
+        if (this.screwsPackagingPlan && this.screwsPackagingPlan.length > 0) {
+            let matchingScrewPackage = null;
+            
+            console.log('CHECK_DRILL_DIAMETER - חיפוש ב-screwsPackagingPlan:', {
+                paramName: paramName,
+                screwsPackagingPlanLength: this.screwsPackagingPlan.length,
+                allPackages: this.screwsPackagingPlan.map(pkg => ({
+                    screwTranslatedName: pkg.screwTranslatedName,
+                    screwTypeName: pkg.screwTypeName,
+                    screwWidth: pkg.screwWidth,
+                    originalRequirementsTypes: pkg.originalRequirements?.map((req: any) => req?.type) || []
+                }))
+            });
+            
+            // חיפוש משופר: בדיקה דרך originalRequirements שמקשר ל-ForgingDataForPricing
+            const targetType = paramName === 'shelfs' ? 'shelf' : paramName === 'leg' ? 'leg' : null;
+            
+            if (targetType) {
+                matchingScrewPackage = this.screwsPackagingPlan.find(pkg => {
+                    // בדיקה דרך originalRequirements - שם יש type
+                    if (pkg.originalRequirements && Array.isArray(pkg.originalRequirements) && pkg.originalRequirements.length > 0) {
+                        const hasMatchingType = pkg.originalRequirements.some((req: any) => 
+                            req && req.type && req.type.toLowerCase().includes(targetType)
+                        );
+                        if (hasMatchingType) {
+                            return true;
+                        }
+                    }
+                    
+                    // fallback: חיפוש בשם המתורגם או בשם הסוג (אם יש)
+                    const translatedName = (pkg.screwTranslatedName || '').toLowerCase();
+                    const typeName = (pkg.screwTypeName || '').toLowerCase();
+                    const searchTerms = paramName === 'shelfs' 
+                        ? ['מדף', 'shelf']
+                        : ['רגל', 'leg'];
+                    
+                    return searchTerms.some(term => 
+                        translatedName.includes(term) || typeName.includes(term)
+                    );
+                });
+            }
+            
+            console.log('CHECK_DRILL_DIAMETER - matchingScrewPackage:', matchingScrewPackage ? {
+                screwTranslatedName: matchingScrewPackage.screwTranslatedName,
+                screwTypeName: matchingScrewPackage.screwTypeName,
+                screwWidth: matchingScrewPackage.screwWidth,
+                hasScrewWidth: !!matchingScrewPackage.screwWidth,
+                originalRequirementsCount: matchingScrewPackage.originalRequirements?.length || 0,
+                originalRequirementsTypes: matchingScrewPackage.originalRequirements?.map((req: any) => req?.type) || []
+            } : 'לא נמצא');
+            
+            // אם מצאנו חבילה, נשתמש ב-screwWidth (קוטר הבורג במ"מ)
+            if (matchingScrewPackage && matchingScrewPackage.screwWidth) {
+                drillDiameter = matchingScrewPackage.screwWidth;
+                console.log('CHECK_DRILL_DIAMETER - מצאנו קוטר דרך screwsPackagingPlan:', drillDiameter, 'מ"מ');
+            }
+        }
+        
+        // נסיון שני: חיפוש דרך ForgingDataForPricing (אם לא מצאנו דרך packaging)
+        if (drillDiameter === 0 && this.ForgingDataForPricing && this.ForgingDataForPricing.length > 0) {
+            console.log('CHECK_DRILL_DIAMETER - נסיון שני דרך ForgingDataForPricing:', {
+                ForgingDataForPricingLength: this.ForgingDataForPricing.length,
+                allScrews: this.ForgingDataForPricing.map(screw => ({
+                    type: screw.type,
+                    width: screw.width,
+                    diameter: screw.diameter
+                }))
+            });
+            
+            // חיפוש בורג לפי paramName
+            let matchingScrew = null;
+            
+            if (paramName === 'shelfs') {
+                // ברגי מדף - חיפוש לפי סוג
+                matchingScrew = this.ForgingDataForPricing.find(screw => 
+                    screw.type && (screw.type.includes('shelf') || screw.type.includes('מדף'))
+                );
+            } else if (paramName === 'leg') {
+                // ברגי רגל - חיפוש לפי סוג
+                matchingScrew = this.ForgingDataForPricing.find(screw => 
+                    screw.type && (screw.type.includes('leg') || screw.type.includes('רגל'))
+                );
+            }
+            
+            console.log('CHECK_DRILL_DIAMETER - matchingScrew מ-ForgingDataForPricing:', matchingScrew ? {
+                type: matchingScrew.type,
+                width: matchingScrew.width,
+                diameter: matchingScrew.diameter
+            } : 'לא נמצא');
+            
+            // אם יש width במקום diameter
+            if (matchingScrew && matchingScrew.width) {
+                drillDiameter = matchingScrew.width;
+                console.log('CHECK_DRILL_DIAMETER - מצאנו קוטר דרך ForgingDataForPricing (width):', drillDiameter);
+            } else if (matchingScrew && matchingScrew.diameter) {
+                drillDiameter = matchingScrew.diameter;
+                console.log('CHECK_DRILL_DIAMETER - מצאנו קוטר דרך ForgingDataForPricing (diameter):', drillDiameter);
+            }
+        }
+        
+        console.log('CHECK_DRILL_DIAMETER - קוטר סופי:', drillDiameter, '(0 = לא נמצא)');
+        
+        // בניית טקסט נפרד לכל אורך קורה
+        const instructionTexts: string[] = [];
+        
+        // אם drillDiameter הוא 0, לא נציג את חלק הקוטר
+        const drillDiameterText = drillDiameter > 0 ? ` בקוטר ~<span class="drill-number">${drillDiameter}</span> מ"מ` : '';
+        
+        // יצירת טקסט נפרד לכל אורך קורה
+        totalSizes.forEach(lengthInfo => {
+            const lengthValue = Math.round(lengthInfo.length * 10) / 10;
+            const count = lengthInfo.count;
+            
+            // פורמט: "מצא X חתיכות באורך Y ס"מ של קורת [סוג] X על Y ס"מ, וקדח בהן קדחים עוברים בקוטר ~Z מ"מ, באופן הבא:"
+            const text = `מצא <span class="drill-number">${count}</span> חתיכות באורך <span class="drill-number">${lengthValue}</span> ס"מ של קורת ${woodType} <span class="drill-number">${beamWidth}</span> על <span class="drill-number">${beamHeight}</span> ס"מ, וקדח בהן קדחים עוברים${drillDiameterText}, באופן הבא:`;
+            instructionTexts.push(text);
+        });
+        
+        return instructionTexts;
+    }
+    
     
     // פתיחה/סגירה של תפריט ניהול המערכת
     toggleSystemMenu() {

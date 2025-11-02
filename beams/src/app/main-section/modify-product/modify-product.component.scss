@@ -500,6 +500,30 @@
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 .assembly-instructions-button-inline {
     width: 100%;
     padding: 10px 15px;
@@ -728,6 +752,30 @@
         }
     }
 }
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
 ::ng-deep .custom-options-menu {
     z-index: 1001 !important; // גבוה יותר מה-view-controls-container
     
@@ -795,6 +843,30 @@
             display: inline-block;
             vertical-align: middle;
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -922,6 +994,30 @@
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 @keyframes pulse {
     0% {
         opacity: 1;
@@ -1004,6 +1100,30 @@ select {
             background-color: rgba(0, 102, 204, 0.12);
             transform: translateY(0);
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -1159,6 +1279,30 @@ select {
             background-color: rgba(0, 102, 204, 0.12);
             transform: translateY(0);
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -1646,6 +1790,30 @@ mat-form-field {
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 
 // אזור חישוב המחיר
 .price-calculation-area {
@@ -1934,6 +2102,30 @@ mat-form-field {
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 // קלאס לטקסט חשוב עם גרדיאנט חשיבה
 .thinking-text {
     background: linear-gradient(90deg, 
@@ -2198,6 +2390,30 @@ mat-form-field {
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 // טוגל סוויץ'
 .toggle-switch {
     width: 40px;
@@ -2262,6 +2478,30 @@ mat-form-field {
             font-size: 12px;
             color: #666;
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -2643,6 +2883,30 @@ mat-form-field {
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 // הודעה על כמות קורות לא מספקת
         .insufficient-beams-message {
             color: #f44336;
@@ -2682,6 +2946,30 @@ mat-form-field {
             stroke: #0066cc !important;
             fill: #0066cc !important;
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -2737,6 +3025,30 @@ mat-form-field {
             color: #0066cc;
             font-size: 16px;
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -2828,6 +3140,30 @@ mat-form-field {
             font-weight: 600;
             color: #0066cc;
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -2926,6 +3262,30 @@ mat-form-field {
             --mdc-switch-selected-track-color: #0066cc;
             --mdc-switch-selected-handle-color: #0066cc;
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -3127,6 +3487,30 @@ mat-form-field {
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 // קונטיינר מצב מצומצם - שורת מחיר + כפתור
 .minimized-price-container {
     display: flex;
@@ -3302,6 +3686,30 @@ mat-form-field {
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 // קוביית ניווט
 .mobile-navigation-cube {
     position: fixed;
@@ -3428,6 +3836,30 @@ mat-form-field {
             background: rgba(0, 0, 0, 0.05);
             color: #333;
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -3600,6 +4032,30 @@ mat-form-field {
             color: #0066cc;
             margin-top: 2px;
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -4452,6 +4908,30 @@ mat-form-field {
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 // Overlay לתפריט אזהרה
 .warning-overlay {
     position: fixed;
@@ -4549,6 +5029,30 @@ mat-form-field {
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 // עיצוב לקדחים מקדימים בהוראות הרכבה
 .preliminary-drills-instruction-section {
     margin-top: 15px;
@@ -4566,25 +5070,42 @@ mat-form-field {
     }
     
     .preliminary-drills-list {
+        font-size: 14px !important;
+        
         .preliminary-drill-item {
             margin-bottom: 16px;
+            font-size: 14px !important;
+            
+            // כפיית 14px על כל האלמנטים בתוך הקונטיינר
+            * {
+                font-size: 14px !important;
+                font-weight: 400 !important;
+            }
+            
+            // מספרים - כחול אבל לא bold
+            .drill-number,
+            ::ng-deep .drill-number {
+                color: #0066cc !important;
+                font-weight: 400 !important;
+                font-size: 14px !important;
+            }
             
             &:last-child {
                 margin-bottom: 0;
             }
             
             .preliminary-drill-beam-title {
-                font-weight: 600;
+                font-weight: 400 !important;
                 margin-bottom: 8px;
                 color: #333;
-                font-size: 14px;
+                font-size: 14px !important;
             }
             
             .preliminary-drill-check-item {
                 display: flex;
                 align-items: center;
                 margin-bottom: 6px;
-                font-size: 13px;
+                font-size: 14px !important;
                 
                 .drill-status-icon {
                     margin-left: 8px;
@@ -4598,9 +5119,75 @@ mat-form-field {
                     flex: 1;
                     color: var(--zx-green, #0066cc);
                     line-height: 1.5;
+                    font-size: 14px !important;
+                    font-weight: 400 !important;
+                }
+            }
+            
+            .preliminary-drills-instruction-text-wrapper {
+                margin-top: 12px;
+                margin-bottom: 12px;
+                padding: 12px 16px;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 6px;
+                border-right: 2px solid var(--zx-green, #0066cc);
+                font-size: 14px !important;
+                
+                .preliminary-drills-instruction-text {
+                    margin: 0 !important;
+                    margin-bottom: 10px !important;
+                    font-size: 14px !important;
+                    line-height: 1.6 !important;
+                    color: #333 !important;
+                    font-weight: 400 !important;
+                    
+                    // כפיית 14px על כל האלמנטים בתוך הטקסט
+                    *,
+                    ::ng-deep * {
+                        font-size: 14px !important;
+                        font-weight: 400 !important;
+                    }
+                    
+                    &:last-child {
+                        margin-bottom: 0 !important;
+                    }
+                    
+                    // הדגשת מספרים בכחול מודגש (ללא bold)
+                    .drill-number,
+                    ::ng-deep .drill-number,
+                    span.drill-number,
+                    ::ng-deep span.drill-number {
+                        color: #0066cc !important;
+                        font-weight: 400 !important;
+                        font-size: 14px !important;
+                    }
                 }
             }
         }
+    }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
     }
 }
 
@@ -4705,6 +5292,30 @@ mat-form-field {
     }
 }
 
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+
 // עיצוב לקדחים מקדימים בהוראות הרכבה
 .preliminary-drills-instruction-section {
     margin-top: 15px;
@@ -4722,25 +5333,42 @@ mat-form-field {
     }
     
     .preliminary-drills-list {
+        font-size: 14px !important;
+        
         .preliminary-drill-item {
             margin-bottom: 16px;
+            font-size: 14px !important;
+            
+            // כפיית 14px על כל האלמנטים בתוך הקונטיינר
+            * {
+                font-size: 14px !important;
+                font-weight: 400 !important;
+            }
+            
+            // מספרים - כחול אבל לא bold
+            .drill-number,
+            ::ng-deep .drill-number {
+                color: #0066cc !important;
+                font-weight: 400 !important;
+                font-size: 14px !important;
+            }
             
             &:last-child {
                 margin-bottom: 0;
             }
             
             .preliminary-drill-beam-title {
-                font-weight: 600;
+                font-weight: 400 !important;
                 margin-bottom: 8px;
                 color: #333;
-                font-size: 14px;
+                font-size: 14px !important;
             }
             
             .preliminary-drill-check-item {
                 display: flex;
                 align-items: center;
                 margin-bottom: 6px;
-                font-size: 13px;
+                font-size: 14px !important;
                 
                 .drill-status-icon {
                     margin-left: 8px;
@@ -4754,8 +5382,97 @@ mat-form-field {
                     flex: 1;
                     color: var(--zx-green, #0066cc);
                     line-height: 1.5;
+                    font-size: 14px !important;
+                    font-weight: 400 !important;
+                }
+            }
+            
+            .preliminary-drills-instruction-text-wrapper {
+                margin-top: 12px;
+                margin-bottom: 12px;
+                padding: 12px 16px;
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 6px;
+                border-right: 2px solid var(--zx-green, #0066cc);
+                font-size: 14px !important;
+                
+                .preliminary-drills-instruction-text {
+                    margin: 0 !important;
+                    margin-bottom: 10px !important;
+                    font-size: 14px !important;
+                    line-height: 1.6 !important;
+                    color: #333 !important;
+                    font-weight: 400 !important;
+                    
+                    // כפיית 14px על כל האלמנטים בתוך הטקסט
+                    *,
+                    ::ng-deep * {
+                        font-size: 14px !important;
+                        font-weight: 400 !important;
+                    }
+                    
+                    &:last-child {
+                        margin-bottom: 0 !important;
+                    }
+                    
+                    // הדגשת מספרים בכחול מודגש (ללא bold)
+                    .drill-number,
+                    ::ng-deep .drill-number,
+                    span.drill-number,
+                    ::ng-deep span.drill-number {
+                        color: #0066cc !important;
+                        font-weight: 400 !important;
+                        font-size: 14px !important;
+                    }
                 }
             }
         }
     }
+}
+
+// כלל נוסף שמדריס הכל - כפיית 14px על כל הטקסט בתוך preliminary-drill-item
+.preliminary-drill-item {
+    .preliminary-drills-instruction-text,
+    .preliminary-drills-instruction-text *,
+    .preliminary-drills-instruction-text-wrapper,
+    .preliminary-drills-instruction-text-wrapper *,
+    p.preliminary-drills-instruction-text,
+    p.preliminary-drills-instruction-text *,
+    p.preliminary-drills-instruction-text span,
+    p.preliminary-drills-instruction-text span.drill-number {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    
+    .drill-number,
+    span.drill-number,
+    .preliminary-drills-instruction-text .drill-number,
+    .preliminary-drills-instruction-text span.drill-number {
+        color: #0066cc !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+}
+// כלל סופי שמ� ריס �כל - ברמ� �גלובלית �כי חזק�
+app-modify-product .preliminary-drill-item,
+app-modify-product .preliminary-drill-item *,
+app-modify-product .preliminary-drills-instruction-text,
+app-modify-product .preliminary-drills-instruction-text *,
+app-modify-product .preliminary-drills-instruction-text-wrapper,
+app-modify-product .preliminary-drills-instruction-text-wrapper *,
+app-modify-product p.preliminary-drills-instruction-text,
+app-modify-product p.preliminary-drills-instruction-text *,
+app-modify-product p.preliminary-drills-instruction-text span,
+app-modify-product span.drill-number {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+app-modify-product .drill-number,
+app-modify-product span.drill-number,
+app-modify-product .preliminary-drills-instruction-text .drill-number,
+app-modify-product .preliminary-drills-instruction-text span.drill-number {
+    color: #0066cc !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
 }

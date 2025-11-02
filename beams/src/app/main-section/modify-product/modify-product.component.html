@@ -752,6 +752,15 @@
                                                     </span>
                                                 </div>
                                                 
+                                                <!-- טקסט הוראות קידוח - מוצג רק כשצריך קידוח וזה השלב הנוכחי ויש כפתור -->
+                                                <div class="preliminary-drills-instruction-text-wrapper" 
+                                                     *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.paramName) && isFirstUncheckedBeam(drillInfo.paramName)">
+                                                    <p class="preliminary-drills-instruction-text" 
+                                                       *ngFor="let instructionText of getPreliminaryDrillsInstructionText(drillInfo); let i = index"
+                                                       [innerHTML]="instructionText">
+                                                    </p>
+                                                </div>
+                                                
                                                 <!-- כפתור "הקידוחים בוצעו" - מתחת לצ'קבוקס הראשון שלא סומן -->
                                                 <div class="preliminary-drills-completed-button-wrapper" 
                                                      *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.paramName) && isFirstUncheckedBeam(drillInfo.paramName)">
