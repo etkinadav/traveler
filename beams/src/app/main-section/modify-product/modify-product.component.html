@@ -725,9 +725,6 @@
                                         
                                         <div class="preliminary-drills-list">
                                             <div *ngFor="let drillInfo of preliminaryDrillsInfo; trackBy: trackByParamName" class="preliminary-drill-item">
-                                                <!-- כותרת קורה -->
-                                                <div class="preliminary-drill-beam-title">{{ drillInfo.beamDisplayName }}</div>
-                                                
                                                 <!-- הודעת מצב אחת -->
                                                 <div class="preliminary-drill-check-item"
                                                      [attr.data-checkbox-element]="drillInfo.paramName">
