@@ -757,7 +757,10 @@
                                                      *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.paramName) && isFirstUncheckedBeam(drillInfo.paramName)">
                                                     <button class="preliminary-drills-completed-button" 
                                                             (click)="markBeamAsCompleted(drillInfo)">
-                                                        {{ 'modify-product.drilling-completed' | translate }}
+                                                        <span>{{ 'modify-product.drilling-completed' | translate }}</span>
+                                                        <svg class="action-arrow-icon" width="14" height="14" viewBox="0 0 14 14">
+                                                            <path d="M 5 2 L 9 7 L 5 12" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
                                                     </button>
                                                 </div>
                                                 
