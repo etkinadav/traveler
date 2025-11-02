@@ -5482,8 +5482,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 // הצגת קורות חיזוק רק אם צריך
                 if (shouldShowReinforcementBeamsCabinet) {
-                this.scene.add(mesh);
-                this.beamMeshes.push(mesh);
+                    // במצב preliminary-drills עם leg ו-isOutside - הצג רק X-spanning beams (שנעות לפי רוחב המודל)
+                    if (isPreliminaryDrillsCabinet && firstUncheckedParamCabinet === 'leg' && isOutsideCabAdj) {
+                        // הצג רק קורות X-spanning (שברגים פונים אליהן)
+                        if (isXSpan) {
+                            this.scene.add(mesh);
+                            this.beamMeshes.push(mesh);
+                        }
+                    } else {
+                        // במצב רגיל - הצג את כל קורות החיזוק
+                        this.scene.add(mesh);
+                        this.beamMeshes.push(mesh);
+                    }
                 }
             }
             this.endTimer(`CABINET - Create and Render Frame Beams for Shelf ${shelfIndex + 1}`);
