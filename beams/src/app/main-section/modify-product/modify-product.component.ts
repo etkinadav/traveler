@@ -94,6 +94,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // משתנה למעקב אחרי הפעם הראשונה שעוברים להוראות הרכבה
     private isFirstTimeEnteringInstructions = true;
+    
+    // משתנה לזיהוי אם צריך להפעיל מצב שקוף בסיום האנימציה של איפוס מבט
+    private shouldEnableTransparentModeAfterCameraReset = false;
 
     
     // קריאה ראשונית לבדיקת isEditMode
@@ -301,9 +304,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // איפוס מבט בפעם הראשונה בלבד
             if (this.isFirstTimeEnteringInstructions) {
                 this.isFirstTimeEnteringInstructions = false;
-                // קריאה לאיפוס מבט לאחר סיום הטעינה
+                // קריאה לאיפוס מבט לאחר סיום הטעינה - עם הפעלת מצב שקוף בסיום האנימציה
                 setTimeout(() => {
-                    this.resetCameraView();
+                    this.resetCameraView(true); // true = הפעל מצב שקוף בסיום האנימציה
                 }, 500); // המתנה כדי שהמודל יסיים לטעון
             }
             
@@ -1300,8 +1303,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
     
     // איפוס מבט המצלמה לנקודת ההתחלה
-    resetCameraView() {
+    resetCameraView(enableTransparentModeAfterAnimation: boolean = false) {
         if (!this.camera || !this.scene) return;
+        
+        // שמירת הפרמטר במשתנה instance
+        this.shouldEnableTransparentModeAfterCameraReset = enableTransparentModeAfterAnimation;
         
         // סגירת תפריט האפשרויות
         this.isOptionsMenuOpen = false;
@@ -1331,6 +1337,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 if (typeof (this as any).centerCameraOnWireframe === 'function') {
                     (this as any).centerCameraOnWireframe();
                 }
+            }
+            
+            // אם יש performAutoZoomIn וצריך להפעיל מצב שקוף - נחכה לסיום האנימציה
+            if (this.shouldEnableTransparentModeAfterCameraReset && typeof (this as any).performAutoZoomIn === 'function') {
+                // האנימציה נמשכת 500ms (חצי שנייה) + 1000ms המתנה לפני שזה מתחיל = 1500ms בסה"כ
+                // נוסיף עוד קצת זמן לוודא שהאנימציה באמת הסתיימה
+                setTimeout(() => {
+                    // בדיקה אם צריך להפעיל מצב שקוף - רק אם זה עדיין true (לא בוטל)
+                    if (this.shouldEnableTransparentModeAfterCameraReset && !this.isTransparentMode && !this.isBelams) {
+                        this.toggleTransparentMode();
+                    }
+                    // איפוס הפרמטר לאחר השימוש
+                    this.shouldEnableTransparentModeAfterCameraReset = false;
+                }, 1600); // 500ms אנימציה + 1000ms המתנה לפני + 100ms buffer
             }
         }, 100);
         
