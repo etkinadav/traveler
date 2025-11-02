@@ -4833,17 +4833,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     shouldShowLegBeams = false;
                     shouldShowReinforcementBeams = false;
                 } else if (firstUncheckedParam === 'leg') {
-                    // קורת רגל או קורות חיזוק (תלוי ב-is-reinforcement-beams-outside)
+                    // תמיד להציג רגליים במצב preliminary-drills עם leg
                     shouldShowShelfBeams = false;
+                    shouldShowLegBeams = true; // תמיד להציג רגליים
+                    
                     const outsideParam = this.getParam('is-reinforcement-beams-outside');
                     const isOutside = !!(outsideParam && outsideParam.default === true);
                     if (isOutside) {
-                        // הסתרת רגליים והצגת קורות חיזוק
-                        shouldShowLegBeams = false;
+                        // בנוסף לרגליים - הצג גם קורות חיזוק X-spanning
                         shouldShowReinforcementBeams = true;
                     } else {
-                        // רק קורות רגל
-                        shouldShowLegBeams = true;
+                        // רק רגליים (ללא קורות חיזוק)
                         shouldShowReinforcementBeams = false;
                     }
                 }
