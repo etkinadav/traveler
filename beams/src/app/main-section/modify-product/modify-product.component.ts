@@ -264,6 +264,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     toggleAssemblyInstructions() {
         this.isInstructionMode = !this.isInstructionMode;
         
+        console.log('TOGGLE_ASSEMBLY_INSTRUCTIONS', JSON.stringify({
+            isInstructionMode: this.isInstructionMode,
+            currentInstructionStageBefore: this.currentInstructionStage
+        }, null, 2));
+        
         // לוג כשעוברים למצב הוראות הרכבה
         if (this.isInstructionMode) {
             // פתיחה אוטומטית של ההוראה הראשונה (index 1 כי 0 הוא מצב רגיל)
@@ -285,7 +290,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             console.log('INSTRUCTIONS_START', JSON.stringify({
                 legBeamWidth: legWidth,
                 legBeamLength: legLength,
-                instructions: this.product?.instructions || []
+                instructions: this.product?.instructions || [],
+                currentInstructionStage: this.currentInstructionStage
             }, null, 2));
             
         } else {
@@ -293,6 +299,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.currentInstructionStage = 0;
             this.completedPreliminaryDrills.clear();
         }
+        
+        // עדכון המודל התלת מימדי כדי להציג/להסתיר קורות בהתאם למצב
+        setTimeout(() => {
+            this.updateBeams();
+        }, 100);
     }
     
     // פתיחה/סגירה של סעיף הוראה ספציפי
@@ -309,6 +320,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.currentInstructionStage = stageNumber;
         }
         
+        console.log('TOGGLE_INSTRUCTION_STAGE', JSON.stringify({
+            stageIndex: stageIndex,
+            stageNumber: stageNumber,
+            currentInstructionStage: this.currentInstructionStage,
+            instructionName: this.product?.instructions?.[stageIndex]?.name
+        }, null, 2));
+        
+        // עדכון המודל התלת מימדי כדי להציג/להסתיר קורות בהתאם למצב
+        setTimeout(() => {
+            this.updateBeams();
+        }, 100);
     }
     
     // בדיקה אם סעיף הוראה פתוח
@@ -368,6 +390,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // עדכון המשתנה הישיר כדי לעורר change detection
         this.preliminaryDrillsInfo = [...this.preliminaryDrillsInfo];
         
+        // עדכון המודל התלת-ממדי כדי להציג את הקורות והברגים המתאימים
+        setTimeout(() => {
+            this.updateBeams();
+        }, 100);
+        
+        // אם כל הקורות שדורשות קדחים סומנו - מעבר אוטומטי מיידי לשלב הבא
+        if (this.areAllRequiredBeamsCompleted() && !this.areAllBeamsNoPreliminaryDrilling()) {
+            // מעבר אוטומטי מיידי לשלב הבא (ללא delay)
+            this.goToNextInstructionStage();
+        }
     }
     
     // סימון קורה כהושלמה (מהכפתור "הקידוחים בוצעו")
@@ -391,6 +423,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // עדכון המשתנה הישיר כדי לעורר change detection
         this.preliminaryDrillsInfo = [...this.preliminaryDrillsInfo];
         
+        // עדכון המודל התלת-ממדי כדי להציג את הקורות והברגים המתאימים
+        setTimeout(() => {
+            this.updateBeams();
+        }, 100);
+        
         // אם כל הקורות שדורשות קדחים סומנו - מעבר אוטומטי מיידי לשלב הבא
         if (this.areAllRequiredBeamsCompleted() && !this.areAllBeamsNoPreliminaryDrilling()) {
             // מעבר אוטומטי מיידי לשלב הבא (ללא delay)
@@ -410,6 +447,66 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         );
         
         return firstUncheckedBeam?.paramName === paramName;
+    }
+    
+    // קבלת הקורה הראשונה ללא V (paramName)
+    getFirstUncheckedBeamParamName(): string | null {
+        if (!this.preliminaryDrillsInfo || this.preliminaryDrillsInfo.length === 0) {
+            console.log('FIRST_UNCHECKED_BEAM', JSON.stringify({
+                result: null,
+                reason: 'preliminaryDrillsInfo is empty'
+            }, null, 2));
+            return null;
+        }
+        
+        const firstUncheckedBeam = this.preliminaryDrillsInfo.find(info => 
+            info.requiresPreliminaryScrews && !this.completedPreliminaryDrills.has(info.paramName)
+        );
+        
+        if (firstUncheckedBeam) {
+            console.log('FIRST_UNCHECKED_BEAM', JSON.stringify({
+                paramName: firstUncheckedBeam.paramName,
+                beamDisplayName: firstUncheckedBeam.beamDisplayName,
+                requiresPreliminaryScrews: firstUncheckedBeam.requiresPreliminaryScrews,
+                isCompleted: this.completedPreliminaryDrills.has(firstUncheckedBeam.paramName)
+            }, null, 2));
+            return firstUncheckedBeam.paramName;
+        }
+        
+        console.log('FIRST_UNCHECKED_BEAM', JSON.stringify({
+            result: null,
+            reason: 'All required beams are completed or no beams require drilling'
+        }, null, 2));
+        return null;
+    }
+    
+    // בדיקה אם אנחנו במצב preliminary-drills עם משימות לא בוצעו
+    isPreliminaryDrillsMode(): boolean {
+        if (!this.isInstructionMode || !this.product?.instructions) {
+            return false;
+        }
+        
+        const currentStage = this.product.instructions[this.currentInstructionStage - 1];
+        if (!currentStage || currentStage.name !== 'preliminary-drills') {
+            return false;
+        }
+        
+        // בדיקה אם יש משימות שעדיין לא בוצעו
+        const hasUncompletedTasks = this.preliminaryDrillsInfo.some(info => 
+            info.requiresPreliminaryScrews && !this.completedPreliminaryDrills.has(info.paramName)
+        );
+        
+        const result = hasUncompletedTasks;
+        console.log('PRELIMINARY_DRILLS_MODE_CHECK', JSON.stringify({
+            isInstructionMode: this.isInstructionMode,
+            currentStageName: currentStage?.name,
+            isPreliminaryDrillsStage: currentStage?.name === 'preliminary-drills',
+            preliminaryDrillsInfoLength: this.preliminaryDrillsInfo.length,
+            hasUncompletedTasks: hasUncompletedTasks,
+            result: result
+        }, null, 2));
+        
+        return hasUncompletedTasks;
     }
     
     // בדיקה אם כל הקורות שדורשות קדחים סומנו
@@ -4672,6 +4769,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const legWoodTexture = this.getWoodTexture(
                 legType ? legType.name : ''
             );
+            // הגדרת legWidth ו-legDepth מהמידות של legBeam
+            let legWidth = 0;
+            let legDepth = 0;
+            if (legBeam) {
+                legWidth = legBeam.width / 10; // המרה ממ"מ לס"מ
+                legDepth = legBeam.height / 10; // המרה ממ"מ לס"מ
+            }
             // עבור ארון, הרגליים צריכות להגיע עד לנקודה התחתונה של המדף העליון
             // כלומר: totalY פחות עובי המדף העליון
             const shelfBeamHeight = beamHeight; // זה כבר מחושב למעלה
@@ -4704,6 +4808,53 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             });
             
             
+            // בדיקה אם אנחנו במצב preliminary-drills
+            const isPreliminaryDrills = this.isPreliminaryDrillsMode();
+            const firstUncheckedParam = isPreliminaryDrills ? this.getFirstUncheckedBeamParamName() : null;
+            
+            const currentStage = this.product?.instructions?.[this.currentInstructionStage - 1];
+            console.log('UPDATE_BEAMS_PRELIMINARY_CHECK', JSON.stringify({
+                isPreliminaryDrills: isPreliminaryDrills,
+                firstUncheckedParam: firstUncheckedParam,
+                isInstructionMode: this.isInstructionMode,
+                currentStageName: currentStage?.name,
+                currentInstructionStageIndex: this.currentInstructionStage
+            }, null, 2));
+            
+            // קביעת מה להציג במצב preliminary-drills
+            let shouldShowLegBeams = true;
+            let shouldShowShelfBeams = true;
+            let shouldShowReinforcementBeams = true;
+            
+            if (isPreliminaryDrills && firstUncheckedParam) {
+                // במצב preliminary-drills - נציג רק את הקורות הרלוונטיות
+                if (firstUncheckedParam === 'shelfs') {
+                    // רק קורות מדף
+                    shouldShowLegBeams = false;
+                    shouldShowReinforcementBeams = false;
+                } else if (firstUncheckedParam === 'leg') {
+                    // קורת רגל או קורות חיזוק (תלוי ב-is-reinforcement-beams-outside)
+                    shouldShowShelfBeams = false;
+                    const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                    const isOutside = !!(outsideParam && outsideParam.default === true);
+                    if (isOutside) {
+                        // הסתרת רגליים והצגת קורות חיזוק
+                        shouldShowLegBeams = false;
+                        shouldShowReinforcementBeams = true;
+                    } else {
+                        // רק קורות רגל
+                        shouldShowLegBeams = true;
+                        shouldShowReinforcementBeams = false;
+                    }
+                }
+            }
+            
+            console.log('UPDATE_BEAMS_VISIBILITY', JSON.stringify({
+                shouldShowLegBeams: shouldShowLegBeams,
+                shouldShowShelfBeams: shouldShowShelfBeams,
+                shouldShowReinforcementBeams: shouldShowReinforcementBeams
+            }, null, 2));
+            
             const legs = this.createLegBeams(
                 this.surfaceWidth,
                 this.surfaceLength,
@@ -4711,6 +4862,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 frameBeamHeight,
                 legHeight
             );
+            if (shouldShowLegBeams) {
             for (const leg of legs) {
                 
                 const geometry = new THREE.BoxGeometry(
@@ -4724,19 +4876,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 mesh.receiveShadow = true;
                 this.addWireframeToBeam(mesh); // הוספת wireframe במצב שקוף
                 mesh.position.set(leg.x, legHeight / 2, leg.z);
-                // If outside reinforcement flag is true, move cabinet legs toward Z=0 by b (leg profile height in cm)
-                const outsideParamCabLegs = this.getParam('is-reinforcement-beams-outside');
-                if (outsideParamCabLegs && outsideParamCabLegs.default === true) {
-                    const legProfileHeightCm = (legBeam && typeof legBeam.height === 'number') ? (legBeam.height / 10) : 0;
-                    if (legProfileHeightCm > 0) {
-                        const dirZ = mesh.position.z >= 0 ? 1 : -1;
-                        mesh.position.z = mesh.position.z - dirZ * legProfileHeightCm;
+                    // If outside reinforcement flag is true, move cabinet legs toward Z=0 by b (leg profile height in cm)
+                    const outsideParamCabLegs = this.getParam('is-reinforcement-beams-outside');
+                    if (outsideParamCabLegs && outsideParamCabLegs.default === true) {
+                        const legProfileHeightCm = (legBeam && typeof legBeam.height === 'number') ? (legBeam.height / 10) : 0;
+                        if (legProfileHeightCm > 0) {
+                            const dirZ = mesh.position.z >= 0 ? 1 : -1;
+                            mesh.position.z = mesh.position.z - dirZ * legProfileHeightCm;
+                        }
                     }
-                }
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
             }
-            // הוספת ברגים לרגליים עבור ארון
+            }
+            // הוספת ברגים לרגליים עבור ארון - תמיד (גם במצב preliminary-drills)
             // DUBBLE_LEG_SCREWS - Log for cabinet leg screws
             const legParamCabinet = this.getParam('leg');
             const legWidthCabinet = legParamCabinet?.beams?.[legParamCabinet.selectedBeamIndex || 0]?.width || 0;
@@ -4745,18 +4898,53 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // When outside=true: skip Y-facing screws (screwIndex=1), keep Z-facing screws (screwIndex=0)
             const outsideForCabinetScrews = this.getParam('is-reinforcement-beams-outside');
             const isOutsideEnabled = !!(outsideForCabinetScrews && outsideForCabinetScrews.default === true);
-            this.addScrewsToLegs(totalShelves, legs, frameBeamHeightCorrect, 0, isOutsideEnabled);
+            
+            // רק אם אנחנו במצב preliminary-drills עם leg, או במצב רגיל - להוסיף ברגים
+            if (!isPreliminaryDrills || firstUncheckedParam === 'leg') {
+                this.addScrewsToLegs(totalShelves, legs, frameBeamHeightCorrect, 0, isOutsideEnabled);
+            }
         }
         
         // עבור ארון - הקוד המקורי
         if (!this.isTable && !this.isPlanter && !this.isBox) {
+            // בדיקה אם אנחנו במצב preliminary-drills (לפני ה-loop של המדפים)
+            const isPreliminaryDrillsCabinet = this.isPreliminaryDrillsMode();
+            const firstUncheckedParamCabinet = isPreliminaryDrillsCabinet ? this.getFirstUncheckedBeamParamName() : null;
+            
+            // קביעת מה להציג במצב preliminary-drills
+            let shouldShowShelfBeamsCabinet = true;
+            let shouldShowReinforcementBeamsCabinet = true;
+            
+            if (isPreliminaryDrillsCabinet && firstUncheckedParamCabinet) {
+                if (firstUncheckedParamCabinet === 'shelfs') {
+                    // רק קורות מדף
+                    shouldShowReinforcementBeamsCabinet = false;
+                } else if (firstUncheckedParamCabinet === 'leg') {
+                    // קורת רגל או קורות חיזוק (תלוי ב-is-reinforcement-beams-outside)
+                    shouldShowShelfBeamsCabinet = false;
+                    const outsideParamCab = this.getParam('is-reinforcement-beams-outside');
+                    const isOutsideCab = !!(outsideParamCab && outsideParamCab.default === true);
+                    if (isOutsideCab) {
+                        // רק קורות חיזוק
+                        shouldShowReinforcementBeamsCabinet = true;
+                    } else {
+                        // לא להציג קורות חיזוק (רק רגליים מוצגים למעלה)
+                        shouldShowReinforcementBeamsCabinet = false;
+                    }
+                }
+            }
+            
             this.startTimer('CABINET - Total Rendering');
             
             this.logCabinet('CHACK_CABINET - Cabinet rendering check:', {
                 isTable: this.isTable,
                 isPlanter: this.isPlanter,
                 isBox: this.isBox,
-                shelvesLength: this.shelves.length
+                shelvesLength: this.shelves.length,
+                isPreliminaryDrills: isPreliminaryDrillsCabinet,
+                firstUncheckedParam: firstUncheckedParamCabinet,
+                shouldShowShelfBeams: shouldShowShelfBeamsCabinet,
+                shouldShowReinforcementBeams: shouldShowReinforcementBeamsCabinet
             });
             
             // הגדרת משתנים נכונים עבור ארון
@@ -4983,6 +5171,44 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
                 this.debugLog('==========================================');
 
+            // הגדרת משתני הצגה עבור ארון (בתוך לולאת המדפים)
+            // משתמשים במשתנים שהוגדרו לפני הלולאה - נגישים כי הם באותו scope
+            // אבל כדי להימנע משגיאות, נגדיר אותם מחדש כאן
+            const isPreliminaryDrillsCabinet = this.isPreliminaryDrillsMode();
+            const firstUncheckedParamCabinet = isPreliminaryDrillsCabinet ? this.getFirstUncheckedBeamParamName() : null;
+            
+            let shouldShowLegBeamsCabinet = true;
+            let shouldShowShelfBeamsCabinet = true;
+            let shouldShowReinforcementBeamsCabinet = true;
+            
+            if (isPreliminaryDrillsCabinet && firstUncheckedParamCabinet) {
+                if (firstUncheckedParamCabinet === 'shelfs') {
+                    shouldShowLegBeamsCabinet = false;
+                    shouldShowReinforcementBeamsCabinet = false;
+                } else if (firstUncheckedParamCabinet === 'leg') {
+                    shouldShowShelfBeamsCabinet = false;
+                    const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                    const isOutside = !!(outsideParam && outsideParam.default === true);
+                    if (isOutside) {
+                        shouldShowLegBeamsCabinet = false;
+                        shouldShowReinforcementBeamsCabinet = true;
+                    } else {
+                        shouldShowLegBeamsCabinet = true;
+                        shouldShowReinforcementBeamsCabinet = false;
+                    }
+                }
+            }
+            
+            console.log('UPDATE_BEAMS_SHELF_LOOP', JSON.stringify({
+                shelfIndex: shelfIndex + 1,
+                shouldShowShelfBeamsCabinet: shouldShowShelfBeamsCabinet,
+                shouldShowReinforcementBeamsCabinet: shouldShowReinforcementBeamsCabinet,
+                isPreliminaryDrillsCabinet: isPreliminaryDrillsCabinet,
+                firstUncheckedParamCabinet: firstUncheckedParamCabinet
+            }, null, 2));
+
+            // הצגת קורות מדף רק אם צריך
+            if (shouldShowShelfBeamsCabinet) {
             this.startTimer(`CABINET - Render ${surfaceBeams.length} Beams for Shelf ${shelfIndex + 1}`);
             for (let i = 0; i < surfaceBeams.length; i++) {
                 let beam = { ...surfaceBeams[i] };
@@ -5077,7 +5303,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     );
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
-                // הוספת ברגים לקורת המדף
+                // הוספת ברגים או חורים לקורת המדף
                     let isShortenedBeam =
                         !isTopShelf &&
                         (i === 0 || i === surfaceBeams.length - 1)
@@ -5090,15 +5316,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             isShortenedBeam = 'end';
                         }
                     }
-                    this.addScrewsToShelfBeam(
-                        beam,
-                        currentY + frameBeamHeightCorrect,
-                        beamHeightCorrect,
-                        frameBeamWidth,
-                        isShortenedBeam
-                    );
+                // הוספת ברגים לקורת מדף - תמיד (גם במצב preliminary-drills)
+                this.addScrewsToShelfBeam(
+                    beam,
+                    currentY + frameBeamHeightCorrect,
+                    beamHeightCorrect,
+                    frameBeamWidth,
+                    isShortenedBeam
+                );
                 }
             this.endTimer(`CABINET - Render ${surfaceBeams.length} Beams for Shelf ${shelfIndex + 1}`);
+            } // סיום if (shouldShowShelfBeamsCabinet)
             
             // Frame beams (קורת חיזוק)
             // CHACK_is-reinforcement-beams-outside - A (VALUES USED for CABINET)
@@ -5252,8 +5480,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     }, null, 2));
                 }
                 
+                // הצגת קורות חיזוק רק אם צריך
+                if (shouldShowReinforcementBeamsCabinet) {
                 this.scene.add(mesh);
                 this.beamMeshes.push(mesh);
+                }
             }
             this.endTimer(`CABINET - Create and Render Frame Beams for Shelf ${shelfIndex + 1}`);
             
@@ -5262,8 +5493,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.endTimer(`CABINET - Shelf ${shelfIndex + 1}`);
         }
         this.endTimer('CABINET - Total Rendering');
-            
-        }
+        } // סיום if (!this.isTable && !this.isFuton && !this.isPlanter && !this.isBox)
         
         // לא מעדכן מיקום מצלמה/zoom אחרי עדכון אלמנטים
         // Ensure scene rotation is maintained after updates
@@ -7566,8 +7796,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 count: groups[parseFloat(length)],
             }))
             .sort((a, b) => b.length - a.length);
-        
-        this.endTimer('CABINET - Calculate Beams Data');
     }
     animate() {
         requestAnimationFrame(() => this.animate());
@@ -8652,6 +8880,38 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     headHeight: number = 0.2; // 2 מ"מ = 0.2 ס"מ (גובה הראש)
     headRadius: number = 0.3; // 3 מ"מ = 0.3 ס"מ (רדיוס הראש)
     
+    // יצירת גיאומטריית חור (צילינדר שחור)
+    private createHoleGeometry(holeLength: number, holeRadius?: number): THREE.Mesh {
+        const actualHoleRadius = holeRadius || this.screwRadius;
+        const holeGeometry = new THREE.CylinderGeometry(
+            actualHoleRadius,
+            actualHoleRadius,
+            holeLength,
+            8
+        );
+        const holeMaterial = new THREE.MeshStandardMaterial({
+            color: 0x000000, // שחור
+            side: THREE.DoubleSide
+        });
+        const holeMesh = new THREE.Mesh(holeGeometry, holeMaterial);
+        return holeMesh;
+    }
+    
+    // יצירת חור אופקי (להרגליים)
+    private createHorizontalHoleGeometry(holeLength: number, holeRadius?: number): THREE.Mesh {
+        const holeMesh = this.createHoleGeometry(holeLength, holeRadius);
+        holeMesh.rotation.z = Math.PI / 2; // סיבוב לרוחב
+        holeMesh.position.x = -holeLength / 2; // מרכז את החור
+        return holeMesh;
+    }
+    
+    // יצירת חור אנכי (למדפים)
+    private createVerticalHoleGeometry(holeLength: number, holeRadius?: number): THREE.Mesh {
+        const holeMesh = this.createHoleGeometry(holeLength, holeRadius);
+        holeMesh.position.y = -holeLength / 2; // מרכז את החור
+        return holeMesh;
+    }
+    
     // מניעת לוגים חוזרים
     private lastDimensionsLogTime: number = 0;
     private lastCabinetLogTime: number = 0;
@@ -9453,6 +9713,160 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // screwGroup.rotation.x = Math.PI;
             this.scene.add(screwGroup);
             this.beamMeshes.push(screwGroup);
+        });
+    }
+    
+    // הוספת חורים לקורת מדף (במקום ברגים במצב preliminary drills)
+    private addHolesToShelfBeam(
+        beam: any,
+        shelfY: number,
+        beamHeight: number,
+        frameBeamWidth: number,
+        isShortenedBeam: string = 'top'
+    ) {
+        // חישוב אורך החור לפי סוג הבורג והמידות (כמו בברגים)
+        const calculatedScrewLength = this.calculateScrewLength('shelf', beamHeight);
+        const holeLength = calculatedScrewLength;
+        
+        // חישוב מיקומי החורים - זהה לחישוב מיקומי הברגים
+        const edgeOffset = frameBeamWidth / 2;
+        const inwardOffset =
+            beam.width / 4 > this.frameWidth / 2
+                ? beam.width / 4
+                : this.frameWidth / 2;
+        const beamZ = 0;
+        
+        let holePositions: { x: number; z: number }[];
+        
+        if (beam.width <= 4) {
+            // בורג אחד במרכז כל צד
+            holePositions = [
+                { x: beam.x, z: beamZ - beam.depth / 2 + edgeOffset },
+                { x: beam.x, z: beamZ + beam.depth / 2 - edgeOffset }
+            ];
+        } else {
+            // 4 חורים בפינות
+            holePositions = [
+                { x: beam.x - beam.width / 2 + inwardOffset, z: beamZ - beam.depth / 2 + edgeOffset },
+                { x: beam.x + beam.width / 2 - inwardOffset, z: beamZ - beam.depth / 2 + edgeOffset },
+                { x: beam.x - beam.width / 2 + inwardOffset, z: beamZ + beam.depth / 2 - edgeOffset },
+                { x: beam.x + beam.width / 2 - inwardOffset, z: beamZ + beam.depth / 2 - edgeOffset }
+            ];
+        }
+        
+        // טיפול בקורות מקוצרות - זהה ללוגיקה של הברגים
+        if (isShortenedBeam !== 'top') {
+            let threshold = 50;
+            if (this.product && Array.isArray(this.product.restrictions)) {
+                const thresholdRestriction = this.product.restrictions.find(
+                    (r: any) => r.name === 'dubble-shorten-beam-screws-threshold'
+                );
+                if (thresholdRestriction && typeof thresholdRestriction.val === 'number') {
+                    threshold = thresholdRestriction.val;
+                }
+            }
+            
+            const L = beam.depth;
+            const D = threshold;
+            
+            let numScrewsPerSide: number;
+            if (L > D) {
+                numScrewsPerSide = 2;
+            } else if (L > D / 2) {
+                numScrewsPerSide = 1.5;
+            } else {
+                numScrewsPerSide = 1;
+            }
+            
+            const basePositions = [
+                { x: beam.x - beam.width / 2 + inwardOffset, z: beamZ - beam.depth / 2 + edgeOffset },
+                { x: beam.x + beam.width / 2 - inwardOffset, z: beamZ - beam.depth / 2 + edgeOffset },
+                { x: beam.x - beam.width / 2 + inwardOffset, z: beamZ + beam.depth / 2 - edgeOffset },
+                { x: beam.x + beam.width / 2 - inwardOffset, z: beamZ + beam.depth / 2 - edgeOffset }
+            ];
+            
+            let filteredBasePositions: any[] = [];
+            if (isShortenedBeam === 'start') {
+                filteredBasePositions = [basePositions[0], basePositions[2]];
+            } else {
+                filteredBasePositions = [basePositions[1], basePositions[3]];
+            }
+            
+            if (numScrewsPerSide === 2) {
+                const startPos = filteredBasePositions[0];
+                const endPos = filteredBasePositions[1];
+                const middlePos1 = {
+                    x: startPos.x + (endPos.x - startPos.x) / 3,
+                    z: startPos.z + (endPos.z - startPos.z) / 3,
+                };
+                const middlePos2 = {
+                    x: startPos.x + (2 * (endPos.x - startPos.x)) / 3,
+                    z: startPos.z + (2 * (endPos.z - startPos.z)) / 3,
+                };
+                holePositions = [startPos, middlePos1, middlePos2, endPos];
+            } else if (numScrewsPerSide === 1.5) {
+                const startPos = filteredBasePositions[0];
+                const endPos = filteredBasePositions[1];
+                const middlePos = {
+                    x: (startPos.x + endPos.x) / 2,
+                    z: (startPos.z + endPos.z) / 2,
+                };
+                holePositions = [startPos, middlePos, endPos];
+            } else {
+                holePositions = filteredBasePositions;
+            }
+            
+            // עדכון מיקומי החורים לפי הלוגיקה המתקדמת (כמו ברגים)
+            const A = this.surfaceWidth / 2;
+            const X = this.frameHeight;
+            const Y = frameBeamWidth;
+            const Q = beam.width;
+            
+            const Z = (X - Y) / 2;
+            const R = (Q - Z) / 2;
+            const L_calc = R + Z;
+            
+            let finalDistance;
+            if (Q > X) {
+                finalDistance = A - X / 2;
+            } else {
+                finalDistance = A - L_calc;
+            }
+            
+            holePositions = holePositions.map((pos) => ({
+                x: pos.x > 0 ? finalDistance : -finalDistance,
+                z: pos.z,
+            }));
+        }
+        
+        // יצירת חורים
+        holePositions.forEach((pos) => {
+            const holeMesh = this.createVerticalHoleGeometry(holeLength);
+            const holeY = shelfY + beamHeight / 2; // מיקום החור במרכז הקורה
+            let holeX = pos.x;
+            
+            // חישוב מיקום החורים בציר X (רוחב המוצר) - לקורות מקוצרות בלבד
+            if (isShortenedBeam !== 'top') {
+                const legParam = this.getParam('leg');
+                let legBeamWidth = frameBeamWidth;
+                
+                if (legParam && Array.isArray(legParam.beams) && legParam.beams.length) {
+                    const legBeam = legParam.beams[legParam.selectedBeamIndex || 0];
+                    if (legBeam && typeof legBeam.width === 'number') {
+                        legBeamWidth = legBeam.width / 10;
+                    }
+                }
+                
+                const dimensions = this.getProductDimensionsRaw();
+                const productWidth = dimensions.width;
+                const halfProductWidth = productWidth / 2;
+                const halfLegBeamWidth = legBeamWidth / 2;
+                holeX = halfProductWidth - halfLegBeamWidth;
+            }
+            
+            holeMesh.position.set(holeX, holeY, pos.z);
+            this.scene.add(holeMesh);
+            this.beamMeshes.push(holeMesh);
         });
     }
     
