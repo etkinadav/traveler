@@ -91,6 +91,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // משתנה למניעת לוגים חוזרים של hasProductParametersChanged
     private paramChangedLogged = false;
+    
+    // משתנה למעקב אחרי הפעם הראשונה שעוברים להוראות הרכבה
+    private isFirstTimeEnteringInstructions = true;
 
     
     // קריאה ראשונית לבדיקת isEditMode
@@ -260,6 +263,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     
+    
     // פתיחה/סגירה של הוראות הרכבה
     toggleAssemblyInstructions() {
         this.isInstructionMode = !this.isInstructionMode;
@@ -293,6 +297,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 instructions: this.product?.instructions || [],
                 currentInstructionStage: this.currentInstructionStage
             }, null, 2));
+            
+            // איפוס מבט בפעם הראשונה בלבד
+            if (this.isFirstTimeEnteringInstructions) {
+                this.isFirstTimeEnteringInstructions = false;
+                // קריאה לאיפוס מבט לאחר סיום הטעינה
+                setTimeout(() => {
+                    this.resetCameraView();
+                }, 500); // המתנה כדי שהמודל יסיים לטעון
+            }
             
         } else {
             // חזרה למצב רגיל - איפוס currentInstructionStage וסימוני הקדחים
@@ -1288,6 +1301,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // איפוס מבט המצלמה לנקודת ההתחלה
     resetCameraView() {
+        if (!this.camera || !this.scene) return;
+        
         // סגירת תפריט האפשרויות
         this.isOptionsMenuOpen = false;
         
@@ -1308,10 +1323,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         setTimeout(() => {
             if (this.isBelams) {
                 // עבור מוצר קורות - שימוש בפונקציה המיוחדת
-                this.centerCameraOnBeams();
+                if (typeof (this as any).centerCameraOnBeams === 'function') {
+                    (this as any).centerCameraOnBeams();
+                }
             } else {
                 // עבור שאר המוצרים - שימוש בפונקציה הרגילה
-                this.centerCameraOnWireframe();
+                if (typeof (this as any).centerCameraOnWireframe === 'function') {
+                    (this as any).centerCameraOnWireframe();
+                }
             }
         }, 100);
         
