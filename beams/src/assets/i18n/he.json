@@ -1176,5 +1176,6 @@
   "modify-product.preliminary-drills-not-required": "אין צורך לקדוח קדחים מקדימים ב{{beamName}}",
   "modify-product.preliminary-drills-required": "קדח קדחים מקדימים ב{{beamName}}",
   "modify-product.no-preliminary-drilling-needed": "אין צורך לבצע קידוחים מקדימים!",
-  "modify-product.understood-continue-next": "הבנתי, נמשיך לשלב הבא"
+  "modify-product.understood-continue-next": "הבנתי, נמשיך לשלב הבא",
+  "modify-product.drilling-completed": "הקידוחים בוצעו"
 }

@@ -1037,5 +1037,6 @@
 	"modify-product.preliminary-drills-not-required": "No need to drill preliminary holes in {{beamName}}",
 	"modify-product.preliminary-drills-required": "Drill preliminary holes in {{beamName}}",
 	"modify-product.no-preliminary-drilling-needed": "No preliminary drilling needed!",
-	"modify-product.understood-continue-next": "Understood, continue to next step"
+	"modify-product.understood-continue-next": "Understood, continue to next step",
+	"modify-product.drilling-completed": "Drilling completed"
 }

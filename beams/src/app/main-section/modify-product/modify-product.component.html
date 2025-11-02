@@ -720,23 +720,6 @@
                                     <div class="preliminary-drills-content" 
                                          *ngIf="i === 0 && instruction.name === 'preliminary-drills' && preliminaryDrillsInfo.length > 0">
                                         
-                                        <!-- חץ מסמן פעולה יחיד - מופיע רק אם יש פעולה הבאה, מחוץ לתפריט -->
-                                        <svg class="instruction-action-arrow" 
-                                             *ngIf="hasNextAction()"
-                                             [style.left.px]="getControlsRightPosition()"
-                                             [style.top.px]="currentArrowTop"
-                                             [attr.data-arrow-trigger]="arrowUpdateTrigger"
-                                             style="display: block !important; visibility: visible !important; opacity: 1 !important;"
-                                             width="20" height="20" viewBox="0 0 20 20">
-                                            <!-- קו עליון -->
-                                            <line x1="0" y1="6" x2="14" y2="6" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
-                                            <!-- קו אמצעי -->
-                                            <line x1="0" y1="10" x2="18" y2="10" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
-                                            <!-- קו תחתון -->
-                                            <line x1="0" y1="14" x2="14" y2="14" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
-                                            <!-- ראש החץ (V) - בסוף -->
-                                            <path d="M 14 6 L 18 10 L 14 14" stroke="var(--zx-green, #0066cc)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
                                         <div class="preliminary-drills-list">
                                             <div *ngFor="let drillInfo of preliminaryDrillsInfo; trackBy: trackByParamName" class="preliminary-drill-item">
                                                 <!-- כותרת קורה -->
@@ -764,6 +747,15 @@
                                                             {{ 'modify-product.preliminary-drills-not-required' | translate: {beamName: drillInfo.beamTypeName} }}
                                                         </span>
                                                     </span>
+                                                </div>
+                                                
+                                                <!-- כפתור "הקידוחים בוצעו" - מתחת לצ'קבוקס הראשון שלא סומן -->
+                                                <div class="preliminary-drills-completed-button-wrapper" 
+                                                     *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.paramName) && isFirstUncheckedBeam(drillInfo.paramName)">
+                                                    <button class="preliminary-drills-completed-button" 
+                                                            (click)="markBeamAsCompleted(drillInfo)">
+                                                        {{ 'modify-product.drilling-completed' | translate }}
+                                                    </button>
                                                 </div>
                                                 
                                             </div>
@@ -1265,25 +1257,5 @@
                 </ng-container>
             </div>
             
-            <!-- חץ מסמן פעולה יחיד - מופיע מחוץ לכל הקונטיינרים, בצד ימין של התפריט -->
-            <svg class="instruction-action-arrow" 
-                 *ngIf="shouldShowArrow()"
-                 [style.left.px]="getControlsRightPosition()"
-                 [style.top.px]="currentArrowTop"
-                 [attr.data-arrow-trigger]="arrowUpdateTrigger"
-                 [attr.data-arrow-left]="getControlsRightPosition()"
-                 [attr.data-arrow-top]="currentArrowTop"
-                 [attr.data-arrow-current-stage]="currentInstructionStage"
-                 width="20" height="20" viewBox="0 0 20 20"
-                 style="display: block !important; visibility: visible !important; opacity: 1 !important; position: fixed !important; z-index: 9999 !important;">
-                <!-- קו עליון - פונה שמאלה -->
-                <line x1="20" y1="6" x2="6" y2="6" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
-                <!-- קו אמצעי - פונה שמאלה -->
-                <line x1="20" y1="10" x2="2" y2="10" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
-                <!-- קו תחתון - פונה שמאלה -->
-                <line x1="20" y1="14" x2="6" y2="14" stroke="var(--zx-green, #0066cc)" stroke-width="4" stroke-linecap="round"/>
-                <!-- ראש החץ (V) - בצד שמאל -->
-                <path d="M 6 6 L 2 10 L 6 14" stroke="var(--zx-green, #0066cc)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
         </div>
 </div>
