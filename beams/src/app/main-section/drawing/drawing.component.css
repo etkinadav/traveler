@@ -82,23 +82,23 @@
     position: absolute;
     font-size: 12px;
     color: #888;
-    white-space: nowrap;
 }
 
 .length-text {
     top: 0; /* צמוד למעלה של הקונטיינר */
-    margin-top: -15px; /* מוזז למעלה ב-100% מגובה ה-top-bar (15px) */
     left: 50%;
     transform: translateX(-50%); /* מרכז ימין-שמאל */
+    white-space: nowrap;
 }
 
 .width-text {
     left: 0; /* צמוד לשמאל של הקונטיינר */
     margin-left: -15px; /* מוזז שמאלה ב-100% מרוחב ה-left-bar (15px) */
     top: 50%;
-    transform: translateY(-50%); /* מרכז למעלה-למטה */
-    writing-mode: vertical-rl;
-    text-orientation: upright;
+    margin-top: 6px; /* הוספת 6 פיקסלים מטה כדי לתקן את המיקום */
+    transform: translateY(-50%) rotate(-90deg); /* מרכז הטקסט במרכז הגובה + סיבוב 90 מעלות */
+    transform-origin: center;
+    /* הטקסט יכול לזלוג ברוחב - אין white-space: nowrap */
 }
 
 .beam-rectangle {
