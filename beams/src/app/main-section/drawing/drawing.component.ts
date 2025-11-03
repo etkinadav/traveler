@@ -21,8 +21,92 @@ export class DrawingComponent implements OnInit, AfterViewInit, OnChanges {
   beamLengthPx: number = 0; // x - אורך הקורה בפיקסלים
   beamWidthPx: number = 0; // y - עובי הקורה בפיקסלים
   
+  // מערך הקדחים
+  holes: Array<{x: number, y: number, left: number, top: number}> = [];
+  
   ngOnInit() {
     this.calculateHeight();
+  }
+  
+  /**
+   * מאתחל קדח אחד לפי ערכי X ו-Y יחסיים (0-1)
+   */
+  initializeHoles() {
+    if (this.holes.length === 0) {
+      // קדח אחד בערכי X = 0.25, Y = 0.5
+      this.createHole(0.25, 0.5);
+    } else {
+      // אם כבר יש קדחים, רק נעדכן את המיקומים
+      this.updateHolesPositions();
+    }
+  }
+  
+  /**
+   * יוצר קדח לפי ערכי X ו-Y יחסיים (0-1)
+   * X = 0 → שמאל, X = 1 → ימין
+   * Y = 0 → למעלה, Y = 1 → למטה
+   * @param x - מיקום אופקי יחסי (0 עד 1)
+   * @param y - מיקום אנכי יחסי (0 עד 1)
+   */
+  createHole(x: number, y: number) {
+    if (!this.containerRef || !this.containerRef.nativeElement) {
+      return;
+    }
+    
+    const rectangle = this.containerRef.nativeElement.querySelector('.beam-rectangle');
+    if (!rectangle) {
+      return;
+    }
+    
+    // שימוש ב-getBoundingClientRect() כדי לקבל מידות מדויקות
+    const rect = rectangle.getBoundingClientRect();
+    const rectWidth = rect.width;  // כולל border
+    const rectHeight = rect.height; // כולל border
+    
+    // חישוב מיקום לפי ערכי X ו-Y יחסיים
+    // X = 0 → left = 0, X = 1 → left = rectWidth
+    // Y = 0 → top = 0, Y = 1 → top = rectHeight
+    const finalLeft = rectWidth * x;
+    const finalTop = rectHeight * y;
+    
+    // מרכז העיגול - עם transform: translate(-50%, -50%) המרכז יהיה ב-(finalLeft, finalTop)
+    this.holes.push({
+      x: x,
+      y: y,
+      left: finalLeft,
+      top: finalTop
+    });
+  }
+  
+  /**
+   * מעדכן את מיקומי כל הקדחים לאחר שינויי מידות
+   */
+  updateHolesPositions() {
+    if (!this.containerRef || !this.containerRef.nativeElement) {
+      return;
+    }
+    
+    const rectangle = this.containerRef.nativeElement.querySelector('.beam-rectangle');
+    if (!rectangle) {
+      return;
+    }
+    
+    // שימוש ב-getBoundingClientRect() כדי לקבל מידות מדויקות
+    const rect = rectangle.getBoundingClientRect();
+    const rectWidth = rect.width;  // כולל border
+    const rectHeight = rect.height; // כולל border
+    
+    this.holes = this.holes.map(hole => {
+      // חישוב מיקום לפי ערכי X ו-Y יחסיים (0-1)
+      const finalLeft = rectWidth * hole.x;
+      const finalTop = rectHeight * hole.y;
+      
+      return {
+        ...hole,
+        left: finalLeft,
+        top: finalTop
+      };
+    });
   }
   
   ngAfterViewInit() {
@@ -78,6 +162,15 @@ export class DrawingComponent implements OnInit, AfterViewInit, OnChanges {
             this.calculatedHeight = 45;
             this.beamWidthPx = 45;
           }
+          
+          // עדכון מיקומי הקדחים לאחר חישוב הגובה
+          setTimeout(() => {
+            if (this.holes.length === 0) {
+              this.initializeHoles();
+            } else {
+              this.updateHolesPositions();
+            }
+          }, 10);
         } else {
           // אפס ערכים אם אין נתונים
           this.beamLengthPx = 0;

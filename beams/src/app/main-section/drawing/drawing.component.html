@@ -20,6 +20,11 @@
                     <div class="left-bar-center"></div>
                 </div>
             </div>
+            <!-- קדחים (חורים) -->
+            <div *ngFor="let hole of holes" 
+                 class="hole"
+                 [style.left.px]="hole.left"
+                 [style.top.px]="hole.top"></div>
         </div>
     </div>
 </div>
