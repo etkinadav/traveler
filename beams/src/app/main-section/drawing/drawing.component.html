@@ -1,14 +1,25 @@
-<div class="drawing-container" #container>
-    <!-- מידע דיבוג - מעל המלבן -->
-    <div class="debug-info">
-        <span>X - {{ containerWidth }}px</span>
-        <span>Y - {{ containerHeight }}px</span>
-        <span>x - {{ beamLength }}ס"מ</span>
-        <span>y - {{ beamWidth }}ס"מ</span>
-    </div>
+<div class="drawing-wrapper">
+    <!-- טקסט מידת האורך - מעל ה-top-bar במרכז, בקונטיינר הכי חיצוני -->
+    <div class="dimension-text length-text">{{ beamLength }}ס"מ</div>
+    <!-- טקסט מידת העובי - משמאל ל-left-bar במרכז, בקונטיינר הכי חיצוני -->
+    <div class="dimension-text width-text">{{ beamWidth }}ס"מ</div>
     
-    <div class="beam-rectangle" 
-         [style.width]="'100%'"
-         [style.height.px]="calculatedHeight">
+    <div class="drawing-container" #container>
+        <div class="beam-rectangle" 
+             [style.width]="'100%'"
+             [style.height.px]="calculatedHeight">
+            <!-- Div מרחף מעל המלבן - מכסה את ה-padding העליון -->
+            <div class="floating-div top-bar">
+                <div class="top-bar-inner">
+                    <div class="top-bar-center"></div>
+                </div>
+            </div>
+            <!-- Div מרחף משמאל למלבן - מכסה את ה-padding משמאל -->
+            <div class="floating-div left-bar">
+                <div class="left-bar-inner">
+                    <div class="left-bar-center"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
