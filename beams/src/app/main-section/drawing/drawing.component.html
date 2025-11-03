@@ -1,4 +1,12 @@
 <div class="drawing-container" #container>
+    <!-- מידע דיבוג - מעל המלבן -->
+    <div class="debug-info">
+        <span>X - {{ containerWidth }}px</span>
+        <span>Y - {{ containerHeight }}px</span>
+        <span>x - {{ beamLength }}ס"מ</span>
+        <span>y - {{ beamWidth }}ס"מ</span>
+    </div>
+    
     <div class="beam-rectangle" 
          [style.width]="'100%'"
          [style.height.px]="calculatedHeight">
