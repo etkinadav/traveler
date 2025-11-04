@@ -658,8 +658,33 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 let beamDisplayName = '';
                 
                 if (paramName === 'shelfs') {
-                    beamTypeName = 'קורת מדף';
-                    beamDisplayName = 'קורת מדף';
+                    // בדיקה אם זה קורת מדף מקוצרת או לא
+                    const dimensions = this.getProductDimensionsRaw();
+                    const totalHeight = dimensions.height;
+                    const shelfBeamHeight = (this.getParam('shelfs')?.beams?.[this.getParam('shelfs')?.selectedBeamIndex || 0]?.height || 0) / 10;
+                    const legParamForShortening = this.getParam('leg');
+                    const legBeamSelected = legParamForShortening?.beams?.[legParamForShortening.selectedBeamIndex || 0];
+                    const legBeamHeight = legBeamSelected?.height / 10 || 0;
+                    const outsideParamCabForShortening = this.getParam('is-reinforcement-beams-outside');
+                    const isOutsideCabForShortening = !!(outsideParamCabForShortening && outsideParamCabForShortening.default === true);
+                    const defaultShorten = (legBeamHeight * 2);
+                    const extraShorten = isOutsideCabForShortening ? (2 * (this.frameWidth || 0)) : 0;
+                    const shortenedLength = Math.max(0.1, this.surfaceLength - (defaultShorten + extraShorten));
+                    const fullLength = this.surfaceLength;
+                    
+                    const isShortenedBeam = Math.abs(beamLength - shortenedLength) < 0.1;
+                    const isFullLengthBeam = Math.abs(beamLength - fullLength) < 0.1;
+                    
+                    if (isShortenedBeam) {
+                        beamTypeName = 'קורות מדף מקוצרות';
+                        beamDisplayName = 'קורות מדף מקוצרות';
+                    } else if (isFullLengthBeam) {
+                        beamTypeName = 'קורת מדף';
+                        beamDisplayName = 'קורת מדף';
+                    } else {
+                        beamTypeName = 'קורת מדף';
+                        beamDisplayName = 'קורת מדף';
+                    }
                 } else if (paramName === 'leg') {
                     // בדיקה אם זה קורת חיזוק או קורת רגל רגילה
                     const outsideParam = this.getParam('is-reinforcement-beams-outside');
@@ -5758,6 +5783,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     shouldShowLegBeamsCabinet = false;
                     shouldShowReinforcementBeamsCabinet = false;
                     
+                    // בדיקה אם זה קורות מקוצרות או לא מקוצרות
+                    const legParamForShortening = this.getParam('leg');
+                    const legBeamSelected = legParamForShortening?.beams?.[legParamForShortening.selectedBeamIndex || 0];
+                    const legBeamHeight = legBeamSelected?.height / 10 || 0;
+                    const outsideParamCabForShortening = this.getParam('is-reinforcement-beams-outside');
+                    const isOutsideCabForShortening = !!(outsideParamCabForShortening && outsideParamCabForShortening.default === true);
+                    const defaultShorten = (legBeamHeight * 2);
+                    const extraShorten = isOutsideCabForShortening ? (2 * (this.frameWidth || 0)) : 0;
+                    const shortenedLength = Math.max(0.1, this.surfaceLength - (defaultShorten + extraShorten));
+                    const fullLength = this.surfaceLength;
+                    
+                    const isShortenedBeam = Math.abs(firstUncheckedBeamLength - shortenedLength) < 0.1;
+                    const isFullLengthBeam = Math.abs(firstUncheckedBeamLength - fullLength) < 0.1;
+                    
                     // נציג רק את קורות המדף עם האורך הספציפי
                     // (זה יטופל בלוגיקה של יצירת הקורות)
                 } else if (firstUncheckedParamName === 'leg') {
@@ -5860,6 +5899,62 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             `   - מדלג על קורה ${i + 1} (חסומה על ידי רגל)`
                         );
                         continue; // מדלג על יצירת הקורה הזאת
+                    }
+                    
+                    // בדיקה אם זה קורות מקוצרות או לא מקוצרות לפי הצ'קבוקס הנוכחי
+                    let shouldShowThisBeam = true;
+                    
+                    if (isPreliminaryDrillsCabinet && firstUncheckedCompositeKey) {
+                        const parts = firstUncheckedCompositeKey.split('-');
+                        const firstUncheckedParamNameLocal = parts[0]; // 'shelfs' או 'leg'
+                        const firstUncheckedBeamLengthLocal = parseFloat(parts.slice(1).join('-')); // אורך הקורה
+                        
+                        if (firstUncheckedParamNameLocal === 'shelfs') {
+                            // חישוב אורך הקורה הנוכחית (לפני או אחרי קיצור)
+                            let currentBeamLength = beam.depth;
+                            
+                            // אם הקורה הזו מקוצרת, נחשב את האורך המקוצר
+                            if (!isTopShelf && (i === 0 || i === surfaceBeams.length - 1)) {
+                                const outsideParamCabShelves = this.getParam('is-reinforcement-beams-outside');
+                                const isOutsideCabShelves = !!(outsideParamCabShelves && outsideParamCabShelves.default === true);
+                                if (isOutsideCabShelves) {
+                                    currentBeamLength = Math.max(0.1, this.surfaceLength - ((2 * frameBeamWidth) + (2 * legDepth)));
+                                } else {
+                                    currentBeamLength = this.surfaceLength - 2 * frameBeamWidth;
+                                }
+                            } else {
+                                // קורה לא מקוצרת
+                                currentBeamLength = this.surfaceLength;
+                            }
+                            
+                            // השוואה עם האורך של הצ'קבוקס הנוכחי
+                            const legParamForShorteningCheck = this.getParam('leg');
+                            const legBeamSelectedCheck = legParamForShorteningCheck?.beams?.[legParamForShorteningCheck.selectedBeamIndex || 0];
+                            const legBeamHeightCheck = legBeamSelectedCheck?.height / 10 || 0;
+                            const outsideParamCabForShorteningCheck = this.getParam('is-reinforcement-beams-outside');
+                            const isOutsideCabForShorteningCheck = !!(outsideParamCabForShorteningCheck && outsideParamCabForShorteningCheck.default === true);
+                            const defaultShortenCheck = (legBeamHeightCheck * 2);
+                            const extraShortenCheck = isOutsideCabForShorteningCheck ? (2 * (this.frameWidth || 0)) : 0;
+                            const shortenedLengthCheck = Math.max(0.1, this.surfaceLength - (defaultShortenCheck + extraShortenCheck));
+                            const fullLengthCheck = this.surfaceLength;
+                            
+                            const isCurrentBeamShortened = Math.abs(currentBeamLength - shortenedLengthCheck) < 0.1;
+                            const isCurrentBeamFullLength = Math.abs(currentBeamLength - fullLengthCheck) < 0.1;
+                            const isShortenedBeamCheck = Math.abs(firstUncheckedBeamLengthLocal - shortenedLengthCheck) < 0.1;
+                            const isFullLengthBeamCheck = Math.abs(firstUncheckedBeamLengthLocal - fullLengthCheck) < 0.1;
+                            
+                            // אם הצ'קבוקס הוא של קורות מקוצרות - נציג רק קורות מקוצרות
+                            if (isShortenedBeamCheck) {
+                                shouldShowThisBeam = isCurrentBeamShortened;
+                            } else if (isFullLengthBeamCheck) {
+                                // אם הצ'קבוקס הוא של קורות לא מקוצרות - נציג רק קורות לא מקוצרות
+                                shouldShowThisBeam = isCurrentBeamFullLength;
+                            }
+                        }
+                    }
+                    
+                    if (!shouldShowThisBeam) {
+                        continue; // מדלג על יצירת הקורה הזאת אם היא לא צריכה להיות מוצגת
                     }
 
                     if (
