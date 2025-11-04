@@ -3043,12 +3043,6 @@ mat-form-field {
         font-size: 14px !important;
         font-weight: 400 !important;
     }
-    
-    // כאשר הצ'קבוקס מסומן - כל השורה תהיה ב-50% אופסיטי
-    &.completed {
-        opacity: 0.5;
-        transition: opacity 0.2s ease;
-    }
 }
 
 // סיכום הבחירות

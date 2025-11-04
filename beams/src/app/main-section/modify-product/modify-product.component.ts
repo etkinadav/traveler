@@ -685,6 +685,36 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     
+    // פונקציה לקביעת מצב האנימציה של טקסט ההוראות
+    getInstructionTextState(drillInfo: any): string {
+        if (!drillInfo || !drillInfo.requiresPreliminaryScrews) {
+            return 'collapsed';
+        }
+        
+        // אם הקורה מסומנת או זו לא הקורה הראשונה שלא מסומנה - collapsed
+        if (this.isBeamMarkedAsCompleted(drillInfo.compositeKey) || !this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
+            return 'collapsed';
+        }
+        
+        // אחרת - expanded
+        return 'expanded';
+    }
+    
+    // פונקציה לקביעת מצב האנימציה של כפתור "הקידוחים בוצעו"
+    getCompletedButtonState(drillInfo: any): string {
+        if (!drillInfo || !drillInfo.requiresPreliminaryScrews) {
+            return 'collapsed';
+        }
+        
+        // אם הקורה מסומנת או זו לא הקורה הראשונה שלא מסומנה - collapsed
+        if (this.isBeamMarkedAsCompleted(drillInfo.compositeKey) || !this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
+            return 'collapsed';
+        }
+        
+        // אחרת - expanded
+        return 'expanded';
+    }
+    
     // סימון קורה כהושלמה (מהכפתור "הקידוחים בוצעו")
     markBeamAsCompleted(drillInfo: any) {
         if (!drillInfo || !drillInfo.requiresPreliminaryScrews) {

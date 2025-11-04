@@ -749,37 +749,39 @@
                                                 </div>
                                                 
                                                 <!-- טקסט הוראות קידוח - מוצג רק כשצריך קידוח וזה השלב הנוכחי -->
-                                                <div class="preliminary-drills-instruction-text-wrapper" 
-                                                     *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.compositeKey) && isFirstUncheckedBeam(drillInfo.compositeKey)">
-                                                    <div class="instruction-text-with-drawing">
-                                                        <p class="preliminary-drills-instruction-text" 
-                                                           [innerHTML]="getPreliminaryDrillsInstructionText(drillInfo)">
-                                                        </p>
-                                                        
-                                                        <!-- מלבן שרטוט - מתחת לטקסט ההוראה -->
-                                                        <div class="drilling-drawing-wrapper">
-                                                            <app-drawing
-                                                                [isDrillingMode]="true"
-                                                                [beamType]="drillInfo.beamTypeName || drillInfo.beamDisplayName || ''"
-                                                                [product]="getCurrentProductConfiguration()"
-                                                                [beamLength]="drillInfo.beamLength"
-                                                                [beamWidth]="drillInfo.beamWidth">
-                                                            </app-drawing>
+                                                <ng-container *ngIf="drillInfo.requiresPreliminaryScrews">
+                                                    <div class="preliminary-drills-instruction-text-wrapper" 
+                                                         [@slideUpDown]="getInstructionTextState(drillInfo)">
+                                                        <div class="instruction-text-with-drawing">
+                                                            <p class="preliminary-drills-instruction-text" 
+                                                               [innerHTML]="getPreliminaryDrillsInstructionText(drillInfo)">
+                                                            </p>
+                                                            
+                                                            <!-- מלבן שרטוט - מתחת לטקסט ההוראה -->
+                                                            <div class="drilling-drawing-wrapper">
+                                                                <app-drawing
+                                                                    [isDrillingMode]="true"
+                                                                    [beamType]="drillInfo.beamTypeName || drillInfo.beamDisplayName || ''"
+                                                                    [product]="getCurrentProductConfiguration()"
+                                                                    [beamLength]="drillInfo.beamLength"
+                                                                    [beamWidth]="drillInfo.beamWidth">
+                                                                </app-drawing>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                
-                                                <!-- כפתור "הקידוחים בוצעו" - מתחת לצ'קבוקס הראשון שלא סומן -->
-                                                <div class="preliminary-drills-completed-button-wrapper" 
-                                                     *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.compositeKey) && isFirstUncheckedBeam(drillInfo.compositeKey)">
-                                                    <button class="preliminary-drills-completed-button" 
-                                                            (click)="markBeamAsCompleted(drillInfo)">
-                                                        <span>{{ 'modify-product.drilling-completed' | translate }}</span>
-                                                        <svg class="action-arrow-icon" width="14" height="14" viewBox="0 0 14 14">
-                                                            <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        </svg>
-                                                    </button>
-                                                </div>
+                                                    
+                                                    <!-- כפתור "הקידוחים בוצעו" - מתחת לצ'קבוקס הראשון שלא סומן -->
+                                                    <div class="preliminary-drills-completed-button-wrapper" 
+                                                         [@slideUpDown]="getCompletedButtonState(drillInfo)">
+                                                        <button class="preliminary-drills-completed-button" 
+                                                                (click)="markBeamAsCompleted(drillInfo)">
+                                                            <span>{{ 'modify-product.drilling-completed' | translate }}</span>
+                                                            <svg class="action-arrow-icon" width="14" height="14" viewBox="0 0 14 14">
+                                                                <path d="M 2 7 L 10 7 M 7 3 L 11 7 L 7 11" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </ng-container>
                                                 
                                             </div>
                                             </ng-container>
