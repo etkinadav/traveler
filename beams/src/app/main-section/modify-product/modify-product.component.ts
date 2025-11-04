@@ -10438,10 +10438,26 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
 
             // עדכון מיקומי כל הברגים לפי המרחק הסופי מהמרכז
-            screwPositions = screwPositions.map((pos) => ({
-                x: pos.x > 0 ? finalDistance : -finalDistance,
-                z: pos.z,
-            }));
+            // לקורות מקוצרות - נקבע את הצד לפי isShortenedBeam
+            if (isShortenedBeam === 'start') {
+                // קורה מקוצרת משמאל - כל הברגים בצד שמאל (x שלילי)
+                screwPositions = screwPositions.map((pos) => ({
+                    x: -finalDistance,
+                    z: pos.z,
+                }));
+            } else if (isShortenedBeam === 'end') {
+                // קורה מקוצרת מימין - כל הברגים בצד ימין (x חיובי)
+                screwPositions = screwPositions.map((pos) => ({
+                    x: finalDistance,
+                    z: pos.z,
+                }));
+            } else {
+                // קורה לא מקוצרת - הלוגיקה המקורית
+                screwPositions = screwPositions.map((pos) => ({
+                    x: pos.x > 0 ? finalDistance : -finalDistance,
+                    z: pos.z,
+                }));
+            }
             
             console.log('CHECK_SHORTEN_BEAM_SCREWS_COUNT', JSON.stringify({
                 isShortenedBeam: isShortenedBeam,
@@ -10488,7 +10504,18 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const productWidth = dimensions.width; // רוחב המוצר
                 const halfProductWidth = productWidth / 2;
                 const halfLegBeamWidth = legBeamWidth / 2;
-                screwX = halfProductWidth - halfLegBeamWidth;
+                
+                // קביעת הצד לפי isShortenedBeam
+                if (isShortenedBeam === 'start') {
+                    // קורה מקוצרת משמאל - הברגים בצד שמאל (x שלילי)
+                    screwX = -(halfProductWidth - halfLegBeamWidth);
+                } else if (isShortenedBeam === 'end') {
+                    // קורה מקוצרת מימין - הברגים בצד ימין (x חיובי)
+                    screwX = halfProductWidth - halfLegBeamWidth;
+                } else {
+                    // קורה לא מקוצרת - הלוגיקה המקורית
+                    screwX = halfProductWidth - halfLegBeamWidth;
+                }
                 
                 console.log('CHECK_MOVED_BEAM', JSON.stringify({
                     isShortenedBeam: isShortenedBeam,
@@ -10504,7 +10531,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     legBeamWidth: legBeamWidth,
                     legBeamWidth_meaning: 'רוחב קורת הרגל (המידה השנייה של קורת הרגל)',
                     productWidth: productWidth,
-                    calculation: `screwX = (productWidth / 2) - (legBeamWidth / 2) = (${productWidth} / 2) - (${legBeamWidth} / 2) = ${halfProductWidth} - ${halfLegBeamWidth} = ${screwX}`,
+                    calculation: `screwX = ${isShortenedBeam === 'start' ? '-(' : isShortenedBeam === 'end' ? '(' : 'pos.x = '}halfProductWidth - halfLegBeamWidth${isShortenedBeam === 'start' || isShortenedBeam === 'end' ? ')' : ''} = ${screwX}`,
                     screwPosition: {
                         x: screwX,
                         y: screwY,
