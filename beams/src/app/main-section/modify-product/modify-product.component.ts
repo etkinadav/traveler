@@ -526,15 +526,33 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             
                             if (frameBeam && frameType) {
                                 const totalShelves = this.shelves.length;
-                                const widthLength = this.surfaceWidth;
                                 
                                 // בדיקה אם צריך קדחים מקדימים לקורות חיזוק חיצוניות
                                 const requiresPreliminaryScrewsForFrame = this.checkIfBeamRequiresPreliminaryScrews('frame', frameBeam, frameType);
                                 
                                 if (requiresPreliminaryScrewsForFrame) {
+                                    // חישוב אורכי הקורות לפי כיוון
+                                    // X-spanning beams: פרוסות לרוחב המוצר, האורך שלהן הוא surfaceWidth (אחרי התאמות: surfaceWidth + 2*legWidth)
+                                    const legParam = this.getParam('leg');
+                                    const legBeam = legParam?.beams?.[legParam.selectedBeamIndex || 0];
+                                    const legWidth = legBeam?.width / 10 || 0;
+                                    const xSpanningLength = this.surfaceWidth + (2 * legWidth); // X-spanning עם התאמות
+                                    
+                                    // Z-spanning beams: פרוסות לאורך המוצר, האורך שלהן הוא surfaceLength (אחרי התאמות: surfaceLength - 2*legDepth)
+                                    const legDepth = legBeam?.height / 10 || 0;
+                                    const zSpanningLength = Math.max(0.1, this.surfaceLength - (2 * legDepth)); // Z-spanning עם התאמות
+                                    
+                                    // צ'קבוקס לקורות X-spanning (פרוסות לרוחב המוצר)
                                     for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
-                                        for (let i = 0; i < 2; i++) {
-                                            allSizes.set(widthLength, (allSizes.get(widthLength) || 0) + this.quantity);
+                                        for (let i = 0; i < 2; i++) { // 2 קורות X-spanning לכל מדף
+                                            allSizes.set(xSpanningLength, (allSizes.get(xSpanningLength) || 0) + this.quantity);
+                                        }
+                                    }
+                                    
+                                    // צ'קבוקס לקורות Z-spanning (פרוסות לאורך המוצר)
+                                    for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
+                                        for (let i = 0; i < 2; i++) { // 2 קורות Z-spanning לכל מדף
+                                            allSizes.set(zSpanningLength, (allSizes.get(zSpanningLength) || 0) + this.quantity);
                                         }
                                     }
                                 }
@@ -546,13 +564,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         const requiresPreliminaryScrewsForReinforcement = this.checkIfBeamRequiresPreliminaryScrews('leg', selectedBeam, selectedType);
                         
                         if (requiresPreliminaryScrewsForReinforcement) {
-                            // קורות החיזוק הפנימיות הן באורך surfaceWidth
-                            const reinforcementLength = this.surfaceWidth;
                             const totalShelves = this.shelves.length;
                             
+                            // חישוב אורכי הקורות לפי כיוון
+                            // X-spanning beams: פרוסות לרוחב המוצר, האורך שלהן הוא surfaceWidth - 2*legWidth
+                            const legWidth = selectedBeam?.width / 10 || 0;
+                            const xSpanningLength = Math.max(0.1, this.surfaceWidth - (2 * legWidth));
+                            
+                            // Z-spanning beams: פרוסות לאורך המוצר, האורך שלהן הוא surfaceLength
+                            const zSpanningLength = this.surfaceLength;
+                            
+                            // צ'קבוקס לקורות X-spanning (פרוסות לרוחב המוצר)
                             for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
-                                for (let i = 0; i < 2; i++) {
-                                    allSizes.set(reinforcementLength, (allSizes.get(reinforcementLength) || 0) + this.quantity);
+                                for (let i = 0; i < 2; i++) { // 2 קורות X-spanning לכל מדף
+                                    allSizes.set(xSpanningLength, (allSizes.get(xSpanningLength) || 0) + this.quantity);
+                                }
+                            }
+                            
+                            // צ'קבוקס לקורות Z-spanning (פרוסות לאורך המוצר)
+                            for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
+                                for (let i = 0; i < 2; i++) { // 2 קורות Z-spanning לכל מדף
+                                    allSizes.set(zSpanningLength, (allSizes.get(zSpanningLength) || 0) + this.quantity);
                                 }
                             }
                         }
@@ -643,8 +675,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const beamLength = Math.round(lengthInfo.length * 10) / 10;
                 const count = lengthInfo.count;
                 
-                // יצירת מפתח מורכב: paramName-beamLength
-                const compositeKey = `${paramName}-${beamLength}`;
+                // יצירת מפתח מורכב: paramName-beamLength (יועדכן מאוחר יותר אם זה קורת חיזוק)
+                let compositeKey = `${paramName}-${beamLength}`;
                 
                 // שם הקורה להצגה
                 let beamTypeName = '';
@@ -687,20 +719,50 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const totalHeight = dimensions.height;
                     const shelfBeamHeight = (this.getParam('shelfs')?.beams?.[this.getParam('shelfs')?.selectedBeamIndex || 0]?.height || 0) / 10;
                     const legHeight = totalHeight - shelfBeamHeight;
-                    const reinforcementLength = this.surfaceWidth;
+                    
+                    // חישוב אורכי קורות החיזוק לפי כיוון
+                    let xSpanningLength = 0;
+                    let zSpanningLength = 0;
+                    let reinforcementDirection = '';
+                    
+                    if (isOutside) {
+                        // קורות חיזוק חיצוניות
+                        const legParam = this.getParam('leg');
+                        const legBeam = legParam?.beams?.[legParam.selectedBeamIndex || 0];
+                        const legWidth = legBeam?.width / 10 || 0;
+                        const legDepth = legBeam?.height / 10 || 0;
+                        xSpanningLength = this.surfaceWidth + (2 * legWidth);
+                        zSpanningLength = Math.max(0.1, this.surfaceLength - (2 * legDepth));
+                    } else {
+                        // קורות חיזוק פנימיות
+                        const legWidth = selectedBeam?.width / 10 || 0;
+                        xSpanningLength = Math.max(0.1, this.surfaceWidth - (2 * legWidth));
+                        zSpanningLength = this.surfaceLength;
+                    }
                     
                     const isLegBeamLength = Math.abs(beamLength - legHeight) < 0.1;
-                    const isReinforcementBeamLength = Math.abs(beamLength - reinforcementLength) < 0.1;
+                    const isXSpanningLength = Math.abs(beamLength - xSpanningLength) < 0.1;
+                    const isZSpanningLength = Math.abs(beamLength - zSpanningLength) < 0.1;
                     
-                    if (isReinforcementBeamLength) {
-                        beamTypeName = 'קורת חיזוק';
-                        beamDisplayName = 'קורת חיזוק';
+                    if (isXSpanningLength) {
+                        beamTypeName = 'קורת חיזוק לרוחב';
+                        beamDisplayName = 'קורת חיזוק לרוחב';
+                        reinforcementDirection = 'x-spanning';
+                    } else if (isZSpanningLength) {
+                        beamTypeName = 'קורת חיזוק לאורך';
+                        beamDisplayName = 'קורת חיזוק לאורך';
+                        reinforcementDirection = 'z-spanning';
                     } else if (isLegBeamLength) {
                         beamTypeName = 'קורת רגל';
                         beamDisplayName = 'קורת רגל';
                     } else {
                         beamTypeName = 'קורת רגל';
                         beamDisplayName = 'קורת רגל';
+                    }
+                    
+                    // עדכון compositeKey אם זה קורת חיזוק
+                    if (reinforcementDirection) {
+                        compositeKey = `${paramName}-${reinforcementDirection}-${beamLength}`;
                     }
                 }
                 
@@ -6222,34 +6284,52 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 // הצגת קורות חיזוק רק אם צריך
                 if (shouldShowReinforcementBeamsCabinet) {
-                    // במצב preliminary-drills - בדיקה לפי compositeKey ואורך הקורה
+                    // במצב preliminary-drills - בדיקה לפי compositeKey וכיוון הקורה
                     if (isPreliminaryDrillsCabinet && firstUncheckedCompositeKey) {
                         const parts = firstUncheckedCompositeKey.split('-');
                         const firstUncheckedParamName = parts[0];
-                        const firstUncheckedBeamLength = parseFloat(parts.slice(1).join('-'));
                         
-                        const dimensions = this.getProductDimensionsRaw();
-                        const totalHeight = dimensions.height;
-                        const shelfBeamHeight = (this.getParam('shelfs')?.beams?.[this.getParam('shelfs')?.selectedBeamIndex || 0]?.height || 0) / 10;
-                        const legHeight = totalHeight - shelfBeamHeight;
-                        const reinforcementLength = this.surfaceWidth;
-                        
-                        const isReinforcementBeamLength = Math.abs(firstUncheckedBeamLength - reinforcementLength) < 0.1;
-                        
-                        // אם זה קורת חיזוק - נציג אותה רק אם האורך תואם
-                        if (firstUncheckedParamName === 'leg' && isReinforcementBeamLength) {
-                            // בדיקה אם זה X-spanning או Z-spanning בהתאם ל-isOutside
+                        // בדיקה אם זה קורת חיזוק ואם יש כיוון ב-compositeKey
+                        if (firstUncheckedParamName === 'leg' && parts.length >= 3) {
+                            const firstUncheckedDirection = parts[1]; // x-spanning או z-spanning
+                            const firstUncheckedBeamLength = parseFloat(parts.slice(2).join('-'));
+                            
+                            // חישוב אורכי הקורות לפי כיוון
+                            let expectedXSpanningLength = 0;
+                            let expectedZSpanningLength = 0;
+                            
                             if (isOutsideCabAdj) {
-                                // קורות חיזוק חיצוניות - רק X-spanning
-                                if (isXSpan) {
-                                    this.scene.add(mesh);
-                                    this.beamMeshes.push(mesh);
-                                }
+                                const legParam = this.getParam('leg');
+                                const legBeam = legParam?.beams?.[legParam.selectedBeamIndex || 0];
+                                const legWidth = legBeam?.width / 10 || 0;
+                                const legDepth = legBeam?.height / 10 || 0;
+                                expectedXSpanningLength = this.surfaceWidth + (2 * legWidth);
+                                expectedZSpanningLength = Math.max(0.1, this.surfaceLength - (2 * legDepth));
                             } else {
-                                // קורות חיזוק פנימיות - כל הקורות
+                                const legWidth = (this.getParam('leg')?.beams?.[this.getParam('leg')?.selectedBeamIndex || 0]?.width || 0) / 10;
+                                expectedXSpanningLength = Math.max(0.1, this.surfaceWidth - (2 * legWidth));
+                                expectedZSpanningLength = this.surfaceLength;
+                            }
+                            
+                            // בדיקה אם האורך תואם והכיוון תואם
+                            const isXSpanningMatch = firstUncheckedDirection === 'x-spanning' && 
+                                Math.abs(firstUncheckedBeamLength - expectedXSpanningLength) < 0.1;
+                            const isZSpanningMatch = firstUncheckedDirection === 'z-spanning' && 
+                                Math.abs(firstUncheckedBeamLength - expectedZSpanningLength) < 0.1;
+                            
+                            if (isXSpanningMatch && isXSpan) {
+                                // הצג רק X-spanning beams
+                                this.scene.add(mesh);
+                                this.beamMeshes.push(mesh);
+                            } else if (isZSpanningMatch && isZSpan) {
+                                // הצג רק Z-spanning beams
                                 this.scene.add(mesh);
                                 this.beamMeshes.push(mesh);
                             }
+                            // אם זה לא קורת חיזוק או הכיוון לא תואם - לא מציגים
+                        } else {
+                            // זה לא קורת חיזוק (זה קורת רגל רגילה) - לא מציגים קורות חיזוק
+                            // (הקורות רגל מוצגות במקום אחר)
                         }
                     } else {
                         // במצב רגיל - הצג את כל קורות החיזוק
