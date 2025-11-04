@@ -746,11 +746,12 @@
                                                     <span class="check-text">
                                                         {{ drillInfo.beamTypeName }} {{ drillInfo.beamLength }} ס"מ
                                                     </span>
-                                                    <!-- חץ לפתיחה/סגירה - בצד ימין -->
+                                                    <!-- חץ לפתיחה/סגירה - בצד ימין (מוסתר אם זה הצ'קבוקס הראשון שלא מסומן) -->
                                                     <svg class="preliminary-drill-arrow" 
                                                          [class.open]="isDrillItemExpanded(drillInfo)"
                                                          width="16" height="16" viewBox="0 0 16 16"
-                                                         (click)="toggleDrillItemExpanded(drillInfo); $event.stopPropagation()">
+                                                         (click)="toggleDrillItemExpanded(drillInfo); $event.stopPropagation()"
+                                                         *ngIf="!isFirstUncheckedBeam(drillInfo.compositeKey)">
                                                         <path d="M 4 6 L 8 10 L 12 6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
                                                 </div>

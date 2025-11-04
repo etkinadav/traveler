@@ -310,20 +310,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }, 500); // המתנה כדי שהמודל יסיים לטעון
             }
             
-            // פתיחה אוטומטית של הצ'קבוקס הראשון שלא מסומן
-            setTimeout(() => {
-                if (this.preliminaryDrillsInfo && this.preliminaryDrillsInfo.length > 0) {
-                    const firstUncheckedBeam = this.preliminaryDrillsInfo.find(info => 
-                        info.requiresPreliminaryScrews && !this.completedPreliminaryDrills.has(info.compositeKey)
-                    );
-                    
-                    if (firstUncheckedBeam && firstUncheckedBeam.compositeKey) {
-                        const newSet = new Set(this.expandedDrillItems);
-                        newSet.add(firstUncheckedBeam.compositeKey);
-                        this.expandedDrillItems = newSet;
-                    }
-                }
-            }, 100);
+            // לא צריך לפתוח אוטומטית - הצ'קבוקס הראשון שלא מסומן תמיד פתוח
+            // (זה מתבצע ב-getInstructionTextState)
             
         } else {
             // חזרה למצב רגיל - איפוס currentInstructionStage וסימוני הקדחים
@@ -400,16 +388,23 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return this.currentInstructionStage === (stageIndex + 1);
     }
     
-    // משתנה למעקב אחרי מצב פתיחה/סגירה של כל שורת צ'קבוקס
+    // משתנה למעקב אחרי מצב פתיחה/סגירה של כל שורת צ'קבוקס (לשימוש עתידי - כרגע לא בשימוש)
     expandedDrillItems: Set<string> = new Set();
     
     // פונקציה לפתיחה/סגירה של תוכן שורת צ'קבוקס
+    // שימו לב: הצ'קבוקס הראשון שלא מסומן תמיד פתוח ולא ניתן לקפל אותו
     toggleDrillItemExpanded(drillInfo: any) {
         if (!drillInfo || !drillInfo.compositeKey) {
             return;
         }
         
         const compositeKey = drillInfo.compositeKey;
+        
+        // אם זה הצ'קבוקס הראשון שלא מסומן - לא ניתן לקפל אותו
+        if (this.isFirstUncheckedBeam(compositeKey)) {
+            return;
+        }
+        
         const newSet = new Set(this.expandedDrillItems);
         
         if (newSet.has(compositeKey)) {
@@ -426,6 +421,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (!drillInfo || !drillInfo.compositeKey) {
             return false;
         }
+        
+        // אם זה הצ'קבוקס הראשון שלא מסומן - תמיד פתוח
+        if (this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
+            return true;
+        }
+        
+        // אחרת - בדיקה לפי expandedDrillItems
         return this.expandedDrillItems.has(drillInfo.compositeKey);
     }
     
@@ -503,19 +505,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }
             } else if (paramName === 'leg') {
                 if (!this.isTable && !this.isFuton && !this.isPlanter && !this.isBox) {
+                    // קורות רגל רגילות
                     const dimensions = this.getProductDimensionsRaw();
                     const totalHeight = dimensions.height;
                     const shelfBeamHeight = selectedBeam?.height / 10 || 0;
                     const legHeight = totalHeight - shelfBeamHeight;
                     
-                    for (let i = 0; i < 4; i++) {
-                        allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
+                    // בדיקה אם צריך קדחים מקדימים לקורות רגל
+                    const requiresPreliminaryScrewsForLegs = this.checkIfBeamRequiresPreliminaryScrews('leg', selectedBeam, selectedType);
+                    
+                    if (requiresPreliminaryScrewsForLegs) {
+                        for (let i = 0; i < 4; i++) {
+                            allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
+                        }
                     }
                     
+                    // קורות חיזוק
                     const outsideParam = this.getParam('is-reinforcement-beams-outside');
                     const isOutside = !!(outsideParam && outsideParam.default === true);
                     
                     if (isOutside) {
+                        // קורות חיזוק חיצוניות (frame beams)
                         const frameParam = this.getParam('frame');
                         if (frameParam && frameParam.beams && frameParam.beams.length > 0) {
                             const frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
@@ -525,10 +535,31 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                                 const totalShelves = this.shelves.length;
                                 const widthLength = this.surfaceWidth;
                                 
-                                for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
-                                    for (let i = 0; i < 2; i++) {
-                                        allSizes.set(widthLength, (allSizes.get(widthLength) || 0) + this.quantity);
+                                // בדיקה אם צריך קדחים מקדימים לקורות חיזוק חיצוניות
+                                const requiresPreliminaryScrewsForFrame = this.checkIfBeamRequiresPreliminaryScrews('frame', frameBeam, frameType);
+                                
+                                if (requiresPreliminaryScrewsForFrame) {
+                                    for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
+                                        for (let i = 0; i < 2; i++) {
+                                            allSizes.set(widthLength, (allSizes.get(widthLength) || 0) + this.quantity);
+                                        }
                                     }
+                                }
+                            }
+                        }
+                    } else {
+                        // קורות חיזוק פנימיות (leg beams עצמן אבל באורך שונה)
+                        // בדיקה אם צריך קדחים מקדימים לקורות חיזוק פנימיות
+                        const requiresPreliminaryScrewsForReinforcement = this.checkIfBeamRequiresPreliminaryScrews('leg', selectedBeam, selectedType);
+                        
+                        if (requiresPreliminaryScrewsForReinforcement) {
+                            // קורות החיזוק הפנימיות הן באורך surfaceWidth
+                            const reinforcementLength = this.surfaceWidth;
+                            const totalShelves = this.shelves.length;
+                            
+                            for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
+                                for (let i = 0; i < 2; i++) {
+                                    allSizes.set(reinforcementLength, (allSizes.get(reinforcementLength) || 0) + this.quantity);
                                 }
                             }
                         }
@@ -541,8 +572,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const plataBeamHeight = plataBeam?.height / 10 || 0;
                     const legHeight = totalHeight - plataBeamHeight;
                     
-                    for (let i = 0; i < 4; i++) {
-                        allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
+                    // בדיקה אם צריך קדחים מקדימים לקורות רגל
+                    const requiresPreliminaryScrewsForLegs = this.checkIfBeamRequiresPreliminaryScrews('leg', selectedBeam, selectedType);
+                    
+                    if (requiresPreliminaryScrewsForLegs) {
+                        for (let i = 0; i < 4; i++) {
+                            allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
+                        }
                     }
                 }
             }
@@ -606,8 +642,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }
             }
             
-            // בדיקה אם צריך קדחים מקדימים (בדיקה לפי threshold)
-            const requiresPreliminaryScrews = this.checkIfBeamRequiresPreliminaryScrews(paramName, selectedBeam);
+            // בדיקה אם צריך קדחים מקדימים (בדיקה לפי threshold וסוג העץ)
+            const requiresPreliminaryScrews = this.checkIfBeamRequiresPreliminaryScrews(paramName, selectedBeam, selectedType);
             
             // יצירת רשומה לכל אורך ייחודי
             for (const lengthInfo of totalSizes) {
@@ -618,8 +654,37 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const compositeKey = `${paramName}-${beamLength}`;
                 
                 // שם הקורה להצגה
-                const beamTypeName = paramName === 'shelfs' ? 'קורת מדף' : paramName === 'leg' ? 'קורת רגל' : '';
-                const beamDisplayName = paramName === 'shelfs' ? 'קורת מדף' : paramName === 'leg' ? 'קורת רגל' : '';
+                let beamTypeName = '';
+                let beamDisplayName = '';
+                
+                if (paramName === 'shelfs') {
+                    beamTypeName = 'קורת מדף';
+                    beamDisplayName = 'קורת מדף';
+                } else if (paramName === 'leg') {
+                    // בדיקה אם זה קורת חיזוק או קורת רגל רגילה
+                    const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                    const isOutside = !!(outsideParam && outsideParam.default === true);
+                    
+                    const dimensions = this.getProductDimensionsRaw();
+                    const totalHeight = dimensions.height;
+                    const shelfBeamHeight = (this.getParam('shelfs')?.beams?.[this.getParam('shelfs')?.selectedBeamIndex || 0]?.height || 0) / 10;
+                    const legHeight = totalHeight - shelfBeamHeight;
+                    const reinforcementLength = this.surfaceWidth;
+                    
+                    const isLegBeamLength = Math.abs(beamLength - legHeight) < 0.1;
+                    const isReinforcementBeamLength = Math.abs(beamLength - reinforcementLength) < 0.1;
+                    
+                    if (isReinforcementBeamLength) {
+                        beamTypeName = 'קורת חיזוק';
+                        beamDisplayName = 'קורת חיזוק';
+                    } else if (isLegBeamLength) {
+                        beamTypeName = 'קורת רגל';
+                        beamDisplayName = 'קורת רגל';
+                    } else {
+                        beamTypeName = 'קורת רגל';
+                        beamDisplayName = 'קורת רגל';
+                    }
+                }
                 
                 result.push({
                     paramName: paramName,
@@ -641,7 +706,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
     
     // פונקציה עזר לבדיקה אם קורה דורשת קדחים מקדימים
-    private checkIfBeamRequiresPreliminaryScrews(paramName: string, selectedBeam: any): boolean {
+    private checkIfBeamRequiresPreliminaryScrews(paramName: string, selectedBeam: any, selectedType?: any): boolean {
         if (!this.product || !this.product.instructions) {
             return false;
         }
@@ -654,7 +719,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return false;
         }
         
-        // בדיקה לפי threshold אם קיים
+        // בדיקה לפי סוג העץ (hardness) - קודם כל
+        if (selectedType && selectedType.name && this.woods.length > 0) {
+            const wood = this.woods.find(w => w.name === selectedType.name);
+            if (wood && wood.hardness > this.maxHardnessForPerlimenaryScrews) {
+                // העץ קשה מדי - צריך קדחים מקדימים
+                return true;
+            }
+        }
+        
+        // בדיקה לפי threshold אם קיים (רק אם לא נמצא צורך לפי סוג העץ)
         const legWidthThreshold = preliminaryDrillsInstruction['leg-width-threshold'];
         const legHeightThreshold = preliminaryDrillsInstruction['leg-height-threshold'];
         
@@ -662,11 +736,19 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const beamWidth = selectedBeam.width / 10; // המרה ממ"מ לס"מ
             const beamHeight = selectedBeam.height / 10; // המרה ממ"מ לס"מ
             
-            return beamWidth >= legWidthThreshold || beamHeight >= legHeightThreshold;
+            // בדיקה אם מידות הקורה עוברות את ה-threshold
+            if (beamWidth >= legWidthThreshold || beamHeight >= legHeightThreshold) {
+                return true;
+            }
         }
         
-        // אם אין threshold או זה לא קורת רגל - נחזיר true (צריך קידוח)
-        return true;
+        // אם זה לא קורת רגל או אין threshold - נבדוק לפי סוג העץ בלבד
+        // אם כבר בדקנו את סוג העץ למעלה והחזרנו false, נחזיר false
+        // אבל אם יש צורך לפי סוג העץ, כבר החזרנו true למעלה
+        
+        // אם אין threshold ולא מצאנו צורך לפי סוג העץ - נחזיר false
+        // (לא true כמו שהיה קודם, כי צריך לבדוק גם לפי סוג העץ)
+        return false;
     }
     
     // בדיקה אם כל הקורות לא דורשות קדחים מקדימים (כל הקורות הן V)
@@ -700,10 +782,24 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return;
         }
         
+        const wasChecked = this.completedPreliminaryDrills.has(compositeKey);
+        
+        // אם זה לא מסומן - בדיקה אם זה הצ'קבוקס הראשון שלא מסומן (רק הוא יכול להיסמן)
+        if (!wasChecked) {
+            if (!this.isFirstUncheckedBeam(compositeKey)) {
+                // לא ניתן לסמן אם זה לא הצ'קבוקס הראשון שלא מסומן
+                return;
+            }
+        } else {
+            // אם זה מסומן - בדיקה אם זה הצ'קבוקס האחרון שמסומן (רק הוא יכול להיסרת)
+            if (!this.isLastCheckedBeam(compositeKey)) {
+                // לא ניתן לבטל סימון אם זה לא הצ'קבוקס האחרון שמסומן
+                return;
+            }
+        }
+        
         // יצירת Set חדש כדי לעורר change detection
         const newSet = new Set(this.completedPreliminaryDrills);
-        
-        const wasChecked = newSet.has(compositeKey);
         
         if (wasChecked) {
             newSet.delete(compositeKey);
@@ -725,26 +821,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.updateBeams();
         }, 100);
         
-        // אם סימנו V על צ'קבוקס (הוא לא היה מסומן קודם) - פתיחת הבא בתור
-        if (!wasChecked && newSet.has(compositeKey)) {
-            // מציאת הצ'קבוקס הבא שלא מסומן
-            setTimeout(() => {
-                if (this.preliminaryDrillsInfo && this.preliminaryDrillsInfo.length > 0) {
-                    const nextUncheckedBeam = this.preliminaryDrillsInfo.find(info => 
-                        info.requiresPreliminaryScrews && 
-                        !this.completedPreliminaryDrills.has(info.compositeKey) &&
-                        info.compositeKey !== compositeKey
-                    );
-                    
-                    if (nextUncheckedBeam && nextUncheckedBeam.compositeKey) {
-                        const newExpandedSet = new Set(this.expandedDrillItems);
-                        newExpandedSet.add(nextUncheckedBeam.compositeKey);
-                        this.expandedDrillItems = newExpandedSet;
-                    }
-                }
-            }, 100);
-        }
-        
         // אם כל הקורות שדורשות קדחים סומנו - מעבר אוטומטי מיידי לשלב הבא
         if (this.areAllRequiredBeamsCompleted() && !this.areAllBeamsNoPreliminaryDrilling()) {
             // מעבר אוטומטי מיידי לשלב הבא (ללא delay)
@@ -758,22 +834,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return 'collapsed';
         }
         
-        // אם זו לא הקורה הראשונה שלא מסומנה - collapsed (אבל רק אם היא לא פתוחה ידנית)
-        if (!this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
-            // אם הקורה פתוחה ידנית (לפי החץ) - expanded
-            if (this.isDrillItemExpanded(drillInfo)) {
-                return 'expanded';
-            }
-            return 'collapsed';
+        // אם זה הצ'קבוקס הראשון שלא מסומן - התוכן תמיד מופיע ולא ניתן לקפל
+        if (this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
+            return 'expanded';
         }
         
-        // בדיקה אם השורה פתוחה (לפי החץ)
-        if (!this.isDrillItemExpanded(drillInfo)) {
-            return 'collapsed';
-        }
-        
-        // אחרת - expanded
-        return 'expanded';
+        // כל שאר הצ'קבוקסים (לפני או אחרי) - מקופלים
+        return 'collapsed';
     }
     
     // פונקציה לקביעת מצב האנימציה של כפתור "הקידוחים בוצעו"
@@ -787,12 +854,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return 'collapsed';
         }
         
-        // בדיקה אם השורה פתוחה (לפי החץ)
-        if (!this.isDrillItemExpanded(drillInfo)) {
-            return 'collapsed';
-        }
-        
-        // אחרת - expanded
+        // אחרת - expanded (רק אם זה הצ'קבוקס הראשון שלא מסומן)
         return 'expanded';
     }
     
@@ -804,6 +866,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         const compositeKey = drillInfo.compositeKey;
         if (!compositeKey) {
+            return;
+        }
+        
+        // בדיקה שזה הצ'קבוקס הראשון שלא מסומן (רק הוא יכול להיסמן)
+        if (!this.isFirstUncheckedBeam(compositeKey)) {
             return;
         }
         
@@ -838,6 +905,45 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         );
         
         return firstUncheckedBeam?.compositeKey === compositeKey;
+    }
+    
+    // בדיקה אם זה הצ'קבוקס האחרון שמסומן (ברצף מההתחלה)
+    isLastCheckedBeam(compositeKey: string): boolean {
+        if (!this.preliminaryDrillsInfo || this.preliminaryDrillsInfo.length === 0) {
+            return false;
+        }
+        
+        // מציאת כל הצ'קבוקסים המסומנים לפי הסדר
+        const checkedBeams = this.preliminaryDrillsInfo
+            .filter(info => info.requiresPreliminaryScrews && this.completedPreliminaryDrills.has(info.compositeKey))
+            .map(info => info.compositeKey);
+        
+        // אם אין צ'קבוקסים מסומנים, זה לא האחרון
+        if (checkedBeams.length === 0) {
+            return false;
+        }
+        
+        // בדיקה שהצ'קבוקסים המסומנים הם רצופים מההתחלה (אין "חורים")
+        // כלומר: כל הצ'קבוקסים מההתחלה עד הצ'קבוקס האחרון שמסומן חייבים להיות מסומנים
+        const lastCheckedIndex = checkedBeams.length - 1;
+        const lastCheckedKey = checkedBeams[lastCheckedIndex];
+        
+        // מציאת האינדקס של הצ'קבוקס האחרון ברשימה המקורית
+        const lastCheckedBeamIndex = this.preliminaryDrillsInfo.findIndex(info => 
+            info.requiresPreliminaryScrews && info.compositeKey === lastCheckedKey
+        );
+        
+        // בדיקה שכל הצ'קבוקסים לפני זה גם מסומנים
+        for (let i = 0; i < lastCheckedBeamIndex; i++) {
+            const info = this.preliminaryDrillsInfo[i];
+            if (info && info.requiresPreliminaryScrews && !this.completedPreliminaryDrills.has(info.compositeKey)) {
+                // יש צ'קבוקס שלא מסומן לפני הצ'קבוקס האחרון - זה לא האחרון
+                return false;
+            }
+        }
+        
+        // החזרת האחרון ברשימה רק אם הוא באמת האחרון ברצף
+        return lastCheckedKey === compositeKey;
     }
     
     // קבלת הקורה הראשונה ללא V (compositeKey)
@@ -906,6 +1012,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const currentIndex = this.currentInstructionStage - 1; // המרה מ-1-based ל-0-based
         const nextIndex = currentIndex + 1;
         
+        // סגירת כל התוכן הפתוח של הצ'קבוקסים לפני המעבר לשלב הבא
+        this.expandedDrillItems.clear();
+        
         if (this.product?.instructions && nextIndex < this.product.instructions.length) {
             // פתיחת ההוראה הבאה
             this.currentInstructionStage = nextIndex + 1; // המרה חזרה ל-1-based
@@ -954,10 +1063,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         const compositeKey = drillInfo.compositeKey;
         
-        // בדיקה שהשלב הנוכחי תואם - רק אם זה השלב הראשון שלא סומן
+        // הטקסט יופיע רק אם זה הצ'קבוקס הראשון שלא מסומן
         const firstUncheckedKey = this.getFirstUncheckedBeamParamName();
+        
+        // אם זה לא השלב הנוכחי - לא להציג טקסט
         if (firstUncheckedKey !== compositeKey) {
-            // אם זה לא השלב הנוכחי - לא להציג טקסט
             return '';
         }
         
@@ -5246,12 +5356,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // בדיקה אם אנחנו במצב preliminary-drills
             const isPreliminaryDrills = this.isPreliminaryDrillsMode();
-            const firstUncheckedParam = isPreliminaryDrills ? this.getFirstUncheckedBeamParamName() : null;
+            const firstUncheckedCompositeKey = isPreliminaryDrills ? this.getFirstUncheckedBeamParamName() : null;
             
             const currentStage = this.product?.instructions?.[this.currentInstructionStage - 1];
             console.log('UPDATE_BEAMS_PRELIMINARY_CHECK', JSON.stringify({
                 isPreliminaryDrills: isPreliminaryDrills,
-                firstUncheckedParam: firstUncheckedParam,
+                firstUncheckedCompositeKey: firstUncheckedCompositeKey,
                 isInstructionMode: this.isInstructionMode,
                 currentStageName: currentStage?.name,
                 currentInstructionStageIndex: this.currentInstructionStage
@@ -5262,25 +5372,45 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             let shouldShowShelfBeams = true;
             let shouldShowReinforcementBeams = true;
             
-            if (isPreliminaryDrills && firstUncheckedParam) {
+            if (isPreliminaryDrills && firstUncheckedCompositeKey) {
+                // פירוק ה-compositeKey ל-paramName ו-beamLength
+                const parts = firstUncheckedCompositeKey.split('-');
+                const firstUncheckedParamName = parts[0]; // 'shelfs' או 'leg'
+                const firstUncheckedBeamLength = parseFloat(parts.slice(1).join('-')); // אורך הקורה
+                
                 // במצב preliminary-drills - נציג רק את הקורות הרלוונטיות
-                if (firstUncheckedParam === 'shelfs') {
+                if (firstUncheckedParamName === 'shelfs') {
                     // רק קורות מדף
                     shouldShowLegBeams = false;
                     shouldShowReinforcementBeams = false;
-                } else if (firstUncheckedParam === 'leg') {
-                    // תמיד להציג רגליים במצב preliminary-drills עם leg
-                    shouldShowShelfBeams = false;
-                    shouldShowLegBeams = true; // תמיד להציג רגליים
+                } else if (firstUncheckedParamName === 'leg') {
+                    // בדיקה אם האורך הנוכחי תואם לקורות רגל רגילות או לקורות חיזוק
+                    const dimensions = this.getProductDimensionsRaw();
+                    const totalHeight = dimensions.height;
+                    const shelfBeamHeight = (this.getParam('shelfs')?.beams?.[this.getParam('shelfs')?.selectedBeamIndex || 0]?.height || 0) / 10;
+                    const legHeight = totalHeight - shelfBeamHeight;
+                    const reinforcementLength = this.surfaceWidth;
                     
-                    const outsideParam = this.getParam('is-reinforcement-beams-outside');
-                    const isOutside = !!(outsideParam && outsideParam.default === true);
-                    if (isOutside) {
-                        // בנוסף לרגליים - הצג גם קורות חיזוק X-spanning
+                    const isLegBeamLength = Math.abs(firstUncheckedBeamLength - legHeight) < 0.1;
+                    const isReinforcementBeamLength = Math.abs(firstUncheckedBeamLength - reinforcementLength) < 0.1;
+                    
+                    if (isReinforcementBeamLength) {
+                        // קורות חיזוק
+                        shouldShowShelfBeams = false;
+                        shouldShowLegBeams = false;
                         shouldShowReinforcementBeams = true;
-                    } else {
-                        // רק רגליים (ללא קורות חיזוק)
-                        shouldShowReinforcementBeams = false;
+                    } else if (isLegBeamLength) {
+                        // קורות רגל רגילות
+                        shouldShowShelfBeams = false;
+                        shouldShowLegBeams = true;
+                        
+                        const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                        const isOutside = !!(outsideParam && outsideParam.default === true);
+                        if (isOutside) {
+                            shouldShowReinforcementBeams = false;
+                        } else {
+                            shouldShowReinforcementBeams = false;
+                        }
                     }
                 }
             }
@@ -5336,7 +5466,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const isOutsideEnabled = !!(outsideForCabinetScrews && outsideForCabinetScrews.default === true);
             
             // רק אם אנחנו במצב preliminary-drills עם leg, או במצב רגיל - להוסיף ברגים
-            if (!isPreliminaryDrills || firstUncheckedParam === 'leg') {
+            if (!isPreliminaryDrills || (firstUncheckedCompositeKey && firstUncheckedCompositeKey.startsWith('leg-'))) {
                 this.addScrewsToLegs(totalShelves, legs, frameBeamHeightCorrect, 0, isOutsideEnabled);
             }
         }
@@ -5611,26 +5741,62 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // משתמשים במשתנים שהוגדרו לפני הלולאה - נגישים כי הם באותו scope
             // אבל כדי להימנע משגיאות, נגדיר אותם מחדש כאן
             const isPreliminaryDrillsCabinet = this.isPreliminaryDrillsMode();
-            const firstUncheckedParamCabinet = isPreliminaryDrillsCabinet ? this.getFirstUncheckedBeamParamName() : null;
+            const firstUncheckedCompositeKey = isPreliminaryDrillsCabinet ? this.getFirstUncheckedBeamParamName() : null;
             
             let shouldShowLegBeamsCabinet = true;
             let shouldShowShelfBeamsCabinet = true;
             let shouldShowReinforcementBeamsCabinet = true;
             
-            if (isPreliminaryDrillsCabinet && firstUncheckedParamCabinet) {
-                if (firstUncheckedParamCabinet === 'shelfs') {
+            if (isPreliminaryDrillsCabinet && firstUncheckedCompositeKey) {
+                // פירוק ה-compositeKey ל-paramName ו-beamLength
+                const parts = firstUncheckedCompositeKey.split('-');
+                const firstUncheckedParamName = parts[0]; // 'shelfs' או 'leg'
+                const firstUncheckedBeamLength = parseFloat(parts.slice(1).join('-')); // אורך הקורה
+                
+                if (firstUncheckedParamName === 'shelfs') {
+                    // אם הצ'קבוקס הנוכחי הוא של קורות מדף - נציג רק אותן
                     shouldShowLegBeamsCabinet = false;
                     shouldShowReinforcementBeamsCabinet = false;
-                } else if (firstUncheckedParamCabinet === 'leg') {
+                    
+                    // נציג רק את קורות המדף עם האורך הספציפי
+                    // (זה יטופל בלוגיקה של יצירת הקורות)
+                } else if (firstUncheckedParamName === 'leg') {
+                    // אם הצ'קבוקס הנוכחי הוא של קורות רגל - נציג רק אותן
                     shouldShowShelfBeamsCabinet = false;
+                    
                     const outsideParam = this.getParam('is-reinforcement-beams-outside');
                     const isOutside = !!(outsideParam && outsideParam.default === true);
+                    
+                    // בדיקה אם האורך הנוכחי תואם לקורות רגל רגילות או לקורות חיזוק
+                    const dimensions = this.getProductDimensionsRaw();
+                    const totalHeight = dimensions.height;
+                    const shelfBeamHeight = (this.getParam('shelfs')?.beams?.[this.getParam('shelfs')?.selectedBeamIndex || 0]?.height || 0) / 10;
+                    const legHeight = totalHeight - shelfBeamHeight;
+                    const reinforcementLength = this.surfaceWidth;
+                    
+                    const isLegBeamLength = Math.abs(firstUncheckedBeamLength - legHeight) < 0.1; // השוואה עם טולרנס
+                    const isReinforcementBeamLength = Math.abs(firstUncheckedBeamLength - reinforcementLength) < 0.1;
+                    
                     if (isOutside) {
-                        shouldShowLegBeamsCabinet = false;
-                        shouldShowReinforcementBeamsCabinet = true;
+                        // קורות חיזוק חיצוניות (frame beams)
+                        if (isReinforcementBeamLength) {
+                            shouldShowLegBeamsCabinet = false;
+                            shouldShowReinforcementBeamsCabinet = true;
+                        } else {
+                            // קורות רגל רגילות
+                            shouldShowLegBeamsCabinet = true;
+                            shouldShowReinforcementBeamsCabinet = false;
+                        }
                     } else {
-                        shouldShowLegBeamsCabinet = true;
-                        shouldShowReinforcementBeamsCabinet = false;
+                        // קורות חיזוק פנימיות (leg beams באורך שונה)
+                        if (isReinforcementBeamLength) {
+                            shouldShowLegBeamsCabinet = false;
+                            shouldShowReinforcementBeamsCabinet = true;
+                        } else if (isLegBeamLength) {
+                            // קורות רגל רגילות
+                            shouldShowLegBeamsCabinet = true;
+                            shouldShowReinforcementBeamsCabinet = false;
+                        }
                     }
                 }
             }
@@ -5918,12 +6084,34 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 // הצגת קורות חיזוק רק אם צריך
                 if (shouldShowReinforcementBeamsCabinet) {
-                    // במצב preliminary-drills עם leg ו-isOutside - הצג רק X-spanning beams (שנעות לפי רוחב המודל)
-                    if (isPreliminaryDrillsCabinet && firstUncheckedParamCabinet === 'leg' && isOutsideCabAdj) {
-                        // הצג רק קורות X-spanning (שברגים פונים אליהן)
-                        if (isXSpan) {
-                this.scene.add(mesh);
-                this.beamMeshes.push(mesh);
+                    // במצב preliminary-drills - בדיקה לפי compositeKey ואורך הקורה
+                    if (isPreliminaryDrillsCabinet && firstUncheckedCompositeKey) {
+                        const parts = firstUncheckedCompositeKey.split('-');
+                        const firstUncheckedParamName = parts[0];
+                        const firstUncheckedBeamLength = parseFloat(parts.slice(1).join('-'));
+                        
+                        const dimensions = this.getProductDimensionsRaw();
+                        const totalHeight = dimensions.height;
+                        const shelfBeamHeight = (this.getParam('shelfs')?.beams?.[this.getParam('shelfs')?.selectedBeamIndex || 0]?.height || 0) / 10;
+                        const legHeight = totalHeight - shelfBeamHeight;
+                        const reinforcementLength = this.surfaceWidth;
+                        
+                        const isReinforcementBeamLength = Math.abs(firstUncheckedBeamLength - reinforcementLength) < 0.1;
+                        
+                        // אם זה קורת חיזוק - נציג אותה רק אם האורך תואם
+                        if (firstUncheckedParamName === 'leg' && isReinforcementBeamLength) {
+                            // בדיקה אם זה X-spanning או Z-spanning בהתאם ל-isOutside
+                            if (isOutsideCabAdj) {
+                                // קורות חיזוק חיצוניות - רק X-spanning
+                                if (isXSpan) {
+                                    this.scene.add(mesh);
+                                    this.beamMeshes.push(mesh);
+                                }
+                            } else {
+                                // קורות חיזוק פנימיות - כל הקורות
+                                this.scene.add(mesh);
+                                this.beamMeshes.push(mesh);
+                            }
                         }
                     } else {
                         // במצב רגיל - הצג את כל קורות החיזוק
@@ -5931,7 +6119,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         this.beamMeshes.push(mesh);
                     }
                 }
-            }
+            } // סיום if (shouldShowReinforcementBeamsCabinet)
             this.endTimer(`CABINET - Create and Render Frame Beams for Shelf ${shelfIndex + 1}`);
             
             // Add the height of the shelf itself for the next shelf
