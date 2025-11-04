@@ -727,13 +727,13 @@
                                             <div *ngFor="let drillInfo of preliminaryDrillsInfo; trackBy: trackByParamName" class="preliminary-drill-item">
                                                 <!-- הודעת מצב אחת -->
                                                 <div class="preliminary-drill-check-item"
-                                                     [attr.data-checkbox-element]="drillInfo.paramName">
+                                                     [attr.data-checkbox-element]="drillInfo.compositeKey">
                                                     <!-- צ'קבוקס - תמיד מוצג -->
                                                     <div class="preliminary-drill-checkbox"
-                                                         [class.checked]="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.paramName)"
+                                                         [class.checked]="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.compositeKey)"
                                                          [class.already-checked]="!drillInfo.requiresPreliminaryScrews"
                                                          (click)="toggleBeamCompleted(drillInfo)">
-                                                        <svg *ngIf="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.paramName)" 
+                                                        <svg *ngIf="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.compositeKey)" 
                                                              class="checkbox-check-icon" 
                                                              width="12" height="12" viewBox="0 0 12 12">
                                                             <path d="M 2 6 L 5 9 L 10 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
@@ -741,30 +741,30 @@
                                                     </div>
                                                     <span class="check-text">
                                                         <span *ngIf="drillInfo.requiresPreliminaryScrews">
-                                                            {{ 'modify-product.preliminary-drills-required' | translate: {beamName: drillInfo.beamTypeName} }}
+                                                            {{ drillInfo.beamTypeName }} {{ drillInfo.beamLength }} ס"מ
                                                         </span>
                                                         <span *ngIf="!drillInfo.requiresPreliminaryScrews">
-                                                            {{ 'modify-product.preliminary-drills-not-required' | translate: {beamName: drillInfo.beamTypeName} }}
+                                                            {{ drillInfo.beamTypeName }} {{ drillInfo.beamLength }} ס"מ - {{ 'modify-product.preliminary-drills-not-required' | translate }}
                                                         </span>
                                                     </span>
                                                 </div>
                                                 
-                                                <!-- טקסט הוראות קידוח - מוצג רק כשצריך קידוח וזה השלב הנוכחי ויש כפתור -->
+                                                <!-- טקסט הוראות קידוח - מוצג רק כשצריך קידוח וזה השלב הנוכחי -->
                                                 <div class="preliminary-drills-instruction-text-wrapper" 
-                                                     *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.paramName) && isFirstUncheckedBeam(drillInfo.paramName)">
-                                                    <div *ngFor="let instructionText of getPreliminaryDrillsInstructionText(drillInfo); let i = index" class="instruction-text-with-drawing">
+                                                     *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.compositeKey) && isFirstUncheckedBeam(drillInfo.compositeKey)">
+                                                    <div class="instruction-text-with-drawing">
                                                         <p class="preliminary-drills-instruction-text" 
-                                                           [innerHTML]="instructionText">
+                                                           [innerHTML]="getPreliminaryDrillsInstructionText(drillInfo)">
                                                         </p>
                                                         
-                                                        <!-- מלבן שרטוט - מתחת לכל טקסט הוראה -->
+                                                        <!-- מלבן שרטוט - מתחת לטקסט ההוראה -->
                                                         <div class="drilling-drawing-wrapper">
                                                             <app-drawing
                                                                 [isDrillingMode]="true"
                                                                 [beamType]="drillInfo.beamTypeName || drillInfo.beamDisplayName || ''"
                                                                 [product]="getCurrentProductConfiguration()"
-                                                                [beamLength]="getBeamDimensionsForInstruction(drillInfo, i).length"
-                                                                [beamWidth]="getBeamDimensionsForInstruction(drillInfo, i).width">
+                                                                [beamLength]="drillInfo.beamLength"
+                                                                [beamWidth]="drillInfo.beamWidth">
                                                             </app-drawing>
                                                         </div>
                                                     </div>
@@ -772,7 +772,7 @@
                                                 
                                                 <!-- כפתור "הקידוחים בוצעו" - מתחת לצ'קבוקס הראשון שלא סומן -->
                                                 <div class="preliminary-drills-completed-button-wrapper" 
-                                                     *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.paramName) && isFirstUncheckedBeam(drillInfo.paramName)">
+                                                     *ngIf="drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.compositeKey) && isFirstUncheckedBeam(drillInfo.compositeKey)">
                                                     <button class="preliminary-drills-completed-button" 
                                                             (click)="markBeamAsCompleted(drillInfo)">
                                                         <span>{{ 'modify-product.drilling-completed' | translate }}</span>
