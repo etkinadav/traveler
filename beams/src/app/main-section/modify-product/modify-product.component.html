@@ -746,9 +746,16 @@
                                                     <span class="check-text">
                                                         {{ drillInfo.beamTypeName }} {{ drillInfo.beamLength }} ס"מ
                                                     </span>
+                                                    <!-- חץ לפתיחה/סגירה - בצד ימין -->
+                                                    <svg class="preliminary-drill-arrow" 
+                                                         [class.open]="isDrillItemExpanded(drillInfo)"
+                                                         width="16" height="16" viewBox="0 0 16 16"
+                                                         (click)="toggleDrillItemExpanded(drillInfo); $event.stopPropagation()">
+                                                        <path d="M 4 6 L 8 10 L 12 6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
                                                 </div>
                                                 
-                                                <!-- טקסט הוראות קידוח - מוצג רק כשצריך קידוח וזה השלב הנוכחי -->
+                                                <!-- טקסט הוראות קידוח - מוצג תמיד כשצריך קידוח (גם אם מסומן) -->
                                                 <ng-container *ngIf="drillInfo.requiresPreliminaryScrews">
                                                     <div class="preliminary-drills-instruction-text-wrapper" 
                                                          [@slideUpDown]="getInstructionTextState(drillInfo)">

@@ -310,10 +310,26 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 }, 500); // המתנה כדי שהמודל יסיים לטעון
             }
             
+            // פתיחה אוטומטית של הצ'קבוקס הראשון שלא מסומן
+            setTimeout(() => {
+                if (this.preliminaryDrillsInfo && this.preliminaryDrillsInfo.length > 0) {
+                    const firstUncheckedBeam = this.preliminaryDrillsInfo.find(info => 
+                        info.requiresPreliminaryScrews && !this.completedPreliminaryDrills.has(info.compositeKey)
+                    );
+                    
+                    if (firstUncheckedBeam && firstUncheckedBeam.compositeKey) {
+                        const newSet = new Set(this.expandedDrillItems);
+                        newSet.add(firstUncheckedBeam.compositeKey);
+                        this.expandedDrillItems = newSet;
+                    }
+                }
+            }, 100);
+            
         } else {
             // חזרה למצב רגיל - איפוס currentInstructionStage וסימוני הקדחים
             this.currentInstructionStage = 0;
             this.completedPreliminaryDrills.clear();
+            this.expandedDrillItems.clear();
         }
         
         // עדכון המודל התלת מימדי כדי להציג/להסתיר קורות בהתאם למצב
@@ -382,6 +398,35 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // בדיקה אם סעיף הוראה פתוח
     isInstructionStageOpen(stageIndex: number): boolean {
         return this.currentInstructionStage === (stageIndex + 1);
+    }
+    
+    // משתנה למעקב אחרי מצב פתיחה/סגירה של כל שורת צ'קבוקס
+    expandedDrillItems: Set<string> = new Set();
+    
+    // פונקציה לפתיחה/סגירה של תוכן שורת צ'קבוקס
+    toggleDrillItemExpanded(drillInfo: any) {
+        if (!drillInfo || !drillInfo.compositeKey) {
+            return;
+        }
+        
+        const compositeKey = drillInfo.compositeKey;
+        const newSet = new Set(this.expandedDrillItems);
+        
+        if (newSet.has(compositeKey)) {
+            newSet.delete(compositeKey);
+        } else {
+            newSet.add(compositeKey);
+        }
+        
+        this.expandedDrillItems = newSet;
+    }
+    
+    // בדיקה אם שורת צ'קבוקס פתוחה
+    isDrillItemExpanded(drillInfo: any): boolean {
+        if (!drillInfo || !drillInfo.compositeKey) {
+            return false;
+        }
+        return this.expandedDrillItems.has(drillInfo.compositeKey);
     }
     
     // Getter ל-preliminaryDrillsInfo - יוצר רשומה לכל אורך קורה ייחודי שדורש קידוח
@@ -658,7 +703,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // יצירת Set חדש כדי לעורר change detection
         const newSet = new Set(this.completedPreliminaryDrills);
         
-        if (newSet.has(compositeKey)) {
+        const wasChecked = newSet.has(compositeKey);
+        
+        if (wasChecked) {
             newSet.delete(compositeKey);
         } else {
             newSet.add(compositeKey);
@@ -678,6 +725,26 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.updateBeams();
         }, 100);
         
+        // אם סימנו V על צ'קבוקס (הוא לא היה מסומן קודם) - פתיחת הבא בתור
+        if (!wasChecked && newSet.has(compositeKey)) {
+            // מציאת הצ'קבוקס הבא שלא מסומן
+            setTimeout(() => {
+                if (this.preliminaryDrillsInfo && this.preliminaryDrillsInfo.length > 0) {
+                    const nextUncheckedBeam = this.preliminaryDrillsInfo.find(info => 
+                        info.requiresPreliminaryScrews && 
+                        !this.completedPreliminaryDrills.has(info.compositeKey) &&
+                        info.compositeKey !== compositeKey
+                    );
+                    
+                    if (nextUncheckedBeam && nextUncheckedBeam.compositeKey) {
+                        const newExpandedSet = new Set(this.expandedDrillItems);
+                        newExpandedSet.add(nextUncheckedBeam.compositeKey);
+                        this.expandedDrillItems = newExpandedSet;
+                    }
+                }
+            }, 100);
+        }
+        
         // אם כל הקורות שדורשות קדחים סומנו - מעבר אוטומטי מיידי לשלב הבא
         if (this.areAllRequiredBeamsCompleted() && !this.areAllBeamsNoPreliminaryDrilling()) {
             // מעבר אוטומטי מיידי לשלב הבא (ללא delay)
@@ -691,8 +758,17 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return 'collapsed';
         }
         
-        // אם הקורה מסומנת או זו לא הקורה הראשונה שלא מסומנה - collapsed
-        if (this.isBeamMarkedAsCompleted(drillInfo.compositeKey) || !this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
+        // אם זו לא הקורה הראשונה שלא מסומנה - collapsed (אבל רק אם היא לא פתוחה ידנית)
+        if (!this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
+            // אם הקורה פתוחה ידנית (לפי החץ) - expanded
+            if (this.isDrillItemExpanded(drillInfo)) {
+                return 'expanded';
+            }
+            return 'collapsed';
+        }
+        
+        // בדיקה אם השורה פתוחה (לפי החץ)
+        if (!this.isDrillItemExpanded(drillInfo)) {
             return 'collapsed';
         }
         
@@ -708,6 +784,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // אם הקורה מסומנת או זו לא הקורה הראשונה שלא מסומנה - collapsed
         if (this.isBeamMarkedAsCompleted(drillInfo.compositeKey) || !this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
+            return 'collapsed';
+        }
+        
+        // בדיקה אם השורה פתוחה (לפי החץ)
+        if (!this.isDrillItemExpanded(drillInfo)) {
             return 'collapsed';
         }
         

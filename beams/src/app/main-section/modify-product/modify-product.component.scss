@@ -208,6 +208,27 @@
                                 font-size: 13px;
                                 gap: 8px;
                                 position: relative; // לצורך מיקום החץ
+                                padding-right: 15px; // כמו ה-header הראשי
+                                padding-left: 15px; // כמו ה-header הראשי
+                                
+                                .preliminary-drill-arrow {
+                                    flex-shrink: 0;
+                                    cursor: pointer;
+                                    transition: transform 0.3s ease;
+                                    color: var(--zx-green, #0066cc);
+                                    width: 16px;
+                                    height: 16px;
+                                    margin-left: auto; // דחיפה לימין
+                                    margin-right: 0;
+                                    
+                                    &:hover {
+                                        opacity: 0.7;
+                                    }
+                                    
+                                    &.open {
+                                        transform: rotate(180deg);
+                                    }
+                                }
                                 
                                 .drill-status-icon {
                                     flex-shrink: 0;
