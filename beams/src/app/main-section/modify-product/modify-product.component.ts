@@ -808,9 +808,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const newSet = new Set(this.completedPreliminaryDrills);
             
             // הסרת ה-V של כל הצ'קבוקסים מההתחלה עד הצ'קבוקס הנוכחי (כולל)
-            for (let i = 0; i <= currentIndex; i++) {
+            // וגם כל הצ'קבוקסים לאחר הצ'קבוקס הנוכחי (כלומר: כל הצ'קבוקסים מההתחלה עד הסוף)
+            for (let i = 0; i < this.preliminaryDrillsInfo.length; i++) {
                 const info = this.preliminaryDrillsInfo[i];
                 if (info && info.requiresPreliminaryScrews && info.compositeKey) {
+                    // אם זה הצ'קבוקס הנוכחי או כל צ'קבוקס אחר (לפני או אחרי) - נסיר את ה-V
                     newSet.delete(info.compositeKey);
                 }
             }

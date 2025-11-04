@@ -1175,7 +1175,7 @@
   "modify-product.preliminary-drills-subtitle": "האם ניתן לבנות בלי לקדוח בקורות קדחים מקדימים?",
   "modify-product.preliminary-drills-not-required": "אין צורך לקדוח קדחים מקדימים ב{{beamName}}",
   "modify-product.preliminary-drills-required": "קדח קדחים מקדימים ב{{beamName}}",
-  "modify-product.no-preliminary-drilling-needed": "אין צורך לבצע קידוחים מקדימים!",
+  "modify-product.no-preliminary-drilling-needed": "אין חובה לבצע קידוחים מקדימים!",
   "modify-product.understood-continue-next": "הבנתי, נמשיך לשלב הבא",
   "modify-product.drilling-completed": "הקידוחים בוצעו",
   "modify-product.preliminary-drills-instruction-text": "מצא {{beamCount}} חתיכות של קורת {{woodType}} {{width}} על {{height}} ס\"מ באורך {{length}} ס\"מ{{additionalLengths}} וקדח בהן עם מקדחה קדחים עוברים בקוטר של כ-{{drillDiameter}} מ\"מ, באופן המוצג בתלת מימד ובשרטוט הבא:",
