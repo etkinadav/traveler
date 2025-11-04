@@ -320,40 +320,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.expandedDrillItems.clear();
         }
         
-        // עדכון המודל התלת מימדי כדי להציג/להסתיר קורות בהתאם למצב
+        // גלילה למעלה אחרי פתיחה/סגירה של מצב הוראות
         setTimeout(() => {
-            this.updateBeams();
+            if (this.inputsContainerRef && this.inputsContainerRef.nativeElement) {
+                this.inputsContainerRef.nativeElement.scrollTop = 0;
+            }
         }, 100);
-        
-        // Scroll למעלה של קונטיינר האינפוטים לאחר שהתוכן נטען
-        // המתנה של 400ms כדי שהאנימציה slideUpDown תתבצע (400ms לפי ה-CSS), ואז 100ms נוספות
-        setTimeout(() => {
-            // Force change detection כדי לוודא שהתוכן נטען
-            this.cdr.detectChanges();
-            
-            // המתנה נוספת של 100ms כדי שהתוכן יסיים להטען
-            setTimeout(() => {
-                if (this.inputsContainerRef && this.inputsContainerRef.nativeElement) {
-                    const element = this.inputsContainerRef.nativeElement;
-                    // נסיון לגלול את האלמנט עצמו
-                    element.scrollTop = 0;
-                    
-                    // אם יש אלמנט scrollable פנימי, נגלול גם אותו
-                    const scrollableElements = element.querySelectorAll('[style*="overflow"], [class*="scroll"]');
-                    scrollableElements.forEach((el: any) => {
-                        if (el.scrollTop !== undefined) {
-                            el.scrollTop = 0;
-                        }
-                    });
-                    
-                    // נסיון לגלול את האלמנט עצמו לראש העמוד
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                
-                // גם גלילת ה-window עצמו לראש העמוד (אם יש scroll)
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 100);
-        }, 400); // המתנה של 400ms כדי שהאנימציה תתבצע
     }
     
     // פתיחה/סגירה של סעיף הוראה ספציפי
@@ -393,6 +365,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // פונקציה לפתיחה/סגירה של תוכן שורת צ'קבוקס
     // שימו לב: הצ'קבוקס הראשון שלא מסומן תמיד פתוח ולא ניתן לקפל אותו
+    // אבל צ'קבוקס שמסומן עם V ניתן לפתוח/לסגור דרך החץ
     toggleDrillItemExpanded(drillInfo: any) {
         if (!drillInfo || !drillInfo.compositeKey) {
             return;
@@ -414,6 +387,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
         
         this.expandedDrillItems = newSet;
+        
+        // אילוץ Angular לעדכן את התצוגה
+        this.cdr.detectChanges();
     }
     
     // בדיקה אם שורת צ'קבוקס פתוחה
@@ -422,13 +398,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return false;
         }
         
+        const compositeKey = drillInfo.compositeKey;
+        
         // אם זה הצ'קבוקס הראשון שלא מסומן - תמיד פתוח
-        if (this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
+        if (this.isFirstUncheckedBeam(compositeKey)) {
             return true;
         }
         
         // אחרת - בדיקה לפי expandedDrillItems
-        return this.expandedDrillItems.has(drillInfo.compositeKey);
+        return this.expandedDrillItems.has(compositeKey);
     }
     
     // Getter ל-preliminaryDrillsInfo - יוצר רשומה לכל אורך קורה ייחודי שדורש קידוח
@@ -859,13 +837,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return 'collapsed';
         }
         
-        // אם זה הצ'קבוקס הראשון שלא מסומן - התוכן תמיד מופיע ולא ניתן לקפל
-        if (this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
-            return 'expanded';
-        }
-        
-        // כל שאר הצ'קבוקסים (לפני או אחרי) - מקופלים
-        return 'collapsed';
+        // בדיקה אם הפריט פתוח (גם אם מסומן עם V)
+        return this.isDrillItemExpanded(drillInfo) ? 'expanded' : 'collapsed';
     }
     
     // פונקציה לקביעת מצב האנימציה של כפתור "הקידוחים בוצעו"

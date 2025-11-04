@@ -210,11 +210,15 @@
                                 position: relative; // לצורך מיקום החץ
                                 padding-right: 15px; // כמו ה-header הראשי
                                 padding-left: 15px; // כמו ה-header הראשי
+                                transition: background-color 0.2s ease;
+                                
+                                // Hover effect - ללא שינוי ברקע לכחול בהיר
+                                // החץ לא משנה צבע ב-hover
                                 
                                 .preliminary-drill-arrow {
                                     flex-shrink: 0;
                                     cursor: pointer;
-                                    transition: transform 0.3s ease;
+                                    transition: transform 0.3s ease, color 0.2s ease;
                                     color: var(--zx-green, #0066cc);
                                     width: 16px;
                                     height: 16px;
@@ -263,11 +267,23 @@
                                         cursor: default;
                                         background: var(--zx-green, #0066cc);
                                         border-color: var(--zx-green, #0066cc);
+                                        
+                                        // בhover - נשאר כחול מלא (ללא רקע שקוף)
+                                        &:hover {
+                                            background: var(--zx-green, #0066cc) !important;
+                                            border-color: var(--zx-green, #0066cc) !important;
+                                        }
                                     }
                                     
                                     &.checked {
                                         background: var(--zx-green, #0066cc);
                                         border-color: var(--zx-green, #0066cc);
+                                        
+                                        // בhover - נשאר כחול מלא (ללא רקע שקוף)
+                                        &:hover {
+                                            background: var(--zx-green, #0066cc) !important;
+                                            border-color: var(--zx-green, #0066cc) !important;
+                                        }
                                         
                                         .checkbox-check-icon {
                                             display: block;
