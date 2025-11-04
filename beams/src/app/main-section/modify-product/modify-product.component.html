@@ -736,6 +736,8 @@
                                                     <div class="preliminary-drill-checkbox"
                                                          [class.checked]="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.compositeKey)"
                                                          [class.already-checked]="!drillInfo.requiresPreliminaryScrews"
+                                                         [matTooltip]="(drillInfo.requiresPreliminaryScrews && !isBeamMarkedAsCompleted(drillInfo.compositeKey) && !isFirstUncheckedBeam(drillInfo.compositeKey)) ? ('modify-product.please-complete-tasks-in-order' | translate) : ''"
+                                                         matTooltipPosition="above"
                                                          (click)="toggleBeamCompleted(drillInfo)">
                                                         <svg *ngIf="!drillInfo.requiresPreliminaryScrews || isBeamMarkedAsCompleted(drillInfo.compositeKey)" 
                                                              class="checkbox-check-icon" 
