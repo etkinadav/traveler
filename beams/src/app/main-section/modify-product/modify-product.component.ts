@@ -12976,5 +12976,327 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         return { length: 0, width: beamWidth, height: beamHeight };
     }
+    
+    // פונקציה זמנית למיקום מחדש של המצלמה לפי מידות המוצר
+    testCameraReposition() {
+        if (!this.camera || !this.renderer || !this.scene) {
+            console.error('TEST_CAMERA - Camera, renderer, or scene not initialized');
+            return;
+        }
+        
+        // שמירת מצב המצלמה והסצנה לפני האיפוס (לוג)
+        const cameraStateBefore = {
+            position: {
+                x: this.camera.position.x,
+                y: this.camera.position.y,
+                z: this.camera.position.z
+            },
+            rotation: {
+                x: this.camera.rotation.x,
+                y: this.camera.rotation.y,
+                z: this.camera.rotation.z
+            },
+            quaternion: {
+                x: this.camera.quaternion.x,
+                y: this.camera.quaternion.y,
+                z: this.camera.quaternion.z,
+                w: this.camera.quaternion.w
+            }
+        };
+        
+        const sceneStateBefore = {
+            position: {
+                x: this.scene.position.x,
+                y: this.scene.position.y,
+                z: this.scene.position.z
+            },
+            rotation: {
+                x: this.scene.rotation.x,
+                y: this.scene.rotation.y,
+                z: this.scene.rotation.z
+            }
+        };
+        
+        console.log('TEST_CAMERA - Camera state BEFORE reset:', JSON.stringify(cameraStateBefore, null, 2));
+        console.log('TEST_CAMERA - Scene state BEFORE reset:', JSON.stringify(sceneStateBefore, null, 2));
+        
+        // קבלת מידות המוצר בס"מ
+        const dimensions = this.getProductDimensionsRaw();
+        
+        // קבלת מידות המסך הפנוי בתלת מימד בפיקסלים
+        const container = this.renderer.domElement.parentElement;
+        if (!container) {
+            console.error('TEST_CAMERA - Container not found');
+            return;
+        }
+        
+        const viewportWidth = this.renderer.domElement.clientWidth || container.clientWidth;
+        const viewportHeight = this.renderer.domElement.clientHeight || container.clientHeight;
+        
+        // לוג של מידות המוצר ומידות המסך
+        console.log('TEST_CAMERA - Product Dimensions (cm):', JSON.stringify({
+            length: dimensions.length,
+            width: dimensions.width,
+            height: dimensions.height
+        }, null, 2));
+        
+        console.log('TEST_CAMERA - Viewport Dimensions (pixels):', JSON.stringify({
+            width: viewportWidth,
+            height: viewportHeight
+        }, null, 2));
+        
+        // חישוב bounding box של האוביקט (בס"מ)
+        const maxDimension = Math.max(dimensions.length, dimensions.width, dimensions.height);
+        const boundingBoxSize = maxDimension;
+        
+        // חישוב מרחק המצלמה לפי המידות (מרחק גדול יותר מהאוביקט כדי שיהיה נראה במלואו)
+        // משתמשים בפורפורציה לפי המידה הגדולה ביותר
+        const cameraDistance = boundingBoxSize * 2.5; // מרחק פי 2.5 מהאוביקט
+        
+        // חישוב זווית המצלמה - מבט טיפה מלמעלה (כ-30 מעלות)
+        const verticalAngle = 30 * (Math.PI / 180); // 30 מעלות לרדיאנים - זווית אנכית
+        const horizontalAngle = 45 * (Math.PI / 180); // 45 מעלות - זווית אופקית (איזומטרי)
+        
+        // חישוב מיקום המצלמה במערכת קואורדינטות כדורית
+        // המצלמה תהיה מעל ומאחורי האוביקט, במבט אל המרכז
+        const cameraX = Math.sin(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
+        const cameraY = Math.sin(verticalAngle) * cameraDistance;
+        const cameraZ = Math.cos(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
+        
+        // איפוס מלא ומוחלט של הסצנה לפני כל חישוב - ללא קשר למצב הקודם
+        // זה מבטיח ש-sceneOffsetY יהיה קבוע
+        this.scene.rotation.set(0, 0, 0);
+        this.scene.position.set(0, -120, 0); // ערך קבוע - לא תלוי במצב הקודם
+        this.scene.scale.set(1, 1, 1);
+        this.scene.quaternion.set(0, 0, 0, 1);
+        this.scene.updateMatrix();
+        this.scene.updateMatrixWorld(true);
+        
+        // חישוב המרכז של האוביקט לפי bounding box של כל האוביקטים בסצנה
+        // נחשב את המרכז האמיתי של האוביקט על ידי בדיקת כל האוביקטים בסצנה
+        let minY = Infinity;
+        let maxY = -Infinity;
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minZ = Infinity;
+        let maxZ = -Infinity;
+        
+        // עדכון כל המטריצות של האוביקטים לפני חישוב bounding box
+        this.scene.updateMatrixWorld(true);
+        
+        // מעבר על כל האוביקטים בסצנה כדי למצוא את ה-bounding box
+        this.scene.traverse((object) => {
+            if (object instanceof THREE.Mesh && object.geometry) {
+                // חישוב bounding box של האוביקט (כולל טרנספורמציות)
+                const box = new THREE.Box3().setFromObject(object);
+                
+                if (!box.isEmpty()) {
+                    minY = Math.min(minY, box.min.y);
+                    maxY = Math.max(maxY, box.max.y);
+                    minX = Math.min(minX, box.min.x);
+                    maxX = Math.max(maxX, box.max.x);
+                    minZ = Math.min(minZ, box.min.z);
+                    maxZ = Math.max(maxZ, box.max.z);
+                }
+            }
+        });
+        
+        // אם לא מצאנו אוביקטים, נשתמש בערכים מהמידות
+        let objectCenterY: number;
+        let objectCenterX: number = 0;
+        let objectCenterZ: number = 0;
+        
+        if (minY === Infinity || maxY === -Infinity) {
+            // נשתמש בחישוב לפי המידות
+            const sceneOffsetY = -120; // ערך קבוע
+            objectCenterY = sceneOffsetY + (dimensions.height / 2);
+            
+            console.log('TEST_CAMERA - Using calculated center (no objects found):', JSON.stringify({
+                objectCenterY: objectCenterY,
+                sceneOffsetY: sceneOffsetY,
+                objectHeight: dimensions.height
+            }, null, 2));
+        } else {
+            // חישוב המרכז לפי bounding box אמיתי
+            objectCenterY = (minY + maxY) / 2;
+            objectCenterX = (minX + maxX) / 2;
+            objectCenterZ = (minZ + maxZ) / 2;
+            
+            console.log('TEST_CAMERA - Bounding box calculated:', JSON.stringify({
+                minY: minY,
+                maxY: maxY,
+                minX: minX,
+                maxX: maxX,
+                minZ: minZ,
+                maxZ: maxZ,
+                objectCenterY: objectCenterY,
+                objectCenterX: objectCenterX,
+                objectCenterZ: objectCenterZ,
+                height: maxY - minY,
+                width: maxX - minX,
+                depth: maxZ - minZ
+            }, null, 2));
+        }
+        
+        const sceneOffsetY = -120; // ערך קבוע למען הלוגים
+        
+        // חישוב מיקום המצלמה עם מבט אל המרכז של האוביקט
+        const finalCameraY = objectCenterY + cameraY;
+        const finalCameraX = cameraX;
+        const finalCameraZ = cameraZ;
+        
+        console.log('TEST_CAMERA - Calculated camera position:', JSON.stringify({
+            cameraX: cameraX,
+            cameraY: cameraY,
+            cameraZ: cameraZ,
+            finalCameraX: finalCameraX,
+            finalCameraY: finalCameraY,
+            finalCameraZ: finalCameraZ,
+            objectCenter: {
+                x: objectCenterX,
+                y: objectCenterY,
+                z: objectCenterZ
+            },
+            sceneOffsetY: sceneOffsetY,
+            objectHeight: dimensions.height,
+            objectHeightHalf: dimensions.height / 2,
+            cameraDistance: cameraDistance,
+            verticalAngle: verticalAngle * (180 / Math.PI) + ' degrees',
+            horizontalAngle: horizontalAngle * (180 / Math.PI) + ' degrees',
+            usedBoundingBox: (minY !== Infinity && maxY !== -Infinity)
+        }, null, 2));
+        
+        // איפוס מלא ומוחלט של המצלמה והסצנה - ללא קשר למצב הקודם
+        // מאפסים את כל הרכיבים לפני הגדרת ערכים חדשים
+        
+        // הסצנה כבר אופסה למעלה, אז רק מאפסים את המצלמה
+        // איפוס מלא של המצלמה - כל הרכיבים כולל גובה (Y)
+        // חשוב: מאפסים את המיקום לחלוטין כולל Y לפני הגדרת ערך חדש
+        this.camera.position.set(0, 0, 0);
+        this.camera.rotation.set(0, 0, 0);
+        this.camera.up.set(0, 1, 0);
+        this.camera.quaternion.set(0, 0, 0, 1);
+        this.camera.scale.set(1, 1, 1);
+        
+        // עדכון המטריצות לפני הגדרת ערכים חדשים
+        this.camera.updateMatrix();
+        this.camera.updateMatrixWorld(true);
+        
+        // לוג של המצלמה אחרי איפוס מלא
+        console.log('TEST_CAMERA - Camera state AFTER reset:', JSON.stringify({
+            position: {
+                x: this.camera.position.x,
+                y: this.camera.position.y,
+                z: this.camera.position.z
+            },
+            rotation: {
+                x: this.camera.rotation.x,
+                y: this.camera.rotation.y,
+                z: this.camera.rotation.z
+            }
+        }, null, 2));
+        
+        // כעת הגדרת מיקום המצלמה למיקום החדש (מאפסים מלא)
+        // חשוב: הגדרת כל שלושת הקואורדינטות יחד, כולל Y (גובה)
+        this.camera.position.set(finalCameraX, finalCameraY, finalCameraZ);
+        
+        // הגדרת וקטור ה-up לפני lookAt
+        this.camera.up.set(0, 1, 0);
+        
+        // מבט אל המרכז של האוביקט - זה יחשב את הרוטציה מחדש לחלוטין מהמיקום החדש
+        this.camera.lookAt(objectCenterX, objectCenterY, objectCenterZ);
+        
+        // עדכון רוטציית הסצנה לזווית קבועה (30 מעלות)
+        this.scene.rotation.y = Math.PI / 6; // 30 degrees rotation
+        this.scene.updateMatrix();
+        this.scene.updateMatrixWorld(true);
+        
+        // עדכון רוטציית המצלמה מחדש אחרי סיבוב הסצנה
+        this.camera.lookAt(objectCenterX, objectCenterY, objectCenterZ);
+        
+        // כפיית עדכון מלא של המטריצות של המצלמה והסצנה
+        this.camera.updateMatrix();
+        this.camera.updateMatrixWorld(true);
+        this.scene.updateMatrix();
+        this.scene.updateMatrixWorld(true);
+        
+        // לוג של המצלמה אחרי הגדרת הערכים החדשים
+        console.log('TEST_CAMERA - Camera state AFTER positioning:', JSON.stringify({
+            position: {
+                x: this.camera.position.x,
+                y: this.camera.position.y,
+                z: this.camera.position.z
+            },
+            rotation: {
+                x: this.camera.rotation.x,
+                y: this.camera.rotation.y,
+                z: this.camera.rotation.z
+            },
+            quaternion: {
+                x: this.camera.quaternion.x,
+                y: this.camera.quaternion.y,
+                z: this.camera.quaternion.z,
+                w: this.camera.quaternion.w
+            }
+        }, null, 2));
+        
+        console.log('TEST_CAMERA - Scene state AFTER positioning:', JSON.stringify({
+            position: {
+                x: this.scene.position.x,
+                y: this.scene.position.y,
+                z: this.scene.position.z
+            },
+            rotation: {
+                x: this.scene.rotation.x,
+                y: this.scene.rotation.y,
+                z: this.scene.rotation.z
+            }
+        }, null, 2));
+        
+        // עדכון הפרויקציה לפי יחס המסך
+        const aspect = viewportWidth / viewportHeight;
+        if (this.camera instanceof THREE.PerspectiveCamera) {
+            this.camera.aspect = aspect;
+            this.camera.updateProjectionMatrix();
+        }
+        
+        // עדכון הרינדורר
+        this.renderer.setSize(viewportWidth, viewportHeight);
+        
+        // רינדור חד פעמי
+        this.renderer.render(this.scene, this.camera);
+        
+        console.log('TEST_CAMERA - Camera repositioned (final):', JSON.stringify({
+            position: {
+                x: finalCameraX,
+                y: finalCameraY,
+                z: finalCameraZ
+            },
+            lookAt: {
+                x: objectCenterX,
+                y: objectCenterY,
+                z: objectCenterZ
+            },
+            distance: cameraDistance,
+            aspect: aspect,
+            actualCameraPosition: {
+                x: this.camera.position.x,
+                y: this.camera.position.y,
+                z: this.camera.position.z
+            },
+            actualCameraRotation: {
+                x: this.camera.rotation.x,
+                y: this.camera.rotation.y,
+                z: this.camera.rotation.z
+            },
+            objectCenter: {
+                x: objectCenterX,
+                y: objectCenterY,
+                z: objectCenterZ
+            },
+            objectHeight: dimensions.height,
+            usedBoundingBox: (minY !== Infinity && maxY !== -Infinity)
+        }, null, 2));
+    }
 }
 
