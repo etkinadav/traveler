@@ -724,7 +724,10 @@
                                          *ngIf="i === 0 && instruction.name === 'preliminary-drills' && preliminaryDrillsInfo.length > 0">
                                         
                                         <div class="preliminary-drills-list">
-                                            <div *ngFor="let drillInfo of preliminaryDrillsInfo; trackBy: trackByParamName" class="preliminary-drill-item">
+                                            <!-- הצגה רק של קורות שדורשות קידוח -->
+                                            <ng-container *ngFor="let drillInfo of preliminaryDrillsInfo; trackBy: trackByParamName">
+                                                <div *ngIf="drillInfo.requiresPreliminaryScrews" 
+                                                     class="preliminary-drill-item">
                                                 <!-- הודעת מצב אחת -->
                                                 <div class="preliminary-drill-check-item"
                                                      [attr.data-checkbox-element]="drillInfo.compositeKey">
@@ -740,12 +743,7 @@
                                                         </svg>
                                                     </div>
                                                     <span class="check-text">
-                                                        <span *ngIf="drillInfo.requiresPreliminaryScrews">
-                                                            {{ drillInfo.beamTypeName }} {{ drillInfo.beamLength }} ס"מ
-                                                        </span>
-                                                        <span *ngIf="!drillInfo.requiresPreliminaryScrews">
-                                                            {{ drillInfo.beamTypeName }} {{ drillInfo.beamLength }} ס"מ - {{ 'modify-product.preliminary-drills-not-required' | translate }}
-                                                        </span>
+                                                        {{ drillInfo.beamTypeName }} {{ drillInfo.beamLength }} ס"מ
                                                     </span>
                                                 </div>
                                                 
@@ -783,6 +781,7 @@
                                                 </div>
                                                 
                                             </div>
+                                            </ng-container>
                                         </div>
                                         
                                         <!-- הודעה וכפתור אם כל הקורות הן V -->
