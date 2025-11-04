@@ -1891,6 +1891,14 @@ mat-form-field {
         font-size: 14px !important;
         font-weight: 400 !important;
     }
+    
+    // עיצוב הטקסט של השלב הנוכחי (הצ'קבוקס הראשון שלא מסומן)
+    .check-text.current-task,
+    span.check-text.current-task,
+    .preliminary-drill-check-item .check-text.current-task {
+        font-weight: 700 !important;
+        color: #0066cc !important;
+    }
 }
 
 
@@ -3008,6 +3016,31 @@ mat-form-field {
         font-size: 14px !important;
         font-weight: 400 !important;
     }
+    
+    // עיצוב הטקסט של השלב הנוכחי (הצ'קבוקס הראשון שלא מסומן)
+    .check-text.current-task,
+    span.check-text.current-task,
+    .preliminary-drill-check-item .check-text.current-task {
+        font-weight: 700 !important;
+        color: #0066cc !important;
+    }
+}
+
+// כלל נוסף להדגשת הטקסט של השלב הנוכחי - מחוץ ל-preliminary-drill-item כדי שיהיה יותר ספציפי
+.preliminary-drill-check-item .check-text.current-task,
+.preliminary-drill-item .preliminary-drill-check-item .check-text.current-task,
+.preliminary-drill-item .check-text.current-task,
+.preliminary-drill-item span.check-text.current-task {
+    font-weight: 700 !important;
+    color: #0066cc !important;
+}
+
+// כלל נוסף לדריסת הכלל .check-text * עבור השלב הנוכחי
+.preliminary-drill-item .preliminary-drill-check-item .check-text.current-task *,
+.preliminary-drill-item .check-text.current-task *,
+.preliminary-drill-item span.check-text.current-task * {
+    font-weight: 700 !important;
+    color: #0066cc !important;
 }
 
 // הודעה על כמות קורות לא מספקת
@@ -3846,6 +3879,14 @@ mat-form-field {
         color: #0066cc !important;
         font-size: 14px !important;
         font-weight: 400 !important;
+    }
+    
+    // עיצוב הטקסט של השלב הנוכחי (הצ'קבוקס הראשון שלא מסומן)
+    .check-text.current-task,
+    span.check-text.current-task,
+    .preliminary-drill-check-item .check-text.current-task {
+        font-weight: 700 !important;
+        color: #0066cc !important;
     }
 }
 

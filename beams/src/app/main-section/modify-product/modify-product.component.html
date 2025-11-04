@@ -745,7 +745,8 @@
                                                             <path d="M 2 6 L 5 9 L 10 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                                                         </svg>
                                                     </div>
-                                                    <span class="check-text">
+                                                    <span class="check-text"
+                                                          [class.current-task]="isFirstUncheckedBeam(drillInfo.compositeKey)">
                                                         {{ drillInfo.beamTypeName }} {{ drillInfo.beamLength }} ס"מ
                                                     </span>
                                                     <!-- חץ לפתיחה/סגירה - בצד ימין (מוצג תמיד, גם כשמסומן עם V) -->
