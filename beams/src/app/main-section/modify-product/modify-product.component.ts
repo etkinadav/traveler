@@ -323,6 +323,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.currentInstructionStage = 0;
             this.completedPreliminaryDrills.clear();
             this.expandedDrillItems.clear();
+            
+            // ביטול מצב שקוף
+            this.isTransparentMode = false;
+            // עדכון המודל כדי להסיר את השקיפות
+            setTimeout(() => {
+                this.updateBeams();
+            }, 100);
         }
         
         // גלילה למעלה אחרי פתיחה/סגירה של מצב הוראות
