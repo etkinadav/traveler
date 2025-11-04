@@ -727,7 +727,8 @@
                                             <!-- הצגה רק של קורות שדורשות קידוח -->
                                             <ng-container *ngFor="let drillInfo of preliminaryDrillsInfo; trackBy: trackByParamName">
                                                 <div *ngIf="drillInfo.requiresPreliminaryScrews" 
-                                                     class="preliminary-drill-item">
+                                                     class="preliminary-drill-item"
+                                                     [class.completed]="isBeamMarkedAsCompleted(drillInfo.compositeKey)">
                                                 <!-- הודעת מצב אחת -->
                                                 <div class="preliminary-drill-check-item"
                                                      [attr.data-checkbox-element]="drillInfo.compositeKey">
