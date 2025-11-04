@@ -304,9 +304,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // איפוס מבט בפעם הראשונה בלבד
             if (this.isFirstTimeEnteringInstructions) {
                 this.isFirstTimeEnteringInstructions = false;
-                // קריאה לאיפוס מבט לאחר סיום הטעינה - עם הפעלת מצב שקוף בסיום האנימציה
+                // הפעלת מצב שקוף ישירות ללא אנימציה
                 setTimeout(() => {
-                    this.resetCameraView(true); // true = הפעל מצב שקוף בסיום האנימציה
+                    // במוצר קורות - לא לאפשר מצב שקוף
+                    if (!this.isBelams) {
+                        this.isTransparentMode = true;
+                        // עדכון המודל כדי להחיל את השקיפות
+                        this.updateBeams();
+                    }
                 }, 500); // המתנה כדי שהמודל יסיים לטעון
             }
             
@@ -847,6 +852,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         this.completedPreliminaryDrills = newSet;
         
+        // עדכון expandedDrillItems:
+        // כשמסירים V - נוסיף ל-expandedDrillItems כדי שהצ'קבוקס ייפתח (כי הוא שוב הצ'קבוקס הראשון שלא מסומן)
+        // כשמסמנים V - נסיר מ-expandedDrillItems כדי שהצ'קבוקס ייסגר כברירת מחדל
+        // אבל אפשר לפתוח אותו עם החץ (וזה יקרה ב-toggleDrillItemExpanded)
+        const newExpandedSet = new Set(this.expandedDrillItems);
+        if (wasChecked) {
+            // בוטל V - נוסיף ל-expandedDrillItems כדי שהצ'קבוקס ייפתח
+            newExpandedSet.add(compositeKey);
+        } else {
+            // סומן V - נסיר מ-expandedDrillItems כדי שהצ'קבוקס ייסגר כברירת מחדל
+            newExpandedSet.delete(compositeKey);
+        }
+        this.expandedDrillItems = newExpandedSet;
+        
         console.log('CHECKBOX_TOGGLE:', JSON.stringify({
             compositeKey: compositeKey,
             isChecked: newSet.has(compositeKey),
@@ -872,8 +891,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return 'collapsed';
         }
         
-        // בדיקה אם הפריט פתוח (גם אם מסומן עם V)
-        return this.isDrillItemExpanded(drillInfo) ? 'expanded' : 'collapsed';
+        // אם זה הצ'קבוקס הראשון שלא מסומן - תמיד expanded
+        if (this.isFirstUncheckedBeam(drillInfo.compositeKey)) {
+            return 'expanded';
+        }
+        
+        // אחרת - בדיקה לפי expandedDrillItems (גם אם מסומן עם V)
+        return this.expandedDrillItems.has(drillInfo.compositeKey) ? 'expanded' : 'collapsed';
     }
     
     // פונקציה לקביעת מצב האנימציה של כפתור "הקידוחים בוצעו"
@@ -1096,11 +1120,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         const compositeKey = drillInfo.compositeKey;
         
-        // הטקסט יופיע רק אם זה הצ'קבוקס הראשון שלא מסומן
+        // הטקסט יופיע אם זה הצ'קבוקס הראשון שלא מסומן או אם הוא פתוח עם החץ (ב-expandedDrillItems)
         const firstUncheckedKey = this.getFirstUncheckedBeamParamName();
+        const isExpanded = this.expandedDrillItems.has(compositeKey);
         
-        // אם זה לא השלב הנוכחי - לא להציג טקסט
-        if (firstUncheckedKey !== compositeKey) {
+        // אם זה לא השלב הנוכחי ולא פתוח עם החץ - לא להציג טקסט
+        if (firstUncheckedKey !== compositeKey && !isExpanded) {
             return '';
         }
         
