@@ -494,18 +494,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const shelfBeamHeight = selectedBeam?.height / 10 || 0;
                     const legHeight = totalHeight - shelfBeamHeight;
                     
-                    // בדיקה אם צריך קדחים מקדימים לקורות רגל
-                    const requiresPreliminaryScrewsForLegs = this.checkIfBeamRequiresPreliminaryScrews('leg', selectedBeam, selectedType);
-                    
-                    if (requiresPreliminaryScrewsForLegs) {
-                        for (let i = 0; i < 4; i++) {
-                            allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
-                        }
-                    }
-                    
                     // קורות חיזוק
                     const outsideParam = this.getParam('is-reinforcement-beams-outside');
                     const isOutside = !!(outsideParam && outsideParam.default === true);
+                    
+                    // בדיקה אם צריך קדחים מקדימים לקורות רגל עצמן
+                    // רק במצב ש-"is-reinforcement-beams-outside" חיובי
+                    if (isOutside) {
+                        const requiresPreliminaryScrewsForLegs = this.checkIfBeamRequiresPreliminaryScrews('leg', selectedBeam, selectedType);
+                        
+                        if (requiresPreliminaryScrewsForLegs) {
+                            for (let i = 0; i < 4; i++) {
+                                allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + this.quantity);
+                            }
+                        }
+                    }
                     
                     if (isOutside) {
                         // קורות חיזוק חיצוניות (frame beams)
