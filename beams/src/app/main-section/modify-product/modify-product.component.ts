@@ -794,11 +794,44 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 return;
             }
         } else {
-            // אם זה מסומן - בדיקה אם זה הצ'קבוקס האחרון שמסומן (רק הוא יכול להיסרת)
-            if (!this.isLastCheckedBeam(compositeKey)) {
-                // לא ניתן לבטל סימון אם זה לא הצ'קבוקס האחרון שמסומן
+            // אם זה מסומן - נסיר את ה-V שלו ושל כל מה שלפניו
+            // מציאת האינדקס של הצ'קבוקס הנוכחי ברשימה
+            const currentIndex = this.preliminaryDrillsInfo.findIndex(info => 
+                info.requiresPreliminaryScrews && info.compositeKey === compositeKey
+            );
+            
+            if (currentIndex === -1) {
                 return;
             }
+            
+            // יצירת Set חדש כדי לעורר change detection
+            const newSet = new Set(this.completedPreliminaryDrills);
+            
+            // הסרת ה-V של כל הצ'קבוקסים מההתחלה עד הצ'קבוקס הנוכחי (כולל)
+            for (let i = 0; i <= currentIndex; i++) {
+                const info = this.preliminaryDrillsInfo[i];
+                if (info && info.requiresPreliminaryScrews && info.compositeKey) {
+                    newSet.delete(info.compositeKey);
+                }
+            }
+            
+            this.completedPreliminaryDrills = newSet;
+            
+            // סגירת כל התוכן של הצ'קבוקסים האחרים
+            const newExpandedSet = new Set<string>();
+            // פתיחת התוכן של הצ'קבוקס הנוכחי
+            newExpandedSet.add(compositeKey);
+            this.expandedDrillItems = newExpandedSet;
+            
+            // עדכון המודל התלת-ממדי כדי להציג את הקורות והברגים המתאימים
+            setTimeout(() => {
+                this.updateBeams();
+            }, 100);
+            
+            // אילוץ Angular לעדכן את התצוגה
+            this.cdr.detectChanges();
+            
+            return;
         }
         
         // יצירת Set חדש כדי לעורר change detection
