@@ -320,6 +320,36 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         setTimeout(() => {
             this.updateBeams();
         }, 100);
+        
+        // Scroll למעלה של קונטיינר האינפוטים לאחר שהתוכן נטען
+        // המתנה של 400ms כדי שהאנימציה slideUpDown תתבצע (400ms לפי ה-CSS), ואז 100ms נוספות
+        setTimeout(() => {
+            // Force change detection כדי לוודא שהתוכן נטען
+            this.cdr.detectChanges();
+            
+            // המתנה נוספת של 100ms כדי שהתוכן יסיים להטען
+            setTimeout(() => {
+                if (this.inputsContainerRef && this.inputsContainerRef.nativeElement) {
+                    const element = this.inputsContainerRef.nativeElement;
+                    // נסיון לגלול את האלמנט עצמו
+                    element.scrollTop = 0;
+                    
+                    // אם יש אלמנט scrollable פנימי, נגלול גם אותו
+                    const scrollableElements = element.querySelectorAll('[style*="overflow"], [class*="scroll"]');
+                    scrollableElements.forEach((el: any) => {
+                        if (el.scrollTop !== undefined) {
+                            el.scrollTop = 0;
+                        }
+                    });
+                    
+                    // נסיון לגלול את האלמנט עצמו לראש העמוד
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                
+                // גם גלילת ה-window עצמו לראש העמוד (אם יש scroll)
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+        }, 400); // המתנה של 400ms כדי שהאנימציה תתבצע
     }
     
     // פתיחה/סגירה של סעיף הוראה ספציפי
@@ -1959,6 +1989,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     currentInstructionStage: number = 0; // סעיף ההוראה הפתוח כרגע (0 = מצב רגיל, 1+ = מצב הוראות עם סעיף פתוח)
     completedPreliminaryDrills: Set<string> = new Set(); // קורות שסומנו כבוצעו קדחים מקדימים
     preliminaryDrillsInfoCache: any[] = []; // cache לתוצאות getPreliminaryDrillsInfo (לא בשימוש יותר - נשמר ל-compatibility)
+    @ViewChild('inputsContainer', { static: false }) inputsContainerRef!: ElementRef; // Reference לקונטיינר של האינפוטים
     product: any = null;
     params: any[] = [];
     selectedProductName: string = ''; // שם המוצר שנבחר מה-URL

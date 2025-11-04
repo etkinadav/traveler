@@ -227,7 +227,7 @@
     </div>
     
     <div class="main-flex-row">
-        <div class="controls" [class.closed]="!drawerOpen">
+        <div class="controls" [class.closed]="!drawerOpen" #inputsContainer>
             <button class="drawer-toggle" (click)="toggleDrawer()">
                 <svg width="12" height="12" viewBox="0 0 12 12" style="display:block;margin:auto;">
                     <polyline points="4,2 8,6 4,10" stroke="#666" stroke-width="2" fill="none"
