@@ -4460,6 +4460,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         } else if (!isMobile && this.showWireframe) {
             this.addWireframeCube();
         }
+        
+        // הפעלת testCameraReposition אחרי שניה משינוי גודל המסך
+        setTimeout(() => {
+            this.testCameraReposition();
+        }, 1000);
     }
     updateBeams(isInitialLoad: boolean = false) {
         
@@ -6376,6 +6381,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         setTimeout(() => {
             this.calculatePricing();
         }, 0);
+        
+        // הפעלת testCameraReposition אחרי שניה מסיום העדכון
+        setTimeout(() => {
+            this.testCameraReposition();
+        }, 1000);
         
     }
     
@@ -12984,6 +12994,155 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             return;
         }
         
+        // ============================================
+        // פתרון חדש: מיקום המצלמה לפי Bounding Box
+        // ============================================
+        
+        // קבלת מידות המסך
+        const containerNew = this.renderer.domElement.parentElement;
+        if (!containerNew) {
+            console.error('TEST_CAMERA - Container not found');
+            return;
+        }
+        
+        const viewportWidthNew = this.renderer.domElement.clientWidth || containerNew.clientWidth;
+        const viewportHeightNew = this.renderer.domElement.clientHeight || containerNew.clientHeight;
+        
+        // איפוס מלא של הסצנה לפני חישוב bounding box
+        this.scene.rotation.set(0, 0, 0);
+        this.scene.position.set(0, -120, 0);
+        this.scene.scale.set(1, 1, 1);
+        this.scene.updateMatrix();
+        this.scene.updateMatrixWorld(true);
+        
+        // חישוב bounding box של כל האוביקטים בסצנה
+        let minXNew = Infinity, minYNew = Infinity, minZNew = Infinity;
+        let maxXNew = -Infinity, maxYNew = -Infinity, maxZNew = -Infinity;
+        let hasObjects = false;
+        
+        this.scene.traverse((object) => {
+            if (object instanceof THREE.Mesh && object.geometry) {
+                const objectBox = new THREE.Box3().setFromObject(object);
+                if (!objectBox.isEmpty()) {
+                    // Manual expansion by comparing min/max values
+                    minXNew = Math.min(minXNew, objectBox.min.x);
+                    minYNew = Math.min(minYNew, objectBox.min.y);
+                    minZNew = Math.min(minZNew, objectBox.min.z);
+                    maxXNew = Math.max(maxXNew, objectBox.max.x);
+                    maxYNew = Math.max(maxYNew, objectBox.max.y);
+                    maxZNew = Math.max(maxZNew, objectBox.max.z);
+                    hasObjects = true;
+                }
+            }
+        });
+        
+        const box = new THREE.Box3();
+        if (hasObjects) {
+            box.setFromPoints([
+                new THREE.Vector3(minXNew, minYNew, minZNew),
+                new THREE.Vector3(maxXNew, maxYNew, maxZNew)
+            ]);
+        }
+        
+        if (!hasObjects || box.isEmpty()) {
+            console.warn('TEST_CAMERA - No objects found in scene, using fallback method');
+            // נמשיך לקוד הקיים במקרה שאין אוביקטים
+        } else {
+            // מציאת המרכז הגיאומטרי של ה-bounding box
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            
+            // הזזת הסצנה כך שהמרכז יהיה ב-(0,0,0)
+            const offset = center.clone().negate();
+            this.scene.position.set(offset.x, offset.y - 120, offset.z);
+            this.scene.updateMatrix();
+            this.scene.updateMatrixWorld(true);
+            
+            // חישוב המרחק כך שה-bounding box יכנס ל-view frustum
+            const cameraFOV = this.camera instanceof THREE.PerspectiveCamera ? this.camera.fov : 40;
+            const fovRadians = cameraFOV * (Math.PI / 180);
+            const aspect = viewportWidthNew / viewportHeightNew;
+            
+            // חישוב המרחק לפי הגובה והרוחב של ה-bounding box
+            const distanceHeight = (size.y / 2) / Math.tan(fovRadians / 2);
+            const distanceWidth = (size.x / 2) / (Math.tan(fovRadians / 2) * aspect);
+            const distanceDepth = (size.z / 2) / Math.tan(fovRadians / 2);
+            
+            // נשתמש במרחק הגדול ביותר עם margin
+            // margin קטן יותר = מצלמה קרובה יותר = זום גדול יותר
+            const margin = 0.4; // margin קטן פי 3 כדי להגדיל את הזום פי 3
+            const cameraDistance = Math.max(distanceHeight, distanceWidth, distanceDepth) * margin;
+            
+            // זווית קבועה
+            const BASE_VERTICAL_ANGLE = 30; // מעלות
+            const verticalAngle = BASE_VERTICAL_ANGLE * (Math.PI / 180);
+            const horizontalAngle = 45 * (Math.PI / 180); // 45 מעלות אופקית
+            
+            // חישוב מיקום המצלמה במערכת קואורדינטות כדורית
+            const cameraX = Math.sin(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
+            const cameraY = Math.sin(verticalAngle) * cameraDistance;
+            const cameraZ = Math.cos(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
+            
+            // איפוס המצלמה
+            this.camera.position.set(0, 0, 0);
+            this.camera.rotation.set(0, 0, 0);
+            this.camera.up.set(0, 1, 0);
+            this.camera.quaternion.set(0, 0, 0, 1);
+            
+            // הגדרת מיקום המצלמה
+            this.camera.position.set(cameraX, cameraY, cameraZ);
+            
+            // מבט על המרכז (0,0,0) - כי הזזנו את הסצנה כך שהמרכז יהיה שם
+            this.camera.lookAt(0, 0, 0);
+            
+            // עדכון רוטציית הסצנה לזווית קבועה (30 מעלות)
+            this.scene.rotation.y = Math.PI / 6; // 30 degrees rotation
+            this.scene.updateMatrix();
+            this.scene.updateMatrixWorld(true);
+            
+            // עדכון רוטציית המצלמה מחדש אחרי סיבוב הסצנה
+            this.camera.lookAt(0, 0, 0);
+            
+            // עדכון הפרויקציה
+            this.camera.aspect = aspect;
+            if (this.camera instanceof THREE.PerspectiveCamera) {
+                this.camera.updateProjectionMatrix();
+            }
+            
+            // עדכון הרינדורר
+            this.renderer.setSize(viewportWidthNew, viewportHeightNew);
+            
+            // רינדור חד פעמי
+            this.renderer.render(this.scene, this.camera);
+            
+            // עדכון מטריצות
+            this.camera.updateMatrix();
+            this.camera.updateMatrixWorld(true);
+            this.scene.updateMatrix();
+            this.scene.updateMatrixWorld(true);
+            
+            console.log('TEST_CAMERA - Bounding box camera positioning:', JSON.stringify({
+                boundingBox: {
+                    center: { x: center.x, y: center.y, z: center.z },
+                    size: { x: size.x, y: size.y, z: size.z },
+                    min: { x: box.min.x, y: box.min.y, z: box.min.z },
+                    max: { x: box.max.x, y: box.max.y, z: box.max.z }
+                },
+                sceneOffset: { x: offset.x, y: offset.y - 120, z: offset.z },
+                cameraPosition: { x: cameraX, y: cameraY, z: cameraZ },
+                cameraDistance: cameraDistance,
+                viewportSize: { width: viewportWidthNew, height: viewportHeightNew },
+                aspect: aspect
+            }, null, 2));
+            
+            // return מוקדם - לא להמשיך לקוד הקיים
+            return;
+        }
+        
+        // ============================================
+        // קוד קיים - יגיע לכאן רק אם אין אוביקטים בסצנה
+        // ============================================
+        
         // שמירת מצב המצלמה והסצנה לפני האיפוס (לוג)
         const cameraStateBefore = {
             position: {
@@ -13052,8 +13211,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // חישוב מרחק המצלמה לפי המידות (מרחק גדול יותר מהאוביקט כדי שיהיה נראה במלואו)
         // משתמשים בפורפורציה לפי המידה הגדולה ביותר
-        const cameraDistance = boundingBoxSize * 2.5; // מרחק פי 2.5 מהאוביקט
-        
+        const viewportWidthAdditional1 = viewportWidth < 750 ? (750 - viewportWidth) * 0.3 : 0;
+        const viewportWidthAdditional2 = viewportWidth < 500 ? (500 - viewportWidth) * 1 : 0;
+        const cameraDistance = (dimensions.height + boundingBoxSize) * 1.25 + viewportWidthAdditional1 + viewportWidthAdditional2; // מרחק פי 2.5 מהאוביקט
+        console.log('TEST_CAMERA - Camera distance:', boundingBoxSize, cameraDistance, viewportWidthAdditional1, viewportWidthAdditional2);
         // חישוב זווית המצלמה - מבט טיפה מלמעלה (זווית קבועה)
         const BASE_VERTICAL_ANGLE = 30; // מעלות - זווית בסיסית קבועה
         const verticalAngle = BASE_VERTICAL_ANGLE * (Math.PI / 180); // המרה לרדיאנים
@@ -13069,7 +13230,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // למודל שגובהו 100 ס"מ: PAN של 30% מגובה המסך
         // יותר PAN ככל שהגובה יותר קטן מ-150, פחות ככל שהוא יותר קרוב ל-150
         // עד 150 ס"מ זה מפסיק להשפיע
-        const BASE_THRESHOLD = 150; // ס"מ - הגובה שממנו PAN מפסיק להשפיע
+        const BASE_THRESHOLD = 130; // ס"מ - הגובה שממנו PAN מפסיק להשפיע
         const REFERENCE_DIMENSION = 100; // ס"מ - הגובה שממנו מחשבים את ה-PAN הבסיסי
         const PAN_PERCENTAGE_OF_SCREEN = 0.30; // 30% מגובה המסך - הערך המקורי שהיה מבוקש
         
@@ -13288,9 +13449,36 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // זה מדמה את מה שקורה בגרירת גלגלת למעלה - המצלמה והסצנה זזות יחד למעלה
         // כך שהאוביקט ירד במסך (יראה במרכז)
         // וקטור ה-up של המצלמה הוא הכיוון למעלה במערכת הקואורדינטות של המצלמה
+        
+        // חישוב פרופורציה בין סכום רוחב ואורך המוצר לרוחב המסך
+        const productWidthLengthSum = dimensions.width + dimensions.length; // סכום רוחב ואורך המוצר
+        const widthToScreenRatio = productWidthLengthSum / viewportWidth; // פרופורציה בין סכום המידות לרוחב המסך
+        const panCorrectionFactor = (335 - ((widthToScreenRatio + 0.2) * 1000)) * 0.003;
+        const widthHeightRatio3D = (dimensions.width + dimensions.length) / dimensions.height;
+        const widthHeightRatio3DCorrectionTerm = widthHeightRatio3D > 1.5 ? (widthHeightRatio3D - 1.5) * 0.1 : 0;
+        const screenWidthCorrectionTerm = viewportWidth < 1500 ? (1500 - viewportWidth) * 0.0013 : 0;
+        const a = screenWidthCorrectionTerm > 0.8 ? -1 * (0.8 - screenWidthCorrectionTerm) : 0;
+        const b = screenWidthCorrectionTerm > 3.3 ? screenWidthCorrectionTerm - 3.3 : 0;
+        const correctionTerm = widthHeightRatio3DCorrectionTerm * screenWidthCorrectionTerm * 1 + (a * 1) + (b * 1);
+        console.log('TEST_CAMERA - Product dimensions vs screen width ratio:', JSON.stringify({
+            productWidth: dimensions.width,
+            productLength: dimensions.length,
+            productWidthLengthSum: productWidthLengthSum,
+            viewportWidth: viewportWidth,
+            widthToScreenRatio:  widthToScreenRatio,
+            productHeight: dimensions.height,
+            panCorrectionFactor: panCorrectionFactor,
+            widthHeightRatio3D: widthHeightRatio3D,
+            widthHeightRatio3DCorrectionTerm: widthHeightRatio3DCorrectionTerm,
+            screenWidthCorrectionTerm: screenWidthCorrectionTerm,
+            correctionTerm: correctionTerm,
+            a: a,
+        }, null, 2));
+         
+        
         const panVector = new THREE.Vector3();
         panVector.setFromMatrixColumn(this.camera.matrix, 1); // וקטור ה-up (עמודה 1)
-        panVector.multiplyScalar(panOffsetInSceneUnits); // חיובי = למעלה (כך האוביקט ירד במסך)
+        panVector.multiplyScalar(panOffsetInSceneUnits * (0.45 + panCorrectionFactor + screenWidthCorrectionTerm + a)); // חליש פי 3 את האפקט
         this.camera.position.add(panVector); // מזיזים את המצלמה
         this.scene.position.add(panVector); // מזיזים את הסצנה באותו כיוון
         
