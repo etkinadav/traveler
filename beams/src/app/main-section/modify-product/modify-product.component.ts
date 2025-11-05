@@ -1941,60 +1941,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.showWarningMenu = false;
     }
     
-    // איפוס מבט המצלמה לנקודת ההתחלה
-    resetCameraView(enableTransparentModeAfterAnimation: boolean = false) {
-        if (!this.camera || !this.scene) return;
-        
-        // שמירת הפרמטר במשתנה instance
-        this.shouldEnableTransparentModeAfterCameraReset = enableTransparentModeAfterAnimation;
-        
-        // סגירת תפריט האפשרויות
-        this.isOptionsMenuOpen = false;
-        
-        // איפוס מוחלט של מיקום הסצנה לפני הכל
-        this.scene.position.set(0, -120, 0);
-        
-        // קבלת מידות המוצר לחישוב מיקום אופטימלי
-        const dimensions = this.getProductDimensionsRaw();
-        
-        // חישוב מיקום מצלמה אופטימלי על בסיס המידות
-        const optimalPosition = this.calculateOptimalCameraPosition(dimensions);
-        
-        // איפוס המצלמה למיקום האופטימלי
-        this.camera.position.set(optimalPosition.x, optimalPosition.y, optimalPosition.z);
-        this.camera.lookAt(0, 0, 0);
-        
-        // המתנה של 100 מילישניות ואז הפעלת האנימציה בדיוק כמו בפתיחה
-        setTimeout(() => {
-            if (this.isBelams) {
-                // עבור מוצר קורות - שימוש בפונקציה המיוחדת
-                if (typeof (this as any).centerCameraOnBeams === 'function') {
-                    (this as any).centerCameraOnBeams();
-                }
-            } else {
-                // עבור שאר המוצרים - שימוש בפונקציה הרגילה
-                if (typeof (this as any).centerCameraOnWireframe === 'function') {
-                    (this as any).centerCameraOnWireframe();
-                }
-            }
-            
-            // אם יש performAutoZoomIn וצריך להפעיל מצב שקוף - נחכה לסיום האנימציה
-            if (this.shouldEnableTransparentModeAfterCameraReset && typeof (this as any).performAutoZoomIn === 'function') {
-                // האנימציה נמשכת 500ms (חצי שנייה) + 1000ms המתנה לפני שזה מתחיל = 1500ms בסה"כ
-                // נוסיף עוד קצת זמן לוודא שהאנימציה באמת הסתיימה
-                setTimeout(() => {
-                    // בדיקה אם צריך להפעיל מצב שקוף - רק אם זה עדיין true (לא בוטל)
-                    if (this.shouldEnableTransparentModeAfterCameraReset && !this.isTransparentMode && !this.isBelams) {
-                        this.toggleTransparentMode();
-                    }
-                    // איפוס הפרמטר לאחר השימוש
-                    this.shouldEnableTransparentModeAfterCameraReset = false;
-                }, 1600); // 500ms אנימציה + 1000ms המתנה לפני + 100ms buffer
-            }
-        }, 100);
-        
-    }
-    
     // משתנים לניהול dropdowns
     openDropdowns: { [key: string]: boolean } = {};
 
@@ -4461,9 +4407,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.addWireframeCube();
         }
         
-        // הפעלת testCameraReposition אחרי שניה משינוי גודל המסך
+        // הפעלת resetCameraView אחרי שניה משינוי גודל המסך
         setTimeout(() => {
-            this.testCameraReposition();
+            this.resetCameraView();
         }, 1000);
     }
     updateBeams(isInitialLoad: boolean = false) {
@@ -6382,10 +6328,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.calculatePricing();
         }, 0);
         
-        // הפעלת testCameraReposition אחרי שניה מסיום העדכון
-        setTimeout(() => {
-            this.testCameraReposition();
-        }, 1000);
+        // הפעלת resetCameraView אחרי שניה מסיום העדכון - רק אם זה לא טעינה ראשונית
+        // בטעינה ראשונית המצלמה כבר מוגדרת ב-centerCameraOnBeams/centerCameraOnWireframe
+        if (!isInitialLoad) {
+            setTimeout(() => {
+                this.resetCameraView();
+            }, 1000);
+        }
         
     }
     
@@ -8846,44 +8795,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
     // מרכוז המצלמה על קוביית ה-wireframe בפתיחה הראשונית
     private centerCameraOnWireframe() {
-        // קבועים
-        const ROTATION_ANGLE = 30; // 30 מעלות סיבוב כלפי מטה (קבוע)
-        
-        // חישוב מיקום אופטימלי לפי מידות המוצר
-        const dimensions = this.getProductDimensionsRaw();
-        const optimalPosition = this.calculateOptimalCameraPosition(dimensions);
-        
-        
-        // מיקום המצלמה במיקום האופטימלי
-        this.camera.position.set(optimalPosition.x, optimalPosition.y, optimalPosition.z);
-        
-        // מרכוז על מרכז העולם (0,0,0)
-        this.camera.lookAt(0, 0, 0);
-
-        // סיבוב המצלמה 30 מעלות כלפי מטה (קבוע)
-        const offset = this.camera.position.clone();
-        const spherical = new THREE.Spherical().setFromVector3(offset);
-        spherical.phi += ROTATION_ANGLE * Math.PI / 180; // 30 מעלות כלפי מטה
-        this.camera.position.setFromSpherical(spherical);
-        this.camera.lookAt(0, 0, 0);
-        
-        // הדפסת מידות המוצר אחרי שזוית המצלמה נקבעת
-      
-        
-        // ללא זום אאוט - המצלמה תישאר במרחק המקורי
-        // הזום אין ב-performAutoZoomIn() יטפל בזה
-        
-        // pan למעלה במצב הפתיחה
-        this.applyCameraPan();
-        
-        // הדפסת מידות וזימון אנימציה
-        this.finalizeCamera();
-        
-        this.debugLog('מצלמה מורכזת על מרכז העולם:', {
-            rotationAngle: ROTATION_ANGLE,
-            cameraPosition: this.camera.position,
-            lookAt: new THREE.Vector3(0, 0, 0)
-        });
+        // איפוס מיקום המצלמה ישירות עם הפונקציה החדשה - ללא המתנה
+        // קוראים ישירות ל-resetCameraView כדי שהמצלמה תהיה במיקום הנכון לפני שהמשתמש רואה את התלת מימד
+        this.resetCameraView();
     }
 
     // פונקציה שבודקת גובה המסך ועושה pan למעלה בחצי מגובה המסך
@@ -8997,14 +8911,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return { x: xFinal, y: yFinal, z: zCorrected };
     }
     
-    // פונקציה משותפת לזימון אנימציה
-    private finalizeCamera() {
-        // המתנה של שנייה כדי שהמודל יסיים לעלות, ואז זום אין אוטומטי
-        setTimeout(() => {
-            this.performAutoZoomIn();
-        }, 1000);
-    }
-    
     // פונקציה משותפת ל-pan למעלה
     private applyCameraPan() {
         const screenHeight = window.innerHeight;
@@ -9018,259 +8924,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // מרכוז המצלמה עבור מוצר beams עם מידות קבועות
     private centerCameraOnBeams() {
-        // קבועים עבור beams - מידות קבועות של 50x50x50 ס"מ
-        const ROTATION_ANGLE = 30; // 30 מעלות סיבוב כלפי מטה (קבוע)
-        const BEAMS_BOX_SIZE = 50; // מידות קבועות של 50x50x50 ס"מ
-        
-        // חישוב מרחק על בסיס המידות הקבועות
-        const maxDimension = BEAMS_BOX_SIZE; // 50 ס"מ
-        const FIXED_DISTANCE = maxDimension * 2; // מרחק פי 2 מהמידה הגדולה
-        
-        // מיקום המצלמה במרחק קבוע מהמרכז
-        this.camera.position.set(0, FIXED_DISTANCE, maxDimension * 4);
-        
-        // מרכוז על מרכז העולם (0,0,0)
-        this.camera.lookAt(0, 0, 0);
-
-        // סיבוב המצלמה 30 מעלות כלפי מטה (קבוע)
-        const offset = this.camera.position.clone();
-        const spherical = new THREE.Spherical().setFromVector3(offset);
-        spherical.phi += ROTATION_ANGLE * Math.PI / 180; // 30 מעלות כלפי מטה
-        this.camera.position.setFromSpherical(spherical);
-        this.camera.lookAt(0, 0, 0);
-        
-        // הדפסת מידות המוצר אחרי שזוית המצלמה נקבעת
-        const dimensions = this.getProductDimensionsRaw();
-        
-        // pan למעלה במצב הפתיחה - זהה לחלוטין לרגיל
-        this.applyCameraPan();
-        
-        // הדפסת מידות וזימון אנימציה
-        this.finalizeCamera();
-        
-        this.debugLog('מצלמה מורכזת על beams עם מידות קבועות 50x50x50:', {
-            rotationAngle: ROTATION_ANGLE,
-            beamsBoxSize: BEAMS_BOX_SIZE,
-            fixedDistance: FIXED_DISTANCE,
-            cameraPosition: this.camera.position.clone(),
-            scenePosition: this.scene.position.clone()
-        });
-    }
-    
-    // פונקציה לביצוע זום אין אוטומטי עם ease-in-out + rotate + pan
-    private performAutoZoomIn() {
-        const startTime = Date.now();
-        const startPosition = this.camera.position.clone();
-        const startScenePosition = this.scene.position.clone();
-        const currentDistance = startPosition.distanceTo(new THREE.Vector3(0, 0, 0));
-        
-        // בדיקת 3 מידות המוצר וזום דינמי
-        const dimensions = this.getProductDimensionsRaw();
-        const rawMaxDimension = Math.max(dimensions.width, dimensions.length, dimensions.height);
-        const maxDimension = Math.max(rawMaxDimension, 80); // מינימום 80 ס"מ למוצרים קטנים
-        const zoomRatio = maxDimension / 200; // המידה הגדולה ביותר מחולקת ב-200
-        
-        // ככל שהיחס יותר קטן, הזום אין יהיה גדול יותר
-        // היחס הקטן ביותר יהיה בערך 0.1 (עבור מוצר קטן), הגדול ביותר 3+ (עבור מוצר גדול)
-        const baseZoomAmount = -150; // זום בסיסי
-        const dynamicZoomMultiplier = Math.max(0.3, 1 / zoomRatio); // מינימום 0.3, מקסימום ללא הגבלה
-        let zoomAmount = (baseZoomAmount * dynamicZoomMultiplier) / 1.7; // זום דינמי מופחת פי 1.7
-        
-        // התאמות זום לפי גובה המוצר
-        const productHeight = dimensions.height;
-        
-        // עבור מוצרים קטנים (מידה מקסימלית < 80) - הפחתת זום אין
-        if (rawMaxDimension < 80) {
-            const smallRatio = (80 - rawMaxDimension) / 80; // ככל שיותר קטן, יותר הפחתה
-            const smallProductZoomReduction = smallRatio * 240; // עד +240 (פחות זום אין = יותר רחוק) - פי 6
-            zoomAmount += smallProductZoomReduction;
-        }
-        
-        // עבור מוצרים נמוכים (גובה < 70) - הפחתת זום אין נוספת
-        if (productHeight < 70) {
-            const shortRatio = (70 - productHeight) / 70; // ככל שיותר נמוך, יותר הפחתה
-            const shortProductZoomReduction = shortRatio * 100; // עד +100 (פחות זום אין = יותר רחוק) - פי 2
-            zoomAmount += shortProductZoomReduction;
-        }
-        
-        // עבור מוצרים גבוהים (מעל 180 ס"מ) - זום אין נוסף
-        if (productHeight > 180) {
-            // ב-280 ס"מ נוסיף זום אין משמעותי, פרופורציונלי לגובה
-            const heightRatio = Math.min((productHeight - 180) / 100, 1); // 0 ב-180, 1 ב-280+
-            const tallProductZoomBonus = heightRatio * -100; // עד -100 זום אין נוסף
-            zoomAmount += tallProductZoomBonus;
-        }
-        
-        
-        const targetDistance = currentDistance + zoomAmount;
-        
-        // פרמטרים של rotate + pan משופרים
-        const rotatePixels = 12.5; // 25% מ-50 (rotate מופחת)
-        const panPixels = 20; // 25% מ-80 (pan מופחת)
-        const rotateAngle = rotatePixels * 0.015; // rotate מופחת ל-25%
-        const panAmount = panPixels * 0.075; // pan מופחת ל-25%
-        
-        // חישוב pan נוסף למוצרים נמוכים (גובה < 200) - למעלה
-        let heightBasedPanAmount = productHeight < 200 
-            ? ((200 - productHeight) / 200) * 25 // מקסימום 25 פיקסלים למעלה למוצרים נמוכים
-            : 0;
-        
-        // חישוב pan נוסף למוצרים גבוהים (גובה > 180) - למטה
-        if (productHeight > 180) {
-            const tallHeightRatio = Math.min((productHeight - 180) / 100, 1); // 0 ב-180, 1 ב-280+
-            const tallProductPanDown = tallHeightRatio * -40; // עד -40 פיקסלים למטה ב-280 ס"מ
-            heightBasedPanAmount += tallProductPanDown;
-        }
-            
-        // חישוב rotate נוסף - 10 מעלות למטה בסיסי לכל המוצרים
-        let heightBasedRotateAmount = -10 * Math.PI / 180; // 10 מעלות למטה ברדיאנים לכל המוצרים
-        
-        // עבור מוצרים נמוכים (מתחת ל-150 ס"מ) - rotate נוסף כלפי מעלה (תצוגה מלמעלה)
-        if (productHeight < 150) {
-            // ב-50 ס"מ: 10 מעלות נוספות, ב-100 ס"מ: 5 מעלות, ב-150: 0 מעלות
-            const shortHeightRatio = (150 - productHeight) / 100; // 1 ב-50, 0.5 ב-100, 0 ב-150
-            const shortProductRotateBonus = shortHeightRatio * -10 * Math.PI / 180; // עד -10 מעלות מלמעלה
-            heightBasedRotateAmount += shortProductRotateBonus;
-        }
-        
-        // עבור מוצרים גבוהים (מעל 180 ס"מ) - rotate נוסף כלפי מעלה (תצוגה מלמעלה)
-        if (productHeight > 180) {
-            // ב-280 ס"מ נסובב הרבה יותר למעלה - 50 מעלות נוספות (סה"כ 40 מעלות למעלה!)
-            const tallHeightRatio = Math.min((productHeight - 180) / 100, 1); // 0 ב-180, 1 ב-280+
-            const tallProductRotateBonus = tallHeightRatio * -50 * Math.PI / 180; // עד -50 מעלות = הרבה יותר מלמעלה!
-            heightBasedRotateAmount += tallProductRotateBonus;
-        }
-        
-        // סיבוב azimuthal (ימין-שמאל) - 22.5 מעלות ימינה בסיסי
-        let azimuthalRotateAmount = 22.5 * Math.PI / 180; // 22.5 מעלות ימינה ברדיאנים
-        
-        // עבור מוצרים גבוהים (מעל 150 ס"מ) - הפחתת סיבוב azimuthal
-        if (productHeight > 150) {
-            // ככל שהמוצר יותר גבוה, נפחית את הסיבוב
-            const tallHeightRatio = Math.min((productHeight - 150) / 150, 1); // 0 ב-150, 1 ב-300+
-            const tallProductAzimuthalReduction = tallHeightRatio * -15 * Math.PI / 180; // עד -15 מעלות הפחתה
-            azimuthalRotateAmount += tallProductAzimuthalReduction;
-        }
-        
-        // עבור מוצרים רחבים/ארוכים - סיבוב azimuthal נוסף
-        const totalHorizontalSize = dimensions.width + dimensions.length;
-        if (totalHorizontalSize > 0) {
-            // ב-200 ס"מ (סכום רוחב+אורך) נוסיף 10 מעלות
-            const wideAzimuthalBonus = (totalHorizontalSize / 200) * 10 * Math.PI / 180;
-            azimuthalRotateAmount += wideAzimuthalBonus;
-        }
-        
-        // חישוב pan אופקי (שמאלה) כדי למרכז את האלמנט אחרי הסיבוב
-        // מבוסס על המידה הכי גדולה מה-3 (כדי לא להגזים באלמנטים רחבים)
-        const maxDimensionForPan = Math.max(dimensions.width, dimensions.length, dimensions.height);
-        let horizontalPanPixels = (maxDimensionForPan / 8) * 30;
-        
-        // עבור מוצרים עם רוחב או אורך גדולים - תיקון PAN ימינה
-        const maxHorizontalDimension = Math.max(dimensions.width, dimensions.length);
-        if (maxHorizontalDimension > dimensions.height) {
-            // ככל שהרוחב/אורך יותר גדולים מהגובה, צריך יותר pan ימינה (שלילי)
-            const horizontalDominance = (maxHorizontalDimension - dimensions.height) / maxHorizontalDimension;
-            const widePanCorrection = horizontalDominance * maxHorizontalDimension * 5; // תיקון ימינה פי 2.5 (2 × 2.5)
-            horizontalPanPixels -= widePanCorrection; // פחות שמאלה = יותר ימינה
-        }
-        
-        // עבור מוצרים רחבים/ארוכים (רוחב+אורך מעל 70) אבל לא גבוהים (מתחת ל-300) - PAN שמאלה
-        let wideProductLeftPan = 0;
-        if (totalHorizontalSize > 70 && dimensions.height < 300) {
-            // ככל שהמוצר יותר רחב/ארוך - יותר שמאלה
-            const widthBonus = Math.min((totalHorizontalSize - 70) / 100, 1); // 0 ב-70, 1 ב-170+
-            
-            // ככל שהמוצר יותר גבוה - פחות שמאלה (עד 300 גובה = 0 אפקט)
-            const heightReduction = Math.min(dimensions.height / 300, 1); // 0 ב-0, 1 ב-300+
-            
-            // חישוב האפקט הסופי
-            const intensityFactor = 1.0; // פקטור עוצמה לדיוק (הופחת פי 5)
-            wideProductLeftPan = widthBonus * (1 - heightReduction) * 500 * intensityFactor;
-            horizontalPanPixels += wideProductLeftPan; // יותר שמאלה
-        }
-        
-        // עבור מוצרים גבוהים (מעל 180 ס"מ) - PAN ימינה נוסף
-        let tallProductRightPan = 0;
-        if (productHeight > 180) {
-            const tallHeightRatio = Math.min((productHeight - 180) / 100, 1); // 0 ב-180, 1 ב-280+
-            const tallPanRightCorrection = tallHeightRatio * productHeight * 3.2; // pan ימינה פרופורציונלי לגובה (פי 4)
-            horizontalPanPixels -= tallPanRightCorrection; // פחות שמאלה = יותר ימינה
-            // נוסיף עוד pan ימינה נפרד שיופעל בנפרד
-            tallProductRightPan = tallHeightRatio * 150; // עד 150 פיקסלים ימינה נוספים
-        }
-        
-        const horizontalPanAmount = horizontalPanPixels * 0.075; // אותו מקדם כמו pan רגיל
-        
-        
-        // חישוב מרכז קוביית ה-wireframe לסיבוב - תמיד מרכז העולם
-        const wireframeCenter = new THREE.Vector3(0, 0, 0);
-        
-        // שמירת מיקום התחלתי של הסיבוב
-        const startOffset = startPosition.clone().sub(wireframeCenter);
-        const startSpherical = new THREE.Spherical().setFromVector3(startOffset);
-
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / 500, 1); // משך של חצי שנייה
-
-            // Ease in out function
-            const easeProgress = progress < 0.5
-                ? 2 * progress * progress
-                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-
-            // 1. Zoom - זום אין מתקדם
-            let newDistance = THREE.MathUtils.lerp(currentDistance, targetDistance, easeProgress);
-            if (newDistance < 1) newDistance = 1; // הגנה מפני מרחק קטן מדי
-            
-            // 2. Rotate - סיבוב מתקדם (גרירה של 12.5 פיקסלים למעלה עם לחצן שמאלי + rotate נוסף למוצרים נמוכים)
-            const currentRotateAngle = THREE.MathUtils.lerp(0, rotateAngle, easeProgress);
-            const currentHeightBasedRotate = THREE.MathUtils.lerp(0, heightBasedRotateAmount, easeProgress);
-            const totalCurrentRotate = currentRotateAngle + currentHeightBasedRotate;
-            
-            // סיבוב azimuthal (ימין-שמאל) - מתחיל ב-20% ונמשך עד הסוף (יותר זמן)
-            const azimuthalProgress = Math.max(0, (progress - 0.2) / 0.8); // מתחיל ב-20%, מסתיים ב-100%
-            const currentAzimuthalRotate = THREE.MathUtils.lerp(0, azimuthalRotateAmount, azimuthalProgress);
-            
-            const currentSpherical = startSpherical.clone();
-            currentSpherical.phi += totalCurrentRotate; // סיבוב למעלה (הפוך) + rotate נוסף למוצרים נמוכים
-            currentSpherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, currentSpherical.phi));
-            currentSpherical.theta += currentAzimuthalRotate; // סיבוב ימין-שמאל
-            currentSpherical.radius = newDistance; // עדכון המרחק
-            
-            // עדכון מיקום המצלמה
-            const newOffset = new THREE.Vector3().setFromSpherical(currentSpherical);
-            this.camera.position.copy(wireframeCenter.clone().add(newOffset));
-            
-            // 3. Pan - הזזה מתקדמת (גרירה של 60 פיקסלים למטה עם גלגלת + pan נוסף למוצרים נמוכים)
-            const currentPanAmount = THREE.MathUtils.lerp(0, panAmount, easeProgress);
-            const currentHeightBasedPan = THREE.MathUtils.lerp(0, heightBasedPanAmount, easeProgress);
-            const totalCurrentPan = currentPanAmount + currentHeightBasedPan;
-            
-            // Pan אופקי - מתחיל עם הסיבוב האזימוטלי
-            const currentHorizontalPan = THREE.MathUtils.lerp(0, horizontalPanAmount, azimuthalProgress);
-            
-            // עבור מוצרים גבוהים - pan ימינה נוסף (ערך קבוע ונפרד!)
-            let tallProductRightPanCurrent = 0;
-            if (productHeight > 180) {
-                const tallHeightRatio = Math.min((productHeight - 180) / 100, 1);
-                const tallRightPanAmount = tallHeightRatio * 30; // עד 30 יחידות ימינה
-                tallProductRightPanCurrent = THREE.MathUtils.lerp(0, tallRightPanAmount, azimuthalProgress);
-            }
-            
-            const cam = this.camera;
-            const pan = new THREE.Vector3();
-            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 1), totalCurrentPan); // חיובי = למעלה (אנכי)
-            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0), -currentHorizontalPan); // שלילי = שמאלה
-            pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix, 0), tallProductRightPanCurrent); // חיובי = ימינה למוצרים גבוהים
-            
-            this.scene.position.copy(startScenePosition.clone().add(pan));
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
-        };
-
-        requestAnimationFrame(animate);
+        // איפוס מיקום המצלמה ישירות עם הפונקציה החדשה - ללא המתנה
+        // קוראים ישירות ל-resetCameraView כדי שהמצלמה תהיה במיקום הנכון לפני שהמשתמש רואה את התלת מימד
+        this.resetCameraView();
     }
     
     // ממקם את המצלמה כך שכל המדפים והרגליים ייכנסו בפריים
@@ -12987,8 +12643,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         return { length: 0, width: beamWidth, height: beamHeight };
     }
     
-    // פונקציה זמנית למיקום מחדש של המצלמה לפי מידות המוצר
-    testCameraReposition() {
+    // איפוס זוית המצלמה - מיקום מחדש של המצלמה לפי מידות המוצר
+    resetCameraView() {
         if (!this.camera || !this.renderer || !this.scene) {
             console.error('TEST_CAMERA - Camera, renderer, or scene not initialized');
             return;
