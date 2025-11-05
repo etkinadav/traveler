@@ -2363,17 +2363,21 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // נשתמש במידות מהפרמטרים במקום מה-bounding box כדי לקבל ערכים מדויקים בס"מ
     let maxDimension = 0;
     let height = 0; // גובה המוצר
+    let widthValue = 0;
+    let depthValue = 0;
+    let heightValue = 0;
     try {
       // ננסה לקבל את המידות מהפרמטרים
       const widthParam = this.product?.params?.find((p: any) => p.name === 'width');
       const depthParam = this.product?.params?.find((p: any) => p.name === 'depth');
       const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
 
-      const width = widthParam?.default || this.dynamicParams.width || 0;
-      const depth = depthParam?.default || this.dynamicParams.length || 0;
-      height = heightParam?.default || this.dynamicParams.height || 0;
+      widthValue = widthParam?.default || this.dynamicParams.width || 0;
+      depthValue = depthParam?.default || this.dynamicParams.length || 0;
+      heightValue = heightParam?.default || this.dynamicParams.height || 0;
+      height = heightValue;
 
-      maxDimension = Math.max(width, depth, height);
+      maxDimension = Math.max(widthValue, depthValue, height);
 
       // אם לא מצאנו מידות מהפרמטרים, נשתמש ב-bounding box
       if (maxDimension === 0) {
@@ -2385,6 +2389,27 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
       maxDimension = maxDimensionInSceneUnits / 40; // המרה לס"מ
     }
+    
+    // Fallback: אם לא מצאנו גובה מהפרמטרים, נשתמש בגובה מה-bounding box
+    // זה חשוב למוצרים ללא פרמטר height או כאשר הפרמטר לא מדויק
+    // אם sizeY גדול מ-height, נשתמש ב-sizeY כי הוא יותר מדויק (מחושב מה-bounding box)
+    if (height === 0 && size.y > 0) {
+      height = size.y; // הגובה מה-bounding box בס"מ
+    } else if (size.y > height && size.y > 0) {
+      // אם sizeY גדול יותר מ-height, נשתמש בו כי הוא יותר מדויק
+      height = size.y;
+    }
+    
+    // לוג: בדיקת גובה המוצר לפני חישובי zoom
+    console.log('CHECK_MINI_CAMERA - Product height calculation:', JSON.stringify({
+      height: height,
+      sizeY: size.y,
+      widthParam: widthValue,
+      depthParam: depthValue,
+      heightParam: heightValue,
+      maxDimension: maxDimension,
+      size: { x: size.x, y: size.y, z: size.z }
+    }));
 
     // חישוב פרמטר zoom-out/zoom-in הדרגתי לפי המידה הגדולה ביותר בלבד
     const referenceSize = 120; // ס"מ - המידה שממנה מתחילים לחשב את הפער
@@ -2446,13 +2471,43 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       // אם יש שגיאה, נדלג על האפקט הזה
     }
 
-    // אפקט נוסף: אם הגובה מעל 140 ס"מ, zoom out של 150% מ-baseMargin
+    // אפקט נוסף: אם הגובה מעל 120 ס"מ, zoom out של 90% מ-baseMargin
     // תלוי רק בגובה, ובנוסף לכל האפקטים הקיימים
+    // לוגיקה דומה לקובץ הראשי, עם threshold של 120
+    // **האפקט יפעל רק אם הרוחב והאורך שניהם קטנים או שווים ל-120 ס"מ**
     let tallHeightZoomOut = 0;
-    const HEIGHT_THRESHOLD = 140; // ס"מ
-    if (height > HEIGHT_THRESHOLD) {
-      tallHeightZoomOut = baseMargin * 1.5; // 150% מ-baseMargin (משמעותי מאוד)
+    const HEIGHT_THRESHOLD = 120; // ס"מ - שונה מ-140 ל-120 כמו בקובץ הראשי
+    const MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT = 120; // ס"מ - מקסימום רוחב או אורך לאפקט
+    
+    // לוג: לפני חישוב tallHeightZoomOut
+    console.log('CHECK_MINI_CAMERA - Before tallHeightZoomOut calculation:', JSON.stringify({
+      height: height,
+      width: widthValue,
+      depth: depthValue,
+      HEIGHT_THRESHOLD: HEIGHT_THRESHOLD,
+      MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT: MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT,
+      heightGreaterThanThreshold: height > HEIGHT_THRESHOLD,
+      widthAndDepthWithinLimit: widthValue <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT && depthValue <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT,
+      shouldApplyTallEffect: height > HEIGHT_THRESHOLD && widthValue <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT && depthValue <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT,
+      baseMargin: baseMargin,
+      expectedTallHeightZoomOut: (height > HEIGHT_THRESHOLD && widthValue <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT && depthValue <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT) ? baseMargin * 0.9 : 0
+    }));
+    
+    // האפקט יפעל רק אם הגובה מעל 120 וגם הרוחב והאורך שניהם קטנים או שווים ל-120
+    if (height > HEIGHT_THRESHOLD && widthValue <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT && depthValue <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT) {
+      tallHeightZoomOut = baseMargin * 0.9; // 90% מ-baseMargin (הוקטן ל-0.6 מהערך הקודם שהיה 1.5)
     }
+    
+    // לוג: אחרי חישוב tallHeightZoomOut
+    console.log('CHECK_MINI_CAMERA - After tallHeightZoomOut calculation:', JSON.stringify({
+      height: height,
+      HEIGHT_THRESHOLD: HEIGHT_THRESHOLD,
+      tallHeightZoomOut: tallHeightZoomOut,
+      baseMargin: baseMargin,
+      zoomAdjustment: zoomAdjustment,
+      additionalZoomOut: additionalZoomOut,
+      singleLargeDimensionZoomOut: singleLargeDimensionZoomOut
+    }));
 
     // חישוב המרחק הסופי עם margin
     // margin קטן יותר = מצלמה קרובה יותר = zoom in
@@ -2460,8 +2515,22 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     // למוצרים גדולים מ-120: נוסיף zoomAdjustment חיובי ל-margin כדי להגדיל את המרחק (zoom out)
     // בנוסף: נוסיף additionalZoomOut של 80% לכל 100 ס"מ מעל 120
     // בנוסף: נוסיף singleLargeDimensionZoomOut של 70% אם רק מידה אחת גדולה מ-100
-    // בנוסף: נוסיף tallHeightZoomOut של 150% אם הגובה מעל 140 ס"מ
+    // בנוסף: נוסיף tallHeightZoomOut של 90% אם הגובה מעל 120 והרוחב והאורך קטנים או שווים ל-120
     const margin = baseMargin + zoomAdjustment + additionalZoomOut + singleLargeDimensionZoomOut + tallHeightZoomOut;
+    
+    // לוג: אחרי חישוב margin הסופי
+    console.log('CHECK_MINI_CAMERA - Final margin calculation:', JSON.stringify({
+      baseMargin: baseMargin,
+      zoomAdjustment: zoomAdjustment,
+      additionalZoomOut: additionalZoomOut,
+      singleLargeDimensionZoomOut: singleLargeDimensionZoomOut,
+      tallHeightZoomOut: tallHeightZoomOut,
+      margin: margin,
+      marginCalculation: `${baseMargin} + ${zoomAdjustment} + ${additionalZoomOut} + ${singleLargeDimensionZoomOut} + ${tallHeightZoomOut} = ${margin}`,
+      height: height,
+      HEIGHT_THRESHOLD: HEIGHT_THRESHOLD
+    }));
+    
     const cameraDistance = Math.max(distanceHeight, distanceWidth, distanceDepth) * margin;
 
     // זווית קבועה
@@ -2515,6 +2584,32 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     const offsetForSpherical = this.camera.position.clone().sub(this.target);
     this.spherical.setFromVector3(offsetForSpherical);
     this.defaultDistance = cameraDistance;
+    
+    // לוג סופי: סיכום כל הנתונים
+    const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
+    console.log('CHECK_MINI_CAMERA - Camera positioning (final summary):', JSON.stringify({
+      boundingBox: {
+        center: { x: center.x, y: center.y, z: center.z },
+        size: { x: size.x, y: size.y, z: size.z },
+        min: { x: box.min.x, y: box.min.y, z: box.min.z },
+        max: { x: box.max.x, y: box.max.y, z: box.max.z }
+      },
+      maxDimension: maxDimension,
+      maxDimensionInSceneUnits: maxDimensionInSceneUnits,
+      productHeight: height,
+      heightThreshold: HEIGHT_THRESHOLD,
+      tallHeightZoomOut: tallHeightZoomOut,
+      referenceSize: referenceSize,
+      zoomAdjustment: zoomAdjustment,
+      additionalZoomOut: additionalZoomOut,
+      singleLargeDimensionZoomOut: singleLargeDimensionZoomOut,
+      baseMargin: baseMargin,
+      finalMargin: margin,
+      cameraDistance: cameraDistance,
+      cameraPosition: { x: cameraX, y: cameraY, z: cameraZ },
+      viewportSize: { width: viewportWidthNew, height: viewportHeightNew },
+      aspect: aspect
+    }));
   }
   
   // פונקציה לאיפוס המצלמה והסיבוב למצב התחלתי

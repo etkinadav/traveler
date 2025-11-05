@@ -12738,14 +12738,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // נשתמש במידות מהפרמטרים במקום מה-bounding box כדי לקבל ערכים מדויקים בס"מ
             let maxDimension = 0;
             let height = 0; // גובה המוצר - נגיש מחוץ ל-try block
+            let width = 0; // רוחב המוצר - נגיש מחוץ ל-try block
+            let depth = 0; // אורך המוצר - נגיש מחוץ ל-try block
             try {
                 // ננסה לקבל את המידות מהפרמטרים
                 const widthParam = this.params?.find((p: any) => p.name === 'width');
                 const depthParam = this.params?.find((p: any) => p.name === 'depth');
                 const heightParam = this.params?.find((p: any) => p.name === 'height');
                 
-                const width = widthParam?.default || 0;
-                const depth = depthParam?.default || 0;
+                width = widthParam?.default || 0;
+                depth = depthParam?.default || 0;
                 height = heightParam?.default || 0;
                 
                 // אם לא מצאנו גובה מהפרמטרים, נשתמש בגובה מה-bounding box
@@ -12780,8 +12782,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // Fallback נוסף: אם עדיין לא מצאנו גובה, נשתמש ב-size.y ישירות
             // זה חשוב למוצרים ללא פרמטר height (כמו ארון)
+            // אם sizeY גדול מ-height, נשתמש ב-sizeY כי הוא יותר מדויק (מחושב מה-bounding box)
             if (height === 0 && size.y > 0) {
                 height = size.y; // הגובה מה-bounding box בס"מ
+            } else if (size.y > height && size.y > 0) {
+                // אם sizeY גדול יותר מ-height, נשתמש בו כי הוא יותר מדויק
+                height = size.y;
             }
             
             // חישוב פרמטר zoom-out/zoom-in הדרגתי לפי הצלע הגדולה ביותר
@@ -12827,30 +12833,61 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
             
             // חישוב zoom-out נוסף לפי גובה המוצר
-            // אם גובה המוצר גדול מ-120, נוסיף zoom-out נוסף שיגדל עם הגובה
-            // ככל שהגובה גדול יותר מ-120, יותר zoom-out משמעותי
-            let heightBasedZoomOutFactor = 0;
-            const HEIGHT_THRESHOLD = 110; // ס"מ - הגבול שממנו מתחיל האפקט
-            const HEIGHT_THRESHOLD_MAX = 130; // ס"מ - הגבול שממנו מתחיל האפקט
-            if (height > HEIGHT_THRESHOLD) {
-                // ככל שהגובה גדול יותר מ-120, יותר zoom-out (מגדיל margin)
-                let heightExcess = height - HEIGHT_THRESHOLD; // כמה מעבר ל-120
-                if (height > HEIGHT_THRESHOLD_MAX) {
-                    heightExcess = height * (-0.26); // כמה מעבר ל-150
-                }
-                // מקדם מכפלה גבוה מאוד - 0.1 לכל יחידה מעבר ל-120 (מוגדל פי 10 מהמקור הקודם)
-                // זה יוצר אפקט משמעותי מאוד ככל שהגובה גדול יותר
-                heightBasedZoomOutFactor = heightExcess * 0.0005;
-                // מקסימום מוגדל כדי לאפשר אפקט משמעותי גם למוצרים גבוהים מאוד
-                heightBasedZoomOutFactor = Math.min(heightBasedZoomOutFactor, 3.0); // מקסימום 3000% מ-baseMargin
+            // אם הגובה מעל 120 ס"מ, zoom out של 90% מ-baseMargin
+            // תלוי רק בגובה, ובנוסף לכל האפקטים הקיימים
+            // לוגיקה דומה לקובץ המיני, עם threshold של 120
+            // **האפקט יפעל רק אם הרוחב והאורך שניהם קטנים או שווים ל-120 ס"מ**
+            let tallHeightZoomOut = 0;
+            const HEIGHT_THRESHOLD = 120; // ס"מ - הגבול שממנו מתחיל האפקט
+            const MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT = 120; // ס"מ - מקסימום רוחב או אורך לאפקט
+            
+            // לוג: לפני חישוב tallHeightZoomOut
+            console.log('CHECK_MINI_CAMERA - Before tallHeightZoomOut calculation:', JSON.stringify({
+                height: height,
+                width: width,
+                depth: depth,
+                HEIGHT_THRESHOLD: HEIGHT_THRESHOLD,
+                MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT: MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT,
+                heightGreaterThanThreshold: height > HEIGHT_THRESHOLD,
+                widthAndDepthWithinLimit: width <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT && depth <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT,
+                shouldApplyTallEffect: height > HEIGHT_THRESHOLD && width <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT && depth <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT,
+                baseMargin: baseMargin,
+                expectedTallHeightZoomOut: (height > HEIGHT_THRESHOLD && width <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT && depth <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT) ? baseMargin * 0.9 : 0
+            }));
+            
+            // האפקט יפעל רק אם הגובה מעל 120 וגם הרוחב והאורך שניהם קטנים או שווים ל-120
+            if (height > HEIGHT_THRESHOLD && width <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT && depth <= MAX_WIDTH_OR_LENGTH_FOR_TALL_EFFECT) {
+                tallHeightZoomOut = baseMargin * 0.9; // 90% מ-baseMargin (הוקטן ל-0.6 מהערך הקודם שהיה 1.5)
             }
+            
+            // לוג: אחרי חישוב tallHeightZoomOut
+            console.log('CHECK_MINI_CAMERA - After tallHeightZoomOut calculation:', JSON.stringify({
+                height: height,
+                HEIGHT_THRESHOLD: HEIGHT_THRESHOLD,
+                tallHeightZoomOut: tallHeightZoomOut,
+                baseMargin: baseMargin,
+                zoomOutFactor: zoomOutFactor,
+                zoomInFactor: zoomInFactor
+            }));
             
             // נשתמש במרחק הגדול ביותר עם margin
             // margin קטן יותר = מצלמה קרובה יותר = זום גדול יותר
             // הוספת zoomOutFactor ל-margin תגדיל את המרחק (תקטין את הזום)
             // הורדת zoomInFactor מה-margin תקטין את המרחק (תגדיל את הזום)
-            // הוספת heightBasedZoomOutFactor ל-margin תגדיל את המרחק נוסף (תקטין את הזום) למוצרים גבוהים
-            const margin = baseMargin + zoomOutFactor + heightBasedZoomOutFactor - zoomInFactor;
+            // הוספת tallHeightZoomOut ל-margin תגדיל את המרחק נוסף (תקטין את הזום) למוצרים גבוהים מעל 120 ס"מ
+            const margin = baseMargin + zoomOutFactor + tallHeightZoomOut - zoomInFactor;
+            
+            // לוג: אחרי חישוב margin הסופי
+            console.log('CHECK_MINI_CAMERA - Final margin calculation:', JSON.stringify({
+                baseMargin: baseMargin,
+                zoomOutFactor: zoomOutFactor,
+                tallHeightZoomOut: tallHeightZoomOut,
+                zoomInFactor: zoomInFactor,
+                margin: margin,
+                marginCalculation: `${baseMargin} + ${zoomOutFactor} + ${tallHeightZoomOut} - ${zoomInFactor} = ${margin}`,
+                height: height,
+                HEIGHT_THRESHOLD: HEIGHT_THRESHOLD
+            }));
             const cameraDistance = Math.max(distanceHeight, distanceWidth, distanceDepth) * margin;
             
             // זווית קבועה
@@ -13000,7 +13037,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // חישוב maxDimensionInSceneUnits ללוג
             const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
             
-            console.log('TEST_CAMERA - Bounding box camera positioning:', JSON.stringify({
+            console.log('CHECK_MINI_CAMERA - Bounding box camera positioning (final summary):', JSON.stringify({
                 boundingBox: {
                     center: { x: center.x, y: center.y, z: center.z },
                     size: { x: size.x, y: size.y, z: size.z },
@@ -13011,7 +13048,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 maxDimensionInSceneUnits: maxDimensionInSceneUnits,
                 productHeight: height,
                 heightThreshold: HEIGHT_THRESHOLD,
-                heightBasedZoomOutFactor: heightBasedZoomOutFactor,
+                tallHeightZoomOut: tallHeightZoomOut,
                 threshold: THRESHOLD,
                 largeThreshold: LARGE_THRESHOLD,
                 isLargeProduct: maxDimension > LARGE_THRESHOLD,
