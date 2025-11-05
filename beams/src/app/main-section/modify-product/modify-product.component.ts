@@ -13047,21 +13047,81 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // חישוב bounding box של האוביקט (בס"מ)
         const maxDimension = Math.max(dimensions.length, dimensions.width, dimensions.height);
+        const minDimension = Math.min(dimensions.length, dimensions.width, dimensions.height);
         const boundingBoxSize = maxDimension;
         
         // חישוב מרחק המצלמה לפי המידות (מרחק גדול יותר מהאוביקט כדי שיהיה נראה במלואו)
         // משתמשים בפורפורציה לפי המידה הגדולה ביותר
         const cameraDistance = boundingBoxSize * 2.5; // מרחק פי 2.5 מהאוביקט
         
-        // חישוב זווית המצלמה - מבט טיפה מלמעלה (כ-30 מעלות)
-        const verticalAngle = 30 * (Math.PI / 180); // 30 מעלות לרדיאנים - זווית אנכית
+        // חישוב זווית המצלמה - מבט טיפה מלמעלה (זווית קבועה)
+        const BASE_VERTICAL_ANGLE = 30; // מעלות - זווית בסיסית קבועה
+        const verticalAngle = BASE_VERTICAL_ANGLE * (Math.PI / 180); // המרה לרדיאנים
         const horizontalAngle = 45 * (Math.PI / 180); // 45 מעלות - זווית אופקית (איזומטרי)
         
-        // חישוב מיקום המצלמה במערכת קואורדינטות כדורית
-        // המצלמה תהיה מעל ומאחורי האוביקט, במבט אל המרכז
+        // חישוב מיקום המצלמה במערכת קואורדינטות כדורית (עם זווית קבועה)
         const cameraX = Math.sin(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
-        const cameraY = Math.sin(verticalAngle) * cameraDistance;
+        const baseCameraY = Math.sin(verticalAngle) * cameraDistance;
         const cameraZ = Math.cos(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
+        
+        // חישוב PAN למעלה לפי מידת הגובה וגובה המסך
+        // מדמה גרירת גלגלת למעלה - המצלמה עולה והאוביקט יורד במסך (ממורכז)
+        // למודל שגובהו 100 ס"מ: PAN של 30% מגובה המסך
+        // יותר PAN ככל שהגובה יותר קטן מ-150, פחות ככל שהוא יותר קרוב ל-150
+        // עד 150 ס"מ זה מפסיק להשפיע
+        const BASE_THRESHOLD = 150; // ס"מ - הגובה שממנו PAN מפסיק להשפיע
+        const REFERENCE_DIMENSION = 100; // ס"מ - הגובה שממנו מחשבים את ה-PAN הבסיסי
+        const PAN_PERCENTAGE_OF_SCREEN = 0.30; // 30% מגובה המסך - הערך המקורי שהיה מבוקש
+        
+        const productHeight = dimensions.height;
+        
+        let panOffset: number;
+        if (productHeight >= BASE_THRESHOLD) {
+            // אם הגובה גדול או שווה ל-150 ס"מ - אין PAN
+            panOffset = 0;
+        } else if (productHeight <= REFERENCE_DIMENSION) {
+            // אם הגובה קטן או שווה ל-100 ס"מ - PAN מקסימלי
+            // PAN של 30% מגובה המסך
+            panOffset = viewportHeight * PAN_PERCENTAGE_OF_SCREEN;
+        } else {
+            // אם הגובה בין 100 ל-150 ס"מ - PAN פרופורציונלי
+            // ככל שהגובה יותר קרוב ל-150, PAN קטן יותר
+            const range = BASE_THRESHOLD - REFERENCE_DIMENSION; // 50 ס"מ
+            const distanceFromThreshold = BASE_THRESHOLD - productHeight; // כמה ס"מ מתחת ל-150
+            const panRatio = distanceFromThreshold / range; // 0 עד 1
+            panOffset = viewportHeight * PAN_PERCENTAGE_OF_SCREEN * panRatio;
+        }
+        
+        // המרת panOffset מפיקסלים לערכי הסצנה לפי ה-FOV והמרחק
+        // גובה הסצנה שנצפה במרחק cameraDistance הוא: 2 * cameraDistance * tan(FOV/2)
+        // FOV של המצלמה (בדרך כלל 40 מעלות)
+        const cameraFOV = this.camera instanceof THREE.PerspectiveCamera ? this.camera.fov : 40;
+        const fovRadians = cameraFOV * (Math.PI / 180);
+        const visibleSceneHeight = 2 * cameraDistance * Math.tan(fovRadians / 2);
+        
+        // המרת panOffset מפיקסלים לערכי הסצנה
+        // panOffset הוא בפיקסלים, צריך להמיר אותו לערך במערכת הקואורדינטות
+        // מכפילים פי 4 כדי להגדיל את האפקט משמעותית ולוודא שהמוצר יראה במרכז המסך
+        const panOffsetInSceneUnits = (panOffset / viewportHeight) * visibleSceneHeight * 4;
+        
+        // PAN למעלה: המצלמה עולה והמטרה עולה באותה כמות (כך הזווית נשארת זהה)
+        // ה-Y הסופי של המצלמה ללא PAN (הזווית נשארת קבועה)
+        const cameraY = baseCameraY;
+        
+        console.log('TEST_CAMERA - Camera PAN calculation:', JSON.stringify({
+            productHeight: productHeight,
+            viewportHeight: viewportHeight,
+            baseThreshold: BASE_THRESHOLD,
+            referenceDimension: REFERENCE_DIMENSION,
+            panPercentageOfScreen: PAN_PERCENTAGE_OF_SCREEN,
+            panOffsetPixels: panOffset,
+            panOffsetInSceneUnits: panOffsetInSceneUnits,
+            cameraFOV: cameraFOV,
+            cameraDistance: cameraDistance,
+            visibleSceneHeight: visibleSceneHeight,
+            baseCameraY: baseCameraY,
+            finalCameraY: cameraY
+        }, null, 2));
         
         // איפוס מלא ומוחלט של הסצנה לפני כל חישוב - ללא קשר למצב הקודם
         // זה מבטיח ש-sceneOffsetY יהיה קבוע
@@ -13141,7 +13201,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         const sceneOffsetY = -120; // ערך קבוע למען הלוגים
         
         // חישוב מיקום המצלמה עם מבט אל המרכז של האוביקט
-        const finalCameraY = objectCenterY + cameraY;
+        // PAN למעלה: מזיזים את המצלמה והסצנה יחד למעלה (כמו בגלגלת)
+        // המצלמה והסצנה זזות יחד, אבל lookAt נשאר על מרכז האוביקט
+        const finalCameraY = objectCenterY + cameraY; // מצלמה ללא PAN
+        const finalLookAtY = objectCenterY; // נקודת מבט נשארת במרכז האוביקט
         const finalCameraX = cameraX;
         const finalCameraZ = cameraZ;
         
@@ -13149,9 +13212,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             cameraX: cameraX,
             cameraY: cameraY,
             cameraZ: cameraZ,
+            baseCameraY: baseCameraY,
+            panOffsetInSceneUnits: panOffsetInSceneUnits,
             finalCameraX: finalCameraX,
             finalCameraY: finalCameraY,
             finalCameraZ: finalCameraZ,
+            finalLookAtY: finalLookAtY,
             objectCenter: {
                 x: objectCenterX,
                 y: objectCenterY,
@@ -13161,7 +13227,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             objectHeight: dimensions.height,
             objectHeightHalf: dimensions.height / 2,
             cameraDistance: cameraDistance,
-            verticalAngle: verticalAngle * (180 / Math.PI) + ' degrees',
+            verticalAngle: verticalAngle * (180 / Math.PI) + ' degrees (fixed)',
             horizontalAngle: horizontalAngle * (180 / Math.PI) + ' degrees',
             usedBoundingBox: (minY !== Infinity && maxY !== -Infinity)
         }, null, 2));
@@ -13203,8 +13269,8 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // הגדרת וקטור ה-up לפני lookAt
         this.camera.up.set(0, 1, 0);
         
-        // מבט אל המרכז של האוביקט - זה יחשב את הרוטציה מחדש לחלוטין מהמיקום החדש
-        this.camera.lookAt(objectCenterX, objectCenterY, objectCenterZ);
+        // מבט אל המרכז של האוביקט - נקודת המבט לא משתנה (PAN לא משנה את הזווית)
+        this.camera.lookAt(objectCenterX, finalLookAtY, objectCenterZ);
         
         // עדכון רוטציית הסצנה לזווית קבועה (30 מעלות)
         this.scene.rotation.y = Math.PI / 6; // 30 degrees rotation
@@ -13212,15 +13278,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         this.scene.updateMatrixWorld(true);
         
         // עדכון רוטציית המצלמה מחדש אחרי סיבוב הסצנה
-        this.camera.lookAt(objectCenterX, objectCenterY, objectCenterZ);
+        this.camera.lookAt(objectCenterX, finalLookAtY, objectCenterZ);
         
-        // כפיית עדכון מלא של המטריצות של המצלמה והסצנה
+        // עדכון המטריצות לפני ה-PAN (כדי שנוכל לקחת את וקטור ה-up מהמטריצה)
+        this.camera.updateMatrix();
+        this.camera.updateMatrixWorld(true);
+        
+        // PAN למעלה: מזיזים את המצלמה והסצנה יחד לפי וקטור ה-up של המצלמה
+        // זה מדמה את מה שקורה בגרירת גלגלת למעלה - המצלמה והסצנה זזות יחד למעלה
+        // כך שהאוביקט ירד במסך (יראה במרכז)
+        // וקטור ה-up של המצלמה הוא הכיוון למעלה במערכת הקואורדינטות של המצלמה
+        const panVector = new THREE.Vector3();
+        panVector.setFromMatrixColumn(this.camera.matrix, 1); // וקטור ה-up (עמודה 1)
+        panVector.multiplyScalar(panOffsetInSceneUnits); // חיובי = למעלה (כך האוביקט ירד במסך)
+        this.camera.position.add(panVector); // מזיזים את המצלמה
+        this.scene.position.add(panVector); // מזיזים את הסצנה באותו כיוון
+        
+        // כפיית עדכון מלא של המטריצות של המצלמה והסצנה אחרי ה-PAN
         this.camera.updateMatrix();
         this.camera.updateMatrixWorld(true);
         this.scene.updateMatrix();
         this.scene.updateMatrixWorld(true);
-        
-        // לוג של המצלמה אחרי הגדרת הערכים החדשים
         console.log('TEST_CAMERA - Camera state AFTER positioning:', JSON.stringify({
             position: {
                 x: this.camera.position.x,
@@ -13274,7 +13352,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             },
             lookAt: {
                 x: objectCenterX,
-                y: objectCenterY,
+                y: finalLookAtY,
                 z: objectCenterZ
             },
             distance: cameraDistance,
@@ -13295,6 +13373,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 z: objectCenterZ
             },
             objectHeight: dimensions.height,
+            productHeight: productHeight,
+            minDimension: minDimension,
+            maxDimension: maxDimension,
+            baseCameraY: baseCameraY,
+            panOffsetInSceneUnits: panOffsetInSceneUnits,
+            cameraY: cameraY,
+            verticalAngleDegrees: BASE_VERTICAL_ANGLE,
             usedBoundingBox: (minY !== Infinity && maxY !== -Infinity)
         }, null, 2));
     }
