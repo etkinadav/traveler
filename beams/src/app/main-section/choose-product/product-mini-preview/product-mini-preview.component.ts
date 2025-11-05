@@ -2418,12 +2418,50 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
       additionalZoomOut = hundredsOver120 * (baseMargin * 0.8); // 80% מ-baseMargin לכל 100 ס"מ (הוגדל פי 2)
     }
 
+    // אפקט נוסף: אם רק מידה אחת גדולה מ-100 ס"מ והשאר קטנות מ-100 ס"מ
+    // להוסיף zoom out של 70% מ-baseMargin
+    let singleLargeDimensionZoomOut = 0;
+    try {
+      // ננסה לקבל את המידות מהפרמטרים
+      const widthParam = this.product?.params?.find((p: any) => p.name === 'width');
+      const depthParam = this.product?.params?.find((p: any) => p.name === 'depth');
+      const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
+
+      const width = widthParam?.default || this.dynamicParams.width || 0;
+      const depth = depthParam?.default || this.dynamicParams.length || 0;
+      const productHeight = heightParam?.default || this.dynamicParams.height || 0;
+
+      // אם יש מידות תקינות, נבדוק
+      if (width > 0 && depth > 0 && productHeight > 0) {
+        const dimensions = [width, depth, productHeight];
+        const largeDimensions = dimensions.filter(d => d > 100); // מידות גדולות מ-100
+        const smallDimensions = dimensions.filter(d => d <= 100); // מידות קטנות או שוות ל-100
+
+        // אם יש בדיוק אחת גדולה מ-100 והשאר קטנות מ-100
+        if (largeDimensions.length === 1 && smallDimensions.length === 2) {
+          singleLargeDimensionZoomOut = baseMargin * 0.7; // 70% מ-baseMargin
+        }
+      }
+    } catch (e) {
+      // אם יש שגיאה, נדלג על האפקט הזה
+    }
+
+    // אפקט נוסף: אם הגובה מעל 140 ס"מ, zoom out של 150% מ-baseMargin
+    // תלוי רק בגובה, ובנוסף לכל האפקטים הקיימים
+    let tallHeightZoomOut = 0;
+    const HEIGHT_THRESHOLD = 140; // ס"מ
+    if (height > HEIGHT_THRESHOLD) {
+      tallHeightZoomOut = baseMargin * 1.5; // 150% מ-baseMargin (משמעותי מאוד)
+    }
+
     // חישוב המרחק הסופי עם margin
     // margin קטן יותר = מצלמה קרובה יותר = zoom in
     // margin גדול יותר = מצלמה רחוקה יותר = zoom out
     // למוצרים גדולים מ-120: נוסיף zoomAdjustment חיובי ל-margin כדי להגדיל את המרחק (zoom out)
-    // בנוסף: נוסיף additionalZoomOut של 40% לכל 100 ס"מ מעל 120
-    const margin = baseMargin + zoomAdjustment + additionalZoomOut;
+    // בנוסף: נוסיף additionalZoomOut של 80% לכל 100 ס"מ מעל 120
+    // בנוסף: נוסיף singleLargeDimensionZoomOut של 70% אם רק מידה אחת גדולה מ-100
+    // בנוסף: נוסיף tallHeightZoomOut של 150% אם הגובה מעל 140 ס"מ
+    const margin = baseMargin + zoomAdjustment + additionalZoomOut + singleLargeDimensionZoomOut + tallHeightZoomOut;
     const cameraDistance = Math.max(distanceHeight, distanceWidth, distanceDepth) * margin;
 
     // זווית קבועה

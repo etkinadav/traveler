@@ -12748,9 +12748,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 const depth = depthParam?.default || 0;
                 height = heightParam?.default || 0;
                 
+                // אם לא מצאנו גובה מהפרמטרים, נשתמש בגובה מה-bounding box
+                // size.y הוא הגובה - נבדוק אם צריך המרה או שהוא כבר בס"מ
+                if (height === 0 && size.y > 0) {
+                    // אם size.x = 2000 ו-width = 50, אז המרה היא 2000/40 = 50
+                    // אבל size.y = 180.3, אז אם המרה זהה, הגובה יהיה 180.3/40 = 4.5 ס"מ - לא נכון
+                    // כנראה size.y הוא ישירות בס"מ או במילימטרים חלקי 10
+                    // ננסה להשתמש ב-size.y ישירות (אם הוא בס"מ) או לחלק ב-10
+                    // מהלוג נראה ש-size.y = 180.3, אז נשתמש בו ישירות
+                    height = size.y; // הגובה מה-bounding box בס"מ
+                }
+                
                 maxDimension = Math.max(width, depth, height);
                 
-                // אם לא מצאנו מידות מהפרמטרים, נשתמש ב-bounding box
+                // אם עדיין לא מצאנו מידות מהפרמטרים, נשתמש ב-bounding box
                 if (maxDimension === 0) {
                     const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
                     // המרה - נראה שהמידות ב-Three.js הן במילימטרים חלקי 10
@@ -12761,6 +12772,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 // אם יש שגיאה, נשתמש ב-bounding box
                 const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
                 maxDimension = maxDimensionInSceneUnits / 40; // המרה לס"מ
+                // גם ננסה לקבל את הגובה מה-bounding box
+                if (height === 0 && size.y > 0) {
+                    height = size.y; // הגובה מה-bounding box בס"מ
+                }
+            }
+            
+            // Fallback נוסף: אם עדיין לא מצאנו גובה, נשתמש ב-size.y ישירות
+            // זה חשוב למוצרים ללא פרמטר height (כמו ארון)
+            if (height === 0 && size.y > 0) {
+                height = size.y; // הגובה מה-bounding box בס"מ
             }
             
             // חישוב פרמטר zoom-out/zoom-in הדרגתי לפי הצלע הגדולה ביותר
@@ -12807,16 +12828,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // חישוב zoom-out נוסף לפי גובה המוצר
             // אם גובה המוצר גדול מ-120, נוסיף zoom-out נוסף שיגדל עם הגובה
+            // ככל שהגובה גדול יותר מ-120, יותר zoom-out משמעותי
             let heightBasedZoomOutFactor = 0;
-            const HEIGHT_THRESHOLD = 120; // ס"מ - הגבול שממנו מתחיל האפקט
-            
+            const HEIGHT_THRESHOLD = 110; // ס"מ - הגבול שממנו מתחיל האפקט
+            const HEIGHT_THRESHOLD_MAX = 130; // ס"מ - הגבול שממנו מתחיל האפקט
             if (height > HEIGHT_THRESHOLD) {
                 // ככל שהגובה גדול יותר מ-120, יותר zoom-out (מגדיל margin)
-                const heightExcess = height - HEIGHT_THRESHOLD; // כמה מעבר ל-120
-                // מקדם עדין - 0.001 לכל יחידה מעבר ל-120
-                heightBasedZoomOutFactor = heightExcess * 0.001;
-                // מקסימום כדי לא להגזים
-                heightBasedZoomOutFactor = Math.min(heightBasedZoomOutFactor, 0.05);
+                let heightExcess = height - HEIGHT_THRESHOLD; // כמה מעבר ל-120
+                if (height > HEIGHT_THRESHOLD_MAX) {
+                    heightExcess = height * (-0.26); // כמה מעבר ל-150
+                }
+                // מקדם מכפלה גבוה מאוד - 0.1 לכל יחידה מעבר ל-120 (מוגדל פי 10 מהמקור הקודם)
+                // זה יוצר אפקט משמעותי מאוד ככל שהגובה גדול יותר
+                heightBasedZoomOutFactor = heightExcess * 0.0005;
+                // מקסימום מוגדל כדי לאפשר אפקט משמעותי גם למוצרים גבוהים מאוד
+                heightBasedZoomOutFactor = Math.min(heightBasedZoomOutFactor, 3.0); // מקסימום 3000% מ-baseMargin
             }
             
             // נשתמש במרחק הגדול ביותר עם margin
