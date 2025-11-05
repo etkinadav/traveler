@@ -975,56 +975,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
   private addMouseControls() {
     const container = this.container.nativeElement;
 
-    // גלגל עכבר לזום
-    container.addEventListener('wheel', (event: WheelEvent) => {
-      event.preventDefault();
-      this.hasUserInteracted = true; // המשתמש התחיל להזיז
-      if (!this.hasUserPerformedAction) {
-        this.hasUserPerformedAction = true;
-        this.userInteracted.emit(); // שלח event רק בפעם הראשונה
-      }
-      this.resetInactivityTimer(); // אפס את טיימר חוסר הפעילות
-      const delta = event.deltaY;
-      const zoomSpeed = 0.1;
-      
-      // לפני שינוי
-      const radiusBefore = this.spherical.radius;
-      
-      // מינימום הradius - לא ניתן לעשות zoom in יותר מזה
-      // הערך ההתחלתי הוא ~217.44, הרצינו לאפשר ירידה קטנה של ~10
-      const MIN_RADIUS = 205;
-      
-      // שינוי רדיוס המצלמה
-      this.spherical.radius += delta * zoomSpeed;
-      
-      // אחרי שינוי
-      const radiusAfterChange = this.spherical.radius;
-      
-      // הגבלה - לא לעבור את המינימום
-      if (this.spherical.radius < MIN_RADIUS) {
-        this.spherical.radius = MIN_RADIUS;
-      }
-      
-      // הגבלה רגילה
-      this.spherical.radius = Math.max(MIN_RADIUS, Math.min(500, this.spherical.radius));
-      
-      // אחרי הגבלה
-      const radiusAfterLimit = this.spherical.radius;
-      
-      console.log('ZOOM_DEBUG:', {
-        delta,
-        zoomSpeed,
-        delta_multiplied: delta * zoomSpeed,
-        radiusBefore,
-        radiusAfterChange,
-        radiusAfterLimit,
-        wasLimited: radiusAfterChange !== radiusAfterLimit
-      });
-      
-      // עדכון מיקום המצלמה
-      this.camera.position.setFromSpherical(this.spherical).add(this.target);
-    });
-
     // לחיצה וגרירה לסיבוב ו-pan
     container.addEventListener('mousedown', (event: MouseEvent) => {
       this.isMouseDown = true;
@@ -1087,13 +1037,9 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     });
 
     // Mobile touch support
-    let lastTouchDist = 0;
-    let lastTouchAngle = 0;
     let lastTouchX = 0;
     let lastTouchY = 0;
     let isTouchRotating = false;
-    let isTouchZooming = false;
-    let isTouchPanning = false;
     
     container.addEventListener('touchstart', (event: TouchEvent) => {
       this.hasUserInteracted = true; // המשתמש התחיל להזיז
@@ -1103,12 +1049,6 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         isTouchRotating = true;
         lastTouchX = event.touches[0].clientX;
         lastTouchY = event.touches[0].clientY;
-      } else if (event.touches.length === 2) {
-        isTouchZooming = true;
-        const dx = event.touches[0].clientX - event.touches[1].clientX;
-        const dy = event.touches[0].clientY - event.touches[1].clientY;
-        lastTouchDist = Math.sqrt(dx * dx + dy * dy);
-        lastTouchAngle = Math.atan2(dy, dx);
       }
     }, { passive: false });
 
@@ -1128,36 +1068,11 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
         spherical.phi -= angleX;
         spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
         this.camera.position.setFromSpherical(spherical).add(this.target);
-      } else if (isTouchZooming && event.touches.length === 2) {
-        const dx = event.touches[0].clientX - event.touches[1].clientX;
-        const dy = event.touches[0].clientY - event.touches[1].clientY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const angle = Math.atan2(dy, dx);
-        // Pinch zoom
-        const deltaDist = dist - lastTouchDist;
-        const direction = new THREE.Vector3().subVectors(this.camera.position, this.target).normalize();
-        const distance = this.camera.position.distanceTo(this.target);
-        const zoomAmount = -deltaDist * 0.02 * (distance / 100);
-        let newDistance = distance + zoomAmount;
-        if (newDistance < 5) newDistance = 5; // הגבלה מינימלית נמוכה יותר
-        this.camera.position.copy(direction.multiplyScalar(newDistance).add(this.target));
-        lastTouchDist = dist;
-        // Two-finger rotate (optional)
-        const deltaAngle = angle - lastTouchAngle;
-        if (Math.abs(deltaAngle) > 0.01) {
-          const offset = this.camera.position.clone().sub(this.target);
-          const spherical = new THREE.Spherical().setFromVector3(offset);
-          spherical.theta -= deltaAngle;
-          this.camera.position.setFromSpherical(spherical).add(this.target);
-          lastTouchAngle = angle;
-        }
       }
     }, { passive: false });
 
     container.addEventListener('touchend', (event: TouchEvent) => {
       isTouchRotating = false;
-      isTouchZooming = false;
-      isTouchPanning = false;
     });
 
     // הגדרת סגנון עכבר
@@ -2362,90 +2277,206 @@ export class ProductMiniPreviewComponent implements AfterViewInit, OnDestroy, On
     this.camera.lookAt(this.target);
   }
 
-  // התאמת מיקום המצלמה למידות האוביקט - זהה לקובץ הראשי
+  // התאמת מיקום המצלמה למידות האוביקט - מבוסס על resetCameraView מהקובץ הראשי
   private updateCameraPosition() {
-    // חישוב מידות האוביקט
-    const width = this.dynamicParams.width;
-    const height = this.dynamicParams.height;
-    const depth = this.dynamicParams.length;
-    
-    // חישוב הגובה הכולל של המודל (כולל מדפים ורגליים)
-    let totalModelHeight = 0;
-    const isTable = this.product?.name === 'table';
-    const isPlanter = this.product?.name === 'planter';
-    const isBox = this.product?.name === 'box';
-    const isFuton = this.product?.name === 'futon';
-    
-    if (isPlanter || isBox) {
-      // עדנית או קופסא - גובה הקירות + גובה הרצפה
-      const beamWidth = this.dynamicParams.beamWidth || 5;
-      const beamHeight = this.dynamicParams.beamHeight || 2.5;
-      const beamsInHeight = Math.floor(height / beamWidth);
-      const actualWallHeight = beamsInHeight * beamWidth;
-      
-      // אם זו קופסא ויש מכסה (coverOpenOffset !== null), נוסיף את גובה המכסה + offset פתיחה
-      const hasCover = isBox && this.dynamicParams.coverOpenOffset !== null;
-      const coverOffset = (isBox && this.dynamicParams.coverOpenOffset !== null) ? this.dynamicParams.coverOpenOffset : 0;
-      totalModelHeight = actualWallHeight + beamHeight + (hasCover ? beamHeight : 0) + coverOffset; // גובה הקירות + גובה הרצפה + גובה מכסה + פתיחה
-    } else if (isFuton) {
-      // מיטה - גובה הפלטה + גובה הרגליים
-      // גובה הפלטה = רוחב קורת הרגל + גובה קורת הפלטה
-      const legBeamWidth = this.dynamicParams.frameWidth || 5; // רוחב קורת הרגל
-      const plataBeamHeight = this.dynamicParams.beamHeight || 2.5; // גובה קורת הפלטה
-      const legBeamHeight = this.dynamicParams.frameHeight || 5; // גובה קורת הרגל
-      
-      const platformTopHeight = legBeamWidth + plataBeamHeight; // גובה עליון של הפלטה
-      totalModelHeight = platformTopHeight; // הגובה הכולל הוא גובה הפלטה (הרגליים מתחילות מ-Y=0)
-    } else if (isTable) {
-      // שולחן - גובה המדף + גובה הרגליים
-      totalModelHeight = this.shelfGaps[0] + this.dynamicParams.frameHeight + this.dynamicParams.beamHeight;
-    } else {
-      // ארון - סכום כל המדפים
-      for (let i = 0; i < this.shelfGaps.length; i++) {
-        totalModelHeight += this.shelfGaps[i] + this.dynamicParams.frameHeight + this.dynamicParams.beamHeight;
-      }
+    if (!this.camera || !this.renderer || !this.scene) {
+      console.error('MINI_CAMERA - Camera, renderer, or scene not initialized');
+      return;
     }
-    
-    // מרכז האוביקט - ממורכז בגובה הכולל
-    const centerY = totalModelHeight / 2;
-    this.target.set(0, centerY, 0);
-    
-    // חישוב המרחק האופטימלי של המצלמה - מותאם למידות המודל
-    const fov = this.camera.fov * Math.PI / 180;
-    const fitHeight = totalModelHeight * 1.2; // 20% מרווח נוסף
-    const fitWidth = width * 1.2;
-    const fitDepth = depth * 1.2;
-    const distanceY = fitHeight / (2 * Math.tan(fov / 2));
-    const distanceX = fitWidth / (2 * Math.tan(fov / 2) * this.camera.aspect);
-    
-    let distance;
-    if (isFuton) {
-      // עבור מיטה - המרחק מבוסס על רוחב וגובה, לא על עומק (כי המיטה שטוחה)
-      distance = Math.max(distanceY, distanceX) * 1.2; // זום אאוט פחות עבור מיטה
-    } else {
-      distance = Math.max(distanceY, distanceX, fitDepth * 1.2) * 1.5; // זום אאוט פי 1.5
-    }
-    this.defaultDistance = distance;
 
-    // מיקום המצלמה - מותאם למידות המודל
-    this.camera.position.set(0.7 * width, distance, 1.2 * depth);
-    this.camera.lookAt(this.target);
+    // ============================================
+    // פתרון חדש: מיקום המצלמה לפי Bounding Box
+    // ============================================
+
+    // קבלת מידות המסך
+    const containerNew = this.renderer.domElement.parentElement;
+    if (!containerNew) {
+      console.error('MINI_CAMERA - Container not found');
+      return;
+    }
+
+    const viewportWidthNew = this.renderer.domElement.clientWidth || containerNew.clientWidth;
+    const viewportHeightNew = this.renderer.domElement.clientHeight || containerNew.clientHeight;
+
+    // איפוס מלא של הסצנה לפני חישוב bounding box
+    this.scene.rotation.set(0, 0, 0);
+    this.scene.position.set(0, -120, 0);
+    this.scene.scale.set(1, 1, 1);
+    this.scene.updateMatrix();
+    this.scene.updateMatrixWorld(true);
+
+    // חישוב bounding box של כל האוביקטים בסצנה
+    let minXNew = Infinity, minYNew = Infinity, minZNew = Infinity;
+    let maxXNew = -Infinity, maxYNew = -Infinity, maxZNew = -Infinity;
+    let hasObjects = false;
+
+    this.scene.traverse((object) => {
+      if (object instanceof THREE.Mesh && object.geometry) {
+        const objectBox = new THREE.Box3().setFromObject(object);
+        if (!objectBox.isEmpty()) {
+          // Manual expansion by comparing min/max values
+          minXNew = Math.min(minXNew, objectBox.min.x);
+          minYNew = Math.min(minYNew, objectBox.min.y);
+          minZNew = Math.min(minZNew, objectBox.min.z);
+          maxXNew = Math.max(maxXNew, objectBox.max.x);
+          maxYNew = Math.max(maxYNew, objectBox.max.y);
+          maxZNew = Math.max(maxZNew, objectBox.max.z);
+          hasObjects = true;
+        }
+      }
+    });
+
+    const box = new THREE.Box3();
+    if (hasObjects) {
+      box.setFromPoints([
+        new THREE.Vector3(minXNew, minYNew, minZNew),
+        new THREE.Vector3(maxXNew, maxYNew, maxZNew)
+      ]);
+    }
+
+    if (!hasObjects || box.isEmpty()) {
+      console.warn('MINI_CAMERA - No objects found in scene, using fallback method');
+      return;
+    }
+
+    // מציאת המרכז הגיאומטרי של ה-bounding box
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+
+    // הזזת הסצנה כך שהמרכז יהיה ב-(0,0,0)
+    const offset = center.clone().negate();
+    this.scene.position.set(offset.x, offset.y - 120, offset.z);
+    this.scene.updateMatrix();
+    this.scene.updateMatrixWorld(true);
+
+    // חישוב המרחק כך שה-bounding box יכנס ל-view frustum
+    const cameraFOV = this.camera instanceof THREE.PerspectiveCamera ? this.camera.fov : 40;
+    const fovRadians = cameraFOV * (Math.PI / 180);
+    const aspect = viewportWidthNew / viewportHeightNew;
+
+    // חישוב המרחק לפי הגובה והרוחב של ה-bounding box
+    const distanceHeight = (size.y / 2) / Math.tan(fovRadians / 2);
+    const distanceWidth = (size.x / 2) / (Math.tan(fovRadians / 2) * aspect);
+    const distanceDepth = (size.z / 2) / Math.tan(fovRadians / 2);
+
+    // מציאת הצלע הגדולה ביותר של המוצר (width, height, length)
+    // נשתמש במידות מהפרמטרים במקום מה-bounding box כדי לקבל ערכים מדויקים בס"מ
+    let maxDimension = 0;
+    let height = 0; // גובה המוצר
+    try {
+      // ננסה לקבל את המידות מהפרמטרים
+      const widthParam = this.product?.params?.find((p: any) => p.name === 'width');
+      const depthParam = this.product?.params?.find((p: any) => p.name === 'depth');
+      const heightParam = this.product?.params?.find((p: any) => p.name === 'height');
+
+      const width = widthParam?.default || this.dynamicParams.width || 0;
+      const depth = depthParam?.default || this.dynamicParams.length || 0;
+      height = heightParam?.default || this.dynamicParams.height || 0;
+
+      maxDimension = Math.max(width, depth, height);
+
+      // אם לא מצאנו מידות מהפרמטרים, נשתמש ב-bounding box
+      if (maxDimension === 0) {
+        const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
+        maxDimension = maxDimensionInSceneUnits / 40; // המרה לס"מ
+      }
+    } catch (e) {
+      // אם יש שגיאה, נשתמש ב-bounding box
+      const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
+      maxDimension = maxDimensionInSceneUnits / 40; // המרה לס"מ
+    }
+
+    // חישוב פרמטר zoom-out/zoom-in הדרגתי לפי המידה הגדולה ביותר בלבד
+    const referenceSize = 120; // ס"מ - המידה שממנה מתחילים לחשב את הפער
+    const baseMargin = 0.072; // margin בסיסי
     
-    // סיבוב המצלמה 30 מעלות כלפי מטה
-    const offset = this.camera.position.clone().sub(this.target);
-    const spherical = new THREE.Spherical().setFromVector3(offset);
-    spherical.phi += 30 * Math.PI / 180; // 30 מעלות כלפי מטה
-    this.camera.position.setFromSpherical(spherical).add(this.target);
-    this.camera.lookAt(this.target);
+    // חישוב scaleFactor כך שב-200 ס"מ יהיה zoom out של 30% מ-baseMargin
+    // 30% של baseMargin = 0.072 * 0.3 = 0.0216
+    // difference ב-200 = 200 - 120 = 80
+    // scaleFactor = 0.0216 / 80 = 0.00027
+    // הוגדל פי 1.7: 0.00027 * 1.7 = 0.000459
+    // הוגדל עוד פי 1.5: 0.000459 * 1.5 = 0.0006885
+    // scaleFactor חיובי = zoom out למוצרים גדולים (מגדיל margin)
+    const scaleFactor = 0.0006885; // פקטור שמשפיע על עוצמת האפקט (הוגדל פי 1.7 ואז פי 1.5)
+
+    // חישוב הפער מהמידה הייחוסית
+    // אם maxDimension > referenceSize: המצלמה תהיה יותר רחוקה (zoom out)
+    // אם maxDimension < referenceSize: המצלמה תהיה יותר קרובה (zoom in)
+    const difference = maxDimension > referenceSize ? maxDimension - referenceSize : 0;
     
-    // פאן של 2 פיקסלים למעלה (כאילו גררנו עם גלגל העכבר)
-    this.target.y += 2;
-    this.camera.lookAt(this.target);
-    
-    // הגדרת מיקום התחלתי עבור הזום - אחרי מיקום המצלמה
-    const offset2 = this.camera.position.clone().sub(this.target);
-    this.spherical.setFromVector3(offset2);
-    
+    // האפקט: difference חיובי = zoom out (מגדיל margin), רק למוצרים גדולים מ-120
+    // margin גדול יותר = מצלמה רחוקה יותר = zoom out
+    const zoomAdjustment = difference * scaleFactor;
+
+    // אפקט נוסף: zoom out של 80% מ-baseMargin לכל 100 ס"מ מעל 120 (הוגדל פי 2 מ-40%)
+    // למשל: מוצר בגודל 220 = 100 ס"מ מעל 120 → תוספת של 80% מ-baseMargin
+    // מוצר בגודל 320 = 200 ס"מ מעל 120 → תוספת של 160% מ-baseMargin
+    let additionalZoomOut = 0;
+    if (maxDimension > referenceSize) {
+      const excessOver120 = maxDimension - referenceSize; // כמה ס"מ מעל 120
+      const hundredsOver120 = excessOver120 / 100; // כמה "100 ס"מ" יש מעל 120
+      additionalZoomOut = hundredsOver120 * (baseMargin * 0.8); // 80% מ-baseMargin לכל 100 ס"מ (הוגדל פי 2)
+    }
+
+    // חישוב המרחק הסופי עם margin
+    // margin קטן יותר = מצלמה קרובה יותר = zoom in
+    // margin גדול יותר = מצלמה רחוקה יותר = zoom out
+    // למוצרים גדולים מ-120: נוסיף zoomAdjustment חיובי ל-margin כדי להגדיל את המרחק (zoom out)
+    // בנוסף: נוסיף additionalZoomOut של 40% לכל 100 ס"מ מעל 120
+    const margin = baseMargin + zoomAdjustment + additionalZoomOut;
+    const cameraDistance = Math.max(distanceHeight, distanceWidth, distanceDepth) * margin;
+
+    // זווית קבועה
+    const BASE_VERTICAL_ANGLE = 30; // מעלות
+    const verticalAngle = BASE_VERTICAL_ANGLE * (Math.PI / 180);
+    const horizontalAngle = 45 * (Math.PI / 180); // 45 מעלות אופקית
+
+    // חישוב מיקום המצלמה במערכת קואורדינטות כדורית
+    const cameraX = Math.sin(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
+    const cameraY = Math.sin(verticalAngle) * cameraDistance;
+    const cameraZ = Math.cos(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
+
+    // איפוס המצלמה
+    this.camera.position.set(0, 0, 0);
+    this.camera.rotation.set(0, 0, 0);
+    this.camera.up.set(0, 1, 0);
+    this.camera.quaternion.set(0, 0, 0, 1);
+
+    // הגדרת מיקום המצלמה
+    this.camera.position.set(cameraX, cameraY, cameraZ);
+    this.scene.rotation.y = Math.PI / 6; // 30 degrees rotation
+
+    // מבט על המרכז (0,0,0)
+    this.camera.lookAt(0, 0, 0);
+
+    // עדכון רוטציית הסצנה
+    this.scene.updateMatrix();
+    this.scene.updateMatrixWorld(true);
+
+    // עדכון רוטציית המצלמה מחדש אחרי סיבוב הסצנה
+    this.camera.lookAt(0, 0, 0);
+
+    // עדכון הפרויקציה והרינדורר
+    this.camera.aspect = aspect;
+    if (this.camera instanceof THREE.PerspectiveCamera) {
+      this.camera.updateProjectionMatrix();
+    }
+    this.renderer.setSize(viewportWidthNew, viewportHeightNew);
+
+    // עדכון מטריצות
+    this.camera.updateMatrix();
+    this.camera.updateMatrixWorld(true);
+    this.scene.updateMatrix();
+    this.scene.updateMatrixWorld(true);
+
+    // רינדור
+    this.renderer.render(this.scene, this.camera);
+
+    // עדכון target ו-spherical עבור הסיבוב האוטומטי
+    this.target.set(0, 0, 0);
+    const offsetForSpherical = this.camera.position.clone().sub(this.target);
+    this.spherical.setFromVector3(offsetForSpherical);
+    this.defaultDistance = cameraDistance;
   }
   
   // פונקציה לאיפוס המצלמה והסיבוב למצב התחלתי
