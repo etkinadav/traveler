@@ -213,6 +213,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.isPriceManuOpen = false;
         }
         
+        // איפוס מבט המצלמה בפתיחה וסגירה של תפריט האינפוטים
+        setTimeout(() => {
+            this.resetCameraView();
+        }, 100);
+        
         // קריאה ל-onResize ללא איפוס isPriceMinimized
         setTimeout(() => {
             this.onResizeWithoutReset();
@@ -275,6 +280,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             isInstructionMode: this.isInstructionMode,
             currentInstructionStageBefore: this.currentInstructionStage
         }, null, 2));
+        
+        // איפוס מבט המצלמה במעבר למצב הוראות או יציאה ממנו
+        setTimeout(() => {
+            this.resetCameraView();
+        }, 100);
         
         // לוג כשעוברים למצב הוראות הרכבה
         if (this.isInstructionMode) {
