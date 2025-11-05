@@ -8805,9 +8805,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
 
     // מרכוז המצלמה על קוביית ה-wireframe בפתיחה הראשונית
     private centerCameraOnWireframe() {
-        // איפוס מיקום המצלמה ישירות עם הפונקציה החדשה - ללא המתנה
+        // איפוס מיקום המצלמה ישירות עם הפונקציה החדשה - עם אנימציה בפתיחת הקומפוננטה
         // קוראים ישירות ל-resetCameraView כדי שהמצלמה תהיה במיקום הנכון לפני שהמשתמש רואה את התלת מימד
-        this.resetCameraView();
+        this.resetCameraView(true); // true = עם אנימציה בפתיחת הקומפוננטה
     }
 
     // פונקציה שבודקת גובה המסך ועושה pan למעלה בחצי מגובה המסך
@@ -8934,9 +8934,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     
     // מרכוז המצלמה עבור מוצר beams עם מידות קבועות
     private centerCameraOnBeams() {
-        // איפוס מיקום המצלמה ישירות עם הפונקציה החדשה - ללא המתנה
+        // איפוס מיקום המצלמה ישירות עם הפונקציה החדשה - עם אנימציה בפתיחת הקומפוננטה
         // קוראים ישירות ל-resetCameraView כדי שהמצלמה תהיה במיקום הנכון לפני שהמשתמש רואה את התלת מימד
-        this.resetCameraView();
+        this.resetCameraView(true); // true = עם אנימציה בפתיחת הקומפוננטה
     }
     
     // ממקם את המצלמה כך שכל המדפים והרגליים ייכנסו בפריים
@@ -12654,7 +12654,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     }
     
     // איפוס זוית המצלמה - מיקום מחדש של המצלמה לפי מידות המוצר
-    resetCameraView() {
+    resetCameraView(isAnimate: boolean = false) {
         if (!this.camera || !this.renderer || !this.scene) {
             console.error('TEST_CAMERA - Camera, renderer, or scene not initialized');
             return;
@@ -12721,9 +12721,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // הזזת הסצנה כך שהמרכז יהיה ב-(0,0,0)
             const offset = center.clone().negate();
             this.scene.position.set(offset.x, offset.y - 120, offset.z);
-            this.scene.updateMatrix();
-            this.scene.updateMatrixWorld(true);
-            
+        this.scene.updateMatrix();
+        this.scene.updateMatrixWorld(true);
+        
             // חישוב המרחק כך שה-bounding box יכנס ל-view frustum
             const cameraFOV = this.camera instanceof THREE.PerspectiveCamera ? this.camera.fov : 40;
             const fovRadians = cameraFOV * (Math.PI / 180);
@@ -12794,7 +12794,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 zoomInFactor = additionalEffect;
                 // מקסימום מוגדל - אבל לא יותר מה-baseMargin כדי לא לקבל margin שלילי
                 zoomInFactor = Math.min(zoomInFactor, baseMargin * 0.95); // מקסימום 95% מה-baseMargin כדי לא לקבל margin שלילי
-            } else {
+        } else {
                 // למוצרים קטנים מ-120: אפקט zoom-in (הפוך)
                 // ככל שהמוצר קטן יותר מ-120, יותר zoom-in (מקטין margin)
                 // מוקטן פי 10 נוסף כדי להפוך את האפקט למתון מאוד
@@ -12832,48 +12832,144 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const verticalAngle = BASE_VERTICAL_ANGLE * (Math.PI / 180);
             const horizontalAngle = 45 * (Math.PI / 180); // 45 מעלות אופקית
             
-            // חישוב מיקום המצלמה במערכת קואורדינטות כדורית
-            const cameraX = Math.sin(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
-            const cameraY = Math.sin(verticalAngle) * cameraDistance;
-            const cameraZ = Math.cos(horizontalAngle) * Math.cos(verticalAngle) * cameraDistance;
+            // שמירת המידות הסופיות
+            const finalCameraDistance = cameraDistance;
+            const finalVerticalAngle = verticalAngle;
+            const finalHorizontalAngle = horizontalAngle;
+            const finalSceneRotationY = Math.PI / 6; // 30 degrees rotation
+            
+            // אם צריך אנימציה - נשנה את הפרמטרים ב-15% או 15 מעלות
+            let startCameraDistance = finalCameraDistance;
+            let startVerticalAngle = finalVerticalAngle;
+            let startHorizontalAngle = finalHorizontalAngle;
+            
+            if (isAnimate) {
+                // שינוי עדין של 15% או 15 מעלות
+                startCameraDistance = finalCameraDistance * 1.15; // 15% יותר רחוק
+                // סיבוב למעלה-למטה: הפוך (יותר למטה) ומוקטן פי 2
+                startVerticalAngle = finalVerticalAngle - (7.5 * Math.PI / 180); // 7.5 מעלות למטה (הפוך מהמקור ומוקטן פי 2)
+                // סיבוב ימין-שמאל: משמעותי יותר
+                startHorizontalAngle = finalHorizontalAngle + (30 * Math.PI / 180); // 30 מעלות נוספות (יותר משמעותי)
+            }
+            
+            // חישוב מיקום המצלמה במערכת קואורדינטות כדורית (מצב התחלתי - עם או בלי שינוי עדין)
+            const startCameraX = Math.sin(startHorizontalAngle) * Math.cos(startVerticalAngle) * startCameraDistance;
+            const startCameraY = Math.sin(startVerticalAngle) * startCameraDistance;
+            const startCameraZ = Math.cos(startHorizontalAngle) * Math.cos(startVerticalAngle) * startCameraDistance;
+            
+            // חישוב מיקום המצלמה הסופי במערכת קואורדינטות כדורית
+            const finalCameraX = Math.sin(finalHorizontalAngle) * Math.cos(finalVerticalAngle) * finalCameraDistance;
+            const finalCameraY = Math.sin(finalVerticalAngle) * finalCameraDistance;
+            const finalCameraZ = Math.cos(finalHorizontalAngle) * Math.cos(finalVerticalAngle) * finalCameraDistance;
             
             // איפוס המצלמה
-            this.camera.position.set(0, 0, 0);
-            this.camera.rotation.set(0, 0, 0);
-            this.camera.up.set(0, 1, 0);
-            this.camera.quaternion.set(0, 0, 0, 1);
+        this.camera.position.set(0, 0, 0);
+        this.camera.rotation.set(0, 0, 0);
+        this.camera.up.set(0, 1, 0);
+        this.camera.quaternion.set(0, 0, 0, 1);
             
-            // הגדרת מיקום המצלמה
-            this.camera.position.set(cameraX, cameraY, cameraZ);
+            // הגדרת מיקום המצלמה למצב התחלתי (עם או בלי שינוי עדין)
+            if (isAnimate) {
+                // במצב אנימציה - נתחיל מהמצב העדין
+                this.camera.position.set(startCameraX, startCameraY, startCameraZ);
+                this.scene.rotation.y = finalSceneRotationY + (15 * Math.PI / 180);
+            } else {
+                // ללא אנימציה - ישר למצב הסופי
+                this.camera.position.set(finalCameraX, finalCameraY, finalCameraZ);
+                this.scene.rotation.y = finalSceneRotationY;
+            }
             
             // מבט על המרכז (0,0,0) - כי הזזנו את הסצנה כך שהמרכז יהיה שם
             this.camera.lookAt(0, 0, 0);
             
-            // עדכון רוטציית הסצנה לזווית קבועה (30 מעלות)
-            this.scene.rotation.y = Math.PI / 6; // 30 degrees rotation
+            // עדכון רוטציית הסצנה
             this.scene.updateMatrix();
             this.scene.updateMatrixWorld(true);
             
             // עדכון רוטציית המצלמה מחדש אחרי סיבוב הסצנה
             this.camera.lookAt(0, 0, 0);
             
-            // עדכון הפרויקציה
+            // עדכון הפרויקציה והרינדורר לפני הרינדור הראשוני
             this.camera.aspect = aspect;
             if (this.camera instanceof THREE.PerspectiveCamera) {
                 this.camera.updateProjectionMatrix();
             }
-            
-            // עדכון הרינדורר
             this.renderer.setSize(viewportWidthNew, viewportHeightNew);
             
-            // רינדור חד פעמי
+            // רינדור ראשוני - חשוב גם במצב אנימציה כדי שהמשתמש יראה את המצלמה מהמצב העדין לפני שהאנימציה מתחילה
             this.renderer.render(this.scene, this.camera);
             
-            // עדכון מטריצות
-            this.camera.updateMatrix();
-            this.camera.updateMatrixWorld(true);
-            this.scene.updateMatrix();
-            this.scene.updateMatrixWorld(true);
+            // אם צריך אנימציה - נבצע אנימציה מהמצב העדין למצב הסופי
+            if (isAnimate) {
+                const animationDuration = 2000; // 2 שניות
+                const startTime = Date.now();
+                
+                const animate = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / animationDuration, 1);
+                    
+                    // Ease in out function
+                    const easeProgress = progress < 0.5
+                        ? 2 * progress * progress
+                        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                    
+                    // אנימציה של המרחק (zoom)
+                    const currentCameraDistance = THREE.MathUtils.lerp(startCameraDistance, finalCameraDistance, easeProgress);
+                    
+                    // אנימציה של הזוויות
+                    const currentVerticalAngle = THREE.MathUtils.lerp(startVerticalAngle, finalVerticalAngle, easeProgress);
+                    const currentHorizontalAngle = THREE.MathUtils.lerp(startHorizontalAngle, finalHorizontalAngle, easeProgress);
+                    
+                    // חישוב מיקום המצלמה הנוכחי במערכת קואורדינטות כדורית
+                    const currentCameraX = Math.sin(currentHorizontalAngle) * Math.cos(currentVerticalAngle) * currentCameraDistance;
+                    const currentCameraY = Math.sin(currentVerticalAngle) * currentCameraDistance;
+                    const currentCameraZ = Math.cos(currentHorizontalAngle) * Math.cos(currentVerticalAngle) * currentCameraDistance;
+                    
+                    // עדכון מיקום המצלמה
+                    this.camera.position.set(currentCameraX, currentCameraY, currentCameraZ);
+                    
+                    // עדכון רוטציית הסצנה
+                    const currentSceneRotationY = THREE.MathUtils.lerp(finalSceneRotationY + (15 * Math.PI / 180), finalSceneRotationY, easeProgress);
+                    this.scene.rotation.y = currentSceneRotationY;
+        this.scene.updateMatrix();
+        this.scene.updateMatrixWorld(true);
+        
+                    // עדכון מבט המצלמה
+                    this.camera.lookAt(0, 0, 0);
+        
+                    // עדכון מטריצות
+        this.camera.updateMatrix();
+        this.camera.updateMatrixWorld(true);
+                    
+                    // רינדור
+                    this.renderer.render(this.scene, this.camera);
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        // בסוף האנימציה - עדכון סופי
+                        this.camera.position.set(finalCameraX, finalCameraY, finalCameraZ);
+                        this.scene.rotation.y = finalSceneRotationY;
+        this.scene.updateMatrix();
+        this.scene.updateMatrixWorld(true);
+                        this.camera.lookAt(0, 0, 0);
+                        this.camera.updateMatrix();
+                        this.camera.updateMatrixWorld(true);
+                        this.renderer.render(this.scene, this.camera);
+                    }
+                };
+                
+                // התחלת האנימציה
+                requestAnimationFrame(animate);
+            }
+            
+            // עדכון מטריצות סופי - רק אם אין אנימציה (באנימציה זה מתבצע בסוף האנימציה)
+            if (!isAnimate) {
+                this.camera.updateMatrix();
+                this.camera.updateMatrixWorld(true);
+                this.scene.updateMatrix();
+                this.scene.updateMatrixWorld(true);
+            }
             
             // חישוב maxDimensionInSceneUnits ללוג
             const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
@@ -12885,7 +12981,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     min: { x: box.min.x, y: box.min.y, z: box.min.z },
                     max: { x: box.max.x, y: box.max.y, z: box.max.z }
                 },
-                maxDimension: maxDimension,
+            maxDimension: maxDimension,
                 maxDimensionInSceneUnits: maxDimensionInSceneUnits,
                 productHeight: height,
                 heightThreshold: HEIGHT_THRESHOLD,
@@ -12898,11 +12994,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 baseMargin: baseMargin,
                 finalMargin: margin,
                 sceneOffset: { x: offset.x, y: offset.y - 120, z: offset.z },
-                cameraPosition: { x: cameraX, y: cameraY, z: cameraZ },
-                cameraDistance: cameraDistance,
+                cameraPosition: { x: finalCameraX, y: finalCameraY, z: finalCameraZ },
+                cameraDistance: finalCameraDistance,
                 viewportSize: { width: viewportWidthNew, height: viewportHeightNew },
                 aspect: aspect
-            }, null, 2));
+        }, null, 2));
             
             // return מוקדם - לא להמשיך לקוד הקיים
             return;
