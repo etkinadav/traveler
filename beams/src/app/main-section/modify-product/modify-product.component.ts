@@ -13071,6 +13071,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // מציאת הצלע הגדולה ביותר של המוצר (width, height, length)
             // נשתמש במידות מהפרמטרים במקום מה-bounding box כדי לקבל ערכים מדויקים בס"מ
             let maxDimension = 0;
+            let height = 0; // גובה המוצר - נגיש מחוץ ל-try block
             try {
                 // ננסה לקבל את המידות מהפרמטרים
                 const widthParam = this.params?.find((p: any) => p.name === 'width');
@@ -13079,7 +13080,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 const width = widthParam?.default || 0;
                 const depth = depthParam?.default || 0;
-                const height = heightParam?.default || 0;
+                height = heightParam?.default || 0;
                 
                 maxDimension = Math.max(width, depth, height);
                 
@@ -13138,11 +13139,26 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 zoomInFactor = Math.min(deficit * 0.00012, baseMargin * 0.95); // מקסימום 95% מה-baseMargin כדי לא לקבל margin שלילי
             }
             
+            // חישוב zoom-out נוסף לפי גובה המוצר
+            // אם גובה המוצר גדול מ-120, נוסיף zoom-out נוסף שיגדל עם הגובה
+            let heightBasedZoomOutFactor = 0;
+            const HEIGHT_THRESHOLD = 120; // ס"מ - הגבול שממנו מתחיל האפקט
+            
+            if (height > HEIGHT_THRESHOLD) {
+                // ככל שהגובה גדול יותר מ-120, יותר zoom-out (מגדיל margin)
+                const heightExcess = height - HEIGHT_THRESHOLD; // כמה מעבר ל-120
+                // מקדם עדין - 0.001 לכל יחידה מעבר ל-120
+                heightBasedZoomOutFactor = heightExcess * 0.001;
+                // מקסימום כדי לא להגזים
+                heightBasedZoomOutFactor = Math.min(heightBasedZoomOutFactor, 0.05);
+            }
+            
             // נשתמש במרחק הגדול ביותר עם margin
             // margin קטן יותר = מצלמה קרובה יותר = זום גדול יותר
             // הוספת zoomOutFactor ל-margin תגדיל את המרחק (תקטין את הזום)
             // הורדת zoomInFactor מה-margin תקטין את המרחק (תגדיל את הזום)
-            const margin = baseMargin + zoomOutFactor - zoomInFactor;
+            // הוספת heightBasedZoomOutFactor ל-margin תגדיל את המרחק נוסף (תקטין את הזום) למוצרים גבוהים
+            const margin = baseMargin + zoomOutFactor + heightBasedZoomOutFactor - zoomInFactor;
             const cameraDistance = Math.max(distanceHeight, distanceWidth, distanceDepth) * margin;
             
             // זווית קבועה
@@ -13205,6 +13221,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 },
                 maxDimension: maxDimension,
                 maxDimensionInSceneUnits: maxDimensionInSceneUnits,
+                productHeight: height,
+                heightThreshold: HEIGHT_THRESHOLD,
+                heightBasedZoomOutFactor: heightBasedZoomOutFactor,
                 threshold: THRESHOLD,
                 largeThreshold: LARGE_THRESHOLD,
                 isLargeProduct: maxDimension > LARGE_THRESHOLD,
