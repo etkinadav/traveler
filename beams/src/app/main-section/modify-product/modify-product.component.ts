@@ -13069,40 +13069,80 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             const distanceDepth = (size.z / 2) / Math.tan(fovRadians / 2);
             
             // מציאת הצלע הגדולה ביותר של המוצר (width, height, length)
-            // נשתמש במידות ה-bounding box כמייצגות את מידות המוצר
-            // נהיה מאוד עדינים עם הערכים כדי לא לגרום ל-zoom-out מוגזם
-            const maxDimension = Math.max(size.x, size.y, size.z);
-            
-            // חישוב פרמטר zoom-out הדרגתי לפי הצלע הגדולה ביותר
-            // אם הצלע הגדולה ביותר גדולה מ-120, הפרמטר גדל מ-0 באופן הדרגתי
-            const THRESHOLD = 120; // ס"מ - הגבול שממנו מתחיל הפרמטר לגדול
-            const LARGE_THRESHOLD = 150; // ס"מ - גבול למוצרים גדולים שצריכים אפקט חזק יותר
-            let zoomOutFactor = 0;
-            
-            if (maxDimension > THRESHOLD) {
-                const excess = maxDimension - THRESHOLD; // כמה מעבר ל-120
+            // נשתמש במידות מהפרמטרים במקום מה-bounding box כדי לקבל ערכים מדויקים בס"מ
+            let maxDimension = 0;
+            try {
+                // ננסה לקבל את המידות מהפרמטרים
+                const widthParam = this.params?.find((p: any) => p.name === 'width');
+                const depthParam = this.params?.find((p: any) => p.name === 'depth');
+                const heightParam = this.params?.find((p: any) => p.name === 'height');
                 
-                if (maxDimension > LARGE_THRESHOLD) {
-                    // למוצרים גדולים מ-150: אפקט חזק יותר (מוגדל פי 1.8 + 20% נוסף)
-                    // מקדם מוגדל פי 1.8 + 20% נוסף למוצרים גדולים (0.00432 במקום 0.0036)
-                    const largeExcess = maxDimension - LARGE_THRESHOLD;
-                    // אפקט בסיסי עד 150 + אפקט נוסף מעל 150
-                    zoomOutFactor = (LARGE_THRESHOLD - THRESHOLD) * 0.00075 + largeExcess * 0.00432;
-                    // מקסימום מוגדל פי 1.8 + 20% נוסף למוצרים גדולים (0.108 במקום 0.09)
-                    zoomOutFactor = Math.min(zoomOutFactor, 0.108);
-                } else {
-                    // למוצרים בין 120 ל-150: אפקט עדין
-                    zoomOutFactor = Math.min(excess * 0.00075, 0.015);
+                const width = widthParam?.default || 0;
+                const depth = depthParam?.default || 0;
+                const height = heightParam?.default || 0;
+                
+                maxDimension = Math.max(width, depth, height);
+                
+                // אם לא מצאנו מידות מהפרמטרים, נשתמש ב-bounding box
+                if (maxDimension === 0) {
+                    const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
+                    // המרה - נראה שהמידות ב-Three.js הן במילימטרים חלקי 10
+                    // אבל מהלוג נראה שהערכים גדולים מדי, אז נחלק ב-40 (2000/40 = 50)
+                    maxDimension = maxDimensionInSceneUnits / 40; // המרה לס"מ
                 }
+            } catch (e) {
+                // אם יש שגיאה, נשתמש ב-bounding box
+                const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
+                maxDimension = maxDimensionInSceneUnits / 40; // המרה לס"מ
             }
             
-            // margin בסיסי
-            const baseMargin = 0.072;
+            // חישוב פרמטר zoom-out/zoom-in הדרגתי לפי הצלע הגדולה ביותר
+            // מוצרים מעל 150: zoom-out (מגדיל margin)
+            // מוצרים מתחת ל-150: zoom-in (מקטין margin) - אפקט הפוך בצורה דומה
+            const THRESHOLD = 120; // ס"מ - הגבול שממנו מתחיל הפרמטר לגדול
+            const LARGE_THRESHOLD = 150; // ס"מ - גבול למוצרים גדולים שצריכים אפקט חזק יותר
+            const baseMargin = 0.072; // margin בסיסי
+            let zoomOutFactor = 0;
+            let zoomInFactor = 0;
+            
+            if (maxDimension > LARGE_THRESHOLD) {
+                // למוצרים גדולים מ-150: אפקט zoom-out חזק יותר (מוגדל פי 1.8 + 20% נוסף)
+                // מקדם מוגדל פי 1.8 + 20% נוסף למוצרים גדולים (0.00432 במקום 0.0036)
+                const largeExcess = maxDimension - LARGE_THRESHOLD;
+                // אפקט בסיסי עד 150 + אפקט נוסף מעל 150
+                zoomOutFactor = (LARGE_THRESHOLD - THRESHOLD) * 0.00075 + largeExcess * 0.00432;
+                // מקסימום מוגדל פי 1.8 + 20% נוסף למוצרים גדולים (0.108 במקום 0.09)
+                zoomOutFactor = Math.min(zoomOutFactor, 0.108);
+            } else if (maxDimension > THRESHOLD) {
+                // למוצרים בין 120 ל-150: אפקט zoom-in הפוך (כמו zoom-out מעל 150 אבל הפוך)
+                // ככל שהמוצר קטן יותר מ-150, יותר zoom-in (מקטין margin)
+                // מוקטן פי 10 נוסף כדי להפוך את האפקט למתון מאוד
+                const deficitFrom150 = LARGE_THRESHOLD - maxDimension; // כמה מתחת ל-150
+                // אפקט דומה לזה של zoom-out מעל 150, אבל הפוך
+                // משתמשים באותם מקדמים אבל הפוכים - רק האפקט הנוסף מתחת ל-150
+                // למוצר בגודל 150: deficitFrom150 = 0, אז zoomInFactor = 0 (אין אפקט)
+                // למוצר קטן יותר מ-150: יותר zoom-in
+                // מוקטן פי 10 נוסף - מקדם של 0.0006912 (מ-0.006912 ל-0.0006912)
+                const additionalEffect = deficitFrom150 * 0.0006912; // מוקטן פי 10 נוסף
+                zoomInFactor = additionalEffect;
+                // מקסימום מוגדל - אבל לא יותר מה-baseMargin כדי לא לקבל margin שלילי
+                zoomInFactor = Math.min(zoomInFactor, baseMargin * 0.95); // מקסימום 95% מה-baseMargin כדי לא לקבל margin שלילי
+            } else {
+                // למוצרים קטנים מ-120: אפקט zoom-in (הפוך)
+                // ככל שהמוצר קטן יותר מ-120, יותר zoom-in (מקטין margin)
+                // מוקטן פי 10 נוסף כדי להפוך את האפקט למתון מאוד
+                const deficit = THRESHOLD - maxDimension; // כמה מתחת ל-120
+                // אפקט zoom-in הפוך - מקדם מוקטן פי 10 נוסף (מקטין margin במקום להגדיל)
+                // ככל שהמוצר קטן יותר, יותר zoom-in
+                // מוקטן פי 10 נוסף - מקדם של 0.00012 (מ-0.0012 ל-0.00012)
+                zoomInFactor = Math.min(deficit * 0.00012, baseMargin * 0.95); // מקסימום 95% מה-baseMargin כדי לא לקבל margin שלילי
+            }
             
             // נשתמש במרחק הגדול ביותר עם margin
             // margin קטן יותר = מצלמה קרובה יותר = זום גדול יותר
-            // הוספת zoomOutFactor ל-margin תגדיל את המרחק (תקטין את הזום) בצורה עדינה
-            const margin = baseMargin + zoomOutFactor;
+            // הוספת zoomOutFactor ל-margin תגדיל את המרחק (תקטין את הזום)
+            // הורדת zoomInFactor מה-margin תקטין את המרחק (תגדיל את הזום)
+            const margin = baseMargin + zoomOutFactor - zoomInFactor;
             const cameraDistance = Math.max(distanceHeight, distanceWidth, distanceDepth) * margin;
             
             // זווית קבועה
@@ -13153,6 +13193,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.scene.updateMatrix();
             this.scene.updateMatrixWorld(true);
             
+            // חישוב maxDimensionInSceneUnits ללוג
+            const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
+            
             console.log('TEST_CAMERA - Bounding box camera positioning:', JSON.stringify({
                 boundingBox: {
                     center: { x: center.x, y: center.y, z: center.z },
@@ -13161,10 +13204,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     max: { x: box.max.x, y: box.max.y, z: box.max.z }
                 },
                 maxDimension: maxDimension,
+                maxDimensionInSceneUnits: maxDimensionInSceneUnits,
                 threshold: THRESHOLD,
                 largeThreshold: LARGE_THRESHOLD,
                 isLargeProduct: maxDimension > LARGE_THRESHOLD,
                 zoomOutFactor: zoomOutFactor,
+                zoomInFactor: zoomInFactor,
                 baseMargin: baseMargin,
                 finalMargin: margin,
                 sceneOffset: { x: offset.x, y: offset.y - 120, z: offset.z },
