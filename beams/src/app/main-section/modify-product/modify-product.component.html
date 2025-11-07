@@ -228,7 +228,12 @@
     
     <div class="main-flex-row">
         <div class="controls" [class.closed]="!drawerOpen" [class.loading]="isLoading && isModelLoading" #inputsContainer>
-            <div class="controls-loading-overlay" *ngIf="isLoading && isModelLoading">
+            <div
+                class="controls-loading-overlay"
+                *ngIf="isLoading && isModelLoading"
+                [style.--overlay-left.px]="overlayMetrics.left"
+                [style.--overlay-width.px]="overlayMetrics.width"
+            >
                 <div class="controls-loading-backdrop"></div>
                 <div class="controls-loading-spinner">
                     <div class="simple-spinner tiny"></div>

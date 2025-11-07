@@ -6,6 +6,7 @@ import {
     OnDestroy,
     OnInit,
     ChangeDetectorRef,
+    HostListener,
 } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -68,6 +69,42 @@ interface Shelf {
     ]
 })
 export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit {
+    @ViewChild('inputsContainer', { static: false })
+    set controlsContainer(element: ElementRef<HTMLElement> | undefined) {
+        this.controlsContainerRef = element ?? null;
+        if (this.controlsContainerRef) {
+            if (typeof requestAnimationFrame === 'function') {
+                requestAnimationFrame(() => this.updateOverlayMetrics());
+            } else {
+                setTimeout(() => this.updateOverlayMetrics());
+            }
+        }
+    }
+
+    private controlsContainerRef: ElementRef<HTMLElement> | null = null;
+    overlayMetrics: { left: number; width: number } = { left: 0, width: 0 };
+
+    @HostListener('window:resize')
+    @HostListener('window:scroll')
+    handleViewportChangesForOverlay(): void {
+        this.updateOverlayMetrics();
+    }
+
+    private updateOverlayMetrics(): void {
+        if (!this.controlsContainerRef) {
+            this.overlayMetrics = { left: 0, width: 0 };
+            return;
+        }
+
+        const rect = this.controlsContainerRef.nativeElement.getBoundingClientRect();
+        const nextLeft = Math.round(rect.left);
+        const nextWidth = Math.round(rect.width);
+
+        if (nextLeft !== this.overlayMetrics.left || nextWidth !== this.overlayMetrics.width) {
+            this.overlayMetrics = { left: nextLeft, width: nextWidth };
+        }
+    }
+
     // Debug mode - set to true to enable console logs
     private enableDebugLogs = false;
     

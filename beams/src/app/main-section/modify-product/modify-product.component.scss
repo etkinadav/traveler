@@ -5782,10 +5782,11 @@ app-modify-product span.check-text *,
 }
 
 .controls-loading-overlay {
-    position: sticky;
+    position: fixed;
     top: 0;
-    width: 100%;
-    min-height: 100vh;
+    left: var(--overlay-left, 0px);
+    width: var(--overlay-width, 100vw);
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -5800,6 +5801,9 @@ app-modify-product span.check-text *,
 }
 
 .controls-loading-spinner {
-    position: relative;
-    z-index: 1;
+    position: fixed;
+    top: 50vh;
+    left: calc(var(--overlay-left, 0px) + (var(--overlay-width, 100vw) / 2));
+    transform: translate(-50%, -50%);
+    z-index: 31;
 }
