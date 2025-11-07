@@ -227,10 +227,10 @@
     </div>
     
     <div class="main-flex-row">
-        <div class="controls" [class.closed]="!drawerOpen" [class.loading]="isLoading && isModelLoading" #inputsContainer>
+        <div class="controls" [class.closed]="!drawerOpen" [class.loading]="isLoading && isModelLoading && !isInstructionMode" #inputsContainer>
             <div
                 class="controls-loading-overlay"
-                *ngIf="isLoading && isModelLoading"
+                *ngIf="isLoading && isModelLoading && !isInstructionMode"
                 [style.--overlay-left.px]="overlayMetrics.left"
                 [style.--overlay-width.px]="overlayMetrics.width"
             >
