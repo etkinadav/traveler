@@ -5765,3 +5765,41 @@ app-modify-product span.check-text *,
     font-size: 14px !important;
     font-weight: 400 !important;
 }
+
+.controls {
+    position: relative;
+}
+
+.controls.loading {
+    overflow: hidden;
+}
+
+.controls.loading .inputs-container-animated {
+    pointer-events: none;
+    touch-action: none;
+    -ms-touch-action: none;
+    overscroll-behavior: contain;
+}
+
+.controls-loading-overlay {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    pointer-events: all;
+}
+
+.controls-loading-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.controls-loading-spinner {
+    position: relative;
+    z-index: 1;
+}

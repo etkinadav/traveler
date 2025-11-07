@@ -227,7 +227,13 @@
     </div>
     
     <div class="main-flex-row">
-        <div class="controls" [class.closed]="!drawerOpen" #inputsContainer>
+        <div class="controls" [class.closed]="!drawerOpen" [class.loading]="isLoading && isModelLoading" #inputsContainer>
+            <div class="controls-loading-overlay" *ngIf="isLoading && isModelLoading">
+                <div class="controls-loading-backdrop"></div>
+                <div class="controls-loading-spinner">
+                    <div class="simple-spinner tiny"></div>
+                </div>
+            </div>
             <button class="drawer-toggle" (click)="toggleDrawer()">
                 <svg width="12" height="12" viewBox="0 0 12 12" style="display:block;margin:auto;">
                     <polyline points="4,2 8,6 4,10" stroke="#666" stroke-width="2" fill="none"
@@ -245,11 +251,6 @@
                 
                 <!-- כל התוכן הרגיל - מוסתר במצב הוראות הרכבה -->
                 <div class="inputs-container-animated" [@slideUpDown]="isInstructionMode ? 'collapsed' : 'expanded'">
-                <!-- Spinner Loading - מוצג רק בטעינה הראשונית -->
-                <div class="loading-spinner" *ngIf="isLoading && isModelLoading">
-                    <div class="simple-spinner tiny"></div>
-                </div>
-                
                 <div *ngFor="let param of params" class="param-box">
                     
                     <!-- טיפול בשולחן - פרמטר height -->
