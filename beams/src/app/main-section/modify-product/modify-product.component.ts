@@ -965,21 +965,27 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // יצירת Set חדש כדי לעורר change detection
             const newSet = new Set(this.completedPreliminaryDrills);
             
-            // הסרת ה-V של כל הצ'קבוקסים מההתחלה עד הצ'קבוקס הנוכחי (כולל)
-            // וגם כל הצ'קבוקסים לאחר הצ'קבוקס הנוכחי (כלומר: כל הצ'קבוקסים מההתחלה עד הסוף)
-            for (let i = 0; i < this.preliminaryDrillsInfo.length; i++) {
+            // הסרת ה-V של הצ'קבוקס הנוכחי ושל כל הצ'קבוקסים שאחריו בלבד
+            for (let i = currentIndex; i < this.preliminaryDrillsInfo.length; i++) {
                 const info = this.preliminaryDrillsInfo[i];
                 if (info && info.requiresPreliminaryScrews && info.compositeKey) {
-                    // אם זה הצ'קבוקס הנוכחי או כל צ'קבוקס אחר (לפני או אחרי) - נסיר את ה-V
                     newSet.delete(info.compositeKey);
                 }
             }
             
             this.completedPreliminaryDrills = newSet;
             
-            // סגירת כל התוכן של הצ'קבוקסים האחרים
+            // עדכון expandedDrillItems: נשמור מצבים של צ'קבוקסים קודמים
             const newExpandedSet = new Set<string>();
-            // פתיחת התוכן של הצ'קבוקס הנוכחי
+            this.preliminaryDrillsInfo.forEach((info, idx) => {
+                if (!info?.requiresPreliminaryScrews || !info.compositeKey) {
+                    return;
+                }
+                if (idx < currentIndex && this.expandedDrillItems.has(info.compositeKey)) {
+                    newExpandedSet.add(info.compositeKey);
+                }
+            });
+            // פתיחת הצ'קבוקס הנוכחי כדי שהמשתמש ימשיך ממנו
             newExpandedSet.add(compositeKey);
             this.expandedDrillItems = newExpandedSet;
             
