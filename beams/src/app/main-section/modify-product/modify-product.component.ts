@@ -149,6 +149,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // צילום מצב מחיר לפני מעבר למצב שמדלג על חישוב
     private priceSnapshotBeforeSkip: number | null = null;
     
+    // שמירת מרכז וגודל ה-bounding box הראשוני של המודל המלא
+    private baseBoundingCenter: THREE.Vector3 | null = null;
+    private baseBoundingSize: THREE.Vector3 | null = null;
+    
     
     // קריאה ראשונית לבדיקת isEditMode
     checkIsEditModeInitialValue() {
@@ -12783,29 +12787,44 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             ]);
         }
         
-        if (!hasObjects || box.isEmpty()) {
-            console.warn('TEST_CAMERA - No objects found in scene, using fallback method');
-            // נמשיך לקוד הקיים במקרה שאין אוביקטים
+        let computedCenter: THREE.Vector3 | null = null;
+        let computedSize: THREE.Vector3 | null = null;
+        
+        if (hasObjects && !box.isEmpty()) {
+            computedCenter = box.getCenter(new THREE.Vector3());
+            computedSize = box.getSize(new THREE.Vector3());
         } else {
-            // מציאת המרכז הגיאומטרי של ה-bounding box
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
-            
-            // הזזת הסצנה כך שהמרכז יהיה ב-(0,0,0)
-            const offset = center.clone().negate();
-            this.scene.position.set(offset.x, offset.y - 120, offset.z);
+            console.warn('TEST_CAMERA - No objects found in scene, using fallback method');
+        }
+        
+        if (computedCenter && !this.baseBoundingCenter) {
+            this.baseBoundingCenter = computedCenter.clone();
+        }
+        if (computedSize && !this.baseBoundingSize) {
+            this.baseBoundingSize = computedSize.clone();
+        }
+        
+        const effectiveCenter = this.baseBoundingCenter
+            ? this.baseBoundingCenter.clone()
+            : (computedCenter ? computedCenter.clone() : new THREE.Vector3(0, 0, 0));
+        const effectiveSize = this.baseBoundingSize
+            ? this.baseBoundingSize.clone()
+            : (computedSize ? computedSize.clone() : new THREE.Vector3(1, 1, 1));
+        
+        const offset = effectiveCenter.clone().negate();
+        this.scene.position.set(offset.x, offset.y - 120, offset.z);
         this.scene.updateMatrix();
         this.scene.updateMatrixWorld(true);
         
-            // חישוב המרחק כך שה-bounding box יכנס ל-view frustum
+        {
             const cameraFOV = this.camera instanceof THREE.PerspectiveCamera ? this.camera.fov : 40;
             const fovRadians = cameraFOV * (Math.PI / 180);
             const aspect = viewportWidthNew / viewportHeightNew;
             
             // חישוב המרחק לפי הגובה והרוחב של ה-bounding box
-            const distanceHeight = (size.y / 2) / Math.tan(fovRadians / 2);
-            const distanceWidth = (size.x / 2) / (Math.tan(fovRadians / 2) * aspect);
-            const distanceDepth = (size.z / 2) / Math.tan(fovRadians / 2);
+            const distanceHeight = (effectiveSize.y / 2) / Math.tan(fovRadians / 2);
+            const distanceWidth = (effectiveSize.x / 2) / (Math.tan(fovRadians / 2) * aspect);
+            const distanceDepth = (effectiveSize.z / 2) / Math.tan(fovRadians / 2);
             
             // מציאת הצלע הגדולה ביותר של המוצר (width, height, length)
             // נשתמש במידות מהפרמטרים במקום מה-bounding box כדי לקבל ערכים מדויקים בס"מ
@@ -12825,42 +12844,42 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 
                 // אם לא מצאנו גובה מהפרמטרים, נשתמש בגובה מה-bounding box
                 // size.y הוא הגובה - נבדוק אם צריך המרה או שהוא כבר בס"מ
-                if (height === 0 && size.y > 0) {
+                if (height === 0 && effectiveSize.y > 0) {
                     // אם size.x = 2000 ו-width = 50, אז המרה היא 2000/40 = 50
                     // אבל size.y = 180.3, אז אם המרה זהה, הגובה יהיה 180.3/40 = 4.5 ס"מ - לא נכון
                     // כנראה size.y הוא ישירות בס"מ או במילימטרים חלקי 10
                     // ננסה להשתמש ב-size.y ישירות (אם הוא בס"מ) או לחלק ב-10
                     // מהלוג נראה ש-size.y = 180.3, אז נשתמש בו ישירות
-                    height = size.y; // הגובה מה-bounding box בס"מ
+                    height = effectiveSize.y; // הגובה מה-bounding box בס"מ
                 }
                 
                 maxDimension = Math.max(width, depth, height);
                 
                 // אם עדיין לא מצאנו מידות מהפרמטרים, נשתמש ב-bounding box
                 if (maxDimension === 0) {
-                    const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
+                    const maxDimensionInSceneUnits = Math.max(effectiveSize.x, effectiveSize.y, effectiveSize.z);
                     // המרה - נראה שהמידות ב-Three.js הן במילימטרים חלקי 10
                     // אבל מהלוג נראה שהערכים גדולים מדי, אז נחלק ב-40 (2000/40 = 50)
                     maxDimension = maxDimensionInSceneUnits / 40; // המרה לס"מ
                 }
             } catch (e) {
                 // אם יש שגיאה, נשתמש ב-bounding box
-                const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
+                const maxDimensionInSceneUnits = Math.max(effectiveSize.x, effectiveSize.y, effectiveSize.z);
                 maxDimension = maxDimensionInSceneUnits / 40; // המרה לס"מ
                 // גם ננסה לקבל את הגובה מה-bounding box
-                if (height === 0 && size.y > 0) {
-                    height = size.y; // הגובה מה-bounding box בס"מ
+                if (height === 0 && effectiveSize.y > 0) {
+                    height = effectiveSize.y; // הגובה מה-bounding box בס"מ
                 }
             }
             
             // Fallback נוסף: אם עדיין לא מצאנו גובה, נשתמש ב-size.y ישירות
             // זה חשוב למוצרים ללא פרמטר height (כמו ארון)
             // אם sizeY גדול מ-height, נשתמש ב-sizeY כי הוא יותר מדויק (מחושב מה-bounding box)
-            if (height === 0 && size.y > 0) {
-                height = size.y; // הגובה מה-bounding box בס"מ
-            } else if (size.y > height && size.y > 0) {
+            if (height === 0 && effectiveSize.y > 0) {
+                height = effectiveSize.y; // הגובה מה-bounding box בס"מ
+            } else if (effectiveSize.y > height && effectiveSize.y > 0) {
                 // אם sizeY גדול יותר מ-height, נשתמש בו כי הוא יותר מדויק
-                height = size.y;
+                height = effectiveSize.y;
             }
             
             // חישוב פרמטר zoom-out/zoom-in הדרגתי לפי הצלע הגדולה ביותר
@@ -13108,12 +13127,16 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             }
             
             // חישוב maxDimensionInSceneUnits ללוג
-            const maxDimensionInSceneUnits = Math.max(size.x, size.y, size.z);
+            const maxDimensionInSceneUnits = Math.max(
+                effectiveSize.x,
+                effectiveSize.y,
+                effectiveSize.z
+            );
             
             console.log('CHECK_MINI_CAMERA - Bounding box camera positioning (final summary):', JSON.stringify({
                 boundingBox: {
-                    center: { x: center.x, y: center.y, z: center.z },
-                    size: { x: size.x, y: size.y, z: size.z },
+                    center: { x: effectiveCenter.x, y: effectiveCenter.y, z: effectiveCenter.z },
+                    size: { x: effectiveSize.x, y: effectiveSize.y, z: effectiveSize.z },
                     min: { x: box.min.x, y: box.min.y, z: box.min.z },
                     max: { x: box.max.x, y: box.max.y, z: box.max.z }
                 },
@@ -13129,7 +13152,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 zoomInFactor: zoomInFactor,
                 baseMargin: baseMargin,
                 finalMargin: margin,
-                sceneOffset: { x: offset.x, y: offset.y - 120, z: offset.z },
+                sceneOffset: { x: this.scene.position.x, y: this.scene.position.y, z: this.scene.position.z },
                 cameraPosition: { x: finalCameraX, y: finalCameraY, z: finalCameraZ },
                 cameraDistance: finalCameraDistance,
                 viewportSize: { width: viewportWidthNew, height: viewportHeightNew },
