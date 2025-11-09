@@ -20,6 +20,11 @@ import { trigger, state, style, transition, animate, keyframes } from '@angular/
 interface Shelf {
     gap: number; // רווח מהמדף שמתחתיו (או מהרצפה)
 }
+
+type UpdateBeamsOptions = {
+    skipPricing?: boolean;
+};
+
 @Component({
     selector: 'app-modify-product',
     templateUrl: './modify-product.component.html',
@@ -117,6 +122,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // משתנה למניעת לוג חוזר של קורת רגל מיטה
     private futonLegBeamLogged = false;
     
+    // דגל פנימי המורה לדלג על חישובי מחיר בסבב הנוכחי
+    private shouldSkipPricing = false;
+    
     // Performance tracking
     private performanceTimers: Map<string, number> = new Map();
     
@@ -135,6 +143,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // משתנה לזיהוי אם צריך להפעיל מצב שקוף בסיום האנימציה של איפוס מבט
     private shouldEnableTransparentModeAfterCameraReset = false;
 
+    // שמירת מצב השקיפות לפני כניסה להוראות הרכבה
+    private wasTransparentBeforeInstructions: boolean | null = null;
+    
+    // צילום מצב מחיר לפני מעבר למצב שמדלג על חישוב
+    private priceSnapshotBeforeSkip: number | null = null;
+    
     
     // קריאה ראשונית לבדיקת isEditMode
     checkIsEditModeInitialValue() {
@@ -327,6 +341,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (this.isInstructionMode) {
             // פתיחה אוטומטית של ההוראה הראשונה (index 1 כי 0 הוא מצב רגיל)
             this.currentInstructionStage = 1;
+            this.wasTransparentBeforeInstructions = this.isTransparentMode;
+            
+            if (!this.isBelams) {
+                const needsTransparentUpdate = !this.isTransparentMode;
+                this.isTransparentMode = true;
+                
+                setTimeout(() => {
+                    if (needsTransparentUpdate) {
+                        this.updateBeams(false, { skipPricing: true });
+                    } else {
+                        // עדיין מרעננים את המודל כדי להציג מצב הוראות
+                        this.updateBeams(false, { skipPricing: true });
+                    }
+                }, 100);
+            }
             
             // קבלת מידות קורת הרגל
             const legParam = this.getParam('leg');
@@ -351,15 +380,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // איפוס מבט בפעם הראשונה בלבד
             if (this.isFirstTimeEnteringInstructions) {
                 this.isFirstTimeEnteringInstructions = false;
-                // הפעלת מצב שקוף ישירות ללא אנימציה
-                setTimeout(() => {
-                    // במוצר קורות - לא לאפשר מצב שקוף
-                    if (!this.isBelams) {
-                        this.isTransparentMode = true;
-                        // עדכון המודל כדי להחיל את השקיפות
-                        this.updateBeams();
-                    }
-                }, 500); // המתנה כדי שהמודל יסיים לטעון
             }
             
             // לא צריך לפתוח אוטומטית - הצ'קבוקס הראשון שלא מסומן תמיד פתוח
@@ -371,11 +391,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.completedPreliminaryDrills.clear();
             this.expandedDrillItems.clear();
             
-            // ביטול מצב שקוף
-            this.isTransparentMode = false;
-            // עדכון המודל כדי להסיר את השקיפות
+            // ביטול מצב שקוף בהתאם למצב המקורי
+            const shouldRestoreTransparent =
+                this.wasTransparentBeforeInstructions ?? false;
+            this.wasTransparentBeforeInstructions = null;
+            
             setTimeout(() => {
-                this.updateBeams();
+                if (!this.isBelams) {
+                    const needsUpdate = this.isTransparentMode !== shouldRestoreTransparent;
+                    this.isTransparentMode = shouldRestoreTransparent;
+                    if (needsUpdate) {
+                        this.updateBeams(false, { skipPricing: true });
+                        return;
+                    }
+                }
+                this.updateBeams(false, { skipPricing: true });
             }, 100);
         }
         
@@ -410,7 +440,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // עדכון המודל התלת מימדי כדי להציג/להסתיר קורות בהתאם למצב
         setTimeout(() => {
-            this.updateBeams();
+            this.updateBeams(false, { skipPricing: true });
         }, 100);
     }
     
@@ -951,7 +981,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // עדכון המודל התלת-ממדי כדי להציג את הקורות והברגים המתאימים
             setTimeout(() => {
-                this.updateBeams();
+                this.updateBeams(false, { skipPricing: true });
             }, 100);
             
             // אילוץ Angular לעדכן את התצוגה
@@ -994,7 +1024,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // עדכון המודל התלת-ממדי כדי להציג את הקורות והברגים המתאימים
         setTimeout(() => {
-            this.updateBeams();
+            this.updateBeams(false, { skipPricing: true });
         }, 100);
         
         // אם כל הקורות שדורשות קדחים סומנו - מעבר אוטומטי מיידי לשלב הבא
@@ -1059,7 +1089,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // עדכון המודל התלת-ממדי כדי להציג את הקורות והברגים המתאימים
         setTimeout(() => {
-            this.updateBeams();
+            this.updateBeams(false, { skipPricing: true });
         }, 100);
         
         // אם כל הקורות שדורשות קדחים סומנו - מעבר אוטומטי מיידי לשלב הבא
@@ -4459,7 +4489,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             this.resetCameraView();
         }, 1000);
     }
-    updateBeams(isInitialLoad: boolean = false) {
+    async updateBeams(isInitialLoad: boolean = false, options: UpdateBeamsOptions = {}) {
+        const skipPricing = options?.skipPricing === true;
+        this.shouldSkipPricing = skipPricing;
+        if (skipPricing) {
+            this.priceSnapshotBeforeSkip = this.calculatedPrice;
+        } else {
+            this.priceSnapshotBeforeSkip = null;
+        }
         
         // 🎯 איפוס משתני לוגים חד פעמיים
         this.futonLegBeamLogged = false;
@@ -4471,12 +4508,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (shelfsParamStart) {
         }
         
-        // איפוס מחיר להצגת "מחשב מחיר..."
-        this.calculatedPrice = 0;
-        
-        // הפעלת loading
-        this.isLoading = true;
-        this.isModelLoading = true;
+        if (!skipPricing) {
+            // איפוס מחיר להצגת "מחשב מחיר..."
+            this.calculatedPrice = 0;
+
+            // הפעלת loading
+            this.isLoading = true;
+            this.isModelLoading = true;
+        }
         
         // Save current configuration to localStorage
         this.saveConfiguration();
@@ -7539,7 +7578,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 totalSizes
             );
         });
-        // הצגת התוצאה הסופית של כל הקורות
+        // הצגת התוצאה הסופית של הקורות
         this.debugLog('=== FINAL BEAMS DATA FOR PRICING ===');
         this.debugLog('Total beam types:', this.BeamsDataForPricing.length);
         this.BeamsDataForPricing.forEach((beamData, index) => {
@@ -7547,40 +7586,37 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 typeId: beamData.type?._id || beamData.type?.id,
                 typeName: beamData.type?.name || 'Unknown',
                 beamName: beamData.beamName || 'Unknown',
-                width: beamData.type?.width || 0,
-                height: beamData.type?.height || 0,
-                material: beamData.type?.material || 'Unknown',
-                sizes: beamData.sizes,
-                totalSizes: beamData.totalSizes, // הוספת totalSizes לפלט
-                totalLength: beamData.sizes.reduce(
-                    (sum, size) => sum + size,
-                    0
-                ),
-                count: beamData.sizes.length,
-            });
-        });
-        // הצגת התוצאה הסופית של הקורות
-        this.debugLog('=== FINAL BEAMS DATA FOR PRICING ===');
-        this.debugLog('Total beam types:', this.BeamsDataForPricing.length);
-        this.BeamsDataForPricing.forEach((beamData, index) => {
-            this.debugLog(`Beam Type ${index + 1}:`, {
-                type: beamData.type,
-                beamName: beamData.beamName,
                 beamTranslatedName: beamData.beamTranslatedName,
-                material: beamData.material,
+                material: beamData.type?.material || 'Unknown',
                 totalSizes: beamData.totalSizes,
-                totalLength: beamData.totalLength,
-                count: beamData.count,
+                totalLength: beamData.totalLength ?? beamData.sizes?.reduce((sum, size) => sum + size, 0),
+                count: beamData.count ?? beamData.sizes?.length ?? 0,
             });
         });
         
         this.debugLog('*** === END BEAMS DATA ===', this.BeamsDataForPricing);
-        // חישוב ברגים
+        await this.handlePricing();
+    }
+    private async handlePricing(skipPricing: boolean = false): Promise<void> {
+        const shouldSkip = skipPricing || this.shouldSkipPricing;
+        if (shouldSkip) {
+            if (this.priceSnapshotBeforeSkip !== null) {
+                this.calculatedPrice = this.priceSnapshotBeforeSkip;
+            }
+            this.priceSnapshotBeforeSkip = null;
+            this.shouldSkipPricing = false;
+            this.isLoading = false;
+            this.isModelLoading = false;
+            return;
+        }
+
         await this.calculateForgingData();
 
         // כיבוי loading
         this.isLoading = false;
         this.isModelLoading = false;
+        this.shouldSkipPricing = false;
+        this.priceSnapshotBeforeSkip = null;
     }
     // פונקציה לעגול אורך בורג לחצי הקרוב למעלה
     private roundScrewLength(length: number): number {
