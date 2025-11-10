@@ -9464,7 +9464,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     },
                 ];
 
-                if (isExternalReinforcementEnabled) {
+                const shouldOffsetForExternalInstructions =
+                    this.isInstructionMode && isPreliminaryDrillsLegStage && isExternalReinforcementEnabled;
+
+                if (shouldOffsetForExternalInstructions) {
                     const legProfileHeightCm = legBeamHeight;
                     if (legProfileHeightCm > 0) {
                         const dirZ = leg.z >= 0 ? 1 : -1;
