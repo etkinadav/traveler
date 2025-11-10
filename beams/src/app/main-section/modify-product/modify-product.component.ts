@@ -5626,7 +5626,11 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // When outside=true: skip Y-facing screws (screwIndex=1), keep Z-facing screws (screwIndex=0)
             const outsideForCabinetScrews = this.getParam('is-reinforcement-beams-outside');
-            const isOutsideEnabled = !!(outsideForCabinetScrews && outsideForCabinetScrews.default === true);
+            const outsideRawValue = outsideForCabinetScrews?.default;
+            const isOutsideEnabled =
+                typeof outsideRawValue === 'number'
+                    ? outsideRawValue > 0
+                    : outsideRawValue === true;
             
             // רק אם אנחנו במצב preliminary-drills עם leg, או במצב רגיל - להוסיף ברגים
             if (!isPreliminaryDrills || (firstUncheckedCompositeKey && firstUncheckedCompositeKey.startsWith('leg-'))) {
@@ -9295,6 +9299,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             'Adding screws to legs:',
             this.isTable ? 'table' : this.shelves
         );
+
+        const outsideParam = this.getParam('is-reinforcement-beams-outside');
+        const rawOutsideValue = outsideParam?.default;
+        const isExternalReinforcementEnabled =
+            typeof rawOutsideValue === 'number'
+                ? rawOutsideValue > 0
+                : rawOutsideValue === true;
+
+        const isPreliminaryDrills = this.isPreliminaryDrillsMode();
+        const firstUncheckedCompositeKey = isPreliminaryDrills ? this.getFirstUncheckedBeamParamName() : null;
+        const isPreliminaryDrillsLegStage = !!(isPreliminaryDrills && firstUncheckedCompositeKey && firstUncheckedCompositeKey.startsWith('leg'));
+        const currentLegDrillInfo = isPreliminaryDrillsLegStage
+            ? this.preliminaryDrillsInfo.find((info) => info.compositeKey === firstUncheckedCompositeKey)
+            : null;
+        const legDrillDiameterMm = currentLegDrillInfo && typeof currentLegDrillInfo.drillDiameter === 'number'
+            ? currentLegDrillInfo.drillDiameter
+            : null;
+        const preliminaryLegRadius =
+            legDrillDiameterMm && legDrillDiameterMm > 0
+                ? Math.max(0.05, (legDrillDiameterMm / 10) / 2) // המרה למ״מ→ס״מ וחלוקה לרדיוס
+                : this.screwRadius * 0.85;
+
         // לכל מדף, נוסיף ברגים לרגליים
         for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
             let currentShelfY;
@@ -9420,23 +9446,33 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         x: leg.x, // מרכז רוחב הרגל
                         y: currentShelfY, // מרכז קורת החיזוק
                         z: isEven
-                            ? leg.z - (leg.depth / 2 + this.headHeight)
-                            : leg.z + (leg.depth / 2 + this.headHeight), // צד חיצוני של הרגל (קדמי)
+                            ? leg.z - (leg.depth / 2 + (isPreliminaryDrillsLegStage ? 0 : this.headHeight))
+                            : leg.z + (leg.depth / 2 + (isPreliminaryDrillsLegStage ? 0 : this.headHeight)), // צד חיצוני של הרגל (קדמי)
                     },
                     {
                         x:
                             leg.x +
-                            (leg.width / 2 + this.headHeight) *
+                            (leg.width / 2 + (isPreliminaryDrillsLegStage ? 0 : this.headHeight)) *
                                 (legIndex > 1 ? 1 : -1), // מרכז רוחב הרגל
                         y: currentShelfY, // מרכז קורת החיזוק
                         z:
                             (isEven
-                                ? leg.z - (leg.depth / 2 + this.headHeight)
-                                : leg.z + (leg.depth / 2 + this.headHeight)) +
+                                ? leg.z - (leg.depth / 2 + (isPreliminaryDrillsLegStage ? 0 : this.headHeight))
+                                : leg.z + (leg.depth / 2 + (isPreliminaryDrillsLegStage ? 0 : this.headHeight))) +
                             (isEven ? 1 : -1) *
-                                (leg.depth / 2 + this.headHeight), // צד חיצוני של הרגל (קדמי)
+                                (leg.depth / 2 + (isPreliminaryDrillsLegStage ? 0 : this.headHeight)), // צד חיצוני של הרגל (קדמי)
                     },
                 ];
+
+                if (isExternalReinforcementEnabled) {
+                    const legProfileHeightCm = legBeamHeight;
+                    if (legProfileHeightCm > 0) {
+                        const dirZ = leg.z >= 0 ? 1 : -1;
+                        screwPositions.forEach((position) => {
+                            position.z -= dirZ * legProfileHeightCm;
+                        });
+                    }
+                }
                 // DUBBLE_LEG_SCREWS - Check if we need to duplicate screws
                 const dubbleThreshold = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
                 const shouldDuplicateScrews = dubbleThreshold && frameBeamHeight > dubbleThreshold;
@@ -9449,9 +9485,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     }
                     
                     // בדיקה אם אנחנו במצב preliminary-drills
-                    const isPreliminaryDrills = this.isPreliminaryDrillsMode();
-                    const firstUncheckedParam = isPreliminaryDrills ? this.getFirstUncheckedBeamParamName() : null;
-                    const isPreliminaryDrillsLeg = isPreliminaryDrills && firstUncheckedParam === 'leg';
+                    const isPreliminaryDrillsLeg = isPreliminaryDrillsLegStage;
                     
                     // בורג 0 = מבוסס height (depth), בורג 1 = מבוסס width
                     const screwType = screwIndex === 0 ? 'leg_height' : 'leg_width';
@@ -9469,15 +9503,23 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             screwIndex === 0 ? legBeamHeight : legBeamWidth,
                             screwIndex === 0 ? legBeamWidth : legBeamHeight
                           );
+
+                    let adjustedScrewLength = calculatedScrewLength;
+                    if (isPreliminaryDrillsLeg) {
+                        const legThickness = screwIndex === 0 ? leg.depth : leg.width;
+                        const maxAllowedLength = Math.max(0.2, legThickness - 0.1);
+                        adjustedScrewLength = Math.min(calculatedScrewLength, maxAllowedLength);
+                    }
                     
                     // במצב preliminary-drills - ברגים ללא ראש (כמו חורים)
                     const showHead = !isPreliminaryDrillsLeg;
+                    const radiusOverride = isPreliminaryDrillsLeg ? preliminaryLegRadius : undefined;
                     
                     // DUBBLE_LEG_SCREWS - Create screws based on condition
                     if (shouldDuplicateScrews) {
                         // Screw moved up by 25% of frameBeamHeight
                         const upOffset = frameBeamHeight * 0.25;
-                        const upScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength, showHead);
+                        const upScrewGroup = this.createHorizontalScrewGeometry(adjustedScrewLength, showHead, radiusOverride);
                         upScrewGroup.position.set(pos.x, pos.y + upOffset, pos.z);
                         if (screwIndex === 0) {
                             upScrewGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
@@ -9492,7 +9534,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         
                         // Screw duplicated down by 25% of frameBeamHeight
                         const downOffset = frameBeamHeight * 0.25;
-                        const downScrewGroup = this.createHorizontalScrewGeometry(calculatedScrewLength, showHead);
+                        const downScrewGroup = this.createHorizontalScrewGeometry(adjustedScrewLength, showHead, radiusOverride);
                         downScrewGroup.position.set(pos.x, pos.y - downOffset, pos.z);
                         if (screwIndex === 0) {
                             downScrewGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
@@ -9506,7 +9548,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         );
                     } else {
                         // Create original screw only if not duplicating
-                    const screwGroup = this.createHorizontalScrewGeometry(calculatedScrewLength, showHead);
+                    const screwGroup = this.createHorizontalScrewGeometry(adjustedScrewLength, showHead, radiusOverride);
                     screwGroup.position.set(pos.x, pos.y, pos.z);
                     if (screwIndex === 0) {
                             screwGroup.rotation.y = (Math.PI / 2) * (isEven ? 1 : -1);
@@ -10055,15 +10097,20 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
     }
     // יצירת גיאומטריית בורג אופקי (להרגליים)
-    private createHorizontalScrewGeometry(screwLength?: number, showHead: boolean = true): THREE.Group {
+    private createHorizontalScrewGeometry(
+        screwLength?: number,
+        showHead: boolean = true,
+        radiusOverride?: number
+    ): THREE.Group {
         const screwGroup = new THREE.Group();
         // פרמטרים של הבורג (מידות אמיתיות)
         // אם לא סופק אורך, נשתמש באורך ברירת המחדל
         const actualScrewLength = screwLength || this.screwLength;
+        const screwRadius = radiusOverride || this.screwRadius;
         // יצירת גוף הבורג (צינור צר) - אופקי
         const screwGeometry = new THREE.CylinderGeometry(
-            this.screwRadius,
-            this.screwRadius,
+            screwRadius,
+            screwRadius,
             actualScrewLength,
             8
         );
