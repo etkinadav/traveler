@@ -113,6 +113,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     // Debug mode - set to true to enable console logs
     private enableDebugLogs = false;
     private lastReinforcementSummarySignature: string | null = null;
+    private reinforcementCandidateSignatures: Set<string> = new Set();
     
     // מניעת לוגים אינסופיים עבור CHACK_is-reinforcement-beams-outside
     private reinforcementLogPrinted = false;
@@ -797,6 +798,28 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     const isLegBeamLength = Math.abs(beamLength - legHeight) < 0.1;
                     const isXSpanningLength = Math.abs(beamLength - xSpanningLength) < 0.1;
                     
+                    const candidateSignature = [
+                        paramName,
+                        beamLength.toFixed(2),
+                        xSpanningLength.toFixed(2),
+                        isExternalReinforcementEnabled ? '1' : '0'
+                    ].join('|');
+
+                    if (!this.reinforcementCandidateSignatures.has(candidateSignature)) {
+                        this.reinforcementCandidateSignatures.add(candidateSignature);
+                        console.log(
+                            'CHACH_EXTRA_STEP reinforcement candidate',
+                            JSON.stringify({
+                                beamLength,
+                                legHeight,
+                                xSpanningLength,
+                                isLegBeamLength,
+                                isXSpanningLength,
+                                isExternalReinforcementEnabled
+                            })
+                        );
+                    }
+                    
                     if (isExternalReinforcementEnabled && isXSpanningLength) {
                         beamTypeName = 'קורות חיזוק לרוחב';
                         beamDisplayName = 'קורות חיזוק לרוחב';
@@ -867,6 +890,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (this.lastReinforcementSummarySignature !== summarySignature) {
             this.lastReinforcementSummarySignature = summarySignature;
             console.log('CHACH_EXTRA_STEP reinforcement summary', summarySignature);
+            this.reinforcementCandidateSignatures.clear();
         }
 
         return result;
