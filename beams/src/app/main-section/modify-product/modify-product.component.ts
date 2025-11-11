@@ -116,6 +116,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
     private reinforcementCandidateLogSignatures: Set<string> = new Set();
     private reinforcementSizeLogSignatures: Set<string> = new Set();
     private reinforcementEntryLogSignatures: Set<string> = new Set();
+    private reinforcementDecisionLogSignatures: Set<string> = new Set();
+    private reinforcementRenderLogSignatures: Set<string> = new Set();
+    private reinforcementRenderSkipLogSignatures: Set<string> = new Set();
     
     // מניעת לוגים אינסופיים עבור CHACK_is-reinforcement-beams-outside
     private reinforcementLogPrinted = false;
@@ -951,6 +954,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         // אם אין threshold ולא מצאנו צורך לפי סוג העץ - נחזיר false
         // (לא true כמו שהיה קודם, כי צריך לבדוק גם לפי סוג העץ)
         return false;
+    }
+    
+    private getFirstPendingPreliminaryDrill(): any | null {
+        const drills = this.preliminaryDrillsInfo;
+        if (!Array.isArray(drills)) {
+            return null;
+        }
+        return (
+            drills.find(
+                (info) =>
+                    info &&
+                    info.requiresPreliminaryScrews &&
+                    !this.isBeamMarkedAsCompleted(info.compositeKey)
+            ) || null
+        );
     }
     
     // בדיקה אם כל הקורות לא דורשות קדחים מקדימים (כל הקורות הן V)
@@ -4551,6 +4569,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         
         // 🎯 איפוס משתני לוגים חד פעמיים
         this.futonLegBeamLogged = false;
+        this.reinforcementDecisionLogSignatures.clear();
+        this.reinforcementRenderLogSignatures.clear();
+        this.reinforcementRenderSkipLogSignatures.clear();
         
         // CHACH_ALLERT - Log when updateBeams is called
         
@@ -5574,12 +5595,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             
             // בדיקה אם אנחנו במצב preliminary-drills
             const isPreliminaryDrills = this.isPreliminaryDrillsMode();
-            const firstUncheckedCompositeKey = isPreliminaryDrills ? this.getFirstUncheckedBeamParamName() : null;
+            const rawFirstUncheckedCompositeKey = isPreliminaryDrills ? this.getFirstUncheckedBeamParamName() : null;
+            const firstPendingDrillInfo = isPreliminaryDrills ? this.getFirstPendingPreliminaryDrill() : null;
+            const activeCompositeKey =
+                firstPendingDrillInfo?.compositeKey || rawFirstUncheckedCompositeKey || null;
             
             const currentStage = this.product?.instructions?.[this.currentInstructionStage - 1];
             console.log('UPDATE_BEAMS_PRELIMINARY_CHECK', JSON.stringify({
                 isPreliminaryDrills: isPreliminaryDrills,
-                firstUncheckedCompositeKey: firstUncheckedCompositeKey,
+                firstUncheckedCompositeKey: activeCompositeKey,
                 isInstructionMode: this.isInstructionMode,
                 currentStageName: currentStage?.name,
                 currentInstructionStageIndex: this.currentInstructionStage
@@ -5590,14 +5614,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             let shouldShowShelfBeams = true;
             let shouldShowReinforcementBeams = true;
             
-            if (isPreliminaryDrills && firstUncheckedCompositeKey) {
+            if (isPreliminaryDrills && activeCompositeKey) {
                 // פירוק ה-compositeKey ל-paramName ו-beamLength
-                const firstUncheckedParamName = firstUncheckedCompositeKey.split('-')[0]; // 'shelfs' או 'leg'
-                const lengthMatch = firstUncheckedCompositeKey.match(/(-?\d+(\.\d+)?)$/);
+                const fallbackParamName = activeCompositeKey.split('-')[0];
+                const firstUncheckedParamName = fallbackParamName || null;
+                const lengthMatch = activeCompositeKey.match(/(-?\d+(\.\d+)?)$/);
                 const firstUncheckedBeamLength = lengthMatch ? parseFloat(lengthMatch[1]) : NaN; // אורך הקורה
-                const firstUncheckedReinforcementDirection = firstUncheckedCompositeKey.includes('x-spanning')
+                const firstUncheckedReinforcementDirection = activeCompositeKey.includes('x-spanning')
                     ? 'x-spanning'
-                    : firstUncheckedCompositeKey.includes('z-spanning')
+                    : activeCompositeKey.includes('z-spanning')
                         ? 'z-spanning'
                         : null;
                 
@@ -5651,9 +5676,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     }
 
                     const firstUncheckedReinforcementDirection =
-                        firstUncheckedCompositeKey.includes('x-spanning')
+                        activeCompositeKey?.includes('x-spanning')
                             ? 'x-spanning'
-                            : firstUncheckedCompositeKey.includes('z-spanning')
+                            : activeCompositeKey?.includes('z-spanning')
                                 ? 'z-spanning'
                                 : null;
 
@@ -5755,7 +5780,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     : outsideRawValue === true;
             
             // רק אם אנחנו במצב preliminary-drills עם leg, או במצב רגיל - להוסיף ברגים
-            if (!isPreliminaryDrills || (firstUncheckedCompositeKey && firstUncheckedCompositeKey.startsWith('leg-'))) {
+            if (
+                !isPreliminaryDrills ||
+                (activeCompositeKey && activeCompositeKey.startsWith('leg'))
+            ) {
                 this.addScrewsToLegs(totalShelves, legs, frameBeamHeightCorrect, 0, isOutsideEnabled);
             }
         }
@@ -5764,7 +5792,15 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         if (!this.isTable && !this.isPlanter && !this.isBox) {
             // בדיקה אם אנחנו במצב preliminary-drills (לפני ה-loop של המדפים)
             const isPreliminaryDrillsCabinet = this.isPreliminaryDrillsMode();
-            const firstUncheckedParamCabinet = isPreliminaryDrillsCabinet ? this.getFirstUncheckedBeamParamName() : null;
+            const firstPendingDrillInfoCabinet = isPreliminaryDrillsCabinet ? this.getFirstPendingPreliminaryDrill() : null;
+            const rawFirstUncheckedKeyCabinet = isPreliminaryDrillsCabinet ? this.getFirstUncheckedBeamParamName() : null;
+            const activeCompositeKeyCabinet =
+                firstPendingDrillInfoCabinet?.compositeKey || rawFirstUncheckedKeyCabinet || null;
+            const firstUncheckedParamCabinet = activeCompositeKeyCabinet
+                ? activeCompositeKeyCabinet.split('-')[0]
+                : rawFirstUncheckedKeyCabinet
+                    ? rawFirstUncheckedKeyCabinet.split('-')[0]
+                    : null;
             
             // קביעת מה להציג במצב preliminary-drills
             let shouldShowShelfBeamsCabinet = true;
@@ -5775,15 +5811,39 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     // רק קורות מדף
                     shouldShowReinforcementBeamsCabinet = false;
                 } else if (firstUncheckedParamCabinet === 'leg') {
-                    // קורת רגל או קורות חיזוק (תלוי ב-is-reinforcement-beams-outside)
                     shouldShowShelfBeamsCabinet = false;
                     const outsideParamCab = this.getParam('is-reinforcement-beams-outside');
                     const isOutsideCab = !!(outsideParamCab && outsideParamCab.default === true);
                     if (isOutsideCab) {
-                        // רק קורות חיזוק
-                        shouldShowReinforcementBeamsCabinet = true;
+                        // ברירת המחדל: מציגים קורות חיזוק רק אם הקורה הנוכחית היא אכן קורת חיזוק
+                        const cabinetLengthMatch = activeCompositeKeyCabinet
+                            ? activeCompositeKeyCabinet.match(/(-?\d+(\.\d+)?)$/)
+                            : null;
+                        const cabinetBeamLength = cabinetLengthMatch ? parseFloat(cabinetLengthMatch[1]) : NaN;
+                        const legParamForCabinet = this.getParam('leg');
+                        const legBeamForCabinet =
+                            legParamForCabinet?.beams?.[legParamForCabinet.selectedBeamIndex || 0];
+                        const legWidthCabinetCm = legBeamForCabinet?.width ? legBeamForCabinet.width / 10 : 0;
+                        const legDepthCabinetCm = legBeamForCabinet?.height ? legBeamForCabinet.height / 10 : 0;
+                        const expectedXSpanCabinet = this.surfaceWidth + (2 * legWidthCabinetCm);
+                        const expectedZSpanCabinet = Math.max(
+                            0.1,
+                            this.surfaceLength - (2 * legDepthCabinetCm)
+                        );
+                        const cabinetDirection =
+                            activeCompositeKeyCabinet?.includes('x-spanning')
+                                ? 'x-spanning'
+                                : activeCompositeKeyCabinet?.includes('z-spanning')
+                                    ? 'z-spanning'
+                                    : null;
+                        const isCurrentReinforcementCabinet =
+                            cabinetDirection === 'x-spanning'
+                                ? Math.abs(cabinetBeamLength - expectedXSpanCabinet) < 0.1
+                                : cabinetDirection === 'z-spanning'
+                                    ? Math.abs(cabinetBeamLength - expectedZSpanCabinet) < 0.1
+                                    : false;
+                        shouldShowReinforcementBeamsCabinet = isCurrentReinforcementCabinet;
                     } else {
-                        // לא להציג קורות חיזוק (רק רגליים מוצגים למעלה)
                         shouldShowReinforcementBeamsCabinet = false;
                     }
                 }
@@ -6030,7 +6090,7 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             // משתמשים במשתנים שהוגדרו לפני הלולאה - נגישים כי הם באותו scope
             // אבל כדי להימנע משגיאות, נגדיר אותם מחדש כאן
             const isPreliminaryDrillsCabinet = this.isPreliminaryDrillsMode();
-            const firstUncheckedCompositeKey = isPreliminaryDrillsCabinet ? this.getFirstUncheckedBeamParamName() : null;
+            const firstUncheckedCompositeKey = activeCompositeKeyCabinet;
             
             let shouldShowLegBeamsCabinet = true;
             let shouldShowShelfBeamsCabinet = true;
@@ -6308,6 +6368,25 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 this.isInstructionMode && isPreliminaryDrillsCabinet;
             const shouldRenderReinforcementBeams =
                 !isAssemblyInstructionStep || shouldShowReinforcementBeamsCabinet;
+            const outsideParamCabAdj = this.getParam('is-reinforcement-beams-outside');
+            const isOutsideCabAdj = !!(outsideParamCabAdj && outsideParamCabAdj.default === true);
+
+            const decisionPayload = {
+                shelfIndex: shelfIndex + 1,
+                isAssemblyInstructionStep,
+                shouldShowReinforcementBeamsCabinet,
+                shouldRenderReinforcementBeams,
+                activeCompositeKey: activeCompositeKeyCabinet,
+                isOutsideReinforcementEnabled: isOutsideCabAdj
+            };
+            const decisionSignature = JSON.stringify(decisionPayload);
+            if (!this.reinforcementDecisionLogSignatures.has(decisionSignature)) {
+                this.reinforcementDecisionLogSignatures.add(decisionSignature);
+                console.log(
+                    'CHACH_EXTRA_STEP reinforcement render decision',
+                    decisionSignature
+                );
+            }
 
             if (shouldRenderReinforcementBeams) {
                 if (!this.reinforcementLogPrinted) {
@@ -6333,11 +6412,6 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                 );
 
                 for (const beam of frameBeams) {
-                    // When is-reinforcement-beams-outside is true (cabinet only):
-                    // - X-spanning pair: extend width by 2a (a = legWidth)
-                    // - Z-spanning pair: shorten depth by b (b = legDepth)
-                    const outsideParamCabAdj = this.getParam('is-reinforcement-beams-outside');
-                    const isOutsideCabAdj = !!(outsideParamCabAdj && outsideParamCabAdj.default === true);
                     let widthToUseCab = beam.width;
                     let depthToUseCab = beam.depth;
                     
@@ -6462,55 +6536,98 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     }, null, 2));
                 }
                 
+                    let willAddMesh = false;
+                    let skipReason: string | null = null;
+                    let matchingDirection: string | null = null;
+                    const beamOrientation = isXSpan ? 'x-spanning' : isZSpan ? 'z-spanning' : 'unknown';
+                    const evaluationMode = isAssemblyInstructionStep ? 'instruction' : 'edit';
+
                     if (!isAssemblyInstructionStep) {
-                        // מצב עריכה רגיל - מציגים תמיד את כל קורות החיזוק
-                        this.scene.add(mesh);
-                        this.beamMeshes.push(mesh);
-                        continue;
-                    }
-
-                    if (!shouldShowReinforcementBeamsCabinet || !firstUncheckedCompositeKey) {
-                        // במצב הוראות הרכבה אך הצעד אינו של קורות חיזוק - דלג
-                        continue;
-                    }
-
-                    const parts = firstUncheckedCompositeKey.split('-');
-                    const firstUncheckedParamName = parts[0];
-                    if (firstUncheckedParamName !== 'leg' || parts.length < 3) {
-                        continue;
-                    }
-
-                    const firstUncheckedDirection = parts[1]; // x-spanning או z-spanning
-                    const firstUncheckedBeamLength = parseFloat(parts.slice(2).join('-'));
-
-                    let expectedXSpanningLength = 0;
-                    let expectedZSpanningLength = 0;
-
-                    if (isOutsideCabAdj) {
-                        const legParamDrill = this.getParam('leg');
-                        const legBeamDrill = legParamDrill?.beams?.[legParamDrill.selectedBeamIndex || 0];
-                        const legWidthDrill = legBeamDrill?.width / 10 || 0;
-                        const legDepthDrill = legBeamDrill?.height / 10 || 0;
-                        expectedXSpanningLength = this.surfaceWidth + (2 * legWidthDrill);
-                        expectedZSpanningLength = Math.max(0.1, this.surfaceLength - (2 * legDepthDrill));
+                        willAddMesh = true;
+                        matchingDirection = beamOrientation !== 'unknown' ? beamOrientation : null;
+                    } else if (!shouldShowReinforcementBeamsCabinet) {
+                        skipReason = 'instruction-step-not-target';
+                    } else if (!activeCompositeKeyCabinet) {
+                        skipReason = 'missing-active-composite-key';
                     } else {
-                        const legWidthDrill = (this.getParam('leg')?.beams?.[this.getParam('leg')?.selectedBeamIndex || 0]?.width || 0) / 10;
-                        expectedXSpanningLength = Math.max(0.1, this.surfaceWidth - (2 * legWidthDrill));
-                        expectedZSpanningLength = this.surfaceLength;
+                        const parts = activeCompositeKeyCabinet.split('-');
+                        const firstUncheckedParamName = parts[0];
+                        if (firstUncheckedParamName !== 'leg' || parts.length < 3) {
+                            skipReason = 'composite-key-mismatch';
+                        } else {
+                            const firstUncheckedDirection = parts[1]; // x-spanning או z-spanning
+                            const firstUncheckedBeamLength = parseFloat(parts.slice(2).join('-'));
+
+                            let expectedXSpanningLength = 0;
+                            let expectedZSpanningLength = 0;
+
+                            if (isOutsideCabAdj) {
+                                const legParamDrill = this.getParam('leg');
+                                const legBeamDrill = legParamDrill?.beams?.[legParamDrill.selectedBeamIndex || 0];
+                                const legWidthDrill = legBeamDrill?.width / 10 || 0;
+                                const legDepthDrill = legBeamDrill?.height / 10 || 0;
+                                expectedXSpanningLength = this.surfaceWidth + (2 * legWidthDrill);
+                                expectedZSpanningLength = Math.max(0.1, this.surfaceLength - (2 * legDepthDrill));
+                            } else {
+                                const legWidthDrill = (this.getParam('leg')?.beams?.[this.getParam('leg')?.selectedBeamIndex || 0]?.width || 0) / 10;
+                                expectedXSpanningLength = Math.max(0.1, this.surfaceWidth - (2 * legWidthDrill));
+                                expectedZSpanningLength = this.surfaceLength;
+                            }
+
+                            const isXSpanningMatch =
+                                firstUncheckedDirection === 'x-spanning' &&
+                                Math.abs(firstUncheckedBeamLength - expectedXSpanningLength) < 0.1;
+                            const isZSpanningMatch =
+                                firstUncheckedDirection === 'z-spanning' &&
+                                Math.abs(firstUncheckedBeamLength - expectedZSpanningLength) < 0.1;
+
+                            if ((isXSpanningMatch && isXSpan) || (isZSpanningMatch && isZSpan)) {
+                                willAddMesh = true;
+                                matchingDirection = isXSpanningMatch ? 'x-spanning' : 'z-spanning';
+                            } else {
+                                skipReason = 'direction-length-mismatch';
+                            }
+                        }
                     }
 
-                    const isXSpanningMatch =
-                        firstUncheckedDirection === 'x-spanning' &&
-                        Math.abs(firstUncheckedBeamLength - expectedXSpanningLength) < 0.1;
-                    const isZSpanningMatch =
-                        firstUncheckedDirection === 'z-spanning' &&
-                        Math.abs(firstUncheckedBeamLength - expectedZSpanningLength) < 0.1;
+                    const beamLogPayload = {
+                        shelfIndex: shelfIndex + 1,
+                        activeCompositeKey: activeCompositeKeyCabinet,
+                        beamOrientation,
+                        widthToUse: widthToUseCab,
+                        depthToUse: depthToUseCab,
+                        originalWidth: beam.width,
+                        originalDepth: beam.depth,
+                        frameY,
+                        isOutside: isOutsideCabAdj,
+                        isAssemblyInstructionStep,
+                        shouldShowReinforcementBeamsCabinet,
+                        evaluationMode,
+                        willAddMesh,
+                        skipReason,
+                        matchingDirection
+                    };
+                    const beamLogSignature = JSON.stringify(beamLogPayload);
 
-                    if ((isXSpanningMatch && isXSpan) || (isZSpanningMatch && isZSpan)) {
+                    if (willAddMesh) {
+                        if (!this.reinforcementRenderLogSignatures.has(beamLogSignature)) {
+                            this.reinforcementRenderLogSignatures.add(beamLogSignature);
+                            console.log(
+                                'CHACH_EXTRA_STEP reinforcement beam render',
+                                beamLogSignature
+                            );
+                        }
                         this.scene.add(mesh);
                         this.beamMeshes.push(mesh);
+                    } else if (skipReason) {
+                        if (!this.reinforcementRenderSkipLogSignatures.has(beamLogSignature)) {
+                            this.reinforcementRenderSkipLogSignatures.add(beamLogSignature);
+                            console.log(
+                                'CHACH_EXTRA_STEP reinforcement beam skipped',
+                                beamLogSignature
+                            );
+                        }
                     }
-                    // אם הכיוון או האורך אינם תואמים - לא מציגים את הקורה הזו
                 }
                 // סיום לולאת frameBeams
 
