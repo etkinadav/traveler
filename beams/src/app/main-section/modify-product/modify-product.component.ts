@@ -608,40 +608,35 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         if (requiresPreliminaryScrewsForLegs) {
                             allSizes.set(legHeight, (allSizes.get(legHeight) || 0) + (4 * this.quantity));
                         }
-                        // קורות חיזוק חיצוניות (frame beams)
-                        const frameParam = this.getParam('frame');
-                        if (frameParam && frameParam.beams && frameParam.beams.length > 0) {
-                            const frameBeam = frameParam.beams[frameParam.selectedBeamIndex || 0];
-                            const frameType = frameBeam?.types?.[frameParam.selectedTypeIndex || 0];
+                        
+                        const totalShelves = this.shelves.length;
+                        if (totalShelves > 0) {
+                            let reinforcementLegWidth = selectedBeam?.width / 10 || 0;
                             
-                            if (frameBeam && frameType) {
-                                const totalShelves = this.shelves.length;
-                                
-                                // בדיקה אם צריך קדחים מקדימים לקורות חיזוק חיצוניות
-                                if (totalShelves > 0) {
-                                    const legParam = this.getParam('leg');
-                                    const legBeam = legParam?.beams?.[legParam.selectedBeamIndex || 0];
-                                    const legWidth = legBeam?.width / 10 || 0;
-                                    const xSpanningLength = this.surfaceWidth + (2 * legWidth); // X-spanning עם התאמות
-                                    
-                                    for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
-                                        for (let i = 0; i < 2; i++) { // 2 קורות X-spanning לכל מדף
-                                            allSizes.set(xSpanningLength, (allSizes.get(xSpanningLength) || 0) + this.quantity);
-                                        }
-                                    }
-
-                                    console.log(
-                                        'CHACH_EXTRA_STEP reinforcement size entry',
-                                        JSON.stringify({
-                                            stage: 'collect-leg-sizes',
-                                            isExternalReinforcementEnabled,
-                                            xSpanningLength,
-                                            totalShelves,
-                                            quantityPerEntry: this.quantity
-                                        })
-                                    );
+                            const frameParam = this.getParam('frame');
+                            const frameBeamCandidate = frameParam?.beams?.[frameParam.selectedBeamIndex || 0];
+                            if (frameBeamCandidate && typeof frameBeamCandidate.width === 'number') {
+                                reinforcementLegWidth = frameBeamCandidate.width / 10;
+                            }
+                            
+                            const xSpanningLength = this.surfaceWidth + (2 * reinforcementLegWidth); // X-spanning עם התאמות
+                            
+                            for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
+                                for (let i = 0; i < 2; i++) { // 2 קורות X-spanning לכל מדף
+                                    allSizes.set(xSpanningLength, (allSizes.get(xSpanningLength) || 0) + this.quantity);
                                 }
                             }
+
+                            console.log(
+                                'CHACH_EXTRA_STEP reinforcement size entry',
+                                JSON.stringify({
+                                    stage: 'collect-leg-sizes',
+                                    isExternalReinforcementEnabled,
+                                    xSpanningLength,
+                                    totalShelves,
+                                    quantityPerEntry: this.quantity
+                                })
+                            );
                         }
                     }
                 } else if (this.isTable) {
