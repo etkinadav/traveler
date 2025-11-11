@@ -5607,32 +5607,94 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     shouldShowLegBeams = false;
                     shouldShowReinforcementBeams = false;
                 } else if (firstUncheckedParamName === 'leg') {
-                    // בדיקה אם האורך הנוכחי תואם לקורות רגל רגילות או לקורות חיזוק
+                    shouldShowShelfBeams = false;
+
+                    const outsideParam = this.getParam('is-reinforcement-beams-outside');
+                    const rawOutsideValue = outsideParam?.default;
+                    const isExternalReinforcementEnabled =
+                        typeof rawOutsideValue === 'number'
+                            ? rawOutsideValue > 0
+                            : rawOutsideValue === true;
+
                     const dimensions = this.getProductDimensionsRaw();
                     const totalHeight = dimensions.height;
-                    const shelfBeamHeight = (this.getParam('shelfs')?.beams?.[this.getParam('shelfs')?.selectedBeamIndex || 0]?.height || 0) / 10;
+                    const shelfParam = this.getParam('shelfs');
+                    const shelfSelectedBeam =
+                        shelfParam?.beams?.[shelfParam.selectedBeamIndex || 0];
+                    const shelfBeamHeight = shelfSelectedBeam
+                        ? shelfSelectedBeam.height / 10
+                        : 0;
                     const legHeight = totalHeight - shelfBeamHeight;
-                    const reinforcementLength = this.surfaceWidth;
-                    
-                    const isLegBeamLength = Math.abs(firstUncheckedBeamLength - legHeight) < 0.1;
-                    const isReinforcementBeamLength = Math.abs(firstUncheckedBeamLength - reinforcementLength) < 0.1;
-                    
-                    if (isReinforcementBeamLength) {
-                        // קורות חיזוק
-                        shouldShowShelfBeams = false;
-                        shouldShowLegBeams = false;
-                        shouldShowReinforcementBeams = true;
-                    } else if (isLegBeamLength) {
-                        // קורות רגל רגילות
-                        shouldShowShelfBeams = false;
-                        shouldShowLegBeams = true;
-                        
-                        const outsideParam = this.getParam('is-reinforcement-beams-outside');
-                        const isOutside = !!(outsideParam && outsideParam.default === true);
-                        if (isOutside) {
+
+                    const legParam = this.getParam('leg');
+                    const legSelectedBeam =
+                        legParam?.beams?.[legParam.selectedBeamIndex || 0];
+                    const legWidth = legSelectedBeam?.width
+                        ? legSelectedBeam.width / 10
+                        : 0;
+                    const legDepth = legSelectedBeam?.height
+                        ? legSelectedBeam.height / 10
+                        : 0;
+
+                    let xReinforcementLength = Math.max(
+                        0.1,
+                        this.surfaceWidth - 2 * legWidth
+                    );
+                    let zReinforcementLength = this.surfaceLength;
+
+                    if (isExternalReinforcementEnabled) {
+                        xReinforcementLength = this.surfaceWidth + 2 * legWidth;
+                        zReinforcementLength = Math.max(
+                            0.1,
+                            this.surfaceLength - 2 * legDepth
+                        );
+                    }
+
+                    const firstUncheckedReinforcementDirection =
+                        firstUncheckedCompositeKey.includes('x-spanning')
+                            ? 'x-spanning'
+                            : firstUncheckedCompositeKey.includes('z-spanning')
+                                ? 'z-spanning'
+                                : null;
+
+                    const hasValidLength = Number.isFinite(firstUncheckedBeamLength);
+                    const isLegBeamLength =
+                        hasValidLength &&
+                        Math.abs(firstUncheckedBeamLength - legHeight) < 0.1;
+                    const isXReinforcementLength =
+                        hasValidLength &&
+                        Math.abs(firstUncheckedBeamLength - xReinforcementLength) < 0.1;
+                    const isZReinforcementLength =
+                        hasValidLength &&
+                        Math.abs(firstUncheckedBeamLength - zReinforcementLength) < 0.1;
+
+                    const shouldShowCurrentReinforcement =
+                        firstUncheckedReinforcementDirection === 'x-spanning'
+                            ? isXReinforcementLength
+                            : firstUncheckedReinforcementDirection === 'z-spanning'
+                                ? isZReinforcementLength
+                                : false;
+
+                    if (isExternalReinforcementEnabled) {
+                        if (!hasValidLength) {
+                            // אם אין לנו אורך מפורט, נשאר עם ברירת מחדל: מציגים רגליים בלבד
+                            shouldShowLegBeams = true;
                             shouldShowReinforcementBeams = false;
+                        } else if (shouldShowCurrentReinforcement) {
+                            shouldShowLegBeams = false;
+                            shouldShowReinforcementBeams = true;
                         } else {
+                            // לא קורת חיזוק נוכחית → מציגים קורות רגל
+                            shouldShowLegBeams = isLegBeamLength || !firstUncheckedReinforcementDirection;
                             shouldShowReinforcementBeams = false;
+                        }
+                    } else {
+                        if (!hasValidLength || isLegBeamLength) {
+                            shouldShowLegBeams = true;
+                            shouldShowReinforcementBeams = false;
+                        } else if (isXReinforcementLength || isZReinforcementLength) {
+                            shouldShowLegBeams = false;
+                            shouldShowReinforcementBeams = true;
                         }
                     }
                 }
