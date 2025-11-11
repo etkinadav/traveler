@@ -23,6 +23,7 @@ export class DrawingComponent implements OnInit, AfterViewInit, OnChanges {
   
   // מערך הקדחים
   holes: Array<{x: number, y: number, left: number, top: number}> = [];
+  lengthTextTop: number = 0;
   
   ngOnInit() {
     this.calculateHeight();
@@ -122,6 +123,7 @@ export class DrawingComponent implements OnInit, AfterViewInit, OnChanges {
   calculateHeight() {
     if (!this.beamLength || !this.beamWidth || !this.containerRef) {
       this.calculatedHeight = 10;
+      this.updateLengthTextOffset();
       return;
     }
     
@@ -162,6 +164,8 @@ export class DrawingComponent implements OnInit, AfterViewInit, OnChanges {
             this.calculatedHeight = 45;
             this.beamWidthPx = 45;
           }
+
+          this.updateLengthTextOffset();
           
           // עדכון מיקומי הקדחים לאחר חישוב הגובה
           setTimeout(() => {
@@ -175,8 +179,16 @@ export class DrawingComponent implements OnInit, AfterViewInit, OnChanges {
           // אפס ערכים אם אין נתונים
           this.beamLengthPx = 0;
           this.beamWidthPx = 0;
+          this.updateLengthTextOffset();
         }
       }
     }, 0);
+  }
+
+  private updateLengthTextOffset() {
+    const containerHeight = this.containerHeight || 50;
+    const rectangleTop = (containerHeight - this.calculatedHeight) / 2;
+    const margin = Math.max(6, Math.min(18, this.calculatedHeight * 0.17));
+    this.lengthTextTop = rectangleTop - margin - 5;
   }
 }

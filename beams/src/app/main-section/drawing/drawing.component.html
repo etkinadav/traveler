@@ -1,6 +1,6 @@
 <div class="drawing-wrapper">
     <!-- טקסט מידת האורך - מעל ה-top-bar במרכז, בקונטיינר הכי חיצוני -->
-    <div class="dimension-text length-text">{{ beamLength }}ס"מ</div>
+    <div class="dimension-text length-text" [style.top.px]="lengthTextTop">{{ beamLength }}ס"מ</div>
     <!-- טקסט מידת העובי - משמאל ל-left-bar במרכז, בקונטיינר הכי חיצוני -->
     <div class="dimension-text width-text">{{ beamWidth }}ס"מ</div>
     
