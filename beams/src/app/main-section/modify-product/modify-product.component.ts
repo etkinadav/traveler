@@ -1003,100 +1003,76 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
         }
         
         const wasChecked = this.completedPreliminaryDrills.has(compositeKey);
-        
-        // אם זה לא מסומן - בדיקה אם זה הצ'קבוקס הראשון שלא מסומן (רק הוא יכול להיסמן)
+
+        const currentIndex = this.preliminaryDrillsInfo.findIndex(info =>
+            info.requiresPreliminaryScrews && info.compositeKey === compositeKey
+        );
+
+        if (currentIndex === -1) {
+            return;
+        }
+
         if (!wasChecked) {
-            if (!this.isFirstUncheckedBeam(compositeKey)) {
-                // לא ניתן לסמן אם זה לא הצ'קבוקס הראשון שלא מסומן
-                return;
-            }
-        } else {
-            // אם זה מסומן - נסיר את ה-V שלו ושל כל מה שלפניו
-            // מציאת האינדקס של הצ'קבוקס הנוכחי ברשימה
-            const currentIndex = this.preliminaryDrillsInfo.findIndex(info => 
-                info.requiresPreliminaryScrews && info.compositeKey === compositeKey
-            );
-            
-            if (currentIndex === -1) {
-                return;
-            }
-            
-            // יצירת Set חדש כדי לעורר change detection
             const newSet = new Set(this.completedPreliminaryDrills);
-            
-            // הסרת ה-V של הצ'קבוקס הנוכחי ושל כל הצ'קבוקסים שאחריו בלבד
-            for (let i = currentIndex; i < this.preliminaryDrillsInfo.length; i++) {
+
+            for (let i = 0; i <= currentIndex; i++) {
                 const info = this.preliminaryDrillsInfo[i];
                 if (info && info.requiresPreliminaryScrews && info.compositeKey) {
-                    newSet.delete(info.compositeKey);
+                    newSet.add(info.compositeKey);
                 }
             }
-            
+
             this.completedPreliminaryDrills = newSet;
-            
-            // עדכון expandedDrillItems: נשמור מצבים של צ'קבוקסים קודמים
+
             const newExpandedSet = new Set<string>();
-            this.preliminaryDrillsInfo.forEach((info, idx) => {
-                if (!info?.requiresPreliminaryScrews || !info.compositeKey) {
-                    return;
-                }
-                if (idx < currentIndex && this.expandedDrillItems.has(info.compositeKey)) {
-                    newExpandedSet.add(info.compositeKey);
-                }
-            });
-            // פתיחת הצ'קבוקס הנוכחי כדי שהמשתמש ימשיך ממנו
-            newExpandedSet.add(compositeKey);
+            const nextInfo = this.preliminaryDrillsInfo.find((info, idx) =>
+                idx > currentIndex && info?.requiresPreliminaryScrews && info.compositeKey
+            );
+            if (nextInfo?.compositeKey) {
+                newExpandedSet.add(nextInfo.compositeKey);
+            }
             this.expandedDrillItems = newExpandedSet;
-            
-            // עדכון המודל התלת-ממדי כדי להציג את הקורות והברגים המתאימים
+
             setTimeout(() => {
                 this.updateBeams(false, { skipPricing: true });
             }, 100);
-            
-            // אילוץ Angular לעדכן את התצוגה
+
             this.cdr.detectChanges();
-            
             return;
         }
-        
-        // יצירת Set חדש כדי לעורר change detection
+
         const newSet = new Set(this.completedPreliminaryDrills);
-        
-        if (wasChecked) {
-            newSet.delete(compositeKey);
-        } else {
-            newSet.add(compositeKey);
+
+        for (let i = currentIndex; i < this.preliminaryDrillsInfo.length; i++) {
+            const info = this.preliminaryDrillsInfo[i];
+            if (info && info.requiresPreliminaryScrews && info.compositeKey) {
+                newSet.delete(info.compositeKey);
+            }
         }
-        
+
         this.completedPreliminaryDrills = newSet;
-        
-        // עדכון expandedDrillItems:
-        // כשמסירים V - נוסיף ל-expandedDrillItems כדי שהצ'קבוקס ייפתח (כי הוא שוב הצ'קבוקס הראשון שלא מסומן)
-        // כשמסמנים V - נסיר מ-expandedDrillItems כדי שהצ'קבוקס ייסגר כברירת מחדל
-        // אבל אפשר לפתוח אותו עם החץ (וזה יקרה ב-toggleDrillItemExpanded)
-        const newExpandedSet = new Set(this.expandedDrillItems);
-        if (wasChecked) {
-            // בוטל V - נוסיף ל-expandedDrillItems כדי שהצ'קבוקס ייפתח
-            newExpandedSet.add(compositeKey);
-        } else {
-            // סומן V - נסיר מ-expandedDrillItems כדי שהצ'קבוקס ייסגר כברירת מחדל
-            newExpandedSet.delete(compositeKey);
-        }
+
+        const newExpandedSet = new Set<string>();
+        this.preliminaryDrillsInfo.forEach((info, idx) => {
+            if (!info?.requiresPreliminaryScrews || !info.compositeKey) {
+                return;
+            }
+            if (idx < currentIndex && this.expandedDrillItems.has(info.compositeKey)) {
+                newExpandedSet.add(info.compositeKey);
+            }
+        });
+        newExpandedSet.add(compositeKey);
         this.expandedDrillItems = newExpandedSet;
-        
-        console.log('CHECKBOX_TOGGLE:', JSON.stringify({
-            compositeKey: compositeKey,
-            isChecked: newSet.has(compositeKey),
-            allCompleted: Array.from(newSet),
-            setSize: newSet.size
-        }));
-        
-        // עדכון המודל התלת-ממדי כדי להציג את הקורות והברגים המתאימים
+
         setTimeout(() => {
             this.updateBeams(false, { skipPricing: true });
         }, 100);
+
+        this.cdr.detectChanges();
         
-        // אם כל הקורות שדורשות קדחים סומנו - מעבר אוטומטי מיידי לשלב הבא
+        return;
+        
+        // עדכון המודל התלת-ממדי כדי להציג את הקורות והברגים המתאימים
         if (this.areAllRequiredBeamsCompleted() && !this.areAllBeamsNoPreliminaryDrilling()) {
             // מעבר אוטומטי מיידי לשלב הבא (ללא delay)
             this.goToNextInstructionStage();
