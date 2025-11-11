@@ -9582,7 +9582,14 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
             legDrillDiameterMm && legDrillDiameterMm > 0
                 ? Math.max(0.05, (legDrillDiameterMm / 10) / 2) // המרה למ״מ→ס״מ וחלוקה לרדיוס
                 : this.screwRadius * 0.85;
-
+        const reinforcementDirectionForStage =
+            isPreliminaryDrillsLegStage && firstUncheckedCompositeKey
+                ? firstUncheckedCompositeKey.includes('x-spanning')
+                    ? 'x-spanning'
+                    : firstUncheckedCompositeKey.includes('z-spanning')
+                        ? 'z-spanning'
+                        : null
+                : null;
         // לכל מדף, נוסיף ברגים לרגליים
         for (let shelfIndex = 0; shelfIndex < totalShelves; shelfIndex++) {
             let currentShelfY;
@@ -9737,6 +9744,32 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             position.z -= dirZ * legProfileHeightCm;
                         });
                     }
+                }
+                if (
+                    shouldOffsetForExternalInstructions &&
+                    reinforcementDirectionForStage &&
+                    (reinforcementDirectionForStage === 'x-spanning'
+                        ? leg.depth
+                        : leg.width) > 0
+                ) {
+                    const reinforcementOffsetCm =
+                        reinforcementDirectionForStage === 'x-spanning'
+                            ? leg.depth
+                            : leg.width;
+
+                    screwPositions.forEach((position) => {
+                        const deltaX = position.x - leg.x;
+                        const deltaZ = position.z - leg.z;
+                        const dominantAxis = Math.abs(deltaZ) >= Math.abs(deltaX) ? 'z' : 'x';
+
+                        if (reinforcementDirectionForStage === 'x-spanning' && dominantAxis === 'z') {
+                            const dir = position.z >= 0 ? 1 : -1;
+                            position.z += dir * reinforcementOffsetCm;
+                        } else if (reinforcementDirectionForStage === 'z-spanning' && dominantAxis === 'x') {
+                            const dir = position.x >= 0 ? 1 : -1;
+                            position.x += dir * reinforcementOffsetCm;
+                        }
+                    });
                 }
                 // DUBBLE_LEG_SCREWS - Check if we need to duplicate screws
                 const dubbleThreshold = this.product?.restrictions?.find((r: any) => r.name === 'dubble-leg-screws-threshold')?.val;
