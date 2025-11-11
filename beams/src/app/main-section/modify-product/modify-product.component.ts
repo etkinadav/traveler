@@ -5814,6 +5814,12 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     shouldShowShelfBeamsCabinet = false;
                     const outsideParamCab = this.getParam('is-reinforcement-beams-outside');
                     const isOutsideCab = !!(outsideParamCab && outsideParamCab.default === true);
+                const reinforcementDirectionFromKey =
+                    activeCompositeKeyCabinet?.includes('x-spanning')
+                        ? 'x-spanning'
+                        : activeCompositeKeyCabinet?.includes('z-spanning')
+                            ? 'z-spanning'
+                            : null;
                     if (isOutsideCab) {
                         // ברירת המחדל: מציגים קורות חיזוק רק אם הקורה הנוכחית היא אכן קורת חיזוק
                         const cabinetLengthMatch = activeCompositeKeyCabinet
@@ -5831,20 +5837,22 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                             this.surfaceLength - (2 * legDepthCabinetCm)
                         );
                         const cabinetDirection =
-                            activeCompositeKeyCabinet?.includes('x-spanning')
-                                ? 'x-spanning'
-                                : activeCompositeKeyCabinet?.includes('z-spanning')
-                                    ? 'z-spanning'
-                                    : null;
+                        reinforcementDirectionFromKey;
                         const isCurrentReinforcementCabinet =
                             cabinetDirection === 'x-spanning'
                                 ? Math.abs(cabinetBeamLength - expectedXSpanCabinet) < 0.1
                                 : cabinetDirection === 'z-spanning'
                                     ? Math.abs(cabinetBeamLength - expectedZSpanCabinet) < 0.1
                                     : false;
-                        shouldShowReinforcementBeamsCabinet = isCurrentReinforcementCabinet;
+                    if (cabinetDirection === 'x-spanning' || cabinetDirection === 'z-spanning') {
+                        shouldShowReinforcementBeamsCabinet = true;
                     } else {
-                        shouldShowReinforcementBeamsCabinet = false;
+                        shouldShowReinforcementBeamsCabinet = isCurrentReinforcementCabinet;
+                    }
+                    } else {
+                    shouldShowReinforcementBeamsCabinet = reinforcementDirectionFromKey
+                        ? true
+                        : false;
                     }
                 }
             }
@@ -6164,8 +6172,13 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     
                     if (isExternalReinforcementEnabled) {
                         // קורות חיזוק חיצוניות (frame beams)
-                        shouldShowLegBeamsCabinet = isLegBeamLength;
-                        shouldShowReinforcementBeamsCabinet = isReinforcementBeamLength;
+                        if (firstUncheckedReinforcementDirection === 'x-spanning' || firstUncheckedReinforcementDirection === 'z-spanning') {
+                            shouldShowLegBeamsCabinet = false;
+                            shouldShowReinforcementBeamsCabinet = true;
+                        } else {
+                            shouldShowLegBeamsCabinet = isLegBeamLength || !isReinforcementBeamLength;
+                            shouldShowReinforcementBeamsCabinet = isReinforcementBeamLength;
+                        }
                     } else {
                         // מצב ללא קורות חיזוק חיצוניות - מציגים רק רגליים
                         if (isLegBeamLength || firstUncheckedReinforcementDirection === null) {
@@ -6411,6 +6424,21 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     legDepth
                 );
 
+                const activeReinforcementDirection =
+                    activeCompositeKeyCabinet?.includes('x-spanning')
+                        ? 'x-spanning'
+                        : activeCompositeKeyCabinet?.includes('z-spanning')
+                            ? 'z-spanning'
+                            : null;
+                const activeReinforcementParam =
+                    activeCompositeKeyCabinet?.split('-')[0] || null;
+                const lengthMatchForComposite =
+                    activeCompositeKeyCabinet?.match(/(-?\d+(\.\d+)?)$/);
+                const activeReinforcementLength = lengthMatchForComposite
+                    ? parseFloat(lengthMatchForComposite[1])
+                    : NaN;
+                const reinforcementLengthTolerance = 0.5;
+
                 for (const beam of frameBeams) {
                     let widthToUseCab = beam.width;
                     let depthToUseCab = beam.depth;
@@ -6539,6 +6567,9 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     let willAddMesh = false;
                     let skipReason: string | null = null;
                     let matchingDirection: string | null = null;
+                    let lengthMatches: boolean | null = null;
+                    let lengthDifference: number | null = null;
+                    let lengthMismatch: boolean | null = null;
                     const beamOrientation = isXSpan ? 'x-spanning' : isZSpan ? 'z-spanning' : 'unknown';
                     const evaluationMode = isAssemblyInstructionStep ? 'instruction' : 'edit';
 
@@ -6550,42 +6581,34 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                     } else if (!activeCompositeKeyCabinet) {
                         skipReason = 'missing-active-composite-key';
                     } else {
-                        const parts = activeCompositeKeyCabinet.split('-');
-                        const firstUncheckedParamName = parts[0];
-                        if (firstUncheckedParamName !== 'leg' || parts.length < 3) {
+                        if (activeReinforcementParam !== 'leg' || !activeReinforcementDirection) {
                             skipReason = 'composite-key-mismatch';
                         } else {
-                            const firstUncheckedDirection = parts[1]; // x-spanning או z-spanning
-                            const firstUncheckedBeamLength = parseFloat(parts.slice(2).join('-'));
-
-                            let expectedXSpanningLength = 0;
-                            let expectedZSpanningLength = 0;
-
-                            if (isOutsideCabAdj) {
-                                const legParamDrill = this.getParam('leg');
-                                const legBeamDrill = legParamDrill?.beams?.[legParamDrill.selectedBeamIndex || 0];
-                                const legWidthDrill = legBeamDrill?.width / 10 || 0;
-                                const legDepthDrill = legBeamDrill?.height / 10 || 0;
-                                expectedXSpanningLength = this.surfaceWidth + (2 * legWidthDrill);
-                                expectedZSpanningLength = Math.max(0.1, this.surfaceLength - (2 * legDepthDrill));
+                            const directionMatches =
+                                activeReinforcementDirection === 'x-spanning'
+                                    ? isXSpan
+                                    : activeReinforcementDirection === 'z-spanning'
+                                        ? isZSpan
+                                        : false;
+                            if (!directionMatches) {
+                                skipReason = 'direction-mismatch';
                             } else {
-                                const legWidthDrill = (this.getParam('leg')?.beams?.[this.getParam('leg')?.selectedBeamIndex || 0]?.width || 0) / 10;
-                                expectedXSpanningLength = Math.max(0.1, this.surfaceWidth - (2 * legWidthDrill));
-                                expectedZSpanningLength = this.surfaceLength;
-                            }
+                                const targetLength =
+                                    activeReinforcementDirection === 'x-spanning'
+                                        ? widthToUseCab
+                                        : depthToUseCab;
+                                if (Number.isFinite(activeReinforcementLength)) {
+                                    lengthDifference = activeReinforcementLength - targetLength;
+                                    lengthMatches =
+                                        Math.abs(lengthDifference) < reinforcementLengthTolerance;
+                                    lengthMismatch = !lengthMatches;
+                                } else {
+                                    lengthMatches = null;
+                                    lengthMismatch = null;
+                                }
 
-                            const isXSpanningMatch =
-                                firstUncheckedDirection === 'x-spanning' &&
-                                Math.abs(firstUncheckedBeamLength - expectedXSpanningLength) < 0.1;
-                            const isZSpanningMatch =
-                                firstUncheckedDirection === 'z-spanning' &&
-                                Math.abs(firstUncheckedBeamLength - expectedZSpanningLength) < 0.1;
-
-                            if ((isXSpanningMatch && isXSpan) || (isZSpanningMatch && isZSpan)) {
                                 willAddMesh = true;
-                                matchingDirection = isXSpanningMatch ? 'x-spanning' : 'z-spanning';
-                            } else {
-                                skipReason = 'direction-length-mismatch';
+                                matchingDirection = activeReinforcementDirection;
                             }
                         }
                     }
@@ -6605,7 +6628,10 @@ export class ModifyProductComponent implements AfterViewInit, OnDestroy, OnInit 
                         evaluationMode,
                         willAddMesh,
                         skipReason,
-                        matchingDirection
+                        matchingDirection,
+                        lengthMatches,
+                        lengthDifference,
+                        lengthMismatch
                     };
                     const beamLogSignature = JSON.stringify(beamLogPayload);
 
