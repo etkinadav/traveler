@@ -1,27 +1,98 @@
-# MeanCorse01
+# Traveler Project
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.5.
+פרויקט Full-Stack MEAN (MongoDB, Express, Angular, Node.js) - מערכת ניהול מוצרים עם Angular Frontend ו-Node.js Backend.
 
-## Development server
+## 🚀 התקנה והפעלה
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+### דרישות מוקדמות
+- Node.js (גרסה 16 ומעלה)
+- npm או yarn
+- MongoDB Atlas (או MongoDB מקומי)
 
-## Code scaffolding
+### התקנת Dependencies
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+#### Frontend
+```bash
+npm install
+```
 
-## Build
+#### Backend
+```bash
+cd backend
+npm install
+cd ..
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### הגדרת Backend
 
-## Running unit tests
+1. צור קובץ `.env` בתיקיית `backend/`:
+```env
+MONGO_URI=your_mongodb_connection_string
+PORT=3000
+```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+2. הרצת Backend Server:
+```bash
+npm run start:server
+```
+השרת ירוץ על `http://localhost:3000`
 
-## Running end-to-end tests
+### הרצת Frontend
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+```bash
+npm run start:front
+```
+האפליקציה תהיה זמינה ב-`http://localhost:4200`
 
-## Further help
+## 📁 מבנה הפרויקט
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+```
+traveler/
+├── backend/           # Node.js Backend
+│   ├── controllers/   # Controllers
+│   ├── models/        # MongoDB Models
+│   ├── routes/        # API Routes
+│   ├── middleware/    # Authentication Middleware
+│   └── server.js      # Server Entry Point
+├── src/               # Angular Frontend
+│   ├── app/           # Angular Components & Services
+│   ├── assets/        # Static Assets
+│   └── environments/  # Environment Configurations
+└── angular.json       # Angular Configuration
+```
+
+## 🛠️ Scripts זמינים
+
+- `npm run start:front` - הרצת Frontend Development Server
+- `npm run start:server` - הרצת Backend Server
+- `npm run build` - Build לפרודקשן
+- `npm test` - הרצת Tests
+
+## 🔧 הגדרות נוספות
+
+### Backend API
+הבאק-אנד מספק API endpoints על `/api/`:
+- `/api/user` - ניהול משתמשים
+- `/api/products` - ניהול מוצרים
+- `/api/orders` - ניהול הזמנות
+- `/api/screws` - ניהול ברגים
+- `/api/woods` - ניהול קורות עץ
+
+### Frontend Proxy
+ה-Frontend מוגדר עם proxy שמפנה בקשות ל-`/api/` ל-`http://localhost:3000` (ראה `proxy.conf.json`).
+
+## 📝 הערות
+
+- ודא שה-Backend רץ לפני הרצת Frontend
+- בדוק שהקובץ `.env` מוגדר נכון ב-backend
+- הקבצים `.env` ו-`node_modules` לא נשמרים ב-git (מוגדר ב-`.gitignore`)
+
+## 🔐 Security
+
+- אל תעלה את קובץ `.env` ל-git
+- הקפד להשתמש בסיסמאות חזקות ל-MongoDB
+- בדוק את הגדרות ה-CORS ב-backend לפני פריסה לפרודקשן
+
+## 📄 License
+
+פרויקט זה הוא פרטי.
