@@ -1,0 +1,806 @@
+import { Component, OnInit, OnDestroy, Inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+
+import { DirectionService } from '../../direction.service';
+import { AuthService } from 'src/app/auth/auth.service';
+import { DialogService } from 'src/app/dialog/dialog.service';
+import { TranslateService } from '@ngx-translate/core';
+
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+
+export interface ProductEditInfoData {
+  product: any;
+  currentParams: any[];
+  currentConfiguration: any;
+  beamsData?: any;
+  calculatedPrice?: number;
+  timestamp?: string;
+}
+
+@Component({
+  selector: 'app-product-edit-info',
+  templateUrl: './product-edit-info.component.html',
+  styleUrls: ['./product-edit-info.component.css'],
+})
+
+export class ProductEditInfoComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('nameInput') nameInputRef: ElementRef;
+  @ViewChild('singleNameInput') singleNameInputRef: ElementRef;
+  @ViewChild('pluralNameInput') pluralNameInputRef: ElementRef;
+  isRTL: boolean = true;
+  private directionSubscription: Subscription;
+  isDarkMode: boolean = false;
+  isLoading: boolean = false;
+
+  userId: string;
+  userIsAuthenticated = false;
+  private authStatusSub: Subscription;
+
+  // נתוני המוצר
+  product: any = {};
+  currentParams: any[] = [];
+  currentConfiguration: any = {};
+
+  // עריכת שם המוצר
+  isEditingName: boolean = false;
+  editedProductName: string = '';
+  originalProductName: string = '';
+  currentDisplayName: string = ''; // השם הנוכחי שמוצג (יכול להשתנות)
+
+  // עריכת שמות קטגוריות
+  isEditingSingleName: boolean = false;
+  editedSingleCategoryName: string = '';
+  originalSingleCategoryName: string = '';
+  currentSingleCategoryName: string = '';
+
+  isEditingPluralName: boolean = false;
+  editedPluralCategoryName: string = '';
+  originalPluralCategoryName: string = '';
+  currentPluralCategoryName: string = '';
+
+  // שם סידורי
+  serialName: string = '';
+
+  // מצב שמירה
+  isSaving: boolean = false;
+
+  constructor(
+    private directionService: DirectionService,
+    private authService: AuthService,
+    private dialogService: DialogService,
+    private translateService: TranslateService,
+    private http: HttpClient,
+    @Inject(MAT_DIALOG_DATA) public data: ProductEditInfoData,
+  ) {
+    this.product = data.product || {};
+    this.currentParams = data.currentParams || [];
+    this.currentConfiguration = data.currentConfiguration || {};
+    
+    // הגדרת השמות המקוריים והנוכחיים
+    this.originalProductName = this.product?.translatedName || this.product?.name || this.translateService.instant('product-edit-info.product-unavailable');
+    this.currentDisplayName = this.originalProductName; // בהתחלה זהה למקורי
+    this.editedProductName = this.currentDisplayName;
+
+    // הגדרת שמות הקטגוריות המקוריים והנוכחיים
+    this.initializeCategoryNames();
+  }
+
+  async ngOnInit() {
+    this.isLoading = true;
+    this.directionSubscription = this.directionService.direction$.subscribe(direction => {
+      this.isRTL = direction === 'rtl';
+    });
+
+    this.directionService.isDarkMode$.subscribe(isDarkMode => {
+      this.isDarkMode = isDarkMode;
+    });
+
+    this.userId = this.authService.getUserId();
+    this.userIsAuthenticated = this.authService.getIsAuth();
+    this.authStatusSub = this.authService
+      .getAuthStatusListener()
+      .subscribe(isAuthenticated => {
+        this.userIsAuthenticated = isAuthenticated;
+        this.userId = this.authService.getUserId();
+      });
+
+    // הדפסת כל המידע לקונסול
+    this.logProductInformation();
+
+    this.isLoading = false;
+  }
+
+  ngAfterViewInit() {
+    // לא צריך כלום כרגע
+  }
+
+  closeProductEditInfoDialog() {
+    this.dialogService.onCloseProductEditInfoDialog();
+  }
+
+  ngOnDestroy() {
+    this.directionSubscription.unsubscribe();
+    this.authStatusSub.unsubscribe();
+  }
+
+  /**
+   * הדפסת כל המידע של המוצר והקונפיגורציה הנוכחית לקונסול
+   */
+  logProductInformation() {
+    console.log('SAVE_PRO - ProductEditInfo component logProductInformation started');
+    console.log('=== PRODUCT EDIT INFO DIALOG ===');
+    
+    // 🎯 לוג מיוחד לבדיקת הפרמטרים שהתקבלו
+    console.log('SAVE_PRO - DIALOG: Received params from parent component:', JSON.stringify(
+        this.currentParams?.map(param => ({
+            name: param.name,
+            type: param.type,
+            currentValue: param.default,
+            selectedBeamIndex: param.selectedBeamIndex,
+            selectedTypeIndex: param.selectedTypeIndex,
+            beamName: param.beams?.[param.selectedBeamIndex]?.translatedName,
+            beamConfig: param.beams?.[param.selectedBeamIndex]?.name
+        })), null, 2));
+    
+    // מידע כללי על המוצר
+    console.log('🛠️ PRODUCT GENERAL INFO:', {
+      productExists: !!this.product,
+      productName: this.product?.name,
+      productModel: this.product?.model,
+      productId: this.product?._id,
+      translatedName: this.product?.translatedName,
+      configurationIndex: this.product?.configurationIndex,
+      configurationName: this.product?.configurationName
+    });
+
+    // מידע על singleNames אם קיים
+    if (this.product?.singleNames) {
+      console.log('📝 SINGLE NAMES:', this.product.singleNames);
+    }
+
+    // מידע על configurations אם קיים
+    if (this.product?.configurations) {
+      console.log('⚙️ AVAILABLE CONFIGURATIONS:', this.product.configurations.map((config, index) => ({
+        index,
+        name: config.name,
+        translatedName: config.translatedName,
+        product: config.product
+      })));
+    }
+
+    // פרמטרים נוכחיים
+    console.log('📊 CURRENT PARAMETERS (' + this.currentParams.length + ' total):');
+    this.currentParams.forEach((param, index) => {
+      console.log(`  Parameter ${index + 1}:`, {
+        name: param.name,
+        translatedName: param.translatedName,
+        type: param.type,
+        currentValue: param.default,
+        min: param.min,
+        max: param.max,
+        unit: param.unit,
+        selectedBeamIndex: param.selectedBeamIndex,
+        selectedTypeIndex: param.selectedTypeIndex,
+        beamInfo: param.selectedBeamIndex !== undefined && param.beams ? {
+          selectedBeam: param.beams[param.selectedBeamIndex]?.translatedName,
+          selectedType: param.beams[param.selectedBeamIndex]?.types?.[param.selectedTypeIndex]?.translatedName
+        } : null
+      });
+
+      // אם יש מערך של ערכים (כמו מדפים)
+      if (Array.isArray(param.default)) {
+        console.log(`    Values array (${param.default.length} items):`, param.default);
+      }
+    });
+
+    // קונפיגורציה נוכחית נוספת
+    console.log('🔧 CURRENT CONFIGURATION:', this.currentConfiguration);
+
+    // כל האוביקט המלא של המוצר
+    console.log('🏗️ COMPLETE PRODUCT OBJECT:', this.product);
+
+    console.log('=== END PRODUCT EDIT INFO ===');
+  }
+
+  /**
+   * החזרת שם המוצר להצגה (השם הנוכחי, לא המקורי)
+   */
+  getProductDisplayName(): string {
+    return this.currentDisplayName || this.translateService.instant('product-edit-info.product-unavailable');
+  }
+
+  /**
+   * החזרת פרמטרים גלויים בלבד (ללא isVisual)
+   */
+  getVisibleParams(): any[] {
+    return this.currentParams.filter(param => !param.isVisual);
+  }
+
+  /**
+   * ספירת פרמטרים מוסתרים
+   */
+  getHiddenParamsCount(): number {
+    return this.currentParams.filter(param => param.isVisual).length;
+  }
+
+  /**
+   * קביעת טקסט סוג הפרמטר
+   */
+  getParameterTypeText(param: any): string {
+    if (this.isArrayParameter(param)) {
+      return this.translateService.instant('product-edit-info.array');
+    }
+    if (this.hasBeamSelection(param)) {
+      return this.translateService.instant('product-edit-info.beam-selection');
+    }
+    switch (param.type) {
+      case 1: return this.translateService.instant('product-edit-info.integer');
+      case 2: return this.translateService.instant('product-edit-info.decimal');
+      case 3: return this.translateService.instant('product-edit-info.text');
+      default: return this.translateService.instant('product-edit-info.not-available');
+    }
+  }
+
+  /**
+   * בדיקה אם הפרמטר הוא מערך (beamArray)
+   */
+  isArrayParameter(param: any): boolean {
+    return param.type === 'beamArray';
+  }
+
+  /**
+   * בדיקה אם הפרמטר כולל בחירת קורה
+   */
+  hasBeamSelection(param: any): boolean {
+    return param.beams && Array.isArray(param.beams) && param.beams.length > 0;
+  }
+
+  /**
+   * עיצוב ערך הפרמטר להצגה
+   */
+  formatParameterValue(param: any): string {
+    if (param.default === undefined || param.default === null) {
+      return this.translateService.instant('product-edit-info.not-defined');
+    }
+
+    let value = param.default;
+    let unit = param.unit || '';
+
+    // אם זה מספר, נעגל לשתי ספרות אחרי הנקודה
+    if (typeof value === 'number') {
+      value = Math.round(value * 100) / 100;
+    }
+
+    return value + (unit ? ' ' + unit : '');
+  }
+
+  /**
+   * קבלת שם הקורה שנבחרה
+   */
+  getSelectedBeamName(param: any): string {
+    if (!this.hasBeamSelection(param)) {
+      return this.translateService.instant('product-edit-info.not-available');
+    }
+    
+    const selectedBeam = param.beams[param.selectedBeamIndex];
+    return selectedBeam?.translatedName || selectedBeam?.name || this.translateService.instant('product-edit-info.not-available');
+  }
+
+  /**
+   * קבלת סוג העץ שנבחר
+   */
+  getSelectedWoodType(param: any): string {
+    if (!this.hasBeamSelection(param)) {
+      return this.translateService.instant('product-edit-info.not-available');
+    }
+
+    const selectedBeam = param.beams[param.selectedBeamIndex];
+    const selectedType = selectedBeam?.types?.[param.selectedTypeIndex];
+    
+    return selectedType?.translatedName || selectedType?.name || this.translateService.instant('product-edit-info.not-available');
+  }
+
+  /**
+   * בדיקה האם פרמטר עם בחירת קורה צריך להציג ערך נוכחי
+   * פרמטרים כמו "קורת רגל" הם singleBeam ללא ערך
+   * פרמטרים כמו מדפים עם קורות הם עם ערך
+   */
+  needsValueDisplay(param: any): boolean {
+    // אם זה מערך, לא צריך ערך נוכחי (כבר מטופל בנפרד)
+    if (this.isArrayParameter(param)) {
+      return false;
+    }
+    
+    // אם זה פרמטר beamSingle שהוא קורה יחידה (כמו קורת רגל), לא צריך ערך
+    if (param.type === 'beamSingle') {
+      return false;
+    }
+    
+    // אחרת, כן צריך ערך נוכחי
+    return true;
+  }
+
+  /**
+   * התחלת עריכת שם המוצר
+   */
+  startEditingName(): void {
+    this.isEditingName = true;
+    this.editedProductName = this.currentDisplayName;
+    
+    // התמקדות בשדה הטקסט אחרי שהוא נטען
+    setTimeout(() => {
+      if (this.nameInputRef) {
+        this.nameInputRef.nativeElement.focus();
+        this.nameInputRef.nativeElement.select();
+      }
+    }, 100);
+  }
+
+  /**
+   * ביטול עריכת שם המוצר
+   */
+  cancelEditingName(): void {
+    this.isEditingName = false;
+    this.editedProductName = this.currentDisplayName; // חזרה לערך הנוכחי
+  }
+
+  /**
+   * שמירת שם המוצר החדש
+   */
+  saveProductName(): void {
+    if (this.editedProductName.trim()) {
+      // עדכון השם הנוכחי לערך החדש
+      this.currentDisplayName = this.editedProductName.trim();
+      console.log('שם מוצר חדש נשמר:', this.currentDisplayName);
+      console.log('האם שונה מהמקורי:', this.isNameModified());
+      this.isEditingName = false;
+    }
+  }
+
+  /**
+   * קבלת השם הנוכחי להצגה
+   */
+  getCurrentDisplayName(): string {
+    return this.currentDisplayName;
+  }
+
+  /**
+   * בדיקה האם השם שונה מהמקורי
+   */
+  isNameModified(): boolean {
+    return this.currentDisplayName !== this.originalProductName;
+  }
+
+  /**
+   * קביעת סטטוס שם המוצר (הכותרת הראשית)
+   */
+  getProductNameStatus(): 'original' | 'new' {
+    return this.currentDisplayName === this.originalProductName ? 'original' : 'new';
+  }
+
+
+  /**
+   * אתחול שמות הקטגוריות על פי הקונפיגורציה הנוכחית
+   */
+  private initializeCategoryNames(): void {
+    const configIndex = this.product?.configurationIndex || 0;
+    const configs = this.product?.configurations || [];
+    const currentConfig = configs[configIndex];
+    
+    if (!currentConfig) {
+      this.originalSingleCategoryName = this.translateService.instant('product-edit-info.not-available');
+      this.originalPluralCategoryName = this.translateService.instant('product-edit-info.not-available');
+    } else {
+      const productKey = currentConfig.product;
+      const singleNames = this.product?.singleNames || {};
+      const names = this.product?.names || {};
+      
+      this.originalSingleCategoryName = singleNames[productKey] || this.translateService.instant('product-edit-info.not-defined');
+      this.originalPluralCategoryName = names[productKey] || this.translateService.instant('product-edit-info.not-defined');
+    }
+    
+    this.currentSingleCategoryName = this.originalSingleCategoryName;
+    this.currentPluralCategoryName = this.originalPluralCategoryName;
+    this.editedSingleCategoryName = this.currentSingleCategoryName;
+    this.editedPluralCategoryName = this.currentPluralCategoryName;
+  }
+
+  /**
+   * תחילת עריכת שם קטגוריה ביחיד
+   */
+  startEditingSingleName(): void {
+    this.isEditingSingleName = true;
+    this.editedSingleCategoryName = this.currentSingleCategoryName;
+    setTimeout(() => {
+      if (this.singleNameInputRef) {
+        this.singleNameInputRef.nativeElement.focus();
+      }
+    }, 100);
+  }
+
+  /**
+   * ביטול עריכת שם קטגוריה ביחיד
+   */
+  cancelEditingSingleName(): void {
+    this.isEditingSingleName = false;
+    this.editedSingleCategoryName = this.currentSingleCategoryName;
+  }
+
+  /**
+   * שמירת שם קטגוריה ביחיד
+   */
+  saveSingleCategoryName(): void {
+    this.currentSingleCategoryName = this.editedSingleCategoryName.trim();
+    this.isEditingSingleName = false;
+    console.log('שם קטגוריה ביחיד עודכן:', this.currentSingleCategoryName);
+  }
+
+  /**
+   * תחילת עריכת שם קטגוריה ברבים
+   */
+  startEditingPluralName(): void {
+    this.isEditingPluralName = true;
+    this.editedPluralCategoryName = this.currentPluralCategoryName;
+    setTimeout(() => {
+      if (this.pluralNameInputRef) {
+        this.pluralNameInputRef.nativeElement.focus();
+      }
+    }, 100);
+  }
+
+  /**
+   * ביטול עריכת שם קטגוריה ברבים
+   */
+  cancelEditingPluralName(): void {
+    this.isEditingPluralName = false;
+    this.editedPluralCategoryName = this.currentPluralCategoryName;
+  }
+
+  /**
+   * שמירת שם קטגוריה ברבים
+   */
+  savePluralCategoryName(): void {
+    this.currentPluralCategoryName = this.editedPluralCategoryName.trim();
+    this.isEditingPluralName = false;
+    console.log('שם קטגוריה ברבים עודכן:', this.currentPluralCategoryName);
+  }
+
+  /**
+   * בדיקה האם שם הקטגוריה ביחיד שונה מהמקורי
+   */
+  isSingleNameModified(): boolean {
+    return this.currentSingleCategoryName !== this.originalSingleCategoryName;
+  }
+
+  /**
+   * בדיקה האם שם הקטגוריה ברבים שונה מהמקורי
+   */
+  isPluralNameModified(): boolean {
+    return this.currentPluralCategoryName !== this.originalPluralCategoryName;
+  }
+
+  /**
+   * בדיקה האם צריך להציג שדה שם סידורי
+   * מופיע כשאחד משני השמות (יחיד או רבים) שונה מהמקורי
+   */
+  shouldShowSerialName(): boolean {
+    return this.isSingleNameModified() || this.isPluralNameModified();
+  }
+
+  /**
+   * שמירת שינויים - שליחה לבק-אנד
+   */
+  saveChanges(): void {
+    console.log('SAVE_PRO - SaveChanges function started');
+    console.log('SAVE_PRO - Initial validation check:', JSON.stringify({
+      isSaving: this.isSaving,
+      shouldShowSerialName: this.shouldShowSerialName(),
+      serialName: this.serialName,
+      productId: this.product?._id || this.product?.id || 'NO_ID'
+    }));
+
+    if (this.isSaving) {
+      console.log('SAVE_PRO - ERROR: Already saving, preventing duplicate request');
+      return;
+    }
+
+    // וידוא שיש שם סידורי אם נדרש
+    if (this.shouldShowSerialName() && !this.serialName.trim()) {
+      console.log('SAVE_PRO - ERROR: Serial name required but missing');
+      alert(this.translateService.instant('product-edit-info.serial-name-required') || 'שם סידורי נדרש');
+      return;
+    }
+
+    console.log('SAVE_PRO - Validation passed, setting isSaving = true');
+    this.isSaving = true;
+
+    const dataToSend = {
+      productId: this.product._id || this.product.id,
+      
+      // שם הדגם והסטטוס שלו
+      productName: {
+        value: this.currentDisplayName,
+        status: this.getProductNameStatus()
+      },
+      
+      // קטגוריות
+      singleCategoryName: {
+        value: this.currentSingleCategoryName,
+        status: this.getSingleNameStatus()
+      },
+      
+      pluralCategoryName: {
+        value: this.currentPluralCategoryName, 
+        status: this.getPluralNameStatus()
+      },
+      
+      // שם סידורי (רק אם קיים)
+      serialName: this.serialName.trim(),
+      
+      // מידע על הקונפיגורציה הנוכחית
+      currentConfigurationIndex: this.product?.configurationIndex || 0,
+      
+      // כל הפרמטרים עם הערכים הנוכחיים
+      parameters: this.currentParams.map(param => {
+        const paramData: any = {
+          name: param.name,
+          type: param.type
+        };
+
+        // עבור beamArray - המערך המלא
+        if (this.isArrayParameter(param)) {
+          paramData.value = Array.isArray(param.default) ? [...param.default] : param.default;
+          
+          // עבור beam parameters עם מערכים
+          if (this.hasBeamSelection(param)) {
+            paramData.selectedBeamIndex = param.selectedBeamIndex || 0;
+            paramData.selectedTypeIndex = param.selectedTypeIndex || 0;
+            
+            // 🎯 שימוש ב-beamConfig שמועבר מהקומפוננטה במקום חישוב מחדש
+            if (param.beamConfig) {
+              paramData.beamConfiguration = param.beamConfig;
+            } else {
+              // גיבוי - חישוב מהערכים הנוכחיים
+              const selectedBeam = param.beams?.[paramData.selectedBeamIndex];
+              const selectedType = selectedBeam?.types?.[paramData.selectedTypeIndex];
+              
+              if (selectedBeam && selectedType) {
+                paramData.beamConfiguration = `${selectedBeam.width}-${selectedBeam.height}`;
+              } else if (param.beamsConfigurations && param.beamsConfigurations[this.product?.configurationIndex || 0]) {
+                paramData.beamConfiguration = param.beamsConfigurations[this.product?.configurationIndex || 0];
+              }
+            }
+          }
+        }
+        // עבור beam parameters רגילים (beamSingle)
+        else if (this.hasBeamSelection(param)) {
+          paramData.value = param.default;
+          paramData.selectedBeamIndex = param.selectedBeamIndex || 0;
+          paramData.selectedTypeIndex = param.selectedTypeIndex || 0;
+          
+          // 🎯 שימוש ב-beamConfig שמועבר מהקומפוננטה במקום חישוב מחדש
+          if (param.beamConfig) {
+            paramData.beamConfiguration = param.beamConfig;
+          } else {
+            // גיבוי - חישוב מהערכים הנוכחיים
+            const selectedBeam = param.beams?.[paramData.selectedBeamIndex];
+            const selectedType = selectedBeam?.types?.[paramData.selectedTypeIndex];
+            
+            if (selectedBeam && selectedType) {
+              paramData.beamConfiguration = `${selectedBeam.width}-${selectedBeam.height}`;
+            } else if (param.beamsConfigurations && param.beamsConfigurations[this.product?.configurationIndex || 0]) {
+              paramData.beamConfiguration = param.beamsConfigurations[this.product?.configurationIndex || 0];
+            }
+          }
+        }
+        // עבור פרמטרים מספריים רגילים
+        else {
+          paramData.value = param.default;
+        }
+
+        return paramData;
+      })
+    };
+
+    console.log('SAVE_PRO - Data prepared for backend submission');
+    console.log('SAVE_PRO - Full dataToSend object:', JSON.stringify(dataToSend, null, 2));
+    console.log('SAVE_PRO - Parameters summary:', JSON.stringify({
+      parametersCount: dataToSend.parameters?.length || 0,
+      parametersTypes: dataToSend.parameters?.map(p => ({ name: p.name, type: p.type })) || [],
+      beamArrayParams: dataToSend.parameters?.filter(p => p.type === 'beamArray').length || 0,
+      beamSingleParams: dataToSend.parameters?.filter(p => p.type === 'beamSingle').length || 0,
+      numericParams: dataToSend.parameters?.filter(p => typeof p.type === 'number').length || 0
+    }));
+
+    // שליחה לבק-אנד
+    console.log('SAVE_PRO - Sending HTTP POST request to /api/products/save-changes');
+    console.log('🌐🌐🌐 SAVE_PRO - IMPORTANT - About to send HTTP request! 🌐🌐🌐');
+    console.log('SAVE_PRO - Request URL will be:', window.location.origin + '/api/products/save-changes');
+    this.http.post('/api/products/save-changes', dataToSend)
+      .subscribe({
+        next: (response: any) => {
+          console.log('SAVE_PRO - SUCCESS: Backend response received');
+          console.log('SAVE_PRO - Response data:', JSON.stringify(response, null, 2));
+          
+          this.isSaving = false;
+          
+          // הודעת הצלחה
+          const successMessage = this.translateService.instant('product-edit-info.save-success') || 'השינויים נשמרו בהצלחה!';
+          console.log('SAVE_PRO - Showing success message:', successMessage);
+          alert(successMessage);
+          
+          // סגירת הדיאלוג
+          console.log('SAVE_PRO - Closing dialog');
+          this.dialogService.onCloseProductEditInfoDialog();
+        },
+        error: (error) => {
+          console.log('SAVE_PRO - ERROR: Backend request failed');
+          console.log('SAVE_PRO - Error details:', JSON.stringify({
+            status: error.status,
+            statusText: error.statusText,
+            errorMessage: error.error?.message || 'No specific error message',
+            fullError: error
+          }, null, 2));
+          
+          this.isSaving = false;
+          
+          // הודעת שגיאה
+          const errorMessage = error.error?.message || 
+                              this.translateService.instant('product-edit-info.save-error') || 
+                              'שגיאה בשמירת השינויים';
+          console.log('SAVE_PRO - Showing error message:', errorMessage);
+          alert(errorMessage);
+        }
+      });
+  }
+
+  /**
+   * מחיקת דגם - מוחק את הקונפיגורציה מהמאגר
+   */
+  deleteModel(): void {
+    // בדיקה אם יש קונפיגורציה למחיקה
+    const configIndex = this.product?.configurationIndex || 0;
+    const configs = this.product?.configurations || [];
+    
+    if (!configs[configIndex]) {
+      alert(this.translateService.instant('product-edit-info.delete-error') || 'לא ניתן למחוק דגם זה');
+      return;
+    }
+
+    // אימות עם המשתמש
+    const confirmMessage = this.translateService.instant('product-edit-info.delete-confirm', {
+      modelName: this.currentDisplayName
+    }) || `האם אתה בטוח שברצונך למחוק את הדגם "${this.currentDisplayName}"? פעולה זו לא ניתנת לביטול.`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    if (this.isSaving) {
+      console.log('DELETE_MODEL - Already processing, ignoring request');
+      return;
+    }
+
+    console.log('DELETE_MODEL - Delete configuration request started');
+    console.log('DELETE_MODEL - Configuration index to delete:', configIndex);
+    console.log('DELETE_MODEL - Model name:', this.currentDisplayName);
+    
+    this.isSaving = true;
+
+    const deleteData = {
+      productId: this.product._id || this.product.id,
+      configurationIndex: configIndex
+    };
+
+    console.log('DELETE_MODEL - Sending delete request to backend:', JSON.stringify(deleteData, null, 2));
+    
+    // שליחה לבק-אנד
+    this.http.post('/api/products/delete-configuration', deleteData)
+      .subscribe({
+        next: (response: any) => {
+          console.log('DELETE_MODEL - SUCCESS: Configuration deleted successfully');
+          console.log('DELETE_MODEL - Response:', JSON.stringify(response, null, 2));
+          
+          this.isSaving = false;
+          
+          // הודעת הצלחה
+          const successMessage = this.translateService.instant('product-edit-info.delete-success') || 'הדגם נמחק בהצלחה!';
+          alert(successMessage);
+          
+          // סגירת הדיאלוג
+          console.log('DELETE_MODEL - Closing dialog');
+          this.dialogService.onCloseProductEditInfoDialog();
+        },
+        error: (error) => {
+          console.log('DELETE_MODEL - ERROR: Delete request failed');
+          console.log('DELETE_MODEL - Error details:', JSON.stringify({
+            status: error.status,
+            statusText: error.statusText,
+            errorMessage: error.error?.message || 'No specific error message',
+            fullError: error
+          }, null, 2));
+          
+          this.isSaving = false;
+          
+          // הודעת שגיאה
+          const errorMessage = error.error?.message || 
+                              this.translateService.instant('product-edit-info.delete-error') || 
+                              'שגיאה במחיקת הדגם';
+          alert(errorMessage);
+        }
+      });
+  }
+
+
+  /**
+   * קביעת סטטוס שם הקטגוריה ביחיד
+   */
+  getSingleNameStatus(): 'original' | 'other' | 'new' {
+    if (this.currentSingleCategoryName === this.originalSingleCategoryName) {
+      return 'original';
+    }
+
+    // בדיקה אם הערך קיים ב-singleNames
+    const singleNames = this.product?.singleNames || {};
+    const singleNamesValues = Object.values(singleNames);
+    
+    if (singleNamesValues.includes(this.currentSingleCategoryName)) {
+      return 'other';
+    }
+
+    return 'new';
+  }
+
+  /**
+   * קביעת סטטוס שם הקטגוריה ברבים
+   */
+  getPluralNameStatus(): 'original' | 'other' | 'new' {
+    if (this.currentPluralCategoryName === this.originalPluralCategoryName) {
+      return 'original';
+    }
+
+    // בדיקה אם הערך קיים ב-names
+    const names = this.product?.names || {};
+    const namesValues = Object.values(names);
+    
+    if (namesValues.includes(this.currentPluralCategoryName)) {
+      return 'other';
+    }
+
+    return 'new';
+  }
+
+  /**
+   * קבלת טקסט התג לפי סטטוס
+   */
+  getStatusText(status: 'original' | 'other' | 'new'): string {
+    switch (status) {
+      case 'original':
+        return this.translateService.instant('product-edit-info.status-original');
+      case 'other':
+        return this.translateService.instant('product-edit-info.status-other');
+      case 'new':
+        return this.translateService.instant('product-edit-info.status-new');
+      default:
+        return '';
+    }
+  }
+
+  /**
+   * קבלת מחלקת CSS לתג לפי סטטוס
+   */
+  getStatusClass(status: 'original' | 'other' | 'new'): string {
+    switch (status) {
+      case 'original':
+        return 'status-tag-original';
+      case 'other':
+        return 'status-tag-other';
+      case 'new':
+        return 'status-tag-new';
+      default:
+        return '';
+    }
+  }
+
+}

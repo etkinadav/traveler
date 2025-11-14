@@ -1,0 +1,1013 @@
+@import '../../assets/typology';
+
+.sidenav {
+  width: 75%;
+  max-width: 250px;
+}
+
+.sidenav .mat-toolbar {
+  background: inherit;
+}
+
+.mat-toolbar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000 !important;
+  box-shadow: none !important;
+  display: flex;
+  max-height: 45px;
+  min-height: 45px;
+  background: rgb(255, 255, 255) !important;
+  background-color: rgb(255, 255, 255) !important;
+}
+
+// דריסה ספציפית לכל ה-mat-toolbar - וידוא רקע לבן
+::ng-deep .mat-toolbar.mat-toolbar-single-row.mat-toolbar {
+  background: rgb(255, 255, 255) !important;
+  background-color: rgb(255, 255, 255) !important;
+}
+
+@media only screen and (min-width: 576px) {
+  .mat-toolbar {
+    max-height: 52px;
+    min-height: 52px;
+  }
+  
+  mat-sidenav-content {
+    padding-top: 52px !important;
+  }
+}
+
+.mat-toolbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mat-toolbar mat-icon {
+  font-size: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// button hamburger
+
+// המבורגר מותאם אישית
+.custom-hamburger-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: transform 0.3s ease; // רק לתנועה, לא לרקע
+  position: relative !important;
+  z-index: 1001 !important; // מעל הnavbar אבל מתחת לדיאלוגים
+  
+  &:hover {
+    background-color: rgba(0, 102, 204, 0.08) !important; // כחול בהיר כמו התחברות
+    background: rgba(0, 102, 204, 0.08) !important;
+  }
+}
+
+// תנועה פשוטה של ההמבורגר במצב פתוח
+.custom-hamburger-btn.open {
+  transform: translateX(6px) translateY(-2px);
+}
+
+// אין רקע ב-hover במצב פתוח
+.custom-hamburger-btn.open:hover {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+// הגדרה נוספת לוודא שהגוון יחל
+.custom-hamburger-btn:hover {
+  background-color: rgba(0, 102, 204, 0.08) !important; // כחול בהיר כמו התחברות
+  background: rgba(0, 102, 204, 0.08) !important;
+}
+
+.hamburger-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 25px;
+  height: 18px;
+  justify-content: space-between;
+}
+
+.hamburger-line {
+  width: 25px;
+  height: 2px;
+  background-color: #0066cc; // כחול רגיל
+  border-radius: 1px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+  
+  &.hovered {
+    background-color: #004499; // כחול יותר כהה
+    animation: shrinkExpand 0.3s ease-in-out;
+  }
+  
+  // השהיות שונות לכל קו
+  &:nth-child(1).hovered {
+    animation-delay: 0ms;
+  }
+  
+  &:nth-child(2).hovered {
+    animation-delay: 150ms;
+  }
+  
+  &:nth-child(3).hovered {
+    animation-delay: 300ms;
+  }
+  
+  // מצב פתוח - X
+  &.open {
+    background-color: var(--zx-green);
+    
+    // קו ראשון - נעלם
+    &:nth-child(1) {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    
+    // קו שני - מסתובב 45 מעלות ומזיז למעלה
+    &:nth-child(2) {
+      transform: rotate(45deg) translateY(6px);
+    }
+    
+    // קו שלישי - מסתובב -45 מעלות ומזיז למטה
+    &:nth-child(3) {
+      transform: rotate(-45deg) translateY(-6px);
+    }
+  }
+}
+
+@keyframes shrinkExpand {
+  0% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.3);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+// כפתור סל המוצרים - זהה להמבורגר בעיצוב
+.custom-cart-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: transform 0.3s ease;
+  position: relative !important;
+  z-index: 1001 !important;
+  
+  &:hover {
+    background-color: rgba(0, 102, 204, 0.08) !important;
+    background: rgba(0, 102, 204, 0.08) !important;
+  }
+}
+
+.cart-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.cart-svg {
+  width: 30px;
+  height: 30px;
+  filter: brightness(0) saturate(100%) invert(27%) sepia(96%) saturate(7500%) hue-rotate(214deg) brightness(91%) contrast(101%);
+}
+
+
+button mat-icon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.mat-icon-hanburger-con mat-icon {
+  font-size: 23px !important;
+}
+
+button.mat-icon-hanburger-con {
+  max-width: 39px !important;
+  max-height: 39px !important;
+}
+
+@media only screen and (min-width: 576px) {
+  button.mat-icon-hanburger-con mat-icon {
+    font-size: 27px !important;
+  }
+
+  button.mat-icon-hanburger-con {
+    max-width: unset !important;
+    max-height: unset !important;
+  }
+}
+
+// Login button styling עם gradient עדין
+.zx-login-btn {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 16px !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--zx-green) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+}
+
+.zx-login-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-bottom: 2px solid var(--zx-green);
+  transition: width 0.15s ease-out;
+}
+
+.zx-login-btn:hover {
+  background: transparent !important;
+}
+
+.zx-login-btn:hover .mat-button-focus-overlay {
+  opacity: 0 !important;
+}
+
+.zx-login-btn:hover .mat-button-ripple {
+  opacity: 0 !important;
+}
+
+.zx-login-btn:hover .mat-button-base {
+  background: transparent !important;
+}
+
+.zx-login-btn:hover .mat-stroked-button {
+  background: transparent !important;
+}
+
+.zx-login-btn:hover .mat-button-wrapper {
+  background: transparent !important;
+}
+
+.zx-login-btn:hover::after {
+  width: 70px;
+  transition: width 0.4s ease-in-out;
+}
+
+@media (min-width: 576px) {
+  .zx-login-btn {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0 20px !important;
+  }
+}
+
+// // button hamburger
+
+.small-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+@media only screen and (min-width: 576px) {
+  .small-logo {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+.whatsup-logo {
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+}
+
+.whatsup-logo-container {
+  background-color: var(--zx-green);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+}
+
+.whatsup-logo-container:hover {
+  background-color: #004499;
+  transition: 150ms;
+}
+
+.ondi-logo {
+  width: 130px;
+  height: 43px;
+  object-fit: contain;
+}
+
+.ondi-logo-small {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+// לוגו קטן - רק במובייל
+.ondi-logo-small-mobile {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+// לוגו גדול - רק במסכים גדולים
+.ondi-logo-desktop {
+  display: none;
+  width: 130px;
+  height: 43px;
+  object-fit: contain;
+}
+
+@media only screen and (max-width: 768px) {
+  .ondi-logo {
+    width: 105px;
+    height: 35px;
+  }
+  
+  .ondi-logo-small {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .ondi-logo-small-mobile {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+// במסכים מעל 576px - הצג רק לוגו גדול
+@media only screen and (min-width: 576px) {
+  .ondi-logo-small-mobile {
+    display: none !important;
+  }
+  
+  .ondi-logo-desktop {
+    display: flex !important;
+  }
+}
+
+// ברכת המשתמש - ממוקמת בצד של הלוגו
+.navbar-greeting {
+  left: 50%;
+  transform: translateX(80px); // מרחק מהלוגו
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.navbar-greeting-rtl {
+  left: auto;
+  right: 50%;
+  transform: translateX(-80px); // מרחק מהלוגו בכיוון RTL
+}
+
+// אנימציה להמבורגר - בוטלה
+.mat-icon-hanburger {
+  color: var(--zx-green) !important;
+  transition: all 0.3s ease !important;
+}
+
+mat-sidenav-content {
+  display: flex !important;
+  flex-direction: column;
+  min-height: 100vh !important; /* במקום max-height קבוע */
+  overflow-y: auto !important; /* מאפשר גלילה אנכית */
+  z-index: 1 !important;
+}
+
+mat-sidenav-container {
+  z-index: 1 !important;
+}
+
+// דריסה של כל ה-padding וה-margin של mat-sidenav-content
+::ng-deep mat-sidenav-content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+::ng-deep .mat-drawer-content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+.close-icon {
+  outline: none;
+}
+
+.close-icon.mat-mdc-icon-button ::ng-deep .mat-mdc-button-persistent-ripple {
+  display: none;
+}
+
+::ng-deep span.mat-list-item-small {
+  font-size: 14px;
+}
+
+span.mat-list-item-small {
+  font-size: 14px;
+}
+
+button.zx-bg-gray-light {
+  background-color: transparent;
+}
+
+.profile-image-container {
+  padding: 4px 0 !important; // רווח מלמעלה ולמטה
+}
+
+// CSS ספציפי לתמונת הפרופיל - ריבוע מדויק (מוקטן ב-20%)
+.zx-profile-default,
+img.zx-profile-default,
+.profile-image-container img {
+  height: 29px !important; // 36px - 20% = 28.8px ≈ 29px
+  width: 29px !important; // ריבוע מדויק
+  min-width: 29px !important; // וידוא מינימום רוחב
+  min-height: 29px !important; // וידוא מינימום גובה
+  max-width: 29px !important; // וידוא מקסימום רוחב
+  max-height: 29px !important; // וידוא מקסימום גובה
+  border-radius: 0 !important; // הסרת העיגול
+  object-fit: cover !important; // כיסוי מלא של הריבוע
+  object-position: center !important; // מיקום מרכז התמונה
+  display: block !important;
+  flex-shrink: 0 !important; // מניעת התכווצות
+  aspect-ratio: 1 / 1 !important; // וידוא יחס ריבוע
+}
+
+@media only screen and (min-width: 576px) {
+  .profile-image-container {
+    padding: 4px 0 !important; // רווח מלמעלה ולמטה
+  }
+  
+  .zx-profile-default,
+  img.zx-profile-default,
+  .profile-image-container img {
+    height: 34px !important; // 43px - 20% = 34.4px ≈ 34px
+    width: 34px !important; // ריבוע מדויק
+    min-width: 34px !important; // וידוא מינימום רוחב
+    min-height: 34px !important; // וידוא מינימום גובה
+    max-width: 34px !important; // וידוא מקסימום רוחב
+    max-height: 34px !important; // וידוא מקסימום גובה
+    aspect-ratio: 1 / 1 !important; // וידוא יחס ריבוע
+  }
+}
+
+// חץ מותאם אישית - שני קווים
+.custom-arrow {
+  width: 12px;
+  height: 12px;
+  position: relative;
+  margin-left: 10px; // 8px + 2px = 10px (רחוק יותר מהתמונה)
+  margin-top: 7px; // למטה במצב סגור (3px + 4px = 7px)
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.custom-arrow:hover {
+  transform: translateY(1px); // תנועה למטה ב-hover
+}
+
+// במצב פתוח - החץ עולה למעלה
+.custom-arrow.open {
+  margin-top: -3px; // למעלה במצב פתוח (3px מהמצב הרגיל)
+}
+
+.arrow-line {
+  position: absolute;
+  width: 8px;
+  height: 1.5px; // עבה קצת יותר
+  background-color: #0066cc;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+}
+
+.arrow-line:first-child {
+  transform: translate(-50%, -50%) rotate(45deg) translateX(-4px); // שמאלה ב-2px נוספים
+}
+
+.arrow-line:last-child {
+  transform: translate(-50%, -50%) rotate(-45deg) translateX(4px); // ימינה ב-2px נוספים
+}
+
+// מצב פתוח - החץ מתהפך למעלה
+.custom-arrow.open .arrow-line:first-child {
+  transform: translate(-50%, -50%) rotate(-45deg) translateX(-4px); // שמאלה ב-2px נוספים
+}
+
+.custom-arrow.open .arrow-line:last-child {
+  transform: translate(-50%, -50%) rotate(45deg) translateX(4px); // ימינה ב-2px נוספים
+}
+
+
+.zx-profile-manu {
+  position: absolute;
+  top: 20px;
+  left: -174px;
+  width: 240px;
+  box-shadow: 0 0 15px var(--zx-gray-85);
+  z-index: 99999 !important; // מעל ה-overlay
+}
+
+// כל הטקסטים בתפריט הפרופיל יהיו כחולים ו-bold
+.zx-profile-manu .mat-list-item-small {
+  color: #0066cc !important;
+  font-weight: 700 !important; // bold
+}
+
+// יוצא מהכלל - כפתור היציאה יישאר אדום
+.zx-profile-manu .zx-text-warn {
+  color: #f44336 !important;
+}
+
+// רווח לקו האופקי בתפריט
+.zx-profile-manu hr {
+  margin-top: 7px !important;
+  margin-bottom: 4px !important;
+}
+
+// הסתרת הטקסט "בוקר טוב" במסכים קטנים
+.navbar-greeting {
+  display: none !important;
+}
+
+@media only screen and (min-width: 768px) {
+  .navbar-greeting {
+    display: block !important;
+  }
+}
+
+// Overlay למניעת קליקים על הרקע - ללא צבע
+.overlay-manu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent; // ללא צבע כלל
+  z-index: 99998 !important; // מתחת לתפריט הפרופיל
+  cursor: pointer;
+}
+
+// דריסה של כל ה-overlay-ים של Angular Material
+::ng-deep .cdk-overlay-backdrop {
+  z-index: 99997 !important; // מתחת לnavbar
+}
+
+::ng-deep .cdk-overlay-container {
+  z-index: 99997 !important; // מתחת לnavbar
+}
+
+::ng-deep .mat-sidenav-backdrop {
+  z-index: 99997 !important; // מתחת לnavbar
+}
+
+// וידוא שכפתור ההמבורגר תמיד מעל הכל
+.custom-hamburger-btn {
+  z-index: 100000 !important; // מעל הכל
+}
+
+// וידוא שכפתור drawer-toggle תמיד מעל הכל
+::ng-deep .drawer-toggle {
+  z-index: 100000 !important; // מעל הכל
+}
+
+@media only screen and (min-width: 576px) {
+  .zx-profile-manu {
+    top: 24px;
+    left: -174px;
+  }
+}
+
+.zx-profile-manu-rtl {
+  left: unset;
+  right: -174px;
+}
+
+@media only screen and (min-width: 576px) {
+  .zx-profile-manu-rtl {
+    right: -174px;
+  }
+}
+
+.zx-profile-manu-dark {
+  background-color: var(--zx-gray-85-no-oppacity);
+  border: 1px solid var(--zx-white-25-pr);
+}
+
+.zx-text-warn {
+  color: var(--zx-red);
+}
+
+@media only screen and (min-width: 576px) {
+  .rounded-sm-top-3 {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+}
+
+.centered-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+::ng-deep .mat-mdc-menu-content {
+  width: 250px !important;
+}
+
+// רווח עליון לתפריט ההמבורגר כדי שההמבורגר לא יסתיר את הפריטים
+mat-nav-list {
+  padding-top: 48px !important;
+}
+
+// עיצוב מונה פריטים בעגלת הקניות
+.cart-counter-badge {
+  background-color: #007bff !important; // כחול
+  color: white !important; // לבן - קריטי!
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 20px;
+}
+
+// עקיפת Angular Material - כפיית צבע לבן עם specificity גבוה
+::ng-deep mat-nav-list .cart-counter-badge {
+  color: white !important;
+  background-color: #007bff !important;
+}
+
+::ng-deep mat-nav-list .cart-counter-badge * {
+  color: white !important;
+}
+
+::ng-deep mat-nav-list .cart-counter-badge span {
+  color: white !important;
+}
+
+// עוד עקיפה עם specificity גבוה יותר
+::ng-deep .mat-mdc-nav-list .cart-counter-badge {
+  color: white !important;
+  background-color: #007bff !important;
+}
+
+::ng-deep .mat-mdc-nav-list .cart-counter-badge * {
+  color: white !important;
+}
+
+::ng-deep .mat-drawer-inner-container {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+// num-pending
+.num-pending-con {
+  top: -6px;
+  left: -24px;
+  background-color: var(--zx-pink);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 0 1px 0;
+}
+
+.num-pending-con-not-rtl {
+  right: -24px;
+  left: unset;
+}
+
+.num-pending {
+  display: flex;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  font-size: 12px;
+}
+
+.num-pending-btn {
+  background-color: var(--zx-pink-light-10-pr) !important;
+  border: 1px solid var(--zx-pink-light) !important;
+}
+
+.num-pending-text {
+  color: var(--zx-pink);
+}
+
+
+// HOME PAGE
+
+.transparent-toolbar {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: none !important;
+  z-index: 1000 !important;
+}
+
+// דריסת הרקע של mat-toolbar - הוסר הרקע הלבן לבקשת המשתמש
+.mat-toolbar.transparent-toolbar {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+// דריסה ספציפית לכל ה-mat-toolbar - הוסר הרקע הלבן לבקשת המשתמש
+mat-toolbar.transparent-toolbar {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+// דריסה גלובלית לכל ה-mat-toolbar עם הקלאס שקוף - הוסר הרקע הלבן לבקשת המשתמש
+::ng-deep .mat-toolbar.transparent-toolbar {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+// דריסה נוספת עם סלקטור יותר ספציפי - הוסר הרקע הלבן לבקשת המשתמש
+::ng-deep mat-toolbar.mat-toolbar.transparent-toolbar {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+// דריסה ספציפית ל-mat-toolbar-single-row - הוסר הרקע הלבן לבקשת המשתמש
+::ng-deep mat-toolbar.mat-toolbar-single-row.transparent-toolbar {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+// דריסה נוספת עם סלקטור מלא - הוסר הרקע הלבן לבקשת המשתמש
+::ng-deep .mat-toolbar.mat-toolbar-single-row.transparent-toolbar {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+// דריסה עם סלקטור יותר ספציפי - הוסר הרקע הלבן לבקשת המשתמש
+// ::ng-deep .mat-toolbar.mat-toolbar-single-row {
+//   background: transparent !important;
+//   background-color: transparent !important;
+// }
+
+// דריסה גלובלית לכל ה-mat-toolbar-single-row - הוסר הרקע הלבן לבקשת המשתמש
+// ::ng-deep mat-toolbar.mat-toolbar-single-row {
+//   background: transparent !important;
+//   background-color: transparent !important;
+// }
+
+// דריסה עם סלקטור הכי ספציפי - הוסר הרקע הלבן לבקשת המשתמש
+// ::ng-deep .mat-toolbar.mat-toolbar-single-row.mat-toolbar {
+//   background: transparent !important;
+//   background-color: transparent !important;
+// }
+
+/* For Webkit browsers like Chrome, Safari */
+.zx-no-scroller::-webkit-scrollbar {
+  display: none;
+  /* This hides the scrollbar */
+}
+
+/* For IE, Edge */
+.zx-no-scroller {
+  -ms-overflow-style: none;
+  /* This hides the scrollbar */
+}
+
+/* For Firefox */
+.zx-no-scroller {
+  scrollbar-width: none;
+  /* This hides the scrollbar */
+}
+
+/* Make sure scrolling is still possible */
+.zx-no-scroller {
+  overflow-y: scroll;
+}
+
+// תיקון מיקום אנכי של mat-list-item בתפריט הצדדי
+::ng-deep .sidenav .mat-list-item {
+  display: flex !important;
+  align-items: center !important;
+  height: 48px !important;
+  min-height: 48px !important;
+}
+
+// תיקון ספציפי לכפתורי "שאלות ותשובות" ו"צור קשר"
+::ng-deep .sidenav .mat-list-item .mat-list-item-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  height: 100% !important;
+}
+
+// שינוי צבע הטקסטים בתפריט הצדדי לכחול שלנו
+::ng-deep .sidenav .mat-list-item {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-list-item .mat-list-item-small {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-list-item span {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-list-item mat-icon {
+  color: var(--zx-green) !important;
+}
+
+// סלקטורים יותר ספציפיים לדריסת הגדרות Angular Material
+::ng-deep .sidenav .mat-mdc-list-item .mdc-list-item__primary-text {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-mdc-list-item .mat-mdc-list-item-unscoped-content {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-mdc-list-item .mat-mdc-list-item-unscoped-content span {
+  color: var(--zx-green) !important;
+}
+
+::ng-deep .sidenav .mat-mdc-list-item .mat-mdc-list-item-unscoped-content mat-icon {
+  color: var(--zx-green) !important;
+}
+
+// סטיילים לבועת דיבור ברכה למשתמש
+.user-greeting-bubble {
+  padding: 24px 16px 0 16px; // שינוי מ-39px ל-24px ב-top
+  margin-bottom: 16px; // יותר רווח מתחת
+  text-align: center;
+  
+  .speech-bubble {
+    display: inline-block;
+    background: white;
+    border: 1px solid var(--zx-green); // קוו דק יותר
+    border-radius: 0; // פינות מרובעות
+    padding: 4px 8px; // פחות רווח מעל ומתחת לטקסט
+    position: relative;
+    transform: translateY(-5px) translateX(3px); // העלאה ב-5px והסיט ימינה ב-3px
+    
+    .greeting-text {
+      font-size: 12px; // טקסט יותר קטן
+      font-weight: 400; // לא bold
+      color: var(--zx-green);
+      margin: 0;
+    }
+    
+    // מיכל החץ החדש
+    .arrow-container {
+      position: absolute;
+      bottom: -10px; // עוד 2px למעלה (-12px + 2px = -10px)
+      right: 20%;
+      transform: scale(0.5); // קטנה ב-50%
+      
+      .speech-arrow {
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-left: 2px solid var(--zx-green); // עובי 2px
+        border-bottom: 2px solid var(--zx-green); // עובי 2px
+        transform: rotate(315deg);
+        transform-origin: center;
+      }
+    }
+    
+    // קוו המשכי מהמלבן למשולש - מותאם למיקום החדש
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: calc(20% - 5px); // מותאם לגודל הקטן (scale 0.5)
+      width: 10px; // מותאם לגודל הקטן (20px * 0.5 = 10px)
+      height: 1px;
+      background: white;
+      border-bottom: 1px solid var(--zx-green);
+    }
+  }
+}
+
+// תמיכה ב-RTL
+.user-greeting-bubble.zx-rtl {
+  .greeting-text {
+    text-align: center;
+  }
+}
+
+// סטיילים למיכל הכפתורים
+.menu-buttons-container {
+  padding: 0 16px 1px 16px; // הקטנת padding bottom מ-16px ל-1px (15px פחות)
+  
+  .mat-mdc-menu-item {
+    margin-bottom: 8px; // רווח קבוע בין הכפתורים
+    height: 48px !important; // גובה אחיד לכל הכפתורים
+    display: flex !important;
+    align-items: center !important; // יישור אנכי למרכז
+    
+    &:last-child {
+      margin-bottom: 0; // אין רווח אחרון
+    }
+    
+    // וידוא שהטקסט מיושר למרכז
+    .mat-list-item-small {
+      line-height: 1 !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    
+    // וידוא שה-div הפנימי לא משפיע על היישור
+    .d-flex {
+      align-items: center !important;
+      justify-content: flex-start !important;
+    }
+  }
+}
+
+// קוו הפרדה מעל התנתקות
+.menu-separator {
+  margin: 8px 0 !important; // רווח קבוע מעל ומתחת
+  border: none !important;
+  border-top: 1px solid #e0e0e0 !important;
+  height: 0 !important;
+  background: none !important;
+}
+
+// הזזת כל התפריט בדסקטופ בלבד - 2px למטה ו-10px ימינה (8px + 2px = 10px)
+.zx-profile-manu {
+  @media (min-width: 768px) {
+    transform: translateY(2px) translateX(10px) !important; // דסקטופ: עוד 2px ימינה (8px+2px=10px)
+  }
+  transform: translateY(3px) translateX(5px) !important; // מובייל: נשאר כמו שהיה
+}
+
+// סטיילים לקווים אופקיים בתפריט
+::ng-deep .zx-profile-manu hr {
+  margin: 5px 0 0 0 !important; // 5px רווח מעל הקוו, ללא רווח מתחת
+  border: none !important;
+  border-top: 1px solid #e0e0e0 !important; // אותו קוו כמו הכותרת
+  height: 0 !important;
+  background: none !important;
+}
+
+// כפתור משחק נחש עץ
+.guess-tree-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 5px;
+  margin-left: 15px;
+}
+
+.guess-tree-btn:hover {
+  transform: scale(1.2) rotate(10deg);
+}
+
+.guess-tree-btn:active {
+  transform: scale(0.9);
+}

@@ -1,0 +1,749 @@
+.shopping-cart-page {
+  width: 100%;
+  max-width: none; /* הסרת הגבלת רוחב מקסימלי */
+  margin: 0 auto;
+  padding: 40px 20px;
+  direction: rtl;
+  background: #f8f9fa;
+  min-height: 100vh;
+  overflow-y: visible; /* מאפשר גלילה אנכית */
+}
+
+/* אפקט עדין לטקסט "טוען..." */
+.loading-text-pulse {
+  animation: gentlePulse 2s ease-in-out infinite;
+  color: #6c757d; /* צבע אפור עדין */
+}
+
+@keyframes gentlePulse {
+  0% {
+    opacity: 0.6;
+    color: #6c757d;
+  }
+  50% {
+    opacity: 1;
+    color: #495057;
+  }
+  100% {
+    opacity: 0.6;
+    color: #6c757d;
+  }
+}
+
+/* Loading shimmer effect */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* כותרת */
+.cart-header {
+  width: 100%; /* רוחב רגיל של הקונטיינר */
+  text-align: center; /* מירכוז הכותרת */
+  padding: 9px 5px 20px 5px; /* padding מהצדדים - מובייל */
+  margin-bottom: 15px; /* חצי מהmargin הקודם */
+  display: flex; /* תמיד בשורה אחת */
+  align-items: center; /* מירכוז אנכי */
+  justify-content: space-between; /* פיזור הכפתורים */
+  box-sizing: border-box; /* כולל padding ברוחב */
+  background: #f8f9fa; /* רקע זהה לדף */
+}
+
+/* בדסקטופ - padding גדול יותר */
+@media (min-width: 768px) {
+  .cart-header {
+    padding: 5px 20px 20px 20px; /* padding גדול יותר בדסקטופ */
+  }
+}
+
+.cart-header h1 {
+  margin: 0;
+  color: var(--zx-green); /* זהה לצבע בקובץ בחירת המוצר */
+  font-size: 24px !important; /* זהה לגודל הכותרת "מה בונים היום" - גם במובייל */
+  font-weight: 700;
+  flex: 1; /* תופס את כל המקום הפנוי */
+  text-align: right; /* כותרת צמודה לימין בתוך הקונטיינר */
+}
+
+.cart-buttons {
+  display: flex;
+  align-items: center;
+  gap: 5px !important; /* רווח קטן במובייל */
+  flex-shrink: 0; /* לא יתכווץ */
+}
+
+/* בדסקטופ - רווח גדול יותר */
+@media (min-width: 768px) {
+  .cart-buttons {
+    gap: 10px !important; /* רווח גדול יותר בדסקטופ */
+  }
+}
+
+/* כפתור הסרה בכרטיסיות */
+.remove-item-btn {
+  background: none !important;
+  background-color: transparent !important;
+  color: var(--zx-green) !important; /* צבע המותג */
+  border: none !important;
+  padding: 4px !important;
+  margin: 0 !important;
+  cursor: pointer;
+  font-size: 16px !important;
+  font-weight: 500;
+  transition: all 0.3s;
+  line-height: 1 !important;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-item-btn:hover {
+  color: var(--zx-green) !important; /* שמירה על אותו גוון בריחוף */
+  background: none !important;
+  background-color: transparent !important;
+  transform: scale(1.1);
+}
+
+/* עיצוב למידות המוצר */
+/* סטטוס הוסר */
+
+.back-btn {
+  background: none !important; /* ללא רקע */
+  color: var(--zx-green) !important; /* צבע המותג */
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important; /* ללא margin */
+  cursor: pointer;
+  font-size: 24px !important; /* חץ גדול יותר */
+  font-weight: 500;
+  transition: all 0.3s;
+  line-height: 1 !important; /* ללא רווח נוסף */
+}
+
+.back-btn:hover {
+  color: #1976d2 !important; /* כחול כהה יותר בריחוף */
+  background: none !important; /* ללא רקע בריחוף */
+  transform: scale(1.1);
+}
+
+.clear-cart-btn {
+  background: none !important; /* ללא רקע */
+  background-color: transparent !important; /* ללא רקע */
+  color: var(--zx-green) !important; /* צבע המותג */
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 0 0 5px !important; /* רווח משמאל לכפתור השני */
+  cursor: pointer;
+  font-size: 20px !important; /* אייקון פח זבל */
+  font-weight: 500;
+  transition: all 0.3s;
+  line-height: 1 !important; /* ללא רווח נוסף */
+}
+
+/* בדסקטופ - רווח גדול יותר */
+@media (min-width: 768px) {
+  .clear-cart-btn {
+    margin: 0 0 0 10px !important; /* רווח גדול יותר בדסקטופ */
+  }
+}
+
+.clear-cart-btn:hover {
+  color: var(--zx-green) !important; /* שמירה על צבע המותג בריחוף */
+  background: none !important; /* ללא רקע בריחוף */
+  background-color: transparent !important; /* ללא רקע בריחוף */
+  transform: scale(1.1);
+}
+
+/* סל ריק */
+.empty-cart {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-cart-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  opacity: 0.3;
+}
+
+.empty-cart h3 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.empty-cart p {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+/* Bootstrap Grid Classes */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+}
+
+.col-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-bottom: 30px;
+}
+
+@media (min-width: 768px) {
+  .col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (min-width: 992px) {
+  .col-lg-4 {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+  }
+}
+
+/* מסכים גדולים מאוד - 4 כרטיסיות בשורה */
+@media (min-width: 1200px) {
+  .col-lg-4 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+}
+
+/* מסכים אולטרה-רחבים - 5 כרטיסיות בשורה */
+@media (min-width: 1600px) {
+  .col-lg-4 {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+}
+
+/* כרטיס מוצר */
+.cart-item-card {
+  background: transparent; /* החיצוני שקוף */
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: none;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-item-card:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+/* כותרת הפריט */
+.cart-item-outer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 0; /* רווח אנכי עדין */
+}
+
+.cart-item-inner {
+  background: #ffffff; /* רקע לבן רק לפנימי */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  padding: 20px;
+  display: inline-block; /* יתפוס רק את תוכנו */
+}
+
+@media (min-width: 768px) {
+  .cart-item-outer {
+    padding: 12px 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .cart-item-outer {
+    padding: 14px 0;
+  }
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  padding-bottom: 15px;
+}
+
+.item-header--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.item-title-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative; /* הוספת relative positioning לתפריט */
+}
+
+.item-title--primary {
+  margin: 0;
+  color: #0066cc;
+  font-size: 18px;
+  font-weight: 700;
+  padding-bottom: 5px; /* רווח מתחת לכותרת הראשית */
+}
+
+.item-title-row--secondary {
+  margin-top: 4px;
+}
+
+.item-title--secondary {
+  color: var(--zx-green); /* צבע המותג לשם הדגם */
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.item-title {
+  margin: 0;
+  color: #0066cc;
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+  margin-left: 10px;
+}
+
+.remove-item-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 5px;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+  flex-shrink: 0;
+}
+
+.remove-item-btn:hover {
+  opacity: 1;
+}
+
+/* תצוגת מוצר מיני */
+.product-mini-preview {
+  position: relative;
+  margin: 0 auto 20px auto; /* מירכוז אוטומטי */
+  text-align: center;
+  width: 220px; /* גודל זהה לבחירת המוצר */
+  height: 220px; /* גודל זהה לבחירת המוצר */
+  border-radius: 0; /* פינות חדות כמו בבחירת המוצר */
+  overflow: hidden;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  isolation: isolate; /* יוצר stacking context חדש */
+}
+
+.product-mini-preview app-product-mini-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* כיסוי שקוף מעל המודלים התלת-ממדיים */
+.product-3d-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent; /* שקוף לחלוטין */
+  border-radius: 0; /* פינות חדות */
+  pointer-events: auto; /* חוסם אינטראקציות עם המודל התלת-ממדי */
+  z-index: 10; /* מעל המודל התלת-ממדי */
+  cursor: pointer; /* עכבר לחיצה */
+  isolation: isolate; /* יוצר stacking context חדש - מבודד מהמוצרים האחרים */
+  
+  /* מניעת גלילה ומשיכה */
+  touch-action: none; /* מונע משיכה במובייל */
+  -webkit-touch-callout: none; /* מונע קריאה לפעולה במובייל */
+  -webkit-user-select: none; /* מונע בחירת טקסט */
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  /* אפקט ripple */
+  overflow: hidden;
+  
+  /* טקסט הוראה בריחוף */
+  .overlay-hint {
+    position: absolute;
+    top: 8px; /* צמוד למעלה כמו בבחירת המוצר */
+    left: 50%;
+    transform: translateX(-50%);
+    background: none; /* ללא רקע */
+    color: var(--zx-green); /* צבע המותג לטקסט ההנחיה */
+    padding: 0; /* ללא padding */
+    font-size: 12px; /* גודל זהה לבחירת המוצר */
+    font-weight: bold; /* משקל זהה לבחירת המוצר */
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 11;
+    width: max-content; /* רוחב מינימלי */
+    max-width: 100%; /* לא יוצא מהמסך */
+    
+    &.show {
+      opacity: 1;
+    }
+  }
+}
+
+/* הסתרת ה-overlay אחרי לחיצה */
+.product-3d-overlay.hidden {
+  display: none;
+  pointer-events: none;
+}
+
+/* סיכום מהיר */
+.item-quick-summary {
+  margin-bottom: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* הוסר כותרת מידות - לא נדרש */
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.summary-item .label {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-item .value {
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.summary-item .value.price {
+  color: #0066cc;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* פריסת מידות כ-3 שורות עדינות בצד שמאל */
+/* בוטל: משתמשים בדיוק ב-summary-item כמו תאריך/מחיר */
+
+.dim-label {
+  color: #6b7280; /* אפור עדין */
+  font-weight: 400; /* ללא bold */
+  font-size: 12px; /* קטן יותר */
+  text-align: right;
+}
+
+.dim-value {
+  color: #374151; /* כהה עדין */
+  font-weight: 400; /* ללא bold */
+  font-size: 12px; /* קטן יותר */
+  text-align: left;
+}
+
+/* כפתור תפריט אפשרויות נוספות */
+.options-menu-button {
+  min-width: auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: rgba(0, 102, 204, 0.1);
+  color: #0066cc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.options-menu-button:hover {
+  background: rgba(0, 102, 204, 0.2);
+  transform: scale(1.05);
+}
+
+.options-menu-button.active {
+  background: #0066cc;
+  color: white;
+}
+
+.options-menu-button:focus {
+  outline: none;
+}
+
+.options-menu-button svg {
+  display: block;
+}
+
+/* קונטיינר לתפריט */
+.menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* תפריט אפשרויות נוספות */
+.custom-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  z-index: 1000;
+  min-width: 160px;
+  padding: 4px;
+  margin-top: 4px;
+  transform: translateX(80%);
+}
+
+.custom-menu .menu-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0066cc;
+  transition: all 0.2s ease;
+  margin: 2px 0;
+  gap: 8px;
+  text-align: right;
+}
+
+.custom-menu .menu-option:hover:not([disabled]) {
+  background: rgba(0, 102, 204, 0.1);
+  border-radius: 0;
+}
+
+.custom-menu .menu-option.active {
+  background: #0066cc;
+  color: white;
+  border-radius: 0;
+}
+
+.custom-menu .menu-option svg {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.custom-menu .menu-option span {
+  flex-shrink: 0;
+}
+
+/* פעולות עריכה הוסרו */
+
+/* סיכום סופי */
+.cart-footer {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 3px solid #0066cc;
+}
+
+.total-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.total-section h3 {
+  margin: 0 0 10px 0;
+  color: #666;
+  font-size: 20px;
+}
+
+.total-price {
+  margin: 0;
+  color: #0066cc;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+/* כפתורים בתחתית */
+.footer-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.clear-cart-btn,
+.continue-shopping-btn,
+.checkout-btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.clear-cart-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.clear-cart-btn:hover {
+  background: #c82333;
+}
+
+.continue-shopping-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.continue-shopping-btn:hover {
+  background: #5a6268;
+}
+
+.checkout-btn {
+  background: #28a745;
+  color: white;
+}
+
+.checkout-btn:hover {
+  background: #218838;
+}
+
+/* רספונסיביות */
+@media (max-width: 768px) {
+  .shopping-cart-page {
+    padding: 20px 10px;
+  }
+
+  .cart-header h1 {
+    font-size: 28px;
+  }
+
+  .back-btn {
+    position: static;
+    transform: none;
+    margin-bottom: 20px;
+  }
+
+  .cart-header {
+    text-align: center;
+  }
+
+  .footer-actions {
+    flex-direction: column;
+  }
+
+  .clear-cart-btn,
+  .continue-shopping-btn,
+  .checkout-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .row {
+    margin-right: -10px;
+    margin-left: -10px;
+  }
+
+  .col-12 {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .cart-item-card {
+    padding: 15px;
+  }
+
+  .item-title {
+    font-size: 16px;
+  }
+}
+
+/* כפתור סיבוב במודל התלת-ממדי */
+.reset-view-button {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+  color: #0066cc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.reset-view-button:hover {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.reset-view-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+@media (max-width: 576px) {
+  .reset-view-button {
+    width: 22px;
+    height: 22px;
+    top: 6px;
+    left: 6px;
+  }
+
+  .reset-view-button svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .total-price {
+    font-size: 28px;
+  }
+}

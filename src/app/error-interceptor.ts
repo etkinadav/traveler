@@ -1,0 +1,58 @@
+import {
+    HttpErrorResponse,
+    HttpHandler,
+    HttpInterceptor,
+    HttpRequest
+} from "@angular/common/http";
+import { catchError } from "rxjs/operators";
+import { throwError, of } from "rxjs";
+import { Injectable } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
+import { ErrorComponent } from "./error/error.component";
+import { AuthService } from "./auth/auth.service";
+// import { TranslateService } from '@ngx-translate/core';
+
+
+@Injectable()
+export class ErrorInterceptor implements HttpInterceptor {
+    constructor(
+        private dialog: MatDialog,
+        private authService: AuthService,
+        // private translationService: TranslateService,
+    ) { }
+
+    intercept(req: HttpRequest<any>, next: HttpHandler) {
+        return next.handle(req).pipe(
+            catchError((error: HttpErrorResponse) => {
+                if (error.status === 0 && error.statusText === 'Unknown Error') {
+                    console.error('Ignored error:', error);
+                    return of(null); // Ignore the error and return null
+                }
+
+                // Ignore 404 errors for /api/beam endpoint (optional beam data)
+                if (error.status === 404 && error.url && error.url.includes('/api/beam')) {
+                    console.warn('Beam API not available, continuing without beam data:', error);
+                    return throwError(error); // Return error without showing dialog
+                }
+
+                let errorMessage = "unknown_error"
+                console.log("error from interceptor", error);
+                if (error.error.message) {
+                    errorMessage = error.error.message;
+                }
+                if (errorMessage === 'Check_auth-Auth-Faild-token-incorrect-privite') {
+                    this.authService.logout();
+                } else {
+                    this.dialog.open(
+                        ErrorComponent,
+                        {
+                            data: { message: errorMessage },
+                            panelClass: 'zx-login-dialog'
+                        },
+                    );
+                }
+                return throwError(error);
+            })
+        );
+    }
+}

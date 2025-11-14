@@ -1,0 +1,47 @@
+<div class="h-100 w-100 d-flex flex-column flex-grow-1 overflow-auto">
+
+    <!-- Close button positioned at top-right -->
+    <div class="position-absolute w-100 d-flex" [class.justify-content-end]="isRTL">
+        <button type="button" mat-icon-button aria-label="Close dialog" (click)="onCancel()"
+            class="close-icon d-flex align-items-center justify-content-center">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <div class="d-flex flex-grow-1 flex-column align-items-center px-3 pb-5 px-md-4 pb-md-6 gap-3 w-100">
+        <!-- Title -->
+        <div class="pb-2 w-100 pt-5 pt-md-6" style="padding-top: 1.5rem !important;">
+            <h4 class="text-center fw-bold m-0">
+                {{ getTitle() }}
+            </h4>
+        </div>
+
+        <!-- Message -->
+        <div class="d-flex flex-column gap-3 align-items-center w-100 pt-2 pb-4">
+            <span class="text-center">
+                {{ getMessage() }}
+            </span>
+
+            <!-- Action buttons -->
+            <div class="d-flex flex-column flex-lg-row justify-content-center align-items-stretch w-100 gap-3 mt-2 mb-3 mb-lg-4 pb-2 pb-lg-0">
+                <!-- Delete button (red) -->
+                <button color="warn" mat-stroked-button (click)="onConfirm()"
+                    class="zx-btn-single flex-fill">
+                    <div class="w-100 d-flex justify-content-center align-items-center">
+                        <mat-icon>delete</mat-icon>
+                        <span>{{ getDeleteButtonText() }}</span>
+                    </div>
+                </button>
+                
+                <!-- Cancel button (blue) -->
+                <button (click)="onCancel()" color="primary" mat-stroked-button
+                    class="zx-btn-single flex-fill">
+                    <div class="w-100 d-flex justify-content-center align-items-center">
+                        <mat-icon>cancel</mat-icon>
+                        <span>{{ getCancelButtonText() }}</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,6 @@
+.app-main-nav {
+    min-height: 100vh !important; /* במקום height קבוע */
+    width: 100% !important;
+    display: flex !important;
+    overflow-y: auto !important; /* מאפשר גלילה אנכית */
+}

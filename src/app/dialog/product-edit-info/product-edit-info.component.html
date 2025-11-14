@@ -1,0 +1,317 @@
+<div class="h-100 w-100 d-flex flex-column flex-grow-1 overflow-auto">
+
+    <div class="position-absolute w-100 d-flex" [class.justify-content-end]="isRTL">
+        <button type="button" mat-icon-button aria-label="Close dialog" (click)="closeProductEditInfoDialog()"
+            class="close-icon d-flex align-items-center justify-content-center" [class.text-white]="isDarkMode">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <!-- תוכן הדיאלוג -->
+    <div class="dialog-content">
+        <!-- כותרת -->
+        <div class="dialog-header">
+            <!-- כותרת שם הדגם -->
+            <h5 class="section-title" [class.text-white]="isDarkMode">
+                {{ 'product-edit-info.model-name' | translate }}
+            </h5>
+            
+            <!-- שם המוצר עם כפתור עריכה -->
+            <div class="product-name-container">
+                <!-- מצב תצוגה -->
+                <div *ngIf="!isEditingName" class="name-display-container">
+                    <h4 class="dialog-title" [class.text-white]="isDarkMode">
+                        {{ getCurrentDisplayName() }}
+                        <!-- תג סטטוס שם המוצר -->
+                        <span class="status-tag inline-tag" [class]="getStatusClass(getProductNameStatus())">
+                            {{ getStatusText(getProductNameStatus()) }}
+                        </span>
+                    </h4>
+                    <button class="edit-name-btn" 
+                            (click)="startEditingName()"
+                            [matTooltip]="'product-edit-info.edit-name-tooltip' | translate"
+                            matTooltipPosition="below">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                </div>
+                
+                <!-- מצב עריכה -->
+                <div *ngIf="isEditingName" class="name-edit-container">
+                    <mat-form-field class="name-input-field" appearance="outline">
+                        <input matInput 
+                               [(ngModel)]="editedProductName" 
+                               [placeholder]="'product-edit-info.product-name-placeholder' | translate"
+                               (keyup.enter)="saveProductName()"
+                               (keyup.escape)="cancelEditingName()"
+                               #nameInput>
+                    </mat-form-field>
+                    <div class="edit-buttons">
+                        <button class="edit-save-btn" 
+                                (click)="saveProductName()" 
+                                [disabled]="!editedProductName.trim()">
+                            <mat-icon>check</mat-icon>
+                        </button>
+                        <button class="edit-cancel-btn" (click)="cancelEditingName()">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- השם המקורי - מוצג רק אם שונה -->
+                <p class="original-name-text modified" 
+                   [class.text-white]="isDarkMode"
+                   *ngIf="isNameModified()">
+                    {{ 'product-edit-info.original-name' | translate }}: {{ originalProductName }}
+                </p>
+            </div>
+            
+            <!-- קו הפרדה -->
+            <div class="section-divider" [class.dark-mode]="isDarkMode"></div>
+            
+            
+            <!-- שמות קטגוריות -->
+            <div class="category-names-section">
+                <!-- כותרת קטגוריות -->
+                <h5 class="section-title" [class.text-white]="isDarkMode">
+                    {{ 'product-edit-info.category-names-title' | translate }}
+                </h5>
+                
+                <!-- מכל הקטגוריות - responsive layout -->
+                <div class="category-names-container" [class.dark-mode]="isDarkMode">
+                    
+                    <!-- שם קטגוריה ביחיד -->
+                    <div class="category-name-field">
+                        <h6 class="category-field-title" [class.text-white]="isDarkMode">
+                            {{ 'product-edit-info.single-category-name' | translate }}
+                            <!-- תג סטטוס -->
+                            <span class="status-tag inline-tag" [class]="getStatusClass(getSingleNameStatus())">
+                                {{ getStatusText(getSingleNameStatus()) }}
+                            </span>
+                        </h6>
+                        
+                        <div class="category-name-content">
+                            <!-- תצוגה רגילה -->
+                            <div class="name-display-container" *ngIf="!isEditingSingleName">
+                                <span class="category-name-display" [class.text-white]="isDarkMode">
+                                    {{ currentSingleCategoryName }}
+                                </span>
+                                <button class="edit-name-btn" 
+                                        (click)="startEditingSingleName()"
+                                        [matTooltip]="'product-edit-info.edit-single-name-tooltip' | translate"
+                                        matTooltipPosition="above">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                            </div>
+                            
+                            <!-- מצב עריכה -->
+                            <div class="name-edit-container" *ngIf="isEditingSingleName">
+                                <mat-form-field appearance="outline" class="category-name-field">
+                                    <input matInput 
+                                           [(ngModel)]="editedSingleCategoryName"
+                                           [placeholder]="'product-edit-info.single-category-placeholder' | translate"
+                                           (keyup.enter)="saveSingleCategoryName()"
+                                           (keyup.escape)="cancelEditingSingleName()"
+                                           #singleNameInput>
+                                </mat-form-field>
+                        <div class="edit-buttons">
+                            <button class="edit-save-btn" 
+                                    (click)="saveSingleCategoryName()"
+                                    [matTooltip]="'product-edit-info.save-name' | translate">
+                                <mat-icon>check</mat-icon>
+                            </button>
+                            <button class="edit-cancel-btn" 
+                                    (click)="cancelEditingSingleName()"
+                                    [matTooltip]="'product-edit-info.cancel-edit' | translate">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                        </div>
+                            </div>
+                            
+                            <!-- השם המקורי - מוצג רק אם שונה -->
+                            <p class="original-name-text modified" 
+                               [class.text-white]="isDarkMode"
+                               *ngIf="isSingleNameModified()">
+                                {{ 'product-edit-info.original-name' | translate }}: {{ originalSingleCategoryName }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- שם קטגוריה ברבים -->
+                    <div class="category-name-field">
+                        <h6 class="category-field-title" [class.text-white]="isDarkMode">
+                            {{ 'product-edit-info.plural-category-name' | translate }}
+                            <!-- תג סטטוס -->
+                            <span class="status-tag inline-tag" [class]="getStatusClass(getPluralNameStatus())">
+                                {{ getStatusText(getPluralNameStatus()) }}
+                            </span>
+                        </h6>
+                        
+                        <div class="category-name-content">
+                            <!-- תצוגה רגילה -->
+                            <div class="name-display-container" *ngIf="!isEditingPluralName">
+                                <span class="category-name-display" [class.text-white]="isDarkMode">
+                                    {{ currentPluralCategoryName }}
+                                </span>
+                                <button class="edit-name-btn" 
+                                        (click)="startEditingPluralName()"
+                                        [matTooltip]="'product-edit-info.edit-plural-name-tooltip' | translate"
+                                        matTooltipPosition="above">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                            </div>
+                            
+                            <!-- מצב עריכה -->
+                            <div class="name-edit-container" *ngIf="isEditingPluralName">
+                                <mat-form-field appearance="outline" class="category-name-field">
+                                    <input matInput 
+                                           [(ngModel)]="editedPluralCategoryName"
+                                           [placeholder]="'product-edit-info.plural-category-placeholder' | translate"
+                                           (keyup.enter)="savePluralCategoryName()"
+                                           (keyup.escape)="cancelEditingPluralName()"
+                                           #pluralNameInput>
+                                </mat-form-field>
+                        <div class="edit-buttons">
+                            <button class="edit-save-btn" 
+                                    (click)="savePluralCategoryName()"
+                                    [matTooltip]="'product-edit-info.save-name' | translate">
+                                <mat-icon>check</mat-icon>
+                            </button>
+                            <button class="edit-cancel-btn" 
+                                    (click)="cancelEditingPluralName()"
+                                    [matTooltip]="'product-edit-info.cancel-edit' | translate">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                        </div>
+                            </div>
+                            
+                            <!-- השם המקורי - מוצג רק אם שונה -->
+                            <p class="original-name-text modified" 
+                               [class.text-white]="isDarkMode"
+                               *ngIf="isPluralNameModified()">
+                                {{ 'product-edit-info.original-name' | translate }}: {{ originalPluralCategoryName }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- שם סידורי - מופיע רק כשאחד מהשמות שונה -->
+                <div class="serial-name-section" *ngIf="shouldShowSerialName()">
+                    <h6 class="category-field-title" [class.text-white]="isDarkMode">
+                        {{ 'product-edit-info.serial-name' | translate }}
+                    </h6>
+                    
+                    <div class="serial-name-content">
+                        <mat-form-field appearance="outline" class="serial-name-field">
+                            <input matInput 
+                                   [(ngModel)]="serialName"
+                                   [placeholder]="'product-edit-info.serial-name-placeholder' | translate">
+                        </mat-form-field>
+                    </div>
+                </div>
+                
+                <!-- קו הפרדה נוסף -->
+                <div class="section-divider" [class.dark-mode]="isDarkMode"></div>
+            </div>
+
+            <div class="dialog-subtitle-container" [class.text-white]="isDarkMode">
+                <div class="subtitle-flex">
+                    <span *ngIf="product?.model" class="model-info">
+                        {{ 'product-edit-info.model-label' | translate }}: {{ product.model }}
+                    </span>
+                    <span class="separator" *ngIf="product?.model">|</span>
+                    <span class="params-info">
+                        {{ getVisibleParams().length }} {{ 'product-edit-info.active-parameters' | translate }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- תצוגת הפרמטרים -->
+        <div class="parameters-grid" *ngIf="!isLoading">
+            <div class="parameter-card" 
+                 *ngFor="let param of getVisibleParams()" 
+                 [class.dark-mode]="isDarkMode">
+                
+                <!-- כותרת הפרמטר -->
+                <div class="param-header">
+                    <h5 class="param-name">{{ param.translatedName || param.name }}</h5>
+                </div>
+
+                <!-- תוכן הפרמטר -->
+                <div class="param-content">
+                    
+                    <!-- פרמטר מספרי רגיל -->
+                    <div *ngIf="!isArrayParameter(param) && !hasBeamSelection(param)" class="param-info">
+                        <div class="info-row">
+                            <span class="info-label">{{ 'product-edit-info.current-value' | translate }}:</span>
+                            <span class="info-value">{{ formatParameterValue(param) }}</span>
+                        </div>
+                        <div class="info-row" *ngIf="param.min !== undefined && param.max !== undefined">
+                            <span class="info-label range-label">{{ 'product-edit-info.range' | translate }}:</span>
+                            <span class="info-value range-value">{{ param.min }} - {{ param.max }} {{ param.unit || '' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- פרמטר עם בחירת קורה -->
+                    <div *ngIf="hasBeamSelection(param)" class="param-info">
+                        <div class="info-row">
+                            <span class="info-label">{{ 'product-edit-info.beam-type' | translate }}:</span>
+                            <span class="info-value">{{ getSelectedBeamName(param) }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">{{ 'product-edit-info.wood-type' | translate }}:</span>
+                            <span class="info-value">{{ getSelectedWoodType(param) }}</span>
+                        </div>
+                        <div class="info-row" *ngIf="!isArrayParameter(param) && needsValueDisplay(param)">
+                            <span class="info-label">{{ 'product-edit-info.current-value' | translate }}:</span>
+                            <span class="info-value">{{ formatParameterValue(param) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- פרמטר מערך (כמו מדפים) -->
+                    <div *ngIf="isArrayParameter(param)" class="param-info">
+                        <div class="array-values" *ngIf="param.default && param.default.length > 0">
+                            <div class="array-label">{{ 'product-edit-info.values' | translate }}:</div>
+                            <div class="array-items">
+                                <span class="array-item" *ngFor="let value of param.default; let i = index">
+                                    {{ i + 1 }}. {{ value }}{{ param.unit ? ' ' + param.unit : '' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- הודעה על פרמטרים מוסתרים -->
+        <div class="hidden-params-info" *ngIf="getHiddenParamsCount() > 0" [class.dark-mode]="isDarkMode">
+            <small>{{ getHiddenParamsCount() }} פרמטרים נוספים מוסתרים (isVisual)</small>
+        </div>
+
+        <!-- כפתורי פעולה -->
+        <div class="action-buttons-container">
+            <button class="action-btn save-btn" 
+                    (click)="saveChanges()"
+                    [disabled]="isSaving"
+                    [class.dark-mode]="isDarkMode">
+                <span *ngIf="!isSaving">{{ 'product-edit-info.save-changes' | translate }}</span>
+                <span *ngIf="isSaving">{{ 'product-edit-info.saving' | translate }}</span>
+            </button>
+            <button class="action-btn delete-btn" 
+                    (click)="deleteModel()"
+                    [disabled]="isSaving"
+                    [class.dark-mode]="isDarkMode">
+                {{ 'product-edit-info.delete-model' | translate }}
+            </button>
+        </div>
+
+        <!-- מצב טעינה -->
+        <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">{{ 'product-edit-info.loading' | translate }}</span>
+            </div>
+        </div>
+    </div>
+
+</div>
