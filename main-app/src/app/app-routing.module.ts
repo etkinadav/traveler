@@ -10,9 +10,11 @@ import { PrivacyPolicyComponent } from "./main-section/legal/privacy-policy/priv
 import { MyOrdersComponent } from "./other-pages/my-orders/my-orders.component";
 import { MyProfileComponent } from "./other-pages/my-profile/my-profile.component";
 import { QAndAComponent } from "./other-pages/q-and-a/q-and-a.component";
+import { HomeComponent } from "./home/home.component";
 
 const routes: Routes = [
-    { path: "", redirectTo: "/myorders", pathMatch: "full" },
+    { path: "", component: HomeComponent },
+    { path: "home", component: HomeComponent },
 
     { path: "myorders/:userId", component: MyOrdersComponent },
     { path: "myprofile/:userId", component: MyProfileComponent },

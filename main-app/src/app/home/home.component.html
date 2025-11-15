@@ -1,0 +1,20 @@
+<div class="fill-height px-2 pb-2 d-flex justify-content-center px-lg-5">
+  <section class="w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 60vh;">
+    
+    <!-- Title -->
+    <h2 class="mb-4 zx-text-large fw-bold text-center">
+      {{ 'home.select-service' | translate }}
+    </h2>
+
+    <!-- Service Button -->
+    <button 
+      mat-raised-button 
+      color="primary" 
+      class="zx-large-button mb-3"
+      (click)="selectService('translator')">
+      {{ 'home.service-translator' | translate }}
+    </button>
+
+  </section>
+</div>
+

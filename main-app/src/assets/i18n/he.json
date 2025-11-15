@@ -24,6 +24,8 @@
   "main-nav.greeting.afternoon": "אחרה\"צ טובים",
   "main-nav.greeting.evening": "ערב טוב",
   "main-nav.greeting.night": "לילה טוב",
+  "home.select-service": "בחר שירות",
+  "home.service-translator": "Translator",
   "log-in-dialog-prelogin-title": "התחברו למערכת בקלות",
   "log-in-dialog-prelogin-explanation": "בחרו דרך נוחה להתחברות או הרשמה – זה לא מחייב, והכול בלחיצה אחת בלבד.",
   "log-in-dialog-prelogin-with-google": "Google המשיכו עם",

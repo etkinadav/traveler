@@ -24,6 +24,8 @@
   "main-nav.greeting.afternoon": "بعد الظهر الخير",
   "main-nav.greeting.evening": "مساء الخير",
   "main-nav.greeting.night": "ليلة سعيدة",
+  "home.select-service": "اختر الخدمة",
+  "home.service-translator": "Translator",
   "log-in-dialog-prelogin-title": "تسجيل الدخول إلى النظام بسهولة",
   "log-in-dialog-prelogin-explanation": "اختر طريقة مريحة لتسجيل الدخول أو التسجيل - ليس إلزاميًا، وكل شيء بنقرة واحدة فقط.",
   "log-in-dialog-prelogin-with-google": "المتابعة مع Google",

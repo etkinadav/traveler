@@ -1,0 +1,22 @@
+.zx-large-button {
+  min-width: 200px;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+}
+
+.zx-text-large {
+  font-size: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .zx-text-large {
+    font-size: 2rem;
+  }
+  
+  .zx-large-button {
+    min-width: 250px;
+    padding: 16px 32px;
+    font-size: 1.2rem;
+  }
+}
+
