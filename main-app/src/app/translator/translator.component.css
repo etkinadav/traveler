@@ -127,6 +127,32 @@
   border-left: 4px solid #f44336;
 }
 
+.compact-history {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  border-left: 4px solid #4CAF50;
+}
+
+:host-context(.darkTheme) .compact-history {
+  background-color: #424242;
+  border-color: #616161;
+  border-left-color: #66BB6A;
+}
+
+.compact-history-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  color: #333;
+  font-family: monospace;
+}
+
+:host-context(.darkTheme) .compact-history-text {
+  color: #E0E0E0;
+}
+
 .history-list {
   display: flex;
   flex-direction: column;

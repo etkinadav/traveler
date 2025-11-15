@@ -164,6 +164,13 @@
             </div>
           </mat-card-header>
           <mat-card-content>
+            <!-- Compact History -->
+            <div *ngIf="getCompactHistory()" class="compact-history mb-3 p-2">
+              <p class="mb-0 compact-history-text" [dir]="isRTL ? 'rtl' : 'ltr'">
+                {{ getCompactHistory() }}
+              </p>
+            </div>
+            
             <div class="history-list play-style" [class.empty]="transcriptHistory.length === 0">
               <div 
                 *ngFor="let item of transcriptHistory; let last = last"

@@ -146,6 +146,16 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Clear previous error
     this.errorMessage = '';
     this.status = 'idle';
+    
+    // Reset counters and state
+    this.fullTranscriptText = '';
+    this.lastFullTextLength = 0;
+    this.transcriptHistory = [];
+    this.historyIdCounter = 0;
+    this.lowConfidenceCount = 0;
+    this.languageMismatchCount = 0;
+    this.lastLanguageCheck = '';
+    this.lastLanguageCheckTime = 0;
 
     // Start listening with both languages
     this.speechRecognitionService.startListening(this.selectedLanguageA, this.selectedLanguageB);
@@ -216,34 +226,55 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // Check for repetition patterns BEFORE processing
+    if (this.detectRepetitionPattern(cleanNewText)) {
+      console.log(`REPETITION_DETECTED: Skipping repetitive text: "${cleanNewText.substring(0, 50)}..."`);
+      return;
+    }
+    
     // If full text is empty, just set it to the new text
     if (!cleanFullText) {
       this.fullTranscriptText = cleanNewText;
-    console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
+      console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
+      
+      // Check and switch language based on the full text
+      this.checkFullTextLanguage();
+      
+      this.updateHistoryFromFullText();
+      this.cdr.detectChanges();
+      setTimeout(() => this.scrollToBottom(), 100);
+      return;
+    }
     
-    // Check and switch language based on the full text
-    this.checkFullTextLanguage();
-    
-    this.updateHistoryFromFullText();
-    this.cdr.detectChanges();
-    setTimeout(() => this.scrollToBottom(), 100);
-    return;
+    // Check if new text is a repetition loop (contains full text multiple times or similar pattern)
+    if (this.isRepetitionLoop(cleanFullText, cleanNewText)) {
+      console.log(`REPETITION_LOOP: Detected loop pattern, skipping update`);
+      return;
     }
     
     // Most common case: new text is an extension of the full text (starts with full text)
     // This happens when the recognition continues from where it left off
     if (cleanNewText.startsWith(cleanFullText)) {
+      // Extract only the NEW part
+      const addedPart = cleanNewText.slice(cleanFullText.length).trim();
+      
+      // Check if the added part is just a repetition of existing text
+      if (this.isRepetitiveAddition(cleanFullText, addedPart)) {
+        console.log(`REPETITIVE_ADDITION: Added part is repetitive, skipping`);
+        return;
+      }
+      
       // New text is an extension - just update to the new text
       this.fullTranscriptText = cleanNewText;
-    console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
-    
-    // Check and switch language based on the full text
-    this.checkFullTextLanguage();
-    
-    this.updateHistoryFromFullText();
-    this.cdr.detectChanges();
-    setTimeout(() => this.scrollToBottom(), 100);
-    return;
+      console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
+      
+      // Check and switch language based on the full text
+      this.checkFullTextLanguage();
+      
+      this.updateHistoryFromFullText();
+      this.cdr.detectChanges();
+      setTimeout(() => this.scrollToBottom(), 100);
+      return;
     }
     
     // Check if new text is already fully contained in full text
@@ -252,12 +283,15 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       // New text is already in full text
       // Only update if new text is significantly longer (contains full text + more)
       if (cleanNewText.length > cleanFullText.length * 1.1) {
-        // New text is much longer - it might be a corrected/expanded version
-        this.fullTranscriptText = cleanNewText;
-        console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
-        this.updateHistoryFromFullText();
-        this.cdr.detectChanges();
-        setTimeout(() => this.scrollToBottom(), 100);
+        // Check for repetition before updating
+        if (!this.isRepetitionLoop(cleanFullText, cleanNewText)) {
+          // New text is much longer - it might be a corrected/expanded version
+          this.fullTranscriptText = cleanNewText;
+          console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
+          this.updateHistoryFromFullText();
+          this.cdr.detectChanges();
+          setTimeout(() => this.scrollToBottom(), 100);
+        }
       }
       // Otherwise, it's already contained - no update needed
       return;
@@ -291,11 +325,17 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       const addedWords = newWords.slice(maxOverlapWords);
       if (addedWords.length > 0) {
         const addedText = addedWords.join(' ');
-        this.fullTranscriptText = cleanFullText + ' ' + addedText;
-        console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
-        this.updateHistoryFromFullText();
-        this.cdr.detectChanges();
-        setTimeout(() => this.scrollToBottom(), 100);
+        
+        // Check if added text is repetitive
+        if (!this.isRepetitiveAddition(cleanFullText, addedText)) {
+          this.fullTranscriptText = cleanFullText + ' ' + addedText;
+          console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
+          this.updateHistoryFromFullText();
+          this.cdr.detectChanges();
+          setTimeout(() => this.scrollToBottom(), 100);
+        } else {
+          console.log(`REPETITIVE_ADDITION: Added text is repetitive, skipping`);
+        }
       }
     } else {
       // No overlap found - this might be a completely new phrase
@@ -312,6 +352,156 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       }
       // If similarity is high, it might be a duplicate or correction - skip it
     }
+  }
+  
+  /**
+   * Detects if text contains repetition patterns (e.g., "can you can you can you")
+   */
+  private detectRepetitionPattern(text: string): boolean {
+    if (!text || text.length < 10) {
+      return false;
+    }
+    
+    const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+    if (words.length < 3) {
+      return false;
+    }
+    
+    // Check for repeated 2-word or 3-word phrases
+    for (let phraseLength = 2; phraseLength <= 3; phraseLength++) {
+      for (let i = 0; i <= words.length - phraseLength * 2; i++) {
+        const phrase1 = words.slice(i, i + phraseLength).join(' ');
+        const phrase2 = words.slice(i + phraseLength, i + phraseLength * 2).join(' ');
+        
+        if (phrase1 === phrase2) {
+          // Found a repetition - check if it continues
+          let repetitionCount = 2;
+          for (let j = i + phraseLength * 2; j <= words.length - phraseLength; j += phraseLength) {
+            const nextPhrase = words.slice(j, j + phraseLength).join(' ');
+            if (nextPhrase === phrase1) {
+              repetitionCount++;
+            } else {
+              break;
+            }
+          }
+          
+          // If we have 3+ repetitions, it's a pattern
+          if (repetitionCount >= 3) {
+            console.log(`REPETITION_PATTERN: Found ${repetitionCount} repetitions of "${phrase1}"`);
+            return true;
+          }
+        }
+      }
+    }
+    
+    // Check for character-level repetition (e.g., "aaaa", "can can can")
+    const normalizedText = text.toLowerCase().replace(/\s+/g, ' ');
+    for (let i = 0; i < normalizedText.length - 6; i++) {
+      const substr = normalizedText.substring(i, i + 3);
+      const nextSubstr = normalizedText.substring(i + 3, i + 6);
+      if (substr === nextSubstr && substr.length > 0 && !substr.match(/^[.,!?'"\s]+$/)) {
+        // Check if this pattern repeats more
+        let count = 2;
+        for (let j = i + 6; j < normalizedText.length - 3; j += 3) {
+          if (normalizedText.substring(j, j + 3) === substr) {
+            count++;
+          } else {
+            break;
+          }
+        }
+        if (count >= 3) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Checks if newText is a repetition loop of fullText
+   */
+  private isRepetitionLoop(fullText: string, newText: string): boolean {
+    if (!fullText || !newText) {
+      return false;
+    }
+    
+    // Check if newText contains fullText multiple times
+    const fullTextLower = fullText.toLowerCase();
+    const newTextLower = newText.toLowerCase();
+    
+    // Count how many times fullText appears in newText
+    let count = 0;
+    let index = 0;
+    while ((index = newTextLower.indexOf(fullTextLower, index)) !== -1) {
+      count++;
+      index += fullTextLower.length;
+    }
+    
+    if (count >= 2) {
+      console.log(`REPETITION_LOOP: fullText appears ${count} times in newText`);
+      return true;
+    }
+    
+    // Check if newText is fullText with small additions that repeat
+    if (newTextLower.startsWith(fullTextLower)) {
+      const addedPart = newTextLower.slice(fullTextLower.length).trim();
+      if (addedPart && fullTextLower.includes(addedPart)) {
+        // The added part already exists in fullText - likely a loop
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Checks if addedPart is a repetitive addition to fullText
+   */
+  private isRepetitiveAddition(fullText: string, addedPart: string): boolean {
+    if (!addedPart || addedPart.length < 3) {
+      return false;
+    }
+    
+    const fullTextLower = fullText.toLowerCase();
+    const addedPartLower = addedPart.toLowerCase();
+    
+    // Check if addedPart contains words that already appear multiple times in fullText
+    const addedWords = addedPartLower.split(/\s+/).filter(w => w.length > 2);
+    const fullWords = fullTextLower.split(/\s+/);
+    
+    let repeatedWordCount = 0;
+    for (const word of addedWords) {
+      const countInFull = fullWords.filter(w => w === word).length;
+      if (countInFull >= 3) {
+        repeatedWordCount++;
+      }
+    }
+    
+    // If more than 50% of added words are already repeated in fullText, it's likely repetitive
+    if (addedWords.length > 0 && repeatedWordCount / addedWords.length > 0.5) {
+      return true;
+    }
+    
+    // Check if addedPart itself contains repetition patterns
+    if (this.detectRepetitionPattern(addedPart)) {
+      return true;
+    }
+    
+    // Check if addedPart is a substring that appears multiple times in fullText
+    if (fullTextLower.includes(addedPartLower)) {
+      let count = 0;
+      let index = 0;
+      while ((index = fullTextLower.indexOf(addedPartLower, index)) !== -1) {
+        count++;
+        index += addedPartLower.length;
+      }
+      if (count >= 2) {
+        return true;
+      }
+    }
+    
+    return false;
   }
   
   private calculateTextSimilarity(text1: string, text2: string): number {
@@ -332,19 +522,39 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   private lastLowConfidenceText: string = '';
   
   private checkLanguageByConfidence(confidence: number, text: string, currentLanguage: string): void {
-    // Check if the detected language from text differs from current language
+    if (!text || text.trim().length === 0) {
+      return;
+    }
+    
+    // Use the new sophisticated analysis on the full transcript text
+    // This analyzes the last 3 words against multiple languages
+    const last3WordsAnalysis = this.analyzeLastWordsForLanguage(this.fullTranscriptText || text, 3);
+    
+    // Also use the simple detection as a fallback
     const detectedLanguage = this.detectLanguageFromText(text);
     
-    if (text && text.trim().length > 0) {
+    // Prefer the sophisticated analysis if available
+    const finalDetectedLanguage = last3WordsAnalysis.detectedLanguage || detectedLanguage;
+    
+    if (finalDetectedLanguage) {
       // Always check if detected language differs from current language
-      if (detectedLanguage && detectedLanguage !== currentLanguage) {
+      if (finalDetectedLanguage !== currentLanguage) {
         this.languageMismatchCount++;
-        console.log(`LANG_MISMATCH: Detected (${detectedLanguage}) != Current (${currentLanguage}), text="${text}", count=${this.languageMismatchCount}, confidence=${confidence.toFixed(3)}`);
+        console.log(`LANG_MISMATCH: Detected (${finalDetectedLanguage}) != Current (${currentLanguage}), text="${text}", count=${this.languageMismatchCount}, confidence=${confidence.toFixed(3)}, analysisConfidence=${last3WordsAnalysis.confidence.toFixed(3)}`);
         
-        // If confidence is also low, switch immediately
-        if (confidence < 0.6) {
-          console.log(`LANG_MISMATCH: Low confidence (${confidence.toFixed(3)}) + language mismatch - switching immediately`);
-          this.checkAndSwitchLanguage(detectedLanguage);
+        // If confidence is low OR analysis confidence is high, switch immediately
+        if (confidence < 0.6 || last3WordsAnalysis.confidence > 0.7) {
+          console.log(`LANG_MISMATCH: Low recognition confidence (${confidence.toFixed(3)}) OR high analysis confidence (${last3WordsAnalysis.confidence.toFixed(3)}) + language mismatch - switching immediately`);
+          this.checkAndSwitchLanguage(finalDetectedLanguage);
+          this.languageMismatchCount = 0;
+          this.lowConfidenceCount = 0;
+          return;
+        }
+        
+        // If we detected a language change point, switch immediately
+        if (last3WordsAnalysis.changePoint > 0) {
+          console.log(`LANG_MISMATCH: Language change detected at word ${last3WordsAnalysis.changePoint} - switching to ${finalDetectedLanguage}`);
+          this.checkAndSwitchLanguage(finalDetectedLanguage);
           this.languageMismatchCount = 0;
           this.lowConfidenceCount = 0;
           return;
@@ -352,40 +562,47 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         
         // Even with higher confidence, if we consistently detect different language, switch
         if (this.languageMismatchCount >= 2) {
-          console.log(`LANG_MISMATCH: Consistent mismatch (${this.languageMismatchCount} times) - switching to ${detectedLanguage}`);
-          this.checkAndSwitchLanguage(detectedLanguage);
+          console.log(`LANG_MISMATCH: Consistent mismatch (${this.languageMismatchCount} times) - switching to ${finalDetectedLanguage}`);
+          this.checkAndSwitchLanguage(finalDetectedLanguage);
           this.languageMismatchCount = 0;
           this.lowConfidenceCount = 0;
           return;
         }
-      } else if (detectedLanguage === currentLanguage) {
+      } else if (finalDetectedLanguage === currentLanguage) {
         // Language matches - reset mismatch counter
         if (this.languageMismatchCount > 0) {
           console.log(`LANG_MATCH: Language matches (${currentLanguage}), resetting mismatch counter`);
           this.languageMismatchCount = 0;
         }
       }
+    }
+    
+    // Low confidence suggests wrong language
+    if (confidence < 0.6) {
+      this.lowConfidenceCount++;
+      this.lastLowConfidenceText = text;
       
-      // Low confidence suggests wrong language
-      if (confidence < 0.6) {
-        this.lowConfidenceCount++;
-        this.lastLowConfidenceText = text;
-        
-        console.log(`LOW_CONFIDENCE: confidence=${confidence.toFixed(3)}, text="${text}", currentLang=${currentLanguage}, count=${this.lowConfidenceCount}`);
-        
-        // If we have multiple low confidence results, try to detect the language from text
-        if (this.lowConfidenceCount >= 3 && detectedLanguage && detectedLanguage !== currentLanguage) {
+      console.log(`LOW_CONFIDENCE: confidence=${confidence.toFixed(3)}, text="${text}", currentLang=${currentLanguage}, count=${this.lowConfidenceCount}`);
+      
+      // If we have multiple low confidence results, use the sophisticated analysis
+      if (this.lowConfidenceCount >= 2) {
+        if (last3WordsAnalysis.detectedLanguage && last3WordsAnalysis.detectedLanguage !== currentLanguage) {
+          console.log(`LOW_CONFIDENCE: Multiple low confidence (${this.lowConfidenceCount}) + language mismatch from analysis - switching to ${last3WordsAnalysis.detectedLanguage}`);
+          this.checkAndSwitchLanguage(last3WordsAnalysis.detectedLanguage);
+          this.lowConfidenceCount = 0;
+          this.languageMismatchCount = 0;
+        } else if (detectedLanguage && detectedLanguage !== currentLanguage) {
           console.log(`LOW_CONFIDENCE: Multiple low confidence (${this.lowConfidenceCount}) + language mismatch - switching to ${detectedLanguage}`);
           this.checkAndSwitchLanguage(detectedLanguage);
           this.lowConfidenceCount = 0;
           this.languageMismatchCount = 0;
         }
-      } else if (confidence >= 0.7) {
-        // High confidence - reset the counter if language matches
-        if (detectedLanguage === currentLanguage && this.lowConfidenceCount > 0) {
-          console.log(`HIGH_CONFIDENCE: confidence=${confidence.toFixed(3)}, language matches - resetting counters`);
-          this.lowConfidenceCount = 0;
-        }
+      }
+    } else if (confidence >= 0.7) {
+      // High confidence - reset the counter if language matches
+      if (finalDetectedLanguage === currentLanguage && this.lowConfidenceCount > 0) {
+        console.log(`HIGH_CONFIDENCE: confidence=${confidence.toFixed(3)}, language matches - resetting counters`);
+        this.lowConfidenceCount = 0;
       }
     }
   }
@@ -446,33 +663,258 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Get only the NEW part that was just added (not the entire text)
-    const currentLength = this.fullTranscriptText.length;
-    const newPart = currentLength > this.lastFullTextLength 
-      ? this.fullTranscriptText.slice(this.lastFullTextLength).trim()
-      : this.fullTranscriptText.slice(-30).trim(); // Fallback: last 30 chars
+    // NEW APPROACH: Analyze the last 3 words against multiple languages
+    // This helps detect language changes more accurately
+    const last3WordsAnalysis = this.analyzeLastWordsForLanguage(this.fullTranscriptText, 3);
     
-    this.lastFullTextLength = currentLength;
-    
-    if (!newPart || newPart.length === 0) {
-      return;
-    }
-    
-    console.log(`CHECK_FULL_LANG: Checking new part: "${newPart}"`);
-    const detectedLanguage = this.detectLanguageFromText(newPart);
-    console.log(`CHECK_FULL_LANG: Detected language: ${detectedLanguage}`);
-    
-    if (detectedLanguage) {
-      this.checkAndSwitchLanguage(detectedLanguage);
+    if (last3WordsAnalysis.detectedLanguage) {
+      console.log(`CHECK_FULL_LANG: Last 3 words analysis - Detected: ${last3WordsAnalysis.detectedLanguage}, Confidence: ${last3WordsAnalysis.confidence.toFixed(3)}, ChangePoint: ${last3WordsAnalysis.changePoint}`);
+      
+      // If confidence is high or we detected a language change, switch
+      if (last3WordsAnalysis.confidence > 0.6 || last3WordsAnalysis.changePoint > 0) {
+        this.checkAndSwitchLanguage(last3WordsAnalysis.detectedLanguage);
+      }
     } else {
-      // If we can't detect from new part, check last 20 chars of full text
-      const last20Chars = this.fullTranscriptText.slice(-20).trim();
-      const fallbackLanguage = this.detectLanguageFromText(last20Chars);
-      console.log(`CHECK_FULL_LANG: Fallback check (last 20 chars): "${last20Chars}" -> ${fallbackLanguage}`);
-      if (fallbackLanguage) {
-        this.checkAndSwitchLanguage(fallbackLanguage);
+      // Fallback: use the old method
+      const currentLength = this.fullTranscriptText.length;
+      const newPart = currentLength > this.lastFullTextLength 
+        ? this.fullTranscriptText.slice(this.lastFullTextLength).trim()
+        : this.fullTranscriptText.slice(-30).trim();
+      
+      this.lastFullTextLength = currentLength;
+      
+      if (newPart && newPart.length > 0) {
+        console.log(`CHECK_FULL_LANG: Fallback - Checking new part: "${newPart}"`);
+        const detectedLanguage = this.detectLanguageFromText(newPart);
+        console.log(`CHECK_FULL_LANG: Fallback - Detected language: ${detectedLanguage}`);
+        
+        if (detectedLanguage) {
+          this.checkAndSwitchLanguage(detectedLanguage);
+        }
       }
     }
+  }
+  
+  /**
+   * Analyzes the last N words of the text against multiple languages to determine
+   * the most likely language and the exact point where language changed.
+   * This is more sophisticated than simple character pattern matching.
+   */
+  private analyzeLastWordsForLanguage(text: string, wordCount: number = 3): {
+    detectedLanguage: string | null;
+    confidence: number;
+    changePoint: number; // Index in words where language changed (0 = no change)
+  } {
+    if (!text || text.trim().length === 0) {
+      return { detectedLanguage: null, confidence: 0, changePoint: 0 };
+    }
+    
+    const cleanText = text.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
+    const words = cleanText.split(/\s+/).filter(w => w.length > 0);
+    
+    if (words.length === 0) {
+      return { detectedLanguage: null, confidence: 0, changePoint: 0 };
+    }
+    
+    // Get the last N words
+    const lastWords = words.slice(-wordCount);
+    if (lastWords.length === 0) {
+      return { detectedLanguage: null, confidence: 0, changePoint: 0 };
+    }
+    
+    // Define language patterns for multiple languages
+    const languagePatterns = [
+      {
+        name: 'hebrew',
+        codes: ['he-IL', 'iw-IL'],
+        pattern: /[\u0590-\u05FF]/,
+        countPattern: /[\u0590-\u05FF]/g,
+        selectedCode: this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-') 
+          ? this.selectedLanguageA 
+          : (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-') ? this.selectedLanguageB : 'he-IL')
+      },
+      {
+        name: 'english',
+        codes: ['en-US', 'en-GB'],
+        pattern: /[a-zA-Z]/,
+        countPattern: /[a-zA-Z]/g,
+        selectedCode: this.selectedLanguageA.startsWith('en-') 
+          ? this.selectedLanguageA 
+          : (this.selectedLanguageB.startsWith('en-') ? this.selectedLanguageB : 'en-US')
+      },
+      {
+        name: 'arabic',
+        codes: ['ar-SA', 'ar-EG', 'ar-IL'],
+        pattern: /[\u0600-\u06FF]/,
+        countPattern: /[\u0600-\u06FF]/g,
+        selectedCode: this.selectedLanguageA.startsWith('ar-') 
+          ? this.selectedLanguageA 
+          : (this.selectedLanguageB.startsWith('ar-') ? this.selectedLanguageB : 'ar-SA')
+      },
+      {
+        name: 'french',
+        codes: ['fr-FR'],
+        pattern: /[a-zA-Zàâäéèêëïîôùûüÿç]/,
+        countPattern: /[a-zA-Zàâäéèêëïîôùûüÿç]/g,
+        selectedCode: 'fr-FR'
+      },
+      {
+        name: 'spanish',
+        codes: ['es-ES', 'es-MX'],
+        pattern: /[a-zA-Záéíóúñü]/,
+        countPattern: /[a-zA-Záéíóúñü]/g,
+        selectedCode: 'es-ES'
+      },
+      {
+        name: 'german',
+        codes: ['de-DE'],
+        pattern: /[a-zA-Zäöüß]/,
+        countPattern: /[a-zA-Zäöüß]/g,
+        selectedCode: 'de-DE'
+      },
+      {
+        name: 'russian',
+        codes: ['ru-RU'],
+        pattern: /[\u0400-\u04FF]/,
+        countPattern: /[\u0400-\u04FF]/g,
+        selectedCode: 'ru-RU'
+      },
+      {
+        name: 'chinese',
+        codes: ['zh-CN', 'zh-TW'],
+        pattern: /[\u4E00-\u9FFF]/,
+        countPattern: /[\u4E00-\u9FFF]/g,
+        selectedCode: 'zh-CN'
+      },
+      {
+        name: 'japanese',
+        codes: ['ja-JP'],
+        pattern: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/,
+        countPattern: /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/g,
+        selectedCode: 'ja-JP'
+      },
+      {
+        name: 'korean',
+        codes: ['ko-KR'],
+        pattern: /[\uAC00-\uD7AF]/,
+        countPattern: /[\uAC00-\uD7AF]/g,
+        selectedCode: 'ko-KR'
+      }
+    ];
+    
+    // Analyze each word individually
+    const wordScores: Array<{ word: string; language: string; score: number }> = [];
+    
+    for (const word of lastWords) {
+      const wordScoresForWord: { [lang: string]: number } = {};
+      
+      for (const langPattern of languagePatterns) {
+        const matches = word.match(langPattern.countPattern);
+        const matchCount = matches ? matches.length : 0;
+        const totalChars = word.replace(/[\s.,!?'"-]/g, '').length;
+        
+        if (totalChars > 0) {
+          // Score based on percentage of matching characters
+          const score = matchCount / totalChars;
+          wordScoresForWord[langPattern.name] = score;
+        }
+      }
+      
+      // Find the best matching language for this word
+      let bestLang = '';
+      let bestScore = 0;
+      for (const [lang, score] of Object.entries(wordScoresForWord)) {
+        if (score > bestScore) {
+          bestScore = score;
+          bestLang = lang;
+        }
+      }
+      
+      if (bestLang && bestScore > 0.5) {
+        const langPattern = languagePatterns.find(lp => lp.name === bestLang);
+        if (langPattern) {
+          wordScores.push({
+            word: word,
+            language: langPattern.selectedCode,
+            score: bestScore
+          });
+        }
+      }
+    }
+    
+    if (wordScores.length === 0) {
+      return { detectedLanguage: null, confidence: 0, changePoint: 0 };
+    }
+    
+    // Find the dominant language in the last words
+    const languageCounts: { [lang: string]: { count: number; totalScore: number } } = {};
+    
+    for (const ws of wordScores) {
+      if (!languageCounts[ws.language]) {
+        languageCounts[ws.language] = { count: 0, totalScore: 0 };
+      }
+      languageCounts[ws.language].count++;
+      languageCounts[ws.language].totalScore += ws.score;
+    }
+    
+    // Find the language with highest count and score
+    let bestLanguage = '';
+    let bestCount = 0;
+    let bestTotalScore = 0;
+    
+    for (const [lang, data] of Object.entries(languageCounts)) {
+      if (data.count > bestCount || (data.count === bestCount && data.totalScore > bestTotalScore)) {
+        bestCount = data.count;
+        bestTotalScore = data.totalScore;
+        bestLanguage = lang;
+      }
+    }
+    
+    // Calculate confidence (average score of words in the best language)
+    const confidence = bestLanguage && bestCount > 0 
+      ? languageCounts[bestLanguage].totalScore / bestCount 
+      : 0;
+    
+    // Find the change point: where did the language change?
+    // Look backwards from the last word to find where language changed
+    let changePoint = 0;
+    if (wordScores.length > 1 && bestLanguage) {
+      // Check if all words are in the same language
+      const allSameLanguage = wordScores.every(ws => ws.language === bestLanguage);
+      
+      if (!allSameLanguage) {
+        // Find the first word (from the end) that's in a different language
+        for (let i = wordScores.length - 1; i >= 0; i--) {
+          if (wordScores[i].language !== bestLanguage) {
+            changePoint = i + 1; // Language changed after this word
+            break;
+          }
+        }
+      }
+    }
+    
+    // Only return a language if it matches one of our selected languages
+    const matchesLanguageA = bestLanguage === this.selectedLanguageA ||
+      (bestLanguage.startsWith('he-') && this.selectedLanguageA.startsWith('he-')) ||
+      (bestLanguage.startsWith('iw-') && this.selectedLanguageA.startsWith('iw-')) ||
+      (bestLanguage.startsWith('ar-') && this.selectedLanguageA.startsWith('ar-')) ||
+      (bestLanguage.startsWith('en-') && this.selectedLanguageA.startsWith('en-'));
+    
+    const matchesLanguageB = bestLanguage === this.selectedLanguageB ||
+      (bestLanguage.startsWith('he-') && this.selectedLanguageB.startsWith('he-')) ||
+      (bestLanguage.startsWith('iw-') && this.selectedLanguageB.startsWith('iw-')) ||
+      (bestLanguage.startsWith('ar-') && this.selectedLanguageB.startsWith('ar-')) ||
+      (bestLanguage.startsWith('en-') && this.selectedLanguageB.startsWith('en-'));
+    
+    if (matchesLanguageA || matchesLanguageB) {
+      return {
+        detectedLanguage: bestLanguage,
+        confidence: confidence,
+        changePoint: changePoint
+      };
+    }
+    
+    return { detectedLanguage: null, confidence: 0, changePoint: 0 };
   }
   
   private updateHistoryFromFullText(): void {
@@ -504,28 +946,74 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   
   private splitTextByLanguage(text: string): Array<{ text: string, language: string }> {
     const segments: Array<{ text: string, language: string }> = [];
-    const words = text.split(/\s+/);
+    const words = text.split(/\s+/).filter(w => w.length > 0);
     
+    if (words.length === 0) {
+      return segments;
+    }
+    
+    // Process word by word with improved language detection
     let currentSegment = '';
     let currentLanguage = '';
     
-    for (const word of words) {
-      const wordLanguage = this.detectLanguageFromText(word);
-      const segmentLanguage = currentSegment ? this.detectLanguageFromText(currentSegment) : '';
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      
+      // Detect language of the current word more accurately
+      // First, try to detect from the word itself
+      let wordLanguage = this.detectLanguageFromText(word);
+      
+      // If we couldn't detect from single word, use context (last 2-3 words)
+      if (!wordLanguage && i > 0) {
+        const contextStart = Math.max(0, i - 2);
+        const contextWords = words.slice(contextStart, i + 1);
+        const contextText = contextWords.join(' ');
+        const analysis = this.analyzeLastWordsForLanguage(contextText, contextWords.length);
+        wordLanguage = analysis.detectedLanguage || '';
+      }
+      
+      // If still no language, check if word has clear language markers
+      if (!wordLanguage) {
+        // Check for Hebrew characters
+        if (/[\u0590-\u05FF]/.test(word)) {
+          wordLanguage = this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-') 
+            ? this.selectedLanguageA 
+            : (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-') ? this.selectedLanguageB : 'he-IL');
+        }
+        // Check for Arabic characters
+        else if (/[\u0600-\u06FF]/.test(word)) {
+          wordLanguage = this.selectedLanguageA.startsWith('ar-') 
+            ? this.selectedLanguageA 
+            : (this.selectedLanguageB.startsWith('ar-') ? this.selectedLanguageB : 'ar-SA');
+        }
+        // Check for Latin/English characters
+        else if (/[a-zA-Z]/.test(word)) {
+          wordLanguage = this.selectedLanguageA.startsWith('en-') 
+            ? this.selectedLanguageA 
+            : (this.selectedLanguageB.startsWith('en-') ? this.selectedLanguageB : 'en-US');
+        }
+      }
+      
+      // Determine if this word should start a new segment
+      const shouldStartNewSegment = this.shouldStartNewSegment(currentLanguage, wordLanguage, word);
       
       if (!currentSegment) {
         // Start new segment
         currentSegment = word;
-        currentLanguage = wordLanguage || segmentLanguage;
-      } else if (wordLanguage === segmentLanguage || (!wordLanguage && segmentLanguage)) {
+        currentLanguage = wordLanguage || '';
+      } else if (!shouldStartNewSegment) {
         // Same language - add to current segment
         currentSegment += ' ' + word;
+        // Update language if we got a better detection
+        if (wordLanguage && !currentLanguage) {
+          currentLanguage = wordLanguage;
+        }
       } else {
         // Language changed - save current segment and start new one
         if (currentSegment) {
           segments.push({
             text: currentSegment.trim(),
-            language: currentLanguage || segmentLanguage || ''
+            language: currentLanguage || ''
           });
         }
         currentSegment = word;
@@ -542,6 +1030,73 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     }
     
     return segments;
+  }
+  
+  /**
+   * Determines if a new segment should be started based on language change
+   */
+  private shouldStartNewSegment(currentLanguage: string, wordLanguage: string, word: string): boolean {
+    // If no current language, don't start new segment
+    if (!currentLanguage) {
+      return false;
+    }
+    
+    // If no word language detected, don't start new segment (might be punctuation or number)
+    if (!wordLanguage) {
+      return false;
+    }
+    
+    // If languages are the same, don't start new segment
+    if (currentLanguage === wordLanguage) {
+      return false;
+    }
+    
+    // Check if languages are compatible (e.g., both Hebrew variants)
+    const currentIsHebrew = currentLanguage.startsWith('he-') || currentLanguage.startsWith('iw-');
+    const wordIsHebrew = wordLanguage.startsWith('he-') || wordLanguage.startsWith('iw-');
+    if (currentIsHebrew && wordIsHebrew) {
+      return false;
+    }
+    
+    const currentIsEnglish = currentLanguage.startsWith('en-');
+    const wordIsEnglish = wordLanguage.startsWith('en-');
+    if (currentIsEnglish && wordIsEnglish) {
+      return false;
+    }
+    
+    const currentIsArabic = currentLanguage.startsWith('ar-');
+    const wordIsArabic = wordLanguage.startsWith('ar-');
+    if (currentIsArabic && wordIsArabic) {
+      return false;
+    }
+    
+    // If we have a clear language mismatch (e.g., Hebrew vs English), start new segment
+    // Check character patterns to be sure
+    const hasHebrewChars = /[\u0590-\u05FF]/.test(word);
+    const hasArabicChars = /[\u0600-\u06FF]/.test(word);
+    const hasLatinChars = /[a-zA-Z]/.test(word);
+    
+    const currentIsHebrewLang = currentIsHebrew;
+    const currentIsArabicLang = currentIsArabic;
+    const currentIsEnglishLang = currentIsEnglish;
+    
+    // If current is Hebrew and word has Latin chars (English), start new segment
+    if (currentIsHebrewLang && hasLatinChars && !hasHebrewChars) {
+      return true;
+    }
+    
+    // If current is English and word has Hebrew chars, start new segment
+    if (currentIsEnglishLang && hasHebrewChars && !hasLatinChars) {
+      return true;
+    }
+    
+    // If current is Arabic and word has different script, start new segment
+    if (currentIsArabicLang && ((hasHebrewChars && !hasArabicChars) || (hasLatinChars && !hasArabicChars))) {
+      return true;
+    }
+    
+    // If languages are different and we detected them, start new segment
+    return true;
   }
   
   private getSpeakerForLanguage(language: string): 'A' | 'B' {
@@ -567,6 +1122,10 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.historyIdCounter = 0;
     this.fullTranscriptText = '';
     this.lastFullTextLength = 0;
+    this.lowConfidenceCount = 0;
+    this.languageMismatchCount = 0;
+    this.lastLanguageCheck = '';
+    this.lastLanguageCheckTime = 0;
   }
 
   copyToClipboard(): void {
@@ -594,6 +1153,17 @@ export class TranslatorComponent implements OnInit, OnDestroy {
 
   getSpeakerName(speaker: 'A' | 'B'): string {
     return speaker === 'A' ? 'דובר א\'' : 'דובר ב\'';
+  }
+
+  getCompactHistory(): string {
+    if (this.transcriptHistory.length === 0) {
+      return '';
+    }
+    
+    return this.transcriptHistory.map(item => {
+      const speakerLabel = `(${item.speaker})`;
+      return `${speakerLabel}${item.text}`;
+    }).join('');
   }
 
   private detectLanguageFromText(text: string): string {
