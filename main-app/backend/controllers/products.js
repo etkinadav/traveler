@@ -10,21 +10,7 @@ exports.getAllProducts = async (req, res, next) => {
         const products = await Product.find({});
         console.log(`Found ${products.length} products`);
         
-        // Populate beams for each product's params
-        const Beam = require('../models/beam');
-        const productsPopulated = await Promise.all(products.map(async product => {
-            const productObj = product.toObject();
-            const paramsPopulated = await Promise.all(productObj.params.map(async param => {
-                if ((param.type === 'beamArray' || param.type === 'beamSingle') && Array.isArray(param.beams) && param.beams.length > 0) {
-                    param.beams = await Beam.find({ _id: { $in: param.beams } });
-                }
-                return param;
-            }));
-            productObj.params = paramsPopulated;
-            return productObj;
-        }));
-        
-        res.status(200).json(productsPopulated);
+        res.status(200).json(products);
     } catch (error) {
         console.error('Error fetching all products:', error);
         res.status(500).json({ message: "Error fetching products", error: error.message });
@@ -47,16 +33,6 @@ exports.getProductById = async (req, res, next) => {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        // Populate beams for each param with type beamArray or beamSingle
-        const Beam = require('../models/beam');
-        const paramsPopulated = await Promise.all(product.params.map(async param => {
-            if ((param.type === 'beamArray' || param.type === 'beamSingle') && Array.isArray(param.beams) && param.beams.length > 0) {
-                param.beams = await Beam.find({ _id: { $in: param.beams } });
-            }
-            return param;
-        }));
-        product = product.toObject();
-        product.params = paramsPopulated;
         res.status(200).json(product);
     } catch (error) {
         console.error('Error fetching product:', error);
@@ -128,17 +104,12 @@ exports.saveChanges = async (req, res, next) => {
         
         if (parameters && parameters.length > 0) {
             console.log('SAVE_PRO_BACK - Parameters breakdown:', JSON.stringify({
-                beamArrayCount: parameters.filter(p => p.type === 'beamArray').length,
-                beamSingleCount: parameters.filter(p => p.type === 'beamSingle').length,
                 numericCount: parameters.filter(p => typeof p.type === 'number' || p.type === '0' || p.type === '1' || p.type === '2').length,
                 allParameters: parameters.map(p => ({
                     name: p.name,
                     type: p.type,
                     hasValue: p.value !== undefined,
                     value: p.value,
-                    hasBeamConfiguration: !!p.beamConfiguration,
-                    beamConfiguration: p.beamConfiguration,
-                    selectedBeamIndex: p.selectedBeamIndex,
                     selectedTypeIndex: p.selectedTypeIndex
                 }))
             }, null, 2));
@@ -174,28 +145,10 @@ exports.saveChanges = async (req, res, next) => {
                 name: p.name,
                 type: p.type,
                 hasConfigurations: !!p.configurations,
-                configurationsLength: p.configurations?.length || 0,
-                hasBeamsConfigurations: !!p.beamsConfigurations,
-                beamsConfigurationsLength: p.beamsConfigurations?.length || 0
+                configurationsLength: p.configurations?.length || 0
             })) || []
         }, null, 2));
 
-        // 🔍 בדיקה מפורטת של פרמטר shelfs במאגר
-        const shelfsParam = product.params?.find(p => p.name === 'shelfs');
-        if (shelfsParam) {
-            console.log('SAVE_PRO_BACK - SHELFS PARAM IN DATABASE:', JSON.stringify({
-                name: shelfsParam.name,
-                type: shelfsParam.type,
-                hasConfigurations: !!shelfsParam.configurations,
-                configurationsLength: shelfsParam.configurations?.length || 0,
-                configurations: shelfsParam.configurations || 'NO_CONFIGURATIONS',
-                hasBeamsConfigurations: !!shelfsParam.beamsConfigurations,
-                beamsConfigurationsLength: shelfsParam.beamsConfigurations?.length || 0,
-                beamsConfigurations: shelfsParam.beamsConfigurations || 'NO_BEAMS_CONFIGURATIONS'
-            }, null, 2));
-        } else {
-            console.log('SAVE_PRO_BACK - ERROR: shelfs parameter not found in database!');
-        }
 
         // קביעה האם זה דגם חדש
         const isNewModel = productName.status === 'new';
@@ -217,55 +170,19 @@ exports.saveChanges = async (req, res, next) => {
             isNewModel
         });
 
-        // 🎯 ניקוי beamsConfigurations מפרמטרים מספריים (למנוע nulls)
-        console.log('SAVE_PRO_BACK - Cleaning beamsConfigurations from numeric parameters');
-        product.params.forEach(param => {
-            const paramType = typeof param.type === 'string' ? param.type : String(param.type);
-            // אם זה פרמטר מספרי (0, 1, 2) ולא beamSingle או beamArray
-            if ((paramType === '0' || paramType === '1' || paramType === '2' || 
-                 paramType === 0 || paramType === 1 || paramType === 2) &&
-                paramType !== 'beamSingle' && paramType !== 'beamArray') {
-                // אם יש beamsConfigurations עם nulls או ערכים, נמחק
-                if (param.beamsConfigurations && Array.isArray(param.beamsConfigurations)) {
-                    const hasNulls = param.beamsConfigurations.some(val => val === null);
-                    if (hasNulls || param.beamsConfigurations.length > 0) {
-                        delete param.beamsConfigurations;
-                        console.log(`SAVE_PRO_BACK - Removed beamsConfigurations from numeric parameter: ${param.name}`);
-                    }
-                }
-            }
-        });
-
         // בדיקה לפני השמירה: מה באמת יש באובייקט המוצר בזיכרון
         console.log('SAVE_PRO_BACK - All params before save:', JSON.stringify(product.params?.map(p => ({
             name: p.name,
             type: p.type,
-            configurationsLength: p.configurations?.length || 0,
-            beamsConfigurationsLength: p.beamsConfigurations?.length || 0,
-            beamsConfigurations: p.beamsConfigurations
+            configurationsLength: p.configurations?.length || 0
         })), null, 2));
-        
-        const shelfsParamBeforeSave = product.params?.find(p => p.name === 'shelfs');
-        if (shelfsParamBeforeSave) {
-            console.log('SAVE_PRO_BACK - SHELFS PARAM BEFORE SAVE (in memory):', JSON.stringify({
-                name: shelfsParamBeforeSave.name,
-                configurationsLength: shelfsParamBeforeSave.configurations?.length || 0,
-                configurations: shelfsParamBeforeSave.configurations,
-                beamsConfigurationsLength: shelfsParamBeforeSave.beamsConfigurations?.length || 0,
-                beamsConfigurations: shelfsParamBeforeSave.beamsConfigurations
-            }, null, 2));
-        }
 
         // וידוא שMongoose יודע שהפרמטרים השתנו (markModified)
         console.log('SAVE_PRO_BACK - Marking params as modified for Mongoose');
         product.markModified('params');
         
-        // 🎯 חשוב מאוד: סימון מפורש של beamsConfigurations עבור כל פרמטר שהיה לו עדכון
+        // סימון מפורש של configurations עבור כל פרמטר שהיה לו עדכון
         product.params.forEach((param, index) => {
-            if (param.beamsConfigurations && Array.isArray(param.beamsConfigurations)) {
-                product.markModified(`params.${index}.beamsConfigurations`);
-                console.log(`SAVE_PRO_BACK - Marked beamsConfigurations as modified for param ${index} (${param.name})`);
-            }
             if (param.configurations && Array.isArray(param.configurations)) {
                 product.markModified(`params.${index}.configurations`);
                 console.log(`SAVE_PRO_BACK - Marked configurations as modified for param ${index} (${param.name})`);
@@ -277,48 +194,6 @@ exports.saveChanges = async (req, res, next) => {
         await product.save();
         
         console.log('SAVE_PRO_BACK - Product saved successfully to database');
-
-        // בדיקה נוספת: איך נראה פרמטר shelfs אחרי השמירה
-        const updatedShelfsParam = product.params?.find(p => p.name === 'shelfs');
-        if (updatedShelfsParam) {
-            console.log('SAVE_PRO_BACK - SHELFS PARAM AFTER SAVE:', JSON.stringify({
-                name: updatedShelfsParam.name,
-                configurationsLength: updatedShelfsParam.configurations?.length || 0,
-                configurations: updatedShelfsParam.configurations,
-                beamsConfigurationsLength: updatedShelfsParam.beamsConfigurations?.length || 0,
-                beamsConfigurations: updatedShelfsParam.beamsConfigurations
-            }, null, 2));
-        }
-
-        // 🔍 בדיקה נוספת: טעינה מחדש מהמאגר לוודא שהשמירה התבצעה
-        console.log('SAVE_PRO_BACK - Reloading product from database to verify save...');
-        const reloadedProduct = await Product.findById(productId).lean(); // lean() לתוצאה נקייה יותר
-        const reloadedShelfsParam = reloadedProduct?.params?.find(p => p.name === 'shelfs');
-        if (reloadedShelfsParam) {
-            console.log('SAVE_PRO_BACK - SHELFS PARAM RELOADED FROM DB:', JSON.stringify({
-                name: reloadedShelfsParam.name,
-                configurationsLength: reloadedShelfsParam.configurations?.length || 0,
-                configurations: reloadedShelfsParam.configurations,
-                beamsConfigurationsLength: reloadedShelfsParam.beamsConfigurations?.length || 0,
-                beamsConfigurations: reloadedShelfsParam.beamsConfigurations,
-                beamsConfigAt3: reloadedShelfsParam.beamsConfigurations?.[3] || 'MISSING AT INDEX 3'
-            }, null, 2));
-            
-            // 🎯 בדיקה ספציפית של האינדקס 3
-            if (reloadedShelfsParam.beamsConfigurations && reloadedShelfsParam.beamsConfigurations.length > 3) {
-                const valueAt3 = reloadedShelfsParam.beamsConfigurations[3];
-                console.log(`SAVE_PRO_BACK - ✅ VERIFICATION: shelfs.beamsConfigurations[3] = "${valueAt3}"`);
-                if (valueAt3 !== '50-50') {
-                    console.log(`SAVE_PRO_BACK - ❌ ERROR: Expected "50-50" but got "${valueAt3}"`);
-                } else {
-                    console.log(`SAVE_PRO_BACK - ✅ SUCCESS: Value correctly saved as "50-50"`);
-                }
-            } else {
-                console.log(`SAVE_PRO_BACK - ❌ ERROR: beamsConfigurations array too short or missing index 3`);
-            }
-        } else {
-            console.log('SAVE_PRO_BACK - ERROR: Could not reload shelfs param from database!');
-        }
         
         const response = { 
             success: true, 
@@ -509,7 +384,7 @@ async function updateProductData(product, data) {
 
 // עדכון פרמטר בודד
 async function updateParameter(product, paramData, configIndex, isNewModel) {
-    const { name, value, type, selectedBeamIndex, selectedTypeIndex, beamConfiguration } = paramData;
+    const { name, value, type, selectedTypeIndex } = paramData;
     
     console.log(`SAVE_PRO_BACK - updateParameter called for: ${name}`);
     console.log(`SAVE_PRO_BACK - updateParameter full paramData:`, JSON.stringify(paramData, null, 2));
@@ -527,9 +402,7 @@ async function updateParameter(product, paramData, configIndex, isNewModel) {
         name: param.name,
         type: param.type,
         hasConfigurations: !!param.configurations,
-        configurationsLength: param.configurations?.length || 0,
-        hasBeamsConfigurations: !!param.beamsConfigurations,
-        beamsConfigurationsLength: param.beamsConfigurations?.length || 0
+        configurationsLength: param.configurations?.length || 0
     }, null, 2));
 
     // המרת type למספר אם הוא string (מ-prod.type שהוא string)
@@ -539,39 +412,15 @@ async function updateParameter(product, paramData, configIndex, isNewModel) {
     console.log(`SAVE_PRO_BACK - Parameter type comparison: param.type=${paramType} (${typeof param.type}), incoming type=${incomingType} (${typeof type})`);
 
     // עדכון לפי סוג הפרמטר
-    // בדיקה גם למספרים וגם ל-strings (כי מהפרונטאנד באים strings)
-    if (paramType === 'beamSingle' || incomingType === 'beamSingle') {
-        console.log(`SAVE_PRO_BACK - Updating beamSingle parameter: ${name} with beamConfiguration: ${beamConfiguration || 'MISSING'}`);
-        if (!beamConfiguration) {
-            console.log(`SAVE_PRO_BACK - ERROR: beamConfiguration is missing for beamSingle: ${name}`);
-        }
-        updateBeamSingleParameter(param, value, beamConfiguration, configIndex, isNewModel);
-    } else if (paramType === 'beamArray' || incomingType === 'beamArray') {
-        console.log(`SAVE_PRO_BACK - Updating beamArray parameter: ${name} with beamConfiguration: ${beamConfiguration || 'MISSING'}`);
-        if (!beamConfiguration) {
-            console.log(`SAVE_PRO_BACK - ERROR: beamConfiguration is missing for beamArray: ${name}`);
-        }
-        updateBeamArrayParameter(param, value, beamConfiguration, configIndex, isNewModel);
-    } else if (paramType === 'boolian' || incomingType === 'boolian' || paramType === 'boolean' || incomingType === 'boolean') {
+    if (paramType === 'boolian' || incomingType === 'boolian' || paramType === 'boolean' || incomingType === 'boolean') {
         // פרמטרים בוליאניים - משתמשים באותו לוגיקה כמו פרמטרים מספריים
         console.log(`SAVE_PRO_BACK - Updating boolean parameter: ${name}, type: ${paramType}, value: ${value}`);
-        // 🎯 ניקוי beamsConfigurations אם קיים (למנוע nulls)
-        if (param.beamsConfigurations && Array.isArray(param.beamsConfigurations)) {
-            delete param.beamsConfigurations;
-            console.log(`SAVE_PRO_BACK - Deleted beamsConfigurations for boolean parameter: ${name}`);
-        }
         updateNumericParameter(param, value, configIndex, isNewModel);
     } else if (paramType === '0' || paramType === '1' || paramType === '2' || 
                paramType === 0 || paramType === 1 || paramType === 2 ||
                incomingType === '0' || incomingType === '1' || incomingType === '2') {
-        // פרמטרים מספריים - לא צריך beamsConfigurations
+        // פרמטרים מספריים
         console.log(`SAVE_PRO_BACK - Updating numeric parameter: ${name}, type: ${paramType}`);
-        // 🎯 ניקוי beamsConfigurations אם קיים (למנוע nulls)
-        if (param.beamsConfigurations && Array.isArray(param.beamsConfigurations)) {
-            // אם יש nulls או ערכים, נמחק את המערך או נאתחל אותו לריק
-            delete param.beamsConfigurations;
-            console.log(`SAVE_PRO_BACK - Deleted beamsConfigurations for numeric parameter: ${name}`);
-        }
         updateNumericParameter(param, value, configIndex, isNewModel);
     } else {
         console.log(`SAVE_PRO_BACK - WARNING: Unknown parameter type: ${paramType} (${typeof paramType}) for parameter: ${name}`);
@@ -584,21 +433,13 @@ function updateNumericParameter(param, value, configIndex, isNewModel) {
     console.log(`SAVE_PRO_BACK - updateNumericParameter before:`, JSON.stringify({
         name: param.name,
         configurationsLength: param.configurations?.length || 0,
-        configurations: param.configurations,
-        hasBeamsConfigurations: !!param.beamsConfigurations,
-        beamsConfigurations: param.beamsConfigurations
+        configurations: param.configurations
     }, null, 2));
     
     param.configurations = param.configurations || [];
     
-    // 🎯 וידוא שאין beamsConfigurations לפרמטר מספרי (למנוע nulls)
-    if (param.beamsConfigurations) {
-        delete param.beamsConfigurations;
-        console.log(`SAVE_PRO_BACK - Removed beamsConfigurations for numeric parameter: ${param.name}`);
-    }
-    
     if (isNewModel) {
-        // 🎯 הוספה בסוף לקונפיגורציה חדשה
+        // הוספה בסוף לקונפיגורציה חדשה
         param.configurations.push(value);
         console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: Added numeric value to end of configurations: ${value}`);
         console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: configurations length after push: ${param.configurations.length}`);
@@ -615,136 +456,7 @@ function updateNumericParameter(param, value, configIndex, isNewModel) {
     console.log(`SAVE_PRO_BACK - updateNumericParameter after:`, JSON.stringify({
         name: param.name,
         configurationsLength: param.configurations?.length || 0,
-        configurations: param.configurations,
-        hasBeamsConfigurations: !!param.beamsConfigurations
-    }, null, 2));
-}
-
-function updateBeamSingleParameter(param, value, beamConfiguration, configIndex, isNewModel) {
-    console.log(`SAVE_PRO_BACK - updateBeamSingleParameter called: ${param.name}`);
-    console.log(`SAVE_PRO_BACK - updateBeamSingleParameter input:`, JSON.stringify({
-        paramName: param.name,
-        beamConfiguration: beamConfiguration,
-        configIndex: configIndex,
-        isNewModel: isNewModel,
-        value: value
-    }, null, 2));
-    console.log(`SAVE_PRO_BACK - updateBeamSingleParameter before:`, JSON.stringify({
-        name: param.name,
-        beamsConfigurationsLength: param.beamsConfigurations?.length || 0,
-        beamsConfigurations: param.beamsConfigurations
-    }, null, 2));
-    
-    if (!beamConfiguration) {
-        console.log(`SAVE_PRO_BACK - ERROR: beamConfiguration is missing for beamSingle parameter: ${param.name}`);
-        return;
-    }
-    
-    param.beamsConfigurations = param.beamsConfigurations || [];
-    
-    if (isNewModel) {
-        // 🎯 הוספה בסוף לקונפיגורציה חדשה
-        param.beamsConfigurations.push(beamConfiguration);
-        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: Added beamSingle config to end: ${beamConfiguration}`);
-        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamsConfigurations length after push: ${param.beamsConfigurations.length}`);
-    } else {
-        // אתחול עד האינדקס הנדרש אם חסרים מקומות
-        while (param.beamsConfigurations.length <= configIndex) {
-            param.beamsConfigurations.push(null);
-        }
-        // עדכון במיקום הנכון
-        param.beamsConfigurations[configIndex] = beamConfiguration;
-        console.log(`SAVE_PRO_BACK - Updated beam config at index ${configIndex}: ${beamConfiguration}`);
-    }
-    
-    console.log(`SAVE_PRO_BACK - updateBeamSingleParameter after:`, JSON.stringify({
-        name: param.name,
-        beamsConfigurationsLength: param.beamsConfigurations?.length || 0,
-        beamsConfigurations: param.beamsConfigurations
-    }, null, 2));
-}
-
-function updateBeamArrayParameter(param, value, beamConfiguration, configIndex, isNewModel) {
-    console.error('🎯🎯🎯 SAVE_PRO_BACK - CRITICAL - updateBeamArrayParameter called! 🎯🎯🎯');
-    console.log(`SAVE_PRO_BACK - Updating beamArray parameter: ${param.name}`);
-    console.log('SAVE_PRO_BACK - updateBeamArrayParameter input:', JSON.stringify({
-        paramName: param.name,
-        value: value,
-        beamConfiguration: beamConfiguration,
-        configIndex: configIndex,
-        isNewModel: isNewModel
-    }, null, 2));
-    console.log('SAVE_PRO_BACK - updateBeamArrayParameter before:', JSON.stringify({
-        name: param.name,
-        configurationsLength: param.configurations?.length || 0,
-        beamsConfigurationsLength: param.beamsConfigurations?.length || 0,
-        configurations: param.configurations,
-        beamsConfigurations: param.beamsConfigurations
-    }, null, 2));
-    
-    // בדיקה ש-beamConfiguration קיים
-    if (!beamConfiguration) {
-        console.log(`SAVE_PRO_BACK - ERROR: beamConfiguration is missing for beamArray parameter: ${param.name}`);
-        console.log(`SAVE_PRO_BACK - ERROR: Cannot update beamArray without beamConfiguration`);
-        return;
-    }
-    
-    // וידוא שקיימים מערכי קונפיגורציות + אתחול נכון אם חסרים
-    if (!param.configurations || !Array.isArray(param.configurations)) {
-        console.log('SAVE_PRO_BACK - beamArray: Creating new configurations array');
-        param.configurations = [];
-    }
-    if (!param.beamsConfigurations || !Array.isArray(param.beamsConfigurations)) {
-        console.log('SAVE_PRO_BACK - beamArray: Creating new beamsConfigurations array');
-        param.beamsConfigurations = [];
-    }
-
-    // אתחול מקומות ריקים עד האינדקס הנדרש אם חסרים (רק אם לא isNewModel)
-    if (!isNewModel) {
-        while (param.configurations.length <= configIndex) {
-            console.log(`SAVE_PRO_BACK - beamArray: Filling configurations gap at index ${param.configurations.length}`);
-            param.configurations.push([]);
-            param.beamsConfigurations.push(null); // נשתמש ב-null במקום '' ונעדכן אחר כך
-        }
-    }
-    
-    console.log('SAVE_PRO_BACK - beamArray before update:', JSON.stringify({
-        configurationsLength: param.configurations.length,
-        beamsConfigurationsLength: param.beamsConfigurations.length,
-        existingConfigurations: param.configurations,
-        existingBeamsConfigurations: param.beamsConfigurations
-    }, null, 2));
-    
-    // וידוא שהvalue הוא מערך
-    if (!Array.isArray(value)) {
-        console.log(`SAVE_PRO_BACK - ERROR: beamArray ${param.name} value is not an array:`, typeof value, value);
-        return;
-    }
-    
-    if (isNewModel) {
-        // 🎯 הוספה בסוף לקונפיגורציה חדשה - beamArray
-        // שמירת המערך המלא כמו שהוא
-        param.configurations.push([...value]); // העתקה מלאה של המערך
-        param.beamsConfigurations.push(beamConfiguration);
-        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamArray ADDED FULL array config to END (${value.length} items):`, JSON.stringify(value, null, 2));
-        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamArray ADDED beam config to END: ${beamConfiguration}`);
-        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamArray configurations length after push: ${param.configurations.length}`);
-        console.log(`SAVE_PRO_BACK - ✅ NEW MODEL: beamArray beamsConfigurations length after push: ${param.beamsConfigurations.length}`);
-    } else {
-        // עדכון במיקום הנכון
-        // החלפת המערך הקיים במערך החדש המלא
-        param.configurations[configIndex] = [...value]; // העתקה מלאה של המערך
-        param.beamsConfigurations[configIndex] = beamConfiguration;
-        console.log(`SAVE_PRO_BACK - beamArray UPDATED FULL array config at index ${configIndex} (${value.length} items):`, JSON.stringify(value, null, 2));
-        console.log(`SAVE_PRO_BACK - beamArray UPDATED beam config at index ${configIndex}: ${beamConfiguration}`);
-    }
-    
-    console.log('SAVE_PRO_BACK - updateBeamArrayParameter after:', JSON.stringify({
-        name: param.name,
-        configurationsLength: param.configurations.length,
-        beamsConfigurationsLength: param.beamsConfigurations.length,
-        finalConfigurations: param.configurations,
-        finalBeamsConfigurations: param.beamsConfigurations
+        configurations: param.configurations
     }, null, 2));
 }
 
@@ -808,32 +520,13 @@ exports.deleteConfiguration = async (req, res, next) => {
             console.log('DELETE_CONFIG_BACK - Processing', product.params.length, 'parameters');
             
             for (const param of product.params) {
-                const paramType = typeof param.type === 'string' ? param.type : String(param.type);
-                
                 // מחיקה מ-configurations של הפרמטר
                 if (param.configurations && Array.isArray(param.configurations) && param.configurations.length > configurationIndex) {
                     console.log(`DELETE_CONFIG_BACK - Deleting from param ${param.name} configurations at index ${configurationIndex}`);
-                    
-                    // עבור beamArray - צריך למחוק array שלם מתוך array של arrays
-                    if (paramType === 'beamArray') {
-                        console.log(`DELETE_CONFIG_BACK - beamArray: Deleting full array from configurations at index ${configurationIndex}`);
-                        param.configurations.splice(configurationIndex, 1);
-                        console.log(`DELETE_CONFIG_BACK - ✅ beamArray: Deleted array, new length: ${param.configurations.length}`);
-                    } else {
-                        // עבור פרמטרים רגילים - מחיקה של ערך בודד
-                        param.configurations.splice(configurationIndex, 1);
-                        console.log(`DELETE_CONFIG_BACK - ✅ Param ${param.name}: Deleted from configurations, new length: ${param.configurations.length}`);
-                    }
+                    param.configurations.splice(configurationIndex, 1);
+                    console.log(`DELETE_CONFIG_BACK - ✅ Param ${param.name}: Deleted from configurations, new length: ${param.configurations.length}`);
                 } else {
                     console.log(`DELETE_CONFIG_BACK - ⚠️ Param ${param.name}: No configurations to delete or index out of range`);
-                }
-                
-                // מחיקה מ-beamsConfigurations של הפרמטר
-                if (param.beamsConfigurations && Array.isArray(param.beamsConfigurations) && param.beamsConfigurations.length > configurationIndex) {
-                    param.beamsConfigurations.splice(configurationIndex, 1);
-                    console.log(`DELETE_CONFIG_BACK - ✅ Param ${param.name}: Deleted from beamsConfigurations, new length: ${param.beamsConfigurations.length}`);
-                } else {
-                    console.log(`DELETE_CONFIG_BACK - ⚠️ Param ${param.name}: No beamsConfigurations to delete or index out of range`);
                 }
             }
         } else {
@@ -845,11 +538,8 @@ exports.deleteConfiguration = async (req, res, next) => {
         product.markModified('params');
         product.markModified('configurations');
         
-        // סימון מפורש של beamsConfigurations עבור כל פרמטר
+        // סימון מפורש של configurations עבור כל פרמטר
         product.params.forEach((param, index) => {
-            if (param.beamsConfigurations && Array.isArray(param.beamsConfigurations)) {
-                product.markModified(`params.${index}.beamsConfigurations`);
-            }
             if (param.configurations && Array.isArray(param.configurations)) {
                 product.markModified(`params.${index}.configurations`);
             }
@@ -897,17 +587,6 @@ exports.getProductByName = async (req, res, next) => {
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
-
-        // Populate beams for each param with type beamArray or beamSingle
-        const Beam = require('../models/beam');
-        const paramsPopulated = await Promise.all(product.params.map(async param => {
-            if ((param.type === 'beamArray' || param.type === 'beamSingle') && Array.isArray(param.beams) && param.beams.length > 0) {
-                param.beams = await Beam.find({ _id: { $in: param.beams } });
-            }
-            return param;
-        }));
-        product = product.toObject();
-        product.params = paramsPopulated;
 
         res.status(200).json(product);
     } catch (error) {
