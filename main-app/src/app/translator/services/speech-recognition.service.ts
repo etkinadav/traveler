@@ -82,7 +82,20 @@ export class SpeechRecognitionService {
 
     this.recognitionA.onend = () => {
       console.log('Recognition A ended, isListening:', this.isListening);
-      // Don't auto-restart - we'll handle it manually to avoid conflicts
+      // Auto-restart if still listening (for continuous listening)
+      if (this.isListening) {
+        setTimeout(() => {
+          try {
+            if (this.isListening && this.recognitionA) {
+              this.recognitionA.start();
+              console.log('✓ Auto-restarted recognition after end');
+            }
+          } catch (e) {
+            // Ignore restart errors (might already be starting)
+            console.log('Recognition already starting or error:', e);
+          }
+        }, 100);
+      }
     };
 
     // Event handlers for speaker B
@@ -155,51 +168,168 @@ export class SpeechRecognitionService {
     const now = Date.now();
     this.lastResultTime[detectedSpeaker] = now;
 
-    // For final results, process immediately
-    if (result.isFinal) {
-      // Clear any interim results from queue
-      this.resultQueue = this.resultQueue.filter(r => r.speaker !== detectedSpeaker);
-      console.log(`[${detectedSpeaker}] Sending final result immediately`);
-      this.transcriptSubject.next(result);
-      
-      // Restart recognition after a short delay to continue listening
-      if (this.isListening) {
-        setTimeout(() => {
-          try {
-            if (this.isListening && this.recognitionA) {
-              this.recognitionA.start();
-            }
-          } catch (e) {
-            console.warn('Failed to restart recognition:', e);
+    // Send ALL results immediately (both interim and final) for LIVE display
+    console.log(`[${detectedSpeaker}] Sending result LIVE (isFinal: ${result.isFinal}):`, result);
+    this.transcriptSubject.next(result);
+    
+    // For final results, restart recognition to continue listening
+    if (result.isFinal && this.isListening) {
+      setTimeout(() => {
+        try {
+          if (this.isListening && this.recognitionA) {
+            this.recognitionA.start();
+            console.log('✓ Restarted recognition to continue listening');
           }
-        }, 100);
-      }
-    } else {
-      // For interim results, add to queue and process
-      // Remove any previous interim results from the same speaker
-      this.resultQueue = this.resultQueue.filter(r => !(r.speaker === detectedSpeaker && !r.isFinal));
-      this.resultQueue.push(result);
-      console.log(`[${detectedSpeaker}] Added interim result to queue, queue length: ${this.resultQueue.length}`);
-      
-      // Process queue to show the most recent/confident result
-      this.processQueue();
+        } catch (e) {
+          console.warn('Failed to restart recognition:', e);
+          // Try again after a longer delay
+          setTimeout(() => {
+            if (this.isListening && this.recognitionA) {
+              try {
+                this.recognitionA.start();
+              } catch (e2) {
+                console.error('Failed to restart recognition again:', e2);
+              }
+            }
+          }, 500);
+        }
+      }, 50);
     }
   }
 
+  private currentDetectedSpeaker: 'A' | 'B' | null = null;
+  private lastLanguageDetection: string = '';
+
   private detectSpeaker(configuredLanguage: string, transcript: string, confidence: number): 'A' | 'B' {
-    // Simple heuristic: if the configured language matches language A, it's speaker A
-    // Otherwise, it's speaker B
-    // In a more sophisticated implementation, you could use language detection APIs
+    // Detect the actual language being spoken based on the transcript
+    const detectedLanguage = this.detectLanguageFromText(transcript);
     
-    // For now, we'll use the configured language to determine speaker
-    if (configuredLanguage === this.languageA) {
-      return 'A';
-    } else if (configuredLanguage === this.languageB) {
-      return 'B';
+    console.log(`Language detection: transcript="${transcript}", detected=${detectedLanguage}, configured=${configuredLanguage}`);
+    
+    // Determine speaker based on detected language
+    let speaker: 'A' | 'B';
+    
+    if (detectedLanguage === this.languageA || detectedLanguage.startsWith('he-') && this.languageA.startsWith('he-')) {
+      speaker = 'A';
+    } else if (detectedLanguage === this.languageB || detectedLanguage.startsWith('en-') && this.languageB.startsWith('en-')) {
+      speaker = 'B';
+    } else {
+      // If we can't detect clearly, use configured language as fallback
+      speaker = configuredLanguage === this.languageA ? 'A' : 'B';
     }
     
-    // Default to A if we can't determine
-    return 'A';
+    // If we detected a language change, update the current speaker and switch recognition language
+    if (detectedLanguage && detectedLanguage !== this.lastLanguageDetection && this.lastLanguageDetection !== '') {
+      console.log(`Language changed from ${this.lastLanguageDetection} to ${detectedLanguage}, switching speaker to ${speaker}`);
+      this.lastLanguageDetection = detectedLanguage;
+      this.currentDetectedSpeaker = speaker;
+      
+      // Switch recognition language if needed
+      this.switchRecognitionLanguage(detectedLanguage);
+    } else if (!this.currentDetectedSpeaker || this.lastLanguageDetection === '') {
+      // First detection or no previous detection
+      this.currentDetectedSpeaker = speaker;
+      this.lastLanguageDetection = detectedLanguage || configuredLanguage;
+      
+      // Set initial recognition language
+      if (detectedLanguage) {
+        this.switchRecognitionLanguage(detectedLanguage);
+      }
+    } else {
+      // Same language, keep current speaker
+      speaker = this.currentDetectedSpeaker;
+    }
+    
+    return speaker;
+  }
+
+  private switchRecognitionLanguage(targetLanguage: string): void {
+    if (!this.isListening || !this.recognitionA) {
+      return;
+    }
+
+    // Determine which language to use
+    const shouldUseLanguageA = targetLanguage === this.languageA || 
+                               (targetLanguage.startsWith('he-') && this.languageA.startsWith('he-')) ||
+                               (targetLanguage.startsWith('ar-') && this.languageA.startsWith('ar-'));
+    
+    const shouldUseLanguageB = targetLanguage === this.languageB || 
+                               (targetLanguage.startsWith('en-') && this.languageB.startsWith('en-'));
+    
+    const newLanguage = shouldUseLanguageA ? this.languageA : (shouldUseLanguageB ? this.languageB : null);
+    
+    if (newLanguage && this.recognitionA.lang !== newLanguage) {
+      console.log(`Switching recognition language from ${this.recognitionA.lang} to ${newLanguage}`);
+      
+      // Stop current recognition
+      try {
+        this.recognitionA.stop();
+      } catch (e) {
+        // Ignore stop errors
+      }
+      
+      // Change language and restart
+      setTimeout(() => {
+        if (this.isListening && this.recognitionA) {
+          this.recognitionA.lang = newLanguage;
+          try {
+            this.recognitionA.start();
+            console.log(`✓ Restarted recognition with language: ${newLanguage}`);
+          } catch (e) {
+            console.warn('Failed to restart recognition with new language:', e);
+          }
+        }
+      }, 200);
+    }
+  }
+
+  private detectLanguageFromText(text: string): string {
+    if (!text || text.trim().length === 0) {
+      return '';
+    }
+
+    // Simple heuristic-based language detection
+    // Check for Hebrew characters (Unicode range: \u0590-\u05FF)
+    const hebrewPattern = /[\u0590-\u05FF]/;
+    const hasHebrew = hebrewPattern.test(text);
+
+    // Check for Arabic characters (Unicode range: \u0600-\u06FF)
+    const arabicPattern = /[\u0600-\u06FF]/;
+    const hasArabic = arabicPattern.test(text);
+
+    // Check for English/Latin characters
+    const englishPattern = /^[a-zA-Z0-9\s.,!?'"-]+$/;
+    const isEnglish = englishPattern.test(text) && !hasHebrew && !hasArabic;
+
+    // Determine language based on patterns
+    if (hasHebrew) {
+      // Check if it matches language A or B
+      if (this.languageA.startsWith('he-') || this.languageA.startsWith('iw-')) {
+        return this.languageA;
+      } else if (this.languageB.startsWith('he-') || this.languageB.startsWith('iw-')) {
+        return this.languageB;
+      }
+      return 'he-IL'; // Default Hebrew
+    } else if (hasArabic) {
+      // Check if it matches language A or B
+      if (this.languageA.startsWith('ar-')) {
+        return this.languageA;
+      } else if (this.languageB.startsWith('ar-')) {
+        return this.languageB;
+      }
+      return 'ar-SA'; // Default Arabic
+    } else if (isEnglish) {
+      // Check if it matches language A or B
+      if (this.languageA.startsWith('en-')) {
+        return this.languageA;
+      } else if (this.languageB.startsWith('en-')) {
+        return this.languageB;
+      }
+      return 'en-US'; // Default English
+    }
+
+    // If we can't detect, return empty string
+    return '';
   }
 
   private processQueue(): void {
@@ -317,22 +447,20 @@ export class SpeechRecognitionService {
     // Clear previous state
     this.resultQueue = [];
     this.lastResultTime = {};
+    this.currentDetectedSpeaker = null;
+    this.lastLanguageDetection = '';
 
     try {
       // Web Speech API limitation: Cannot run 2 instances simultaneously
-      // Strategy: Use a single instance and switch languages dynamically
-      // We'll start with language A, and if we detect language B patterns, we can switch
-      
-      // For now, let's use a simpler approach: run only one instance
-      // We'll use the first language (A) and identify speaker based on language detection
-      // In the future, we can implement language switching based on confidence scores
+      // Strategy: Use a single instance and switch languages dynamically based on detection
+      // We'll start with language A, and switch to B if we detect B is being spoken
       
       try {
-        // Start only recognition A for now
-        // We'll identify the speaker based on which language is being spoken
+        // Start with recognition A
+        // We'll dynamically switch languages based on what we detect
         this.recognitionA.start();
         console.log('✓ Started recognition A for language:', this.languageA);
-        console.log('ℹ Note: Using single recognition instance. Speaker identification will be based on language detection.');
+        console.log('ℹ Note: Using single recognition instance with dynamic language switching.');
         
         this.isListening = true;
         this.statusSubject.next('listening');

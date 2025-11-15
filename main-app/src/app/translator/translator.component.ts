@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import { Subscription } from 'rxjs';
 import { DirectionService } from '../direction.service';
 import { Router } from "@angular/router";
@@ -21,8 +21,6 @@ export class TranslatorComponent implements OnInit, OnDestroy {
 
   // Speech Recognition
   isListening = false;
-  transcript = '';
-  currentSpeaker: 'A' | 'B' | null = null;
   status = 'idle'; // idle, listening, stopped, error
   errorMessage = '';
   selectedLanguageA = 'he-IL';
@@ -34,7 +32,8 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   languageSearchTermB = '';
   showLanguageSelectorA = false;
   showLanguageSelectorB = false;
-  transcriptHistory: Array<{ speaker: 'A' | 'B', text: string, language: string }> = [];
+  transcriptHistory: Array<{ speaker: 'A' | 'B', text: string, language: string, id: number }> = [];
+  private historyIdCounter = 0;
 
   private transcriptSubscription?: Subscription;
   private statusSubscription?: Subscription;
@@ -45,6 +44,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     private router: Router,
     private translateService: TranslateService,
     private speechRecognitionService: SpeechRecognitionService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -77,25 +77,64 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       this.selectedLanguageB = savedLanguageB;
     }
 
-    // Subscribe to transcript updates
+    // Subscribe to transcript updates - LIVE transcription to history
     this.transcriptSubscription = this.speechRecognitionService.transcript$.subscribe(result => {
       console.log('Transcript result received:', result);
       
-      if (result.isFinal && result.speaker && result.transcript.trim()) {
-        // Final result - add to history
-        this.transcript = '';
-        this.currentSpeaker = null;
-        this.transcriptHistory.push({
-          speaker: result.speaker,
-          text: result.transcript.trim(),
-          language: result.language || ''
-        });
-        console.log('Added to history:', result);
-      } else if (result.speaker && result.transcript) {
-        // Interim result - show current speaker and text
-        this.currentSpeaker = result.speaker;
-        this.transcript = result.transcript;
-        console.log('Interim result:', result);
+      if (result.speaker && result.transcript && result.transcript.trim()) {
+        const trimmedText = result.transcript.trim();
+        
+        // Check if we need to create a new history entry or update the last one
+        const lastIndex = this.transcriptHistory.length - 1;
+        const lastEntry = lastIndex >= 0 ? this.transcriptHistory[lastIndex] : null;
+        const isSameSpeaker = lastEntry && lastEntry.speaker === result.speaker;
+        const isInterim = !result.isFinal;
+        
+        if (isInterim) {
+          // Interim result - update or create entry LIVE
+          if (isSameSpeaker && lastEntry) {
+            // Update the last entry with new interim text - create new object to trigger change detection
+            this.transcriptHistory[lastIndex] = {
+              ...lastEntry,
+              text: trimmedText
+            };
+            console.log('Updated LIVE entry:', this.transcriptHistory[lastIndex]);
+          } else {
+            // New speaker or no previous entry - create new entry
+            this.historyIdCounter++;
+            this.transcriptHistory = [...this.transcriptHistory, {
+              speaker: result.speaker,
+              text: trimmedText,
+              language: result.language || '',
+              id: this.historyIdCounter
+            }];
+            console.log('Created new LIVE entry:', this.transcriptHistory[this.transcriptHistory.length - 1]);
+          }
+        } else {
+          // Final result - finalize the entry
+          if (isSameSpeaker && lastEntry) {
+            // Update the last entry with final text - create new object to trigger change detection
+            this.transcriptHistory[lastIndex] = {
+              ...lastEntry,
+              text: trimmedText,
+              language: result.language || ''
+            };
+            console.log('Finalized entry:', this.transcriptHistory[lastIndex]);
+          } else {
+            // New speaker - create new entry
+            this.historyIdCounter++;
+            this.transcriptHistory = [...this.transcriptHistory, {
+              speaker: result.speaker,
+              text: trimmedText,
+              language: result.language || '',
+              id: this.historyIdCounter
+            }];
+            console.log('Created new finalized entry:', this.transcriptHistory[this.transcriptHistory.length - 1]);
+          }
+        }
+        
+        // Force change detection to update the view
+        this.cdr.detectChanges();
       }
     });
 
@@ -212,8 +251,8 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   }
 
   clearTranscript(): void {
-    this.transcript = '';
     this.transcriptHistory = [];
+    this.historyIdCounter = 0;
   }
 
   copyToClipboard(): void {
@@ -225,11 +264,6 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       
       navigator.clipboard.writeText(playText).then(() => {
         console.log('History copied to clipboard');
-      });
-    } else if (this.transcript) {
-      // If no history, copy current transcript
-      navigator.clipboard.writeText(this.transcript).then(() => {
-        console.log('Text copied to clipboard');
       });
     }
   }

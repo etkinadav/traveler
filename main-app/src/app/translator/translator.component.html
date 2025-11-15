@@ -135,70 +135,42 @@
       <div class="status-indicator mb-3">
         <span *ngIf="status === 'listening'" class="listening-dot"></span>
         <span class="status-text">
-          <span *ngIf="status === 'listening' && currentSpeaker">
-            {{ 'translator.status-listening' | translate }} - {{ getSpeakerName(currentSpeaker) }}
-          </span>
-          <span *ngIf="status === 'listening' && !currentSpeaker">{{ 'translator.status-listening' | translate }}</span>
+          <span *ngIf="status === 'listening'">{{ 'translator.status-listening' | translate }}</span>
           <span *ngIf="status === 'stopped'">{{ 'translator.status-stopped' | translate }}</span>
           <span *ngIf="status === 'idle'">{{ 'translator.status-ready' | translate }}</span>
         </span>
       </div>
 
-      <!-- Transcript Area -->
-      <mat-card class="transcript-card w-100">
-        <mat-card-content>
-          <div class="transcript-header d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0">{{ 'translator.transcript' | translate }}</h6>
+      <!-- Live History -->
+      <div class="w-100">
+        <mat-card>
+          <mat-card-header class="d-flex justify-content-between align-items-center">
+            <mat-card-title>{{ 'translator.history' | translate }}</mat-card-title>
             <div class="transcript-actions">
               <button 
                 mat-icon-button 
                 (click)="copyToClipboard()"
-                [disabled]="!transcript"
+                [disabled]="transcriptHistory.length === 0"
                 matTooltip="{{ 'translator.copy' | translate }}">
                 <mat-icon>content_copy</mat-icon>
               </button>
               <button 
                 mat-icon-button 
                 (click)="clearTranscript()"
-                [disabled]="!transcript"
+                [disabled]="transcriptHistory.length === 0"
                 matTooltip="{{ 'translator.clear' | translate }}">
                 <mat-icon>clear</mat-icon>
               </button>
             </div>
-          </div>
-          <div 
-            class="transcript-content"
-            [class.interim]="status === 'listening' && transcript && !transcriptHistory.length">
-            <div *ngIf="transcript; else emptyState" [dir]="isRTL ? 'rtl' : 'ltr'">
-              <div *ngIf="currentSpeaker" class="current-speaker-indicator mb-2">
-                <span class="speaker-badge" [class.speaker-a-badge]="currentSpeaker === 'A'" [class.speaker-b-badge]="currentSpeaker === 'B'">
-                  {{ getSpeakerName(currentSpeaker) }}:
-                </span>
-              </div>
-              <p class="mb-0">{{ transcript }}</p>
-            </div>
-            <ng-template #emptyState>
-              <p class="text-muted text-center">
-                {{ 'translator.transcript-placeholder' | translate }}
-              </p>
-            </ng-template>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- History (if exists) -->
-      <div *ngIf="transcriptHistory.length > 0" class="w-100 mt-3">
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>{{ 'translator.history' | translate }}</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <div class="history-list play-style">
+            <div class="history-list play-style" [class.empty]="transcriptHistory.length === 0">
               <div 
-                *ngFor="let item of transcriptHistory"
+                *ngFor="let item of transcriptHistory; let last = last"
                 class="history-item play-item"
                 [class.speaker-a-item]="item.speaker === 'A'"
                 [class.speaker-b-item]="item.speaker === 'B'"
+                [class.live]="last && status === 'listening'"
                 [dir]="isRTL ? 'rtl' : 'ltr'">
                 <div class="speaker-label">
                   <span class="speaker-badge" [class.speaker-a-badge]="item.speaker === 'A'" [class.speaker-b-badge]="item.speaker === 'B'">
@@ -207,7 +179,13 @@
                 </div>
                 <div class="speaker-text">
                   {{ item.text }}
+                  <span *ngIf="last && status === 'listening'" class="live-cursor">|</span>
                 </div>
+              </div>
+              <div *ngIf="transcriptHistory.length === 0" class="empty-state">
+                <p class="text-muted text-center">
+                  {{ 'translator.transcript-placeholder' | translate }}
+                </p>
               </div>
             </div>
           </mat-card-content>
