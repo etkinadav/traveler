@@ -2,7 +2,7 @@
   <section class="w-100 d-flex flex-column">
     
     <!-- Language Selectors -->
-    <div class="w-100 px-2 pb-3 px-lg-3">
+    <div class="w-100 px-2 pb-3 px-lg-3" *ngIf="!isListening">
       <div class="row g-3">
         <!-- Speaker A Language -->
         <div class="col-12 col-md-6">
@@ -239,13 +239,6 @@
             </div>
           </mat-card-header>
           <mat-card-content>
-            <!-- Compact History -->
-            <div *ngIf="getCompactHistory()" class="compact-history mb-3 p-2">
-              <p class="mb-0 compact-history-text" [dir]="isRTL ? 'rtl' : 'ltr'">
-                {{ getCompactHistory() }}
-              </p>
-            </div>
-            
             <div class="history-list play-style" [class.empty]="transcriptHistory.length === 0">
               <div 
                 *ngFor="let item of reversedTranscriptHistory; let first = first"
