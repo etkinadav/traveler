@@ -26,6 +26,8 @@
   "main-nav.greeting.night": "ليلة سعيدة",
   "home.select-service": "اختر الخدمة",
   "home.service-translator": "Translator",
+  "translator.title": "Translator",
+  "translator.content-placeholder": "سيظهر محتوى Translator هنا",
   "log-in-dialog-prelogin-title": "تسجيل الدخول إلى النظام بسهولة",
   "log-in-dialog-prelogin-explanation": "اختر طريقة مريحة لتسجيل الدخول أو التسجيل - ليس إلزاميًا، وكل شيء بنقرة واحدة فقط.",
   "log-in-dialog-prelogin-with-google": "المتابعة مع Google",

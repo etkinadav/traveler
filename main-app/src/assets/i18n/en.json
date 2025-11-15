@@ -26,6 +26,8 @@
   "main-nav.greeting.night": "Good night",
   "home.select-service": "Select Service",
   "home.service-translator": "Translator",
+  "translator.title": "Translator",
+  "translator.content-placeholder": "Translator content will appear here",
   "log-in-dialog-prelogin-title": "Login to the system easily",
   "log-in-dialog-prelogin-explanation": "Choose a convenient way to login or register – it's not mandatory, and everything is just one click away.",
   "log-in-dialog-prelogin-with-google": "Continue with Google",

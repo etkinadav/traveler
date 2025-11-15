@@ -5,15 +5,15 @@ import { Router } from "@angular/router";
 import { TranslateService } from "@ngx-translate/core";
 
 @Component({
-  selector: "app-home",
-  templateUrl: "./home.component.html",
-  styleUrls: ["./home.component.css"],
+  selector: "app-translator",
+  templateUrl: "./translator.component.html",
+  styleUrls: ["./translator.component.css"],
   host: {
     class: 'fill-screen'
   }
 })
 
-export class HomeComponent implements OnInit, OnDestroy {
+export class TranslatorComponent implements OnInit, OnDestroy {
   isRTL: boolean = true;
   private directionSubscription: Subscription;
   isDarkMode: boolean = false;
@@ -38,11 +38,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (this.directionSubscription) {
       this.directionSubscription.unsubscribe();
     }
-  }
-
-  selectService(service: string) {
-    localStorage.setItem('printingService', service);
-    this.router.navigate(['/translator']);
   }
 }
 

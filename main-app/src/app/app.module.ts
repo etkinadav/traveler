@@ -35,6 +35,7 @@ import { CopyScanComponent } from "./dialog/scan-copy/scan-copy.component";
 import { SuEditUserComponent } from "./dialog/su-edit-user/su-edit-user.component";
 import { DeleteCartConfirmationComponent } from "./dialog/delete-cart-confirmation/delete-cart-confirmation.component";
 import { HomeComponent } from "./home/home.component";
+import { TranslatorComponent } from "./translator/translator.component";
 
 @NgModule({
   declarations: [
@@ -42,6 +43,7 @@ import { HomeComponent } from "./home/home.component";
     ErrorComponent,
     MainNavComponent,
     HomeComponent,
+    TranslatorComponent,
     MyOrdersComponent,
     MyProfileComponent,
     QAndAComponent,
