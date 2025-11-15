@@ -447,6 +447,10 @@ export class MainNavComponent implements OnInit, OnDestroy {
     return this.router.url === '/home' || this.router.url === '/';
   }
 
+  isTranslatorPage(): boolean {
+    return this.router.url === '/translator';
+  }
+
   async goToManagementPage(page: string) {
     const service = localStorage.getItem('printingService');
     const branch = localStorage.getItem('branch');
