@@ -325,7 +325,7 @@ export class MainNavComponent implements OnInit, OnDestroy {
   openLoginDialog() {
     this.closeDrawer();
     this.closeProfileManu();
-    this.dialogService.onOpenLoginDialog('', '');
+    this.dialogService.onOpenLoginDialog();
   }
 
   goToTandC() {

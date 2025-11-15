@@ -6,7 +6,6 @@ import { AuthService } from "src/app/auth/auth.service";
 
 import { Router } from "@angular/router";
 import { DialogService } from 'src/app/dialog/dialog.service';
-import { DataSharingService } from '../../main-section/data-shering-service/data-sharing.service';
 import { ConstantsService } from '../../services/constants.service';
 
 @Component({
@@ -48,7 +47,6 @@ export class QAndAComponent implements OnInit, OnDestroy {
     private directionService: DirectionService,
     private router: Router,
     private dialogService: DialogService,
-    private dataSharingService: DataSharingService,
     private constantsService: ConstantsService,
   ) { }
 
@@ -93,7 +91,7 @@ export class QAndAComponent implements OnInit, OnDestroy {
   }
 
   goToChooseBranch(service: string) {
-    this.dataSharingService.setPrintingService(service);
+    localStorage.setItem('printingService', service);
     this.router.navigate(['/branch']);
   }
 
