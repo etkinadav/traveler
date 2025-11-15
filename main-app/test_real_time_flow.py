@@ -49,7 +49,7 @@ def test_parameter_updates():
     
     print("\n🎯 Next step: Run the auto-updater in Blender")
     print("   Copy/paste this in Blender Text Editor and run:")
-    print("   exec(open(r'C:\\Users\\User\\Desktop\\programming\\beams\\beams\\start_auto_updater.py').read())")
+    print("   exec(open(r'C:\\Users\\User\\Desktop\\programming\\traveler\\main-app\\start_auto_updater.py').read())")
 
 if __name__ == "__main__":
     test_parameter_updates()

@@ -5,7 +5,7 @@ import os
 script_dir = os.path.dirname(bpy.data.filepath)
 if not script_dir:
     # If file is not saved, use current working directory
-    script_dir = r"C:\Users\User\Desktop\programming\beams\beams"
+    script_dir = r"C:\Users\User\Desktop\programming\traveler\main-app"
 
 auto_updater_path = os.path.join(script_dir, "blender_auto_updater.py")
 

@@ -7,7 +7,6 @@ import { Observable, Subscription, BehaviorSubject, ReplaySubject } from 'rxjs';
 
 import { AuthData } from "./auth-data.model";
 import { DialogService } from '../dialog/dialog.service';
-import { DataSharingService } from '../main-section/data-shering-service/data-sharing.service';
 import { DirectionService } from '../direction.service'
 import { filter } from 'rxjs/operators';
 
@@ -26,8 +25,6 @@ export class AuthService {
     private tokenTimer: any;
     private userId: string;
     private authStatusListener = new Subject<boolean>();
-    private branchSubscription: Subscription;
-    private printServiceSubscription: Subscription;
     printingService: string = '';
     branch: string = '';
     private rolesSubject = new ReplaySubject<string[]>(1);
@@ -48,19 +45,10 @@ export class AuthService {
     constructor(
         private http: HttpClient,
         private dialogService: DialogService,
-        private dataSharingService: DataSharingService,
         private router: Router,
         private directionService: DirectionService,
         // public socialService: SocialAuthService
     ) {
-        this.branchSubscription = this.dataSharingService.getBranch().subscribe((value) => {
-            this.branch = value;
-        });
-
-        this.printServiceSubscription = this.dataSharingService.getPrintingService().subscribe((value) => {
-            this.printingService = value;
-        });
-
         this.directionService.currentLanguage$.subscribe(lang => {
             this.selectedLanguage = lang;
             // console.log("selected---Lang---uage: 1" + this.selectedLanguage)
@@ -143,9 +131,9 @@ export class AuthService {
                     this.dialogService.onCloseLoginDialog();
                 }
                 if (this.printingService && this.printingService !== '' && this.branch && this.branch !== '') {
-                    this.dataSharingService.setPrintingService(this.printingService);
-                    this.dataSharingService.setBranch(this.branch);
-                    this.router.navigate(["/print"]);
+                    localStorage.setItem("printingService", this.printingService);
+                    localStorage.setItem("branch", this.branch);
+                    this.router.navigate(["/"]);
                 }
             }, error => {
                 this.authStatusListener.next(false)
@@ -262,13 +250,13 @@ export class AuthService {
                     }
                     this.dialogService.onCloseLoginDialog();
                     if (newBranch !== '' && newPrintingService !== '') {
-                        this.dataSharingService.setPrintingService(newPrintingService);
-                        this.dataSharingService.setBranch(newBranch);
-                        this.router.navigate(["/print"]);
+                        localStorage.setItem("printingService", newPrintingService);
+                        localStorage.setItem("branch", newBranch);
+                        this.router.navigate(["/"]);
                     } else {
                         if (this.printingService && this.printingService !== '' && this.branch && this.branch !== '') {
-                            this.dataSharingService.setPrintingService(this.printingService);
-                            this.dataSharingService.setBranch(this.branch);
+                            localStorage.setItem("printingService", this.printingService);
+                            localStorage.setItem("branch", this.branch);
                             // Right place dialog removed
                         }
                     }
@@ -324,11 +312,6 @@ export class AuthService {
                     if (isfromSocial && isfromSocial !== '') {
                         this.printingService = localStorage.getItem("printingService");
                         this.branch = localStorage.getItem("branch");
-                        if (this.printingService && this.printingService !== '' && this.printingService !== 'null'
-                            && this.branch && this.branch !== '' && this.branch !== 'null') {
-                            this.dataSharingService.setPrintingService(this.printingService);
-                            this.dataSharingService.setBranch(this.branch);
-                        }
                         localStorage.removeItem("isfromSocial");
                     }
                 });
@@ -353,8 +336,6 @@ export class AuthService {
             this.branch = '';
             clearTimeout(this.tokenTimer);
             this.clearAuthData();
-            this.dataSharingService.setPrintingService('');
-            this.dataSharingService.setBranch('');
             this.rolesSubject.next([]);
             this.userNameSubject.next('');
             this.user = null;

@@ -6,7 +6,7 @@ import json
 import os
 
 def update_from_file():
-    params_file = r"C:\Users\User\Desktop\programming\beams\beams\blender_params.json"
+    params_file = r"C:\Users\User\Desktop\programming\traveler\main-app\blender_params.json"
     
     try:
         # קרא מקובץ

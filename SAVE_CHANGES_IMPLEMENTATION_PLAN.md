@@ -9,7 +9,7 @@
 
 ### 1. עדכון פונקציית `saveChanges()` ב-`ProductEditInfoComponent`
 
-**קובץ**: `beams/src/app/dialog/product-edit-info/product-edit-info.component.ts`
+**קובץ**: `main-app/src/app/dialog/product-edit-info/product-edit-info.component.ts`
 
 **מה לשלוח לבק-אנד**:
 ```typescript
@@ -71,7 +71,7 @@ this.http.post('/api/products/save-changes', dataToSend)
 
 ### 1. יצירת Route חדש
 
-**קובץ**: `beams/backend/routes/products.js`
+**קובץ**: `main-app/backend/routes/products.js`
 
 ```javascript
 // POST /api/products/save-changes
@@ -237,20 +237,20 @@ function updateBeamArrayParameter(param, value, beamConfiguration, configIndex, 
 ## 📝 רשימת קבצים לעדכון
 
 ### Frontend:
-1. `beams/src/app/dialog/product-edit-info/product-edit-info.component.ts`
+1. `main-app/src/app/dialog/product-edit-info/product-edit-info.component.ts`
    - עדכון `saveChanges()` 
    - הוספת HTTP call
    - הוספת error handling
 
-2. `beams/src/app/dialog/product-edit-info/product-edit-info.component.html`
+2. `main-app/src/app/dialog/product-edit-info/product-edit-info.component.html`
    - הוספת loading spinner בזמן שמירה (אופציונלי)
 
 ### Backend:
-1. `beams/backend/routes/products.js`
+1. `main-app/backend/routes/products.js`
    - הוספת route חדש `/save-changes`
    - יישום לוגיקת העדכון
 
-2. `beams/backend/models/product.js` (אם נדרש)
+2. `main-app/backend/models/product.js` (אם נדרש)
    - וידוא שהמודל תומך בכל השדות
 
 ---
