@@ -28,6 +28,8 @@
   "home.service-translator": "Translator",
   "translator.title": "Translator",
   "translator.content-placeholder": "سيظهر محتوى Translator هنا",
+  "translator.speaker-a": "المتحدث أ",
+  "translator.speaker-b": "المتحدث ب",
   "translator.select-language": "اختر اللغة",
   "translator.search-language": "ابحث عن اللغة",
   "translator.search-language-placeholder": "اكتب للبحث...",

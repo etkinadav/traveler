@@ -174,6 +174,99 @@
   background-color: #616161;
 }
 
+.speaker-a {
+  border-left: 4px solid #2196F3;
+}
+
+.speaker-b {
+  border-left: 4px solid #FF9800;
+}
+
+.speaker-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.speaker-a-badge {
+  background-color: #E3F2FD;
+  color: #1976D2;
+}
+
+.speaker-b-badge {
+  background-color: #FFF3E0;
+  color: #F57C00;
+}
+
+.current-speaker-indicator {
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.play-style {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.play-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid transparent;
+  transition: background-color 0.2s;
+}
+
+.speaker-a-item {
+  border-left-color: #2196F3;
+  background-color: #F5F9FF;
+}
+
+.speaker-b-item {
+  border-left-color: #FF9800;
+  background-color: #FFF8F0;
+}
+
+.speaker-label {
+  font-weight: bold;
+}
+
+.speaker-text {
+  padding-right: 8px;
+  line-height: 1.6;
+}
+
+/* Dark mode support for new elements */
+:host-context(.darkTheme) .speaker-a-badge {
+  background-color: #1565C0;
+  color: #E3F2FD;
+}
+
+:host-context(.darkTheme) .speaker-b-badge {
+  background-color: #E65100;
+  color: #FFF3E0;
+}
+
+:host-context(.darkTheme) .current-speaker-indicator {
+  background-color: #616161;
+}
+
+:host-context(.darkTheme) .speaker-a-item {
+  background-color: #1E3A5F;
+  border-left-color: #64B5F6;
+}
+
+:host-context(.darkTheme) .speaker-b-item {
+  background-color: #4E342E;
+  border-left-color: #FFB74D;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .microphone-button {

@@ -22,14 +22,19 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   // Speech Recognition
   isListening = false;
   transcript = '';
+  currentSpeaker: 'A' | 'B' | null = null;
   status = 'idle'; // idle, listening, stopped, error
   errorMessage = '';
-  selectedLanguage = 'he-IL';
+  selectedLanguageA = 'he-IL';
+  selectedLanguageB = 'en-US';
   supportedLanguages: SupportedLanguage[] = [];
-  filteredLanguages: SupportedLanguage[] = [];
-  languageSearchTerm = '';
-  showLanguageSelector = false;
-  transcriptHistory: string[] = [];
+  filteredLanguagesA: SupportedLanguage[] = [];
+  filteredLanguagesB: SupportedLanguage[] = [];
+  languageSearchTermA = '';
+  languageSearchTermB = '';
+  showLanguageSelectorA = false;
+  showLanguageSelectorB = false;
+  transcriptHistory: Array<{ speaker: 'A' | 'B', text: string, language: string }> = [];
 
   private transcriptSubscription?: Subscription;
   private statusSubscription?: Subscription;
@@ -59,25 +64,38 @@ export class TranslatorComponent implements OnInit, OnDestroy {
 
     // Load supported languages
     this.supportedLanguages = this.speechRecognitionService.getSupportedLanguages();
-    this.filteredLanguages = this.supportedLanguages;
+    this.filteredLanguagesA = this.supportedLanguages;
+    this.filteredLanguagesB = this.supportedLanguages;
 
-    // Load saved language preference
-    const savedLanguage = localStorage.getItem('translator-language');
-    if (savedLanguage) {
-      this.selectedLanguage = savedLanguage;
-      this.speechRecognitionService.setLanguage(savedLanguage);
+    // Load saved language preferences
+    const savedLanguageA = localStorage.getItem('translator-language-a');
+    const savedLanguageB = localStorage.getItem('translator-language-b');
+    if (savedLanguageA) {
+      this.selectedLanguageA = savedLanguageA;
+    }
+    if (savedLanguageB) {
+      this.selectedLanguageB = savedLanguageB;
     }
 
     // Subscribe to transcript updates
     this.transcriptSubscription = this.speechRecognitionService.transcript$.subscribe(result => {
-      if (result.isFinal) {
+      console.log('Transcript result received:', result);
+      
+      if (result.isFinal && result.speaker && result.transcript.trim()) {
+        // Final result - add to history
+        this.transcript = '';
+        this.currentSpeaker = null;
+        this.transcriptHistory.push({
+          speaker: result.speaker,
+          text: result.transcript.trim(),
+          language: result.language || ''
+        });
+        console.log('Added to history:', result);
+      } else if (result.speaker && result.transcript) {
+        // Interim result - show current speaker and text
+        this.currentSpeaker = result.speaker;
         this.transcript = result.transcript;
-        if (result.transcript.trim()) {
-          this.transcriptHistory.push(result.transcript);
-        }
-      } else {
-        // Show interim results
-        this.transcript = result.transcript;
+        console.log('Interim result:', result);
       }
     });
 
@@ -133,37 +151,60 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.status = 'idle';
 
-    // Start listening
-    this.speechRecognitionService.startListening(this.selectedLanguage);
+    // Start listening with both languages
+    this.speechRecognitionService.startListening(this.selectedLanguageA, this.selectedLanguageB);
   }
 
   stopListening(): void {
     this.speechRecognitionService.stopListening();
   }
 
-  onLanguageChange(languageCode: string): void {
-    this.selectedLanguage = languageCode;
-    this.speechRecognitionService.setLanguage(languageCode);
-    localStorage.setItem('translator-language', languageCode);
-    this.showLanguageSelector = false;
+  onLanguageChangeA(languageCode: string): void {
+    this.selectedLanguageA = languageCode;
+    this.speechRecognitionService.setLanguageA(languageCode);
+    localStorage.setItem('translator-language-a', languageCode);
+    this.showLanguageSelectorA = false;
 
-    // If currently listening, restart with new language
+    // If currently listening, restart with new languages
     if (this.isListening) {
-      this.stopListening();
-      setTimeout(() => {
-        this.startListening();
-      }, 100);
+      this.speechRecognitionService.setLanguages(this.selectedLanguageA, this.selectedLanguageB);
     }
   }
 
-  filterLanguages(): void {
-    if (!this.languageSearchTerm) {
-      this.filteredLanguages = this.supportedLanguages;
+  onLanguageChangeB(languageCode: string): void {
+    this.selectedLanguageB = languageCode;
+    this.speechRecognitionService.setLanguageB(languageCode);
+    localStorage.setItem('translator-language-b', languageCode);
+    this.showLanguageSelectorB = false;
+
+    // If currently listening, restart with new languages
+    if (this.isListening) {
+      this.speechRecognitionService.setLanguages(this.selectedLanguageA, this.selectedLanguageB);
+    }
+  }
+
+  filterLanguagesA(): void {
+    if (!this.languageSearchTermA) {
+      this.filteredLanguagesA = this.supportedLanguages;
       return;
     }
 
-    const searchTerm = this.languageSearchTerm.toLowerCase();
-    this.filteredLanguages = this.supportedLanguages.filter(lang =>
+    const searchTerm = this.languageSearchTermA.toLowerCase();
+    this.filteredLanguagesA = this.supportedLanguages.filter(lang =>
+      lang.name.toLowerCase().includes(searchTerm) ||
+      lang.nativeName.toLowerCase().includes(searchTerm) ||
+      lang.code.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  filterLanguagesB(): void {
+    if (!this.languageSearchTermB) {
+      this.filteredLanguagesB = this.supportedLanguages;
+      return;
+    }
+
+    const searchTerm = this.languageSearchTermB.toLowerCase();
+    this.filteredLanguagesB = this.supportedLanguages.filter(lang =>
       lang.name.toLowerCase().includes(searchTerm) ||
       lang.nativeName.toLowerCase().includes(searchTerm) ||
       lang.code.toLowerCase().includes(searchTerm)
@@ -176,17 +217,35 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   }
 
   copyToClipboard(): void {
-    if (this.transcript) {
+    // Copy all history in play format
+    if (this.transcriptHistory.length > 0) {
+      const playText = this.transcriptHistory.map(item => {
+        return `${this.getSpeakerName(item.speaker)}: ${item.text}`;
+      }).join('\n\n');
+      
+      navigator.clipboard.writeText(playText).then(() => {
+        console.log('History copied to clipboard');
+      });
+    } else if (this.transcript) {
+      // If no history, copy current transcript
       navigator.clipboard.writeText(this.transcript).then(() => {
-        // Could show a toast notification here
         console.log('Text copied to clipboard');
       });
     }
   }
 
-  getSelectedLanguageName(): string {
-    const lang = this.supportedLanguages.find(l => l.code === this.selectedLanguage);
-    return lang ? lang.nativeName : this.selectedLanguage;
+  getSelectedLanguageNameA(): string {
+    const lang = this.supportedLanguages.find(l => l.code === this.selectedLanguageA);
+    return lang ? lang.nativeName : this.selectedLanguageA;
+  }
+
+  getSelectedLanguageNameB(): string {
+    const lang = this.supportedLanguages.find(l => l.code === this.selectedLanguageB);
+    return lang ? lang.nativeName : this.selectedLanguageB;
+  }
+
+  getSpeakerName(speaker: 'A' | 'B'): string {
+    return speaker === 'A' ? 'דובר א\'' : 'דובר ב\'';
   }
 
   getStatusIcon(): string {
@@ -213,4 +272,5 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     }
   }
 }
+
 

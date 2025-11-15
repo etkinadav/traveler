@@ -8,42 +8,96 @@
       </h6>
     </div>
 
-    <!-- Language Selector -->
+    <!-- Language Selectors -->
     <div class="w-100 px-2 pb-3 px-lg-3">
-      <div class="position-relative">
-        <button 
-          mat-stroked-button 
-          (click)="showLanguageSelector = !showLanguageSelector"
-          class="w-100 d-flex justify-content-between align-items-center">
-          <span>{{ 'translator.select-language' | translate }}: {{ getSelectedLanguageName() }}</span>
-          <mat-icon>{{ showLanguageSelector ? 'expand_less' : 'expand_more' }}</mat-icon>
-        </button>
+      <div class="row g-3">
+        <!-- Speaker A Language -->
+        <div class="col-12 col-md-6">
+          <div class="position-relative">
+            <button 
+              mat-stroked-button 
+              (click)="showLanguageSelectorA = !showLanguageSelectorA"
+              class="w-100 d-flex justify-content-between align-items-center"
+              [class.speaker-a]="true">
+              <span>
+                <strong>{{ 'translator.speaker-a' | translate }}:</strong> {{ getSelectedLanguageNameA() }}
+              </span>
+              <mat-icon>{{ showLanguageSelectorA ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
 
-        <!-- Language Dropdown -->
-        <div 
-          *ngIf="showLanguageSelector" 
-          class="language-selector-dropdown"
-          [class.rtl]="isRTL">
-          <div class="p-2">
-            <mat-form-field class="w-100">
-              <mat-label>{{ 'translator.search-language' | translate }}</mat-label>
-              <input 
-                matInput 
-                [(ngModel)]="languageSearchTerm"
-                (input)="filterLanguages()"
-                [placeholder]="'translator.search-language-placeholder' | translate">
-              <mat-icon matPrefix>search</mat-icon>
-            </mat-form-field>
-          </div>
-          <div class="language-list">
+            <!-- Language Dropdown A -->
             <div 
-              *ngFor="let lang of filteredLanguages"
-              [class.selected]="selectedLanguage === lang.code"
-              (click)="onLanguageChange(lang.code)"
-              class="language-item">
-              <div class="d-flex flex-column">
-                <span class="fw-bold">{{ lang.nativeName }}</span>
-                <span class="text-muted small">{{ lang.name }}</span>
+              *ngIf="showLanguageSelectorA" 
+              class="language-selector-dropdown"
+              [class.rtl]="isRTL">
+              <div class="p-2">
+                <mat-form-field class="w-100">
+                  <mat-label>{{ 'translator.search-language' | translate }}</mat-label>
+                  <input 
+                    matInput 
+                    [(ngModel)]="languageSearchTermA"
+                    (input)="filterLanguagesA()"
+                    [placeholder]="'translator.search-language-placeholder' | translate">
+                  <mat-icon matPrefix>search</mat-icon>
+                </mat-form-field>
+              </div>
+              <div class="language-list">
+                <div 
+                  *ngFor="let lang of filteredLanguagesA"
+                  [class.selected]="selectedLanguageA === lang.code"
+                  (click)="onLanguageChangeA(lang.code)"
+                  class="language-item">
+                  <div class="d-flex flex-column">
+                    <span class="fw-bold">{{ lang.nativeName }}</span>
+                    <span class="text-muted small">{{ lang.name }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Speaker B Language -->
+        <div class="col-12 col-md-6">
+          <div class="position-relative">
+            <button 
+              mat-stroked-button 
+              (click)="showLanguageSelectorB = !showLanguageSelectorB"
+              class="w-100 d-flex justify-content-between align-items-center"
+              [class.speaker-b]="true">
+              <span>
+                <strong>{{ 'translator.speaker-b' | translate }}:</strong> {{ getSelectedLanguageNameB() }}
+              </span>
+              <mat-icon>{{ showLanguageSelectorB ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+
+            <!-- Language Dropdown B -->
+            <div 
+              *ngIf="showLanguageSelectorB" 
+              class="language-selector-dropdown"
+              [class.rtl]="isRTL">
+              <div class="p-2">
+                <mat-form-field class="w-100">
+                  <mat-label>{{ 'translator.search-language' | translate }}</mat-label>
+                  <input 
+                    matInput 
+                    [(ngModel)]="languageSearchTermB"
+                    (input)="filterLanguagesB()"
+                    [placeholder]="'translator.search-language-placeholder' | translate">
+                  <mat-icon matPrefix>search</mat-icon>
+                </mat-form-field>
+              </div>
+              <div class="language-list">
+                <div 
+                  *ngFor="let lang of filteredLanguagesB"
+                  [class.selected]="selectedLanguageB === lang.code"
+                  (click)="onLanguageChangeB(lang.code)"
+                  class="language-item">
+                  <div class="d-flex flex-column">
+                    <span class="fw-bold">{{ lang.nativeName }}</span>
+                    <span class="text-muted small">{{ lang.name }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -81,7 +135,10 @@
       <div class="status-indicator mb-3">
         <span *ngIf="status === 'listening'" class="listening-dot"></span>
         <span class="status-text">
-          <span *ngIf="status === 'listening'">{{ 'translator.status-listening' | translate }}</span>
+          <span *ngIf="status === 'listening' && currentSpeaker">
+            {{ 'translator.status-listening' | translate }} - {{ getSpeakerName(currentSpeaker) }}
+          </span>
+          <span *ngIf="status === 'listening' && !currentSpeaker">{{ 'translator.status-listening' | translate }}</span>
           <span *ngIf="status === 'stopped'">{{ 'translator.status-stopped' | translate }}</span>
           <span *ngIf="status === 'idle'">{{ 'translator.status-ready' | translate }}</span>
         </span>
@@ -112,9 +169,14 @@
           <div 
             class="transcript-content"
             [class.interim]="status === 'listening' && transcript && !transcriptHistory.length">
-            <p *ngIf="transcript; else emptyState" [dir]="isRTL ? 'rtl' : 'ltr'">
-              {{ transcript }}
-            </p>
+            <div *ngIf="transcript; else emptyState" [dir]="isRTL ? 'rtl' : 'ltr'">
+              <div *ngIf="currentSpeaker" class="current-speaker-indicator mb-2">
+                <span class="speaker-badge" [class.speaker-a-badge]="currentSpeaker === 'A'" [class.speaker-b-badge]="currentSpeaker === 'B'">
+                  {{ getSpeakerName(currentSpeaker) }}:
+                </span>
+              </div>
+              <p class="mb-0">{{ transcript }}</p>
+            </div>
             <ng-template #emptyState>
               <p class="text-muted text-center">
                 {{ 'translator.transcript-placeholder' | translate }}
@@ -131,13 +193,21 @@
             <mat-card-title>{{ 'translator.history' | translate }}</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <div class="history-list">
+            <div class="history-list play-style">
               <div 
-                *ngFor="let item of transcriptHistory; let i = index"
-                class="history-item"
+                *ngFor="let item of transcriptHistory"
+                class="history-item play-item"
+                [class.speaker-a-item]="item.speaker === 'A'"
+                [class.speaker-b-item]="item.speaker === 'B'"
                 [dir]="isRTL ? 'rtl' : 'ltr'">
-                <span class="history-number">{{ transcriptHistory.length - i }}.</span>
-                <span class="history-text">{{ item }}</span>
+                <div class="speaker-label">
+                  <span class="speaker-badge" [class.speaker-a-badge]="item.speaker === 'A'" [class.speaker-b-badge]="item.speaker === 'B'">
+                    {{ getSpeakerName(item.speaker) }}:
+                  </span>
+                </div>
+                <div class="speaker-text">
+                  {{ item.text }}
+                </div>
               </div>
             </div>
           </mat-card-content>

@@ -4,6 +4,9 @@ import { Subject, Observable } from 'rxjs';
 export interface SpeechRecognitionResult {
   transcript: string;
   isFinal: boolean;
+  speaker?: 'A' | 'B'; // דובר א' או ב'
+  language?: string; // השפה שזוהתה
+  confidence?: number; // רמת ביטחון
 }
 
 export interface SupportedLanguage {
@@ -16,9 +19,11 @@ export interface SupportedLanguage {
   providedIn: 'root'
 })
 export class SpeechRecognitionService {
-  private recognition: any;
+  private recognitionA: any; // דובר א'
+  private recognitionB: any; // דובר ב'
   private isListening = false;
-  private currentLanguage = 'he-IL';
+  private languageA = 'he-IL';
+  private languageB = 'en-US';
   
   private transcriptSubject = new Subject<SpeechRecognitionResult>();
   public transcript$: Observable<SpeechRecognitionResult> = this.transcriptSubject.asObservable();
@@ -29,11 +34,15 @@ export class SpeechRecognitionService {
   private errorSubject = new Subject<string>();
   public error$: Observable<string> = this.errorSubject.asObservable();
 
+  private lastResultTime: { [key: string]: number } = {};
+  private resultQueue: SpeechRecognitionResult[] = [];
+  private processingQueue = false;
+
   constructor() {
-    this.initializeRecognition();
+    // לא נאתחל כאן - נאתחל רק כשמתחילים להאזין
   }
 
-  private initializeRecognition(): void {
+  private initializeRecognition(languageA: string, languageB: string): void {
     // Check browser support
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     
@@ -42,75 +51,226 @@ export class SpeechRecognitionService {
       return;
     }
 
-    this.recognition = new SpeechRecognition();
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
-    this.recognition.lang = this.currentLanguage;
+    // Initialize recognition for speaker A
+    this.recognitionA = new SpeechRecognition();
+    this.recognitionA.continuous = true;
+    this.recognitionA.interimResults = true;
+    this.recognitionA.lang = languageA;
+    this.recognitionA.maxAlternatives = 1;
 
-    // Event handlers
-    this.recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
+    // Initialize recognition for speaker B
+    this.recognitionB = new SpeechRecognition();
+    this.recognitionB.continuous = true;
+    this.recognitionB.interimResults = true;
+    this.recognitionB.lang = languageB;
+    this.recognitionB.maxAlternatives = 1;
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript + ' ';
-        } else {
-          interimTranscript += transcript;
+    // Event handlers for speaker A
+    this.recognitionA.onresult = (event: any) => {
+      console.log('Recognition A result:', event);
+      this.handleRecognitionResult(event, 'A', languageA);
+    };
+
+    this.recognitionA.onerror = (event: any) => {
+      console.log('Recognition A error:', event);
+      this.handleRecognitionError(event, 'A');
+    };
+
+    this.recognitionA.onstart = () => {
+      console.log('Recognition A started');
+    };
+
+    this.recognitionA.onend = () => {
+      console.log('Recognition A ended, isListening:', this.isListening);
+      // Don't auto-restart - we'll handle it manually to avoid conflicts
+    };
+
+    // Event handlers for speaker B
+    this.recognitionB.onresult = (event: any) => {
+      console.log('Recognition B result:', event);
+      this.handleRecognitionResult(event, 'B', languageB);
+    };
+
+    this.recognitionB.onerror = (event: any) => {
+      console.log('Recognition B error:', event);
+      this.handleRecognitionError(event, 'B');
+    };
+
+    this.recognitionB.onstart = () => {
+      console.log('Recognition B started');
+    };
+
+    this.recognitionB.onend = () => {
+      console.log('Recognition B ended, isListening:', this.isListening);
+      // Don't auto-restart - we'll handle it manually to avoid conflicts
+    };
+  }
+
+  private handleRecognitionResult(event: any, speaker: 'A' | 'B', language: string): void {
+    let interimTranscript = '';
+    let finalTranscript = '';
+    let maxConfidence = 0;
+
+    console.log(`[${speaker}] Processing result for language ${language}:`, event);
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i][0];
+      const transcript = result.transcript;
+      const confidence = result.confidence || 0;
+      
+      console.log(`[${speaker}] Result ${i}: "${transcript}" (confidence: ${confidence}, final: ${event.results[i].isFinal})`);
+      
+      if (confidence > maxConfidence) {
+        maxConfidence = confidence;
+      }
+
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript + ' ';
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+
+    // Only process if we have actual text
+    if (!finalTranscript && !interimTranscript) {
+      console.log(`[${speaker}] No text found, skipping`);
+      return;
+    }
+
+    // Try to detect which language is actually being spoken
+    // This is a simple heuristic - we'll identify speaker based on the configured language
+    // In a real implementation, you might want to use language detection APIs
+    const detectedSpeaker = this.detectSpeaker(language, finalTranscript || interimTranscript, maxConfidence);
+
+    const result: SpeechRecognitionResult = {
+      transcript: finalTranscript.trim() || interimTranscript,
+      isFinal: !!finalTranscript,
+      speaker: detectedSpeaker,
+      language: language,
+      confidence: maxConfidence
+    };
+
+    console.log(`[${speaker}] Sending result with detected speaker ${detectedSpeaker}:`, result);
+
+    const now = Date.now();
+    this.lastResultTime[detectedSpeaker] = now;
+
+    // For final results, process immediately
+    if (result.isFinal) {
+      // Clear any interim results from queue
+      this.resultQueue = this.resultQueue.filter(r => r.speaker !== detectedSpeaker);
+      console.log(`[${detectedSpeaker}] Sending final result immediately`);
+      this.transcriptSubject.next(result);
+      
+      // Restart recognition after a short delay to continue listening
+      if (this.isListening) {
+        setTimeout(() => {
+          try {
+            if (this.isListening && this.recognitionA) {
+              this.recognitionA.start();
+            }
+          } catch (e) {
+            console.warn('Failed to restart recognition:', e);
+          }
+        }, 100);
+      }
+    } else {
+      // For interim results, add to queue and process
+      // Remove any previous interim results from the same speaker
+      this.resultQueue = this.resultQueue.filter(r => !(r.speaker === detectedSpeaker && !r.isFinal));
+      this.resultQueue.push(result);
+      console.log(`[${detectedSpeaker}] Added interim result to queue, queue length: ${this.resultQueue.length}`);
+      
+      // Process queue to show the most recent/confident result
+      this.processQueue();
+    }
+  }
+
+  private detectSpeaker(configuredLanguage: string, transcript: string, confidence: number): 'A' | 'B' {
+    // Simple heuristic: if the configured language matches language A, it's speaker A
+    // Otherwise, it's speaker B
+    // In a more sophisticated implementation, you could use language detection APIs
+    
+    // For now, we'll use the configured language to determine speaker
+    if (configuredLanguage === this.languageA) {
+      return 'A';
+    } else if (configuredLanguage === this.languageB) {
+      return 'B';
+    }
+    
+    // Default to A if we can't determine
+    return 'A';
+  }
+
+  private processQueue(): void {
+    if (this.resultQueue.length === 0) {
+      this.processingQueue = false;
+      return;
+    }
+
+    if (this.processingQueue) {
+      return; // Already processing
+    }
+
+    this.processingQueue = true;
+
+    // Use setTimeout to debounce and process the most recent result
+    setTimeout(() => {
+      if (this.resultQueue.length === 0) {
+        this.processingQueue = false;
+        return;
+      }
+
+      console.log('Processing queue, items:', this.resultQueue.length);
+
+      // Find the most recent result (by time) or most confident
+      const mostRecent = this.resultQueue.reduce((latest, current) => {
+        const currentTime = this.lastResultTime[current.speaker!] || 0;
+        const latestTime = this.lastResultTime[latest.speaker!] || 0;
+        
+        // Prefer more recent
+        if (currentTime > latestTime) {
+          return current;
+        } else if (currentTime === latestTime) {
+          // If same time, prefer higher confidence
+          if ((current.confidence || 0) > (latest.confidence || 0)) {
+            return current;
+          }
         }
-      }
+        return latest;
+      });
 
-      if (finalTranscript) {
-        this.transcriptSubject.next({
-          transcript: finalTranscript.trim(),
-          isFinal: true
-        });
-      } else if (interimTranscript) {
-        this.transcriptSubject.next({
-          transcript: interimTranscript,
-          isFinal: false
-        });
-      }
-    };
-
-    this.recognition.onerror = (event: any) => {
-      let errorMessage = 'An error occurred with speech recognition.';
+      console.log('Sending most recent interim result:', mostRecent);
+      // Send the most recent interim result
+      this.transcriptSubject.next(mostRecent);
       
-      switch (event.error) {
-        case 'no-speech':
-          errorMessage = 'No speech detected. Please try again.';
-          break;
-        case 'audio-capture':
-          errorMessage = 'No microphone found. Please check your microphone.';
-          break;
-        case 'not-allowed':
-          errorMessage = 'Microphone permission denied. Please allow microphone access.';
-          break;
-        case 'network':
-          errorMessage = 'Network error. Please check your internet connection.';
-          break;
-        case 'aborted':
-          // User stopped, not really an error
-          return;
-        default:
-          errorMessage = `Speech recognition error: ${event.error}`;
-      }
-      
-      this.errorSubject.next(errorMessage);
-      this.isListening = false;
-      this.statusSubject.next('error');
-    };
+      this.processingQueue = false;
+    }, 50);
+  }
 
-    this.recognition.onend = () => {
-      this.isListening = false;
-      this.statusSubject.next('stopped');
-    };
+  private handleRecognitionError(event: any, speaker: 'A' | 'B'): void {
+    // Only show error if it's not a "no-speech" error (which is common)
+    if (event.error === 'no-speech' || event.error === 'aborted') {
+      return;
+    }
 
-    this.recognition.onstart = () => {
-      this.isListening = true;
-      this.statusSubject.next('listening');
-    };
+    let errorMessage = `Error with ${speaker === 'A' ? 'Speaker A' : 'Speaker B'} recognition: `;
+    
+    switch (event.error) {
+      case 'audio-capture':
+        errorMessage = 'No microphone found. Please check your microphone.';
+        break;
+      case 'not-allowed':
+        errorMessage = 'Microphone permission denied. Please allow microphone access.';
+        break;
+      case 'network':
+        errorMessage = 'Network error. Please check your internet connection.';
+        break;
+      default:
+        errorMessage = `Speech recognition error: ${event.error}`;
+    }
+    
+    this.errorSubject.next(errorMessage);
   }
 
   async requestMicrophonePermission(): Promise<boolean> {
@@ -131,8 +291,10 @@ export class SpeechRecognitionService {
     }
   }
 
-  startListening(language?: string): void {
-    if (!this.recognition) {
+  startListening(languageA?: string, languageB?: string): void {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
       this.errorSubject.next('Speech recognition is not available in this browser.');
       return;
     }
@@ -141,37 +303,108 @@ export class SpeechRecognitionService {
       return;
     }
 
-    if (language) {
-      this.currentLanguage = language;
-      this.recognition.lang = language;
+    // Update languages if provided
+    if (languageA) {
+      this.languageA = languageA;
+    }
+    if (languageB) {
+      this.languageB = languageB;
     }
 
+    // Initialize recognitions with current languages
+    this.initializeRecognition(this.languageA, this.languageB);
+
+    // Clear previous state
+    this.resultQueue = [];
+    this.lastResultTime = {};
+
     try {
-      this.recognition.start();
-    } catch (error: any) {
-      // If already started, ignore the error
-      if (error.message && !error.message.includes('already started')) {
-        this.errorSubject.next('Failed to start speech recognition: ' + error.message);
+      // Web Speech API limitation: Cannot run 2 instances simultaneously
+      // Strategy: Use a single instance and switch languages dynamically
+      // We'll start with language A, and if we detect language B patterns, we can switch
+      
+      // For now, let's use a simpler approach: run only one instance
+      // We'll use the first language (A) and identify speaker based on language detection
+      // In the future, we can implement language switching based on confidence scores
+      
+      try {
+        // Start only recognition A for now
+        // We'll identify the speaker based on which language is being spoken
+        this.recognitionA.start();
+        console.log('✓ Started recognition A for language:', this.languageA);
+        console.log('ℹ Note: Using single recognition instance. Speaker identification will be based on language detection.');
+        
+        this.isListening = true;
+        this.statusSubject.next('listening');
+        console.log('✓ Speech recognition is now listening');
+      } catch (e: any) {
+        console.error('✗ Failed to start recognition:', e);
+        this.errorSubject.next('Failed to start speech recognition: ' + (e.message || e));
       }
+    } catch (error: any) {
+      console.error('✗ Error starting recognition:', error);
+      this.errorSubject.next('Failed to start speech recognition: ' + (error.message || error));
     }
   }
 
   stopListening(): void {
-    if (this.recognition && this.isListening) {
-      this.recognition.stop();
+    if (this.isListening) {
+      try {
+        if (this.recognitionA) {
+          this.recognitionA.stop();
+        }
+        if (this.recognitionB) {
+          this.recognitionB.stop();
+        }
+      } catch (e) {
+        // Ignore stop errors
+      }
       this.isListening = false;
+      this.statusSubject.next('stopped');
+      this.resultQueue = [];
     }
   }
 
-  setLanguage(language: string): void {
-    this.currentLanguage = language;
-    if (this.recognition) {
-      this.recognition.lang = language;
+  setLanguageA(language: string): void {
+    this.languageA = language;
+    if (this.recognitionA) {
+      this.recognitionA.lang = language;
     }
   }
 
-  getCurrentLanguage(): string {
-    return this.currentLanguage;
+  setLanguageB(language: string): void {
+    this.languageB = language;
+    if (this.recognitionB) {
+      this.recognitionB.lang = language;
+    }
+  }
+
+  setLanguages(languageA: string, languageB: string): void {
+    this.languageA = languageA;
+    this.languageB = languageB;
+    
+    if (this.recognitionA) {
+      this.recognitionA.lang = languageA;
+    }
+    if (this.recognitionB) {
+      this.recognitionB.lang = languageB;
+    }
+
+    // If currently listening, restart with new languages
+    if (this.isListening) {
+      this.stopListening();
+      setTimeout(() => {
+        this.startListening(languageA, languageB);
+      }, 200);
+    }
+  }
+
+  getLanguageA(): string {
+    return this.languageA;
+  }
+
+  getLanguageB(): string {
+    return this.languageB;
   }
 
   getIsListening(): boolean {
@@ -233,4 +466,5 @@ export class SpeechRecognitionService {
     ];
   }
 }
+
 

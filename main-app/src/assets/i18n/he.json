@@ -28,6 +28,8 @@
   "home.service-translator": "Translator",
   "translator.title": "Translator",
   "translator.content-placeholder": "תוכן Translator יופיע כאן",
+  "translator.speaker-a": "דובר א'",
+  "translator.speaker-b": "דובר ב'",
   "translator.select-language": "בחר שפה",
   "translator.search-language": "חפש שפה",
   "translator.search-language-placeholder": "הקלד לחיפוש...",
