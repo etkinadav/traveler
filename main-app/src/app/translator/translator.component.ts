@@ -140,10 +140,49 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         // Check confidence score - if it's low, the current language might be wrong
         if (result.confidence !== undefined) {
           this.checkLanguageByConfidence(result.confidence, trimmedText, result.language);
+          
+          // If confidence is very low (0.010) and text looks like English but we're expecting Hebrew,
+          // it might be a misrecognition - skip it to avoid adding wrong text
+          if (result.confidence <= 0.015 && result.language && result.language.startsWith('en-')) {
+            // Check if the other language is Hebrew
+            if (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) {
+              // Check if text looks like English (only Latin characters, no Hebrew)
+              const hasOnlyLatin = /^[a-zA-Z\s]+$/.test(trimmedText);
+              const hasHebrew = /[\u0590-\u05FF]/.test(trimmedText);
+              
+              if (hasOnlyLatin && !hasHebrew) {
+                const words = trimmedText.split(/\s+/).filter(w => w.length > 0);
+                const isVeryShort = words.length <= 3;
+                
+                // Check if words extend each other (like "EXT extre extreme")
+                let hasExtendingWords = false;
+                if (words.length >= 2) {
+                  for (let i = 0; i < words.length - 1; i++) {
+                    const current = words[i].toLowerCase();
+                    const next = words[i + 1].toLowerCase();
+                    if (next.startsWith(current) && next.length > current.length) {
+                      hasExtendingWords = true;
+                      break;
+                    }
+                  }
+                }
+                
+                // Check if words are very short (likely gibberish)
+                const hasVeryShortWords = words.some(w => w.length <= 2);
+                
+                // If it's very short English text with very low confidence, it might be Hebrew misrecognized
+                // Skip it if we don't have any text yet, or if it looks like gibberish
+                if (!this.fullTranscriptText && (isVeryShort || hasExtendingWords || hasVeryShortWords)) {
+                  console.log(`SKIP_LOW_CONFIDENCE: Skipping very low confidence English text "${trimmedText}" (confidence: ${result.confidence}) - might be Hebrew misrecognized (short: ${isVeryShort}, extending: ${hasExtendingWords}, veryShortWords: ${hasVeryShortWords})`);
+                  return; // Skip this result
+                }
+              }
+            }
+          }
         }
         
         // Update full transcript text - add only new parts without duplicates
-        this.updateFullTranscript(trimmedText);
+        this.updateFullTranscript(trimmedText, result.confidence);
       }
     });
 
@@ -326,13 +365,55 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     return lang ? lang.nativeName : this.selectedTranslationLanguageB;
   }
 
-  private updateFullTranscript(newText: string): void {
+  private updateFullTranscript(newText: string, confidence?: number): void {
     // Remove RTL marks and normalize
     const cleanNewText = newText.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
     const cleanFullText = this.fullTranscriptText.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
     
     if (!cleanNewText) {
       return;
+    }
+    
+    // If confidence is very low and text looks like English but we're expecting Hebrew,
+    // and the text doesn't make sense (like "EXT extre extreme"), skip it
+    if (confidence !== undefined && confidence <= 0.015) {
+      // Check if the other language is Hebrew
+      if (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) {
+        // Check if text looks like English (only Latin characters, no Hebrew)
+        const hasOnlyLatin = /^[a-zA-Z\s]+$/.test(cleanNewText);
+        const hasHebrew = /[\u0590-\u05FF]/.test(cleanNewText);
+        
+        // If it's English text with very low confidence and no Hebrew, it might be a misrecognition
+        // Check if it looks like gibberish (repeated words, very short, words that extend each other, etc.)
+        if (hasOnlyLatin && !hasHebrew) {
+          const words = cleanNewText.split(/\s+/).filter(w => w.length > 0);
+          const isVeryShort = words.length <= 3;
+          const hasRepeatedWords = words.length > 1 && words[0].toLowerCase() === words[1].toLowerCase();
+          
+          // Check if words extend each other (like "EXT extre extreme" - each word is a prefix of the next)
+          let hasExtendingWords = false;
+          if (words.length >= 2) {
+            for (let i = 0; i < words.length - 1; i++) {
+              const current = words[i].toLowerCase();
+              const next = words[i + 1].toLowerCase();
+              // Check if current word is a prefix of next word (like "ext" -> "extre" -> "extreme")
+              if (next.startsWith(current) && next.length > current.length) {
+                hasExtendingWords = true;
+                break;
+              }
+            }
+          }
+          
+          // Check if words are very short (likely gibberish)
+          const hasVeryShortWords = words.some(w => w.length <= 2);
+          
+          // If it's very short, has repeated words, has extending words, or has very short words, it's likely a misrecognition
+          if (isVeryShort || hasRepeatedWords || hasExtendingWords || hasVeryShortWords) {
+            console.log(`SKIP_LOW_CONFIDENCE_UPDATE: Skipping very low confidence English text "${cleanNewText}" (confidence: ${confidence}) - likely Hebrew misrecognized (short: ${isVeryShort}, repeated: ${hasRepeatedWords}, extending: ${hasExtendingWords}, veryShortWords: ${hasVeryShortWords})`);
+            return; // Skip this update
+          }
+        }
+      }
     }
     
     // Check for repetition patterns BEFORE processing
