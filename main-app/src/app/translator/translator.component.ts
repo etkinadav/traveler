@@ -42,6 +42,10 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   private lastAddedWords: string[] = [];
   private readonly MAX_TRACKED_WORDS = 10; // Track last 10 words
   
+  // Track last result time to detect speech gaps
+  private lastResultTime: number = 0;
+  private readonly SPEECH_GAP_THRESHOLD = 1000; // 1 second in milliseconds
+  
   private transcriptSubscription?: Subscription;
   private statusSubscription?: Subscription;
   private errorSubscription?: Subscription;
@@ -88,6 +92,25 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.transcriptSubscription = this.speechRecognitionService.transcript$.subscribe(result => {
       if (result.speaker && result.transcript && result.transcript.trim()) {
         const trimmedText = result.transcript.trim();
+        const currentTime = Date.now();
+        
+        // Check if there's a speech gap (more than 1 second since last result)
+        if (this.lastResultTime > 0 && (currentTime - this.lastResultTime) > this.SPEECH_GAP_THRESHOLD) {
+          // Save current text to history as a new line and start fresh
+          if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
+            console.log(`SPEECH_GAP: Detected gap of ${currentTime - this.lastResultTime}ms, saving current text as new line`);
+            // Add current text as a new line in history (don't replace existing history)
+            this.addCurrentTextToHistoryAsNewLine();
+            // Reset accumulated text to start a new line
+            this.fullTranscriptText = '';
+            this.lastAddedWords = [];
+            this.lastFullTextLength = 0;
+            this.cdr.detectChanges();
+          }
+        }
+        
+        // Update last result time
+        this.lastResultTime = currentTime;
         
         // Check confidence score - if it's low, the current language might be wrong
         if (result.confidence !== undefined) {
@@ -156,11 +179,13 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.lastFullTextLength = 0;
     this.transcriptHistory = [];
     this.historyIdCounter = 0;
+    this.savedHistoryCount = 0; // Reset saved history count
     this.lowConfidenceCount = 0;
     this.languageMismatchCount = 0;
     this.lastLanguageCheck = '';
     this.lastLanguageCheckTime = 0;
     this.lastAddedWords = []; // Reset tracked words
+    this.lastResultTime = 0; // Reset last result time
 
     // Start listening with both languages
     this.speechRecognitionService.startListening(this.selectedLanguageA, this.selectedLanguageB);
@@ -1085,31 +1110,71 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     return { detectedLanguage: null, confidence: 0, changePoint: 0 };
   }
   
-  private updateHistoryFromFullText(): void {
-    // Parse the full text and create history entries by speaker/language
-    // This is a simplified version - you might want to improve the parsing logic
-    if (!this.fullTranscriptText) {
-      this.transcriptHistory = [];
+  /**
+   * Adds the current fullTranscriptText to history as a new line(s)
+   * This is used when there's a speech gap - we want to save the current text
+   * and start a new line, without deleting existing history
+   */
+  private addCurrentTextToHistoryAsNewLine(): void {
+    if (!this.fullTranscriptText || this.fullTranscriptText.trim().length === 0) {
       return;
     }
     
-    // For now, we'll create a single entry with the full text
-    // Later we can improve this to split by speaker/language changes
-    const detectedLanguage = this.detectLanguageFromText(this.fullTranscriptText);
-    
-    // Simple approach: create one entry per language segment
     // Split text by language changes
     const segments = this.splitTextByLanguage(this.fullTranscriptText);
     
-    this.transcriptHistory = segments.map((segment, index) => {
+    // Remove any live segments first (they will be replaced with saved segments)
+    if (this.transcriptHistory.length > this.savedHistoryCount) {
+      this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+    }
+    
+    // Add each segment as a new saved entry to the existing history
+    segments.forEach((segment) => {
+      const speaker = this.getSpeakerForLanguage(segment.language);
+      this.historyIdCounter++;
+      this.transcriptHistory.push({
+        speaker: speaker,
+        text: segment.text,
+        language: segment.language,
+        id: this.historyIdCounter
+      });
+    });
+    
+    // Update saved history count
+    this.savedHistoryCount = this.transcriptHistory.length;
+  }
+  
+  // Track the number of saved history entries (from speech gaps)
+  private savedHistoryCount: number = 0;
+  
+  private updateHistoryFromFullText(): void {
+    // Parse the full text and create history entries by speaker/language
+    // This updates only the "live" segments (current speech) while keeping saved segments
+    if (!this.fullTranscriptText) {
+      // If text is empty, keep existing history but remove any live segments
+      if (this.transcriptHistory.length > this.savedHistoryCount) {
+        this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+      }
+      return;
+    }
+    
+    // Split text by language changes
+    const segments = this.splitTextByLanguage(this.fullTranscriptText);
+    
+    // Keep saved history entries and replace/update only the live segments
+    const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+    const liveSegments = segments.map((segment, index) => {
       const speaker = this.getSpeakerForLanguage(segment.language);
       return {
         speaker: speaker,
         text: segment.text,
         language: segment.language,
-        id: index + 1
+        id: this.savedHistoryCount + index + 1
       };
     });
+    
+    // Combine saved history with live segments
+    this.transcriptHistory = [...savedHistory, ...liveSegments];
   }
   
   private splitTextByLanguage(text: string): Array<{ text: string, language: string }> {
@@ -1288,6 +1353,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   clearTranscript(): void {
     this.transcriptHistory = [];
     this.historyIdCounter = 0;
+    this.savedHistoryCount = 0; // Reset saved history count
     this.fullTranscriptText = '';
     this.lastFullTextLength = 0;
     this.lowConfidenceCount = 0;
@@ -1295,6 +1361,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.lastLanguageCheck = '';
     this.lastLanguageCheckTime = 0;
     this.lastAddedWords = []; // Reset tracked words
+    this.lastResultTime = 0; // Reset last result time
   }
 
   copyToClipboard(): void {
