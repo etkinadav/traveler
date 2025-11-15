@@ -10,6 +10,7 @@
 /node_modules
 npm-debug.log
 yarn-error.log
+package-lock.json
 
 # IDEs and editors
 .idea/
@@ -46,6 +47,10 @@ Thumbs.db
 /backend/package-lock.json
 /backend/.env
 /backend/images/
+/main-app/backend/node_modules/
+/main-app/backend/package-lock.json
+/main-app/backend/.env
+/main-app/backend/images/
 
 # Environment files
 .env
@@ -69,3 +74,11 @@ lerna-debug.log*
 # Temporary files
 *.tmp
 *.temp
+
+# Build artifacts
+*.zip
+*.tar.gz
+
+# Certificates (if sensitive)
+# /certs/*.key
+# /certs/*.pem

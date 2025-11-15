@@ -1,98 +1,176 @@
-# Traveler Project
+# MEAN Stack Base Application
 
-פרויקט Full-Stack MEAN (MongoDB, Express, Angular, Node.js) - מערכת ניהול מוצרים עם Angular Frontend ו-Node.js Backend.
+מערכת בסיסית לפיתוח ממשקים חדשים - MEAN Stack (MongoDB, Express, Angular, Node.js)
 
-## 🚀 התקנה והפעלה
+## 📋 תכונות בסיסיות
+
+- ✅ **משתמשים** - הרשמה, התחברות, ניהול פרופיל
+- ✅ **הזמנות** - יצירה וניהול הזמנות
+- ✅ **תשלומים** - ניהול תשלומים ואשראי
+- ✅ **אימות** - JWT Authentication
+- ✅ **תרגומים** - תמיכה ב-i18n (עברית, אנגלית, ערבית)
+- ✅ **UI** - Angular Material
+
+## 🚀 התקנה והרצה
 
 ### דרישות מוקדמות
-- Node.js (גרסה 16 ומעלה)
+
+- Node.js (v16 או גבוה יותר)
+- MongoDB (Atlas או מקומי)
 - npm או yarn
-- MongoDB Atlas (או MongoDB מקומי)
 
-### התקנת Dependencies
+### שלב 1: התקנת חבילות
 
-#### Frontend
 ```bash
+# התקנת חבילות Frontend
 npm install
-```
 
-#### Backend
-```bash
+# התקנת חבילות Backend
 cd backend
 npm install
 cd ..
 ```
 
-### הגדרת Backend
+### שלב 2: הגדרת משתני סביבה
 
-1. צור קובץ `.env` בתיקיית `backend/`:
-```env
-MONGO_URI=your_mongodb_connection_string
-PORT=3000
+צור קובץ `.env` בתיקיית `backend/` על בסיס `.env.example`:
+
+```bash
+cp backend/.env.example backend/.env
 ```
 
-2. הרצת Backend Server:
+ערוך את הקובץ `.env` והוסף את הערכים הנדרשים (ראה `.env.example`).
+
+### שלב 3: הרצת השרת
+
+#### אפשרות 1: הרצה נפרדת
+
 ```bash
+# Terminal 1 - Backend
+cd backend
 npm run start:server
-```
-השרת ירוץ על `http://localhost:3000`
 
-### הרצת Frontend
-
-```bash
+# Terminal 2 - Frontend
 npm run start:front
 ```
-האפליקציה תהיה זמינה ב-`http://localhost:4200`
+
+#### אפשרות 2: הרצה משולבת (Windows)
+
+```bash
+start_all.bat
+```
+
+### שלב 4: גישה לאפליקציה
+
+- Frontend: http://localhost:4200
+- Backend API: http://localhost:3000
 
 ## 📁 מבנה הפרויקט
 
 ```
 traveler/
-├── backend/           # Node.js Backend
-│   ├── controllers/   # Controllers
-│   ├── models/        # MongoDB Models
-│   ├── routes/        # API Routes
-│   ├── middleware/    # Authentication Middleware
-│   └── server.js      # Server Entry Point
-├── src/               # Angular Frontend
-│   ├── app/           # Angular Components & Services
-│   ├── assets/        # Static Assets
-│   └── environments/  # Environment Configurations
-└── angular.json       # Angular Configuration
+├── backend/              # Backend (Node.js + Express)
+│   ├── controllers/      # Controllers
+│   ├── models/          # Mongoose Models
+│   ├── routes/          # API Routes
+│   ├── middleware/      # Middleware (Auth, etc.)
+│   ├── app.js           # Express App Configuration
+│   └── server.js        # Server Entry Point
+│
+├── main-app/            # Frontend (Angular)
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── auth/           # Authentication Components
+│   │   │   ├── other-pages/    # Other Pages (Orders, Profile)
+│   │   │   ├── main-nav/       # Navigation
+│   │   │   └── dialog/         # Dialog Components
+│   │   └── assets/             # Assets (images, i18n)
+│   └── angular.json
+│
+└── package.json         # Root package.json
 ```
 
-## 🛠️ Scripts זמינים
+## 🔧 API Endpoints
 
-- `npm run start:front` - הרצת Frontend Development Server
-- `npm run start:server` - הרצת Backend Server
-- `npm run build` - Build לפרודקשן
-- `npm test` - הרצת Tests
+### משתמשים (`/api/user`)
+- `POST /api/user/signup` - הרשמה
+- `POST /api/user/login` - התחברות
+- `GET /api/user/:id` - קבלת משתמש
+- `PUT /api/user/:id` - עדכון משתמש
 
-## 🔧 הגדרות נוספות
+### הזמנות (`/api/orders`)
+- `GET /api/orders` - קבלת כל ההזמנות
+- `POST /api/orders` - יצירת הזמנה חדשה
+- `GET /api/orders/:id` - קבלת הזמנה ספציפית
+- `PUT /api/orders/:id` - עדכון הזמנה
+- `DELETE /api/orders/:id` - מחיקת הזמנה
 
-### Backend API
-הבאק-אנד מספק API endpoints על `/api/`:
-- `/api/user` - ניהול משתמשים
-- `/api/products` - ניהול מוצרים
-- `/api/orders` - ניהול הזמנות
-- `/api/screws` - ניהול ברגים
-- `/api/woods` - ניהול קורות עץ
+## 🔐 אימות
 
-### Frontend Proxy
-ה-Frontend מוגדר עם proxy שמפנה בקשות ל-`/api/` ל-`http://localhost:3000` (ראה `proxy.conf.json`).
+המערכת משתמשת ב-JWT (JSON Web Tokens) לאימות.
 
-## 📝 הערות
+Headers נדרשים:
+```
+Authorization: Bearer <token>
+```
 
-- ודא שה-Backend רץ לפני הרצת Frontend
-- בדוק שהקובץ `.env` מוגדר נכון ב-backend
-- הקבצים `.env` ו-`node_modules` לא נשמרים ב-git (מוגדר ב-`.gitignore`)
+## 🌐 תרגומים
 
-## 🔐 Security
+המערכת תומכת בתרגומים דרך `@ngx-translate/core`.
 
-- אל תעלה את קובץ `.env` ל-git
-- הקפד להשתמש בסיסמאות חזקות ל-MongoDB
-- בדוק את הגדרות ה-CORS ב-backend לפני פריסה לפרודקשן
+קבצי תרגום נמצאים ב: `src/assets/i18n/`
 
-## 📄 License
+שפות נתמכות:
+- עברית (he) - ברירת מחדל
+- אנגלית (en)
+- ערבית (ar)
 
-פרויקט זה הוא פרטי.
+## 📝 פיתוח ממשק חדש
+
+כדי להתחיל ממשק חדש מהבסיס הזה:
+
+1. העתק את הפרויקט
+2. התקן חבילות: `npm install`
+3. הגדר משתני סביבה
+4. התחל להוסיף את הפיצ'רים הספציפיים שלך
+
+## 🛠️ Scripts
+
+```bash
+# Frontend
+npm run start:front      # הרצת Angular Dev Server
+npm run build            # Build ל-Production
+npm run test             # הרצת Tests
+
+# Backend
+npm run start:server     # הרצת Node.js Server (עם nodemon)
+```
+
+## 📦 חבילות עיקריות
+
+### Frontend
+- Angular 16
+- Angular Material
+- @ngx-translate/core
+- RxJS
+
+### Backend
+- Express
+- Mongoose
+- jsonwebtoken
+- bcryptjs
+- dotenv
+
+## ⚠️ הערות חשובות
+
+- הקבצים `.env` לא נשמרים ב-Git (מופיעים ב-.gitignore)
+- ודא שיש לך חיבור ל-MongoDB לפני הרצה
+- Ports ברירת מחדל: Frontend (4200), Backend (3000)
+
+## 📄 רישיון
+
+Private Project
+
+---
+
+**נוצר כבסיס לפיתוח ממשקים חדשים**

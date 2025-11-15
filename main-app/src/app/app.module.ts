@@ -10,8 +10,6 @@ import { ErrorInterceptor } from "./error-interceptor";
 import { ErrorComponent } from "./error/error.component";
 import { AngularMaterialModule } from "./angular-material.module";
 
-import { ChooseProductComponent } from "./main-section/choose-product/choose-product.component"
-import { ProductMiniPreviewComponent } from "./main-section/choose-product/product-mini-preview/product-mini-preview.component"
 import { MainNavComponent } from './main-nav/main-nav.component';
 
 import { BidiModule } from "@angular/cdk/bidi";
@@ -34,24 +32,14 @@ import { MyProfileComponent } from "./other-pages/my-profile/my-profile.componen
 import { QAndAComponent } from "./other-pages/q-and-a/q-and-a.component";
 import { PhoneComponent } from "./dialog/phone/phone.component";
 import { CopyScanComponent } from "./dialog/scan-copy/scan-copy.component";
-import { PropertyExplainComponent } from "./dialog/property-explain/property-explain.component";
 import { SuEditUserComponent } from "./dialog/su-edit-user/su-edit-user.component";
 import { DeleteCartConfirmationComponent } from "./dialog/delete-cart-confirmation/delete-cart-confirmation.component";
-import { ProductEditInfoComponent } from "./dialog/product-edit-info/product-edit-info.component";
-
-
-import { FileUploadModule } from 'ng2-file-upload';
-import { MatProgressBarModule } from "@angular/material/progress-bar";
-import { ModifyProductModule } from './main-section/modify-product/modify-product.module';
-import { ShoppingCartComponent } from './main-nav/shopping-cart/shopping-cart.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     ErrorComponent,
     MainNavComponent,
-    ChooseProductComponent,
-    ProductMiniPreviewComponent,
     MyOrdersComponent,
     MyProfileComponent,
     QAndAComponent,
@@ -61,13 +49,10 @@ import { ShoppingCartComponent } from './main-nav/shopping-cart/shopping-cart.co
     PrivacyPolicyComponent,
     PhoneComponent,
     CopyScanComponent,
-    PropertyExplainComponent,
     DeleteOrderComponent,
     DeleteUserComponent,
     SuEditUserComponent,
     DeleteCartConfirmationComponent,
-    ProductEditInfoComponent,
-    ShoppingCartComponent,
   ],
   imports: [
     BrowserModule,
@@ -87,11 +72,8 @@ import { ShoppingCartComponent } from './main-nav/shopping-cart/shopping-cart.co
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    FileUploadModule,
-    MatProgressBarModule,
     // SocialLoginModule,
     // GoogleSigninButtonModule
-    ModifyProductModule,
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

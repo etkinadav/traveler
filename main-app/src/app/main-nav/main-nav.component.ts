@@ -10,7 +10,6 @@ import { DialogService } from '../dialog/dialog.service';
 
 import { UsersService } from '../services/users.service';
 import { OrdersService } from "../other-pages/my-orders/orders-service";
-import { ProductBasketService } from '../services/product-basket.service';
 
 import { delay, switchMap, filter } from 'rxjs/operators';
 import { BranchesService } from 'src/app/services/branches.service';
@@ -75,7 +74,6 @@ export class MainNavComponent implements OnInit, OnDestroy {
     private elementRef: ElementRef,
     private branchesService: BranchesService,
     private constantsService: ConstantsService,
-    private productBasketService: ProductBasketService
   ) {
     this.translateService.onLangChange.subscribe(() => {
       this.updateTranslation();
@@ -250,8 +248,8 @@ export class MainNavComponent implements OnInit, OnDestroy {
 
   // פונקציה פשוטה לסל המוצרים
   openCartDialog() {
-    console.log('Opening cart...');
-    this.router.navigate(['/shopping-cart']);
+    console.log('Cart functionality - to be implemented');
+    // TODO: Implement cart functionality for your specific use case
   }
 
   openDrawer() {
@@ -484,7 +482,8 @@ export class MainNavComponent implements OnInit, OnDestroy {
 
   // עדכון מונה פריטים בעגלת הקניות
   updateCartItemsCount(): void {
-    this.cartItemsCount = this.productBasketService.getBasketItemsCount();
+    // TODO: Implement cart items count for your specific use case
+    this.cartItemsCount = 0;
   }
   // ====================
 }

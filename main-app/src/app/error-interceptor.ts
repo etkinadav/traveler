@@ -29,11 +29,6 @@ export class ErrorInterceptor implements HttpInterceptor {
                     return of(null); // Ignore the error and return null
                 }
 
-                // Ignore 404 errors for /api/beam endpoint (optional beam data)
-                if (error.status === 404 && error.url && error.url.includes('/api/beam')) {
-                    console.warn('Beam API not available, continuing without beam data:', error);
-                    return throwError(error); // Return error without showing dialog
-                }
 
                 let errorMessage = "unknown_error"
                 console.log("error from interceptor", error);
