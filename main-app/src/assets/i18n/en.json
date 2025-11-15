@@ -30,6 +30,8 @@
   "translator.content-placeholder": "Translator content will appear here",
   "translator.speaker-a": "Speaker A",
   "translator.speaker-b": "Speaker B",
+  "translator.source-language": "Source Language",
+  "translator.translation-language": "Translation Language",
   "translator.select-language": "Select Language",
   "translator.search-language": "Search Language",
   "translator.search-language-placeholder": "Type to search...",

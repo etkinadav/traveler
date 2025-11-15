@@ -81,20 +81,26 @@ export class SpeechRecognitionService {
     };
 
     this.recognitionA.onend = () => {
-      console.log('Recognition A ended, isListening:', this.isListening);
+      console.log('Recognition A ended, isListening:', this.isListening, 'isSwitchingLanguage:', this.isSwitchingLanguage);
       // Auto-restart if still listening (for continuous listening)
-      if (this.isListening) {
+      // BUT: Don't restart if we're in the middle of switching languages
+      if (this.isListening && !this.isSwitchingLanguage) {
         setTimeout(() => {
           try {
-            if (this.isListening && this.recognitionA) {
+            if (this.isListening && this.recognitionA && !this.isSwitchingLanguage) {
+              // Check if recognition is not already running
               this.recognitionA.start();
               console.log('✓ Auto-restarted recognition after end');
             }
-          } catch (e) {
-            // Ignore restart errors (might already be starting)
-            console.log('Recognition already starting or error:', e);
+          } catch (e: any) {
+            // Ignore restart errors (might already be starting or switching)
+            if (e.message && !e.message.includes('already started')) {
+              console.log('Recognition restart error:', e.message);
+            }
           }
-        }, 100);
+        }, 200); // Increased delay to avoid conflicts
+      } else if (this.isSwitchingLanguage) {
+        console.log('SWITCH_LANG: Skipping auto-restart - language switch in progress');
       }
     };
 
@@ -175,27 +181,35 @@ export class SpeechRecognitionService {
     this.transcriptSubject.next(result);
     
     // For final results, restart recognition to continue listening
-    if (result.isFinal && this.isListening) {
+    // BUT: Don't restart if we're in the middle of switching languages
+    if (result.isFinal && this.isListening && !this.isSwitchingLanguage) {
       setTimeout(() => {
         try {
-          if (this.isListening && this.recognitionA) {
+          if (this.isListening && this.recognitionA && !this.isSwitchingLanguage) {
             this.recognitionA.start();
             console.log('✓ Restarted recognition to continue listening');
           }
-        } catch (e) {
-          console.warn('Failed to restart recognition:', e);
-          // Try again after a longer delay
-          setTimeout(() => {
-            if (this.isListening && this.recognitionA) {
-              try {
-                this.recognitionA.start();
-              } catch (e2) {
-                console.error('Failed to restart recognition again:', e2);
+        } catch (e: any) {
+          // Ignore "already started" errors - recognition is already running
+          if (e.message && !e.message.includes('already started')) {
+            console.warn('Failed to restart recognition:', e.message);
+            // Try again after a longer delay
+            setTimeout(() => {
+              if (this.isListening && this.recognitionA && !this.isSwitchingLanguage) {
+                try {
+                  this.recognitionA.start();
+                  console.log('✓ Retry: Restarted recognition to continue listening');
+                } catch (e2: any) {
+                  // Ignore "already started" errors
+                  if (e2.message && !e2.message.includes('already started')) {
+                    console.error('Failed to restart recognition again:', e2.message);
+                  }
+                }
               }
-            }
-          }, 500);
+            }, 500);
+          }
         }
-      }, 50);
+      }, 100); // Increased delay to avoid conflicts with language switching
     }
   }
 
@@ -314,27 +328,43 @@ export class SpeechRecognitionService {
       console.log(`SWITCH_LANG: Setting language to ${newLanguage} and restarting...`);
       this.recognitionA.lang = newLanguage;
       
-      try {
-        this.recognitionA.start();
-        console.log(`SWITCH_LANG: ✓ Successfully switched to ${newLanguage}`);
-        this.isSwitchingLanguage = false;
-      } catch (e: any) {
-        console.warn('SWITCH_LANG: Failed to restart recognition:', e.message);
-        this.isSwitchingLanguage = false;
+      // Wait a bit more to ensure recognition is fully stopped
+      setTimeout(() => {
+        if (!this.isListening || !this.recognitionA) {
+          console.log('SWITCH_LANG: Not listening anymore, aborting switch');
+          this.isSwitchingLanguage = false;
+          return;
+        }
         
-        // Try again after a longer delay
-        setTimeout(() => {
-          if (this.isListening && this.recognitionA && !this.isSwitchingLanguage) {
-            try {
-              console.log('SWITCH_LANG: Retrying restart...');
-              this.recognitionA.start();
-              console.log(`SWITCH_LANG: ✓ Retry successful, switched to ${newLanguage}`);
-            } catch (e2: any) {
-              console.error('SWITCH_LANG: Retry failed:', e2.message);
+        try {
+          this.recognitionA.start();
+          console.log(`SWITCH_LANG: ✓ Successfully switched to ${newLanguage}`);
+          // Reset flag after a short delay to ensure recognition started
+          setTimeout(() => {
+            this.isSwitchingLanguage = false;
+          }, 100);
+        } catch (e: any) {
+          console.warn('SWITCH_LANG: Failed to restart recognition:', e.message);
+          
+          // Try again after a longer delay
+          setTimeout(() => {
+            if (this.isListening && this.recognitionA) {
+              try {
+                console.log('SWITCH_LANG: Retrying restart...');
+                this.recognitionA.start();
+                console.log(`SWITCH_LANG: ✓ Retry successful, switched to ${newLanguage}`);
+                this.isSwitchingLanguage = false;
+              } catch (e2: any) {
+                console.error('SWITCH_LANG: Retry failed:', e2.message);
+                // Reset flag even on failure to allow future switches
+                this.isSwitchingLanguage = false;
+              }
+            } else {
+              this.isSwitchingLanguage = false;
             }
-          }
-        }, 500);
-      }
+          }, 500);
+        }
+      }, 200);
     }, 300);
   }
   

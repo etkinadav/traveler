@@ -32,6 +32,16 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   languageSearchTermB = '';
   showLanguageSelectorA = false;
   showLanguageSelectorB = false;
+  
+  // Translation languages (currently not functional)
+  selectedTranslationLanguageA = 'en-US';
+  selectedTranslationLanguageB = 'he-IL';
+  filteredTranslationLanguagesA: SupportedLanguage[] = [];
+  filteredTranslationLanguagesB: SupportedLanguage[] = [];
+  translationLanguageSearchTermA = '';
+  translationLanguageSearchTermB = '';
+  showTranslationLanguageSelectorA = false;
+  showTranslationLanguageSelectorB = false;
   transcriptHistory: Array<{ speaker: 'A' | 'B', text: string, language: string, id: number }> = [];
   private historyIdCounter = 0;
   
@@ -77,6 +87,8 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.supportedLanguages = this.speechRecognitionService.getSupportedLanguages();
     this.filteredLanguagesA = this.supportedLanguages;
     this.filteredLanguagesB = this.supportedLanguages;
+    this.filteredTranslationLanguagesA = this.supportedLanguages;
+    this.filteredTranslationLanguagesB = this.supportedLanguages;
 
     // Load saved language preferences
     const savedLanguageA = localStorage.getItem('translator-language-a');
@@ -86,6 +98,16 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     }
     if (savedLanguageB) {
       this.selectedLanguageB = savedLanguageB;
+    }
+    
+    // Load saved translation language preferences
+    const savedTranslationLanguageA = localStorage.getItem('translator-translation-language-a');
+    const savedTranslationLanguageB = localStorage.getItem('translator-translation-language-b');
+    if (savedTranslationLanguageA) {
+      this.selectedTranslationLanguageA = savedTranslationLanguageA;
+    }
+    if (savedTranslationLanguageB) {
+      this.selectedTranslationLanguageB = savedTranslationLanguageB;
     }
 
     // Subscribe to transcript updates - LIVE transcription to history
@@ -245,6 +267,59 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       lang.nativeName.toLowerCase().includes(searchTerm) ||
       lang.code.toLowerCase().includes(searchTerm)
     );
+  }
+
+  // Translation language functions (currently not functional)
+  onTranslationLanguageChangeA(languageCode: string): void {
+    this.selectedTranslationLanguageA = languageCode;
+    localStorage.setItem('translator-translation-language-a', languageCode);
+    this.showTranslationLanguageSelectorA = false;
+    // TODO: Implement translation functionality
+  }
+
+  onTranslationLanguageChangeB(languageCode: string): void {
+    this.selectedTranslationLanguageB = languageCode;
+    localStorage.setItem('translator-translation-language-b', languageCode);
+    this.showTranslationLanguageSelectorB = false;
+    // TODO: Implement translation functionality
+  }
+
+  filterTranslationLanguagesA(): void {
+    if (!this.translationLanguageSearchTermA) {
+      this.filteredTranslationLanguagesA = this.supportedLanguages;
+      return;
+    }
+
+    const searchTerm = this.translationLanguageSearchTermA.toLowerCase();
+    this.filteredTranslationLanguagesA = this.supportedLanguages.filter(lang =>
+      lang.name.toLowerCase().includes(searchTerm) ||
+      lang.nativeName.toLowerCase().includes(searchTerm) ||
+      lang.code.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  filterTranslationLanguagesB(): void {
+    if (!this.translationLanguageSearchTermB) {
+      this.filteredTranslationLanguagesB = this.supportedLanguages;
+      return;
+    }
+
+    const searchTerm = this.translationLanguageSearchTermB.toLowerCase();
+    this.filteredTranslationLanguagesB = this.supportedLanguages.filter(lang =>
+      lang.name.toLowerCase().includes(searchTerm) ||
+      lang.nativeName.toLowerCase().includes(searchTerm) ||
+      lang.code.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  getSelectedTranslationLanguageNameA(): string {
+    const lang = this.supportedLanguages.find(l => l.code === this.selectedTranslationLanguageA);
+    return lang ? lang.nativeName : this.selectedTranslationLanguageA;
+  }
+
+  getSelectedTranslationLanguageNameB(): string {
+    const lang = this.supportedLanguages.find(l => l.code === this.selectedTranslationLanguageB);
+    return lang ? lang.nativeName : this.selectedTranslationLanguageB;
   }
 
   private updateFullTranscript(newText: string): void {
@@ -619,11 +694,36 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return false;
     }
     
-    // Check if newText contains fullText multiple times
-    const fullTextLower = fullText.toLowerCase();
-    const newTextLower = newText.toLowerCase();
+    const fullTextLower = fullText.toLowerCase().trim();
+    const newTextLower = newText.toLowerCase().trim();
     
-    // Count how many times fullText appears in newText
+    // If texts are identical, it's not a loop (just a duplicate)
+    if (fullTextLower === newTextLower) {
+      return false;
+    }
+    
+    // Only check for loops if fullText is relatively short (less than 50 chars)
+    // Long texts can naturally contain similar phrases without being loops
+    if (fullTextLower.length > 50) {
+      // For long texts, only check if newText is significantly longer and contains fullText multiple times
+      if (newTextLower.length > fullTextLower.length * 1.5) {
+        let count = 0;
+        let index = 0;
+        while ((index = newTextLower.indexOf(fullTextLower, index)) !== -1) {
+          count++;
+          index += fullTextLower.length;
+        }
+        
+        // Only consider it a loop if fullText appears 3+ times
+        if (count >= 3) {
+          console.log(`REPETITION_LOOP: fullText appears ${count} times in newText (long text)`);
+          return true;
+        }
+      }
+      return false;
+    }
+    
+    // For shorter texts, check if newText contains fullText multiple times
     let count = 0;
     let index = 0;
     while ((index = newTextLower.indexOf(fullTextLower, index)) !== -1) {
@@ -631,6 +731,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       index += fullTextLower.length;
     }
     
+    // For short texts, 2+ occurrences is suspicious
     if (count >= 2) {
       console.log(`REPETITION_LOOP: fullText appears ${count} times in newText`);
       return true;
@@ -639,9 +740,19 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Check if newText is fullText with small additions that repeat
     if (newTextLower.startsWith(fullTextLower)) {
       const addedPart = newTextLower.slice(fullTextLower.length).trim();
-      if (addedPart && fullTextLower.includes(addedPart)) {
-        // The added part already exists in fullText - likely a loop
-        return true;
+      // Only consider it a loop if addedPart is significant and appears in fullText
+      if (addedPart && addedPart.length > 5 && fullTextLower.includes(addedPart)) {
+        // Check how many times addedPart appears in fullText
+        let addedCount = 0;
+        let addedIndex = 0;
+        while ((addedIndex = fullTextLower.indexOf(addedPart, addedIndex)) !== -1) {
+          addedCount++;
+          addedIndex += addedPart.length;
+        }
+        if (addedCount >= 2) {
+          console.log(`REPETITION_LOOP: Added part "${addedPart}" appears ${addedCount} times in fullText`);
+          return true;
+        }
       }
     }
     

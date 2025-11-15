@@ -30,6 +30,8 @@
   "translator.content-placeholder": "תוכן Translator יופיע כאן",
   "translator.speaker-a": "דובר א'",
   "translator.speaker-b": "דובר ב'",
+  "translator.source-language": "שפת מקור",
+  "translator.translation-language": "שפת תרגום",
   "translator.select-language": "בחר שפה",
   "translator.search-language": "חפש שפה",
   "translator.search-language-placeholder": "הקלד לחיפוש...",
