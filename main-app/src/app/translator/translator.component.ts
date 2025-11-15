@@ -37,7 +37,11 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   
   // Full transcript text - accumulates all text without duplicates
   private fullTranscriptText: string = '';
-
+  
+  // Track last added words to detect repetitions
+  private lastAddedWords: string[] = [];
+  private readonly MAX_TRACKED_WORDS = 10; // Track last 10 words
+  
   private transcriptSubscription?: Subscription;
   private statusSubscription?: Subscription;
   private errorSubscription?: Subscription;
@@ -156,6 +160,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.languageMismatchCount = 0;
     this.lastLanguageCheck = '';
     this.lastLanguageCheckTime = 0;
+    this.lastAddedWords = []; // Reset tracked words
 
     // Start listening with both languages
     this.speechRecognitionService.startListening(this.selectedLanguageA, this.selectedLanguageB);
@@ -235,6 +240,8 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // If full text is empty, just set it to the new text
     if (!cleanFullText) {
       this.fullTranscriptText = cleanNewText;
+      // Update tracked words
+      this.updateTrackedWords(cleanNewText);
       console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
       
       // Check and switch language based on the full text
@@ -264,8 +271,18 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         return;
       }
       
+      // Check if added part repeats the last tracked words
+      if (this.containsLastTrackedWords(addedPart)) {
+        console.log(`REPETITION_TRACKED_WORDS: Added part contains tracked words, skipping`);
+        return;
+      }
+      
       // New text is an extension - just update to the new text
       this.fullTranscriptText = cleanNewText;
+      
+      // Update tracked words with the newly added words
+      this.updateTrackedWords(addedPart);
+      
       console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
       
       // Check and switch language based on the full text
@@ -328,11 +345,18 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         
         // Check if added text is repetitive
         if (!this.isRepetitiveAddition(cleanFullText, addedText)) {
-          this.fullTranscriptText = cleanFullText + ' ' + addedText;
-          console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
-          this.updateHistoryFromFullText();
-          this.cdr.detectChanges();
-          setTimeout(() => this.scrollToBottom(), 100);
+          // Check if added text repeats the last tracked words
+          if (!this.containsLastTrackedWords(addedText)) {
+            this.fullTranscriptText = cleanFullText + ' ' + addedText;
+            // Update tracked words
+            this.updateTrackedWords(addedText);
+            console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
+            this.updateHistoryFromFullText();
+            this.cdr.detectChanges();
+            setTimeout(() => this.scrollToBottom(), 100);
+          } else {
+            console.log(`REPETITION_TRACKED_WORDS: Added text contains tracked words, skipping`);
+          }
         } else {
           console.log(`REPETITIVE_ADDITION: Added text is repetitive, skipping`);
         }
@@ -343,15 +367,159 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       // If so, it's probably a new sentence/phrase - append it
       const similarity = this.calculateTextSimilarity(cleanFullText, cleanNewText);
       if (similarity < 0.3) {
-        // Very different text - append as new phrase
-        this.fullTranscriptText = cleanFullText + ' ' + cleanNewText;
-        console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
-        this.updateHistoryFromFullText();
-        this.cdr.detectChanges();
-        setTimeout(() => this.scrollToBottom(), 100);
+        // Check if new text repeats the last tracked words
+        if (!this.containsLastTrackedWords(cleanNewText)) {
+          // Very different text - append as new phrase
+          this.fullTranscriptText = cleanFullText + ' ' + cleanNewText;
+          // Update tracked words
+          this.updateTrackedWords(cleanNewText);
+          console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
+          this.updateHistoryFromFullText();
+          this.cdr.detectChanges();
+          setTimeout(() => this.scrollToBottom(), 100);
+        } else {
+          console.log(`REPETITION_TRACKED_WORDS: New text contains tracked words, skipping`);
+        }
       }
       // If similarity is high, it might be a duplicate or correction - skip it
     }
+  }
+  
+  /**
+   * Updates the tracked words array with newly added words
+   */
+  private updateTrackedWords(addedText: string): void {
+    if (!addedText || addedText.trim().length === 0) {
+      return;
+    }
+    
+    const words = addedText.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+    
+    // Add new words to the tracked array
+    this.lastAddedWords.push(...words);
+    
+    // Keep only the last MAX_TRACKED_WORDS words
+    if (this.lastAddedWords.length > this.MAX_TRACKED_WORDS) {
+      this.lastAddedWords = this.lastAddedWords.slice(-this.MAX_TRACKED_WORDS);
+    }
+    
+    console.log(`TRACKED_WORDS: Updated to [${this.lastAddedWords.join(', ')}]`);
+  }
+  
+  /**
+   * Checks if the text contains repetitions of the last tracked words
+   */
+  private containsLastTrackedWords(text: string): boolean {
+    if (this.lastAddedWords.length === 0 || !text || text.trim().length === 0) {
+      return false;
+    }
+    
+    const textLower = text.toLowerCase();
+    const textWords = textLower.split(/\s+/).filter(w => w.length > 0);
+    
+    if (textWords.length === 0) {
+      return false;
+    }
+    
+    // Check if the text starts with tracked words (repetition pattern)
+    // Check for 3+ consecutive tracked words at the start
+    let matchedCount = 0;
+    for (let i = 0; i < Math.min(this.lastAddedWords.length, textWords.length); i++) {
+      if (textWords[i] === this.lastAddedWords[this.lastAddedWords.length - 1 - i]) {
+        matchedCount++;
+      } else {
+        break;
+      }
+    }
+    
+    if (matchedCount >= 3) {
+      console.log(`REPETITION_TRACKED: Found ${matchedCount} consecutive tracked words at start`);
+      return true;
+    }
+    
+    // Check if tracked words appear multiple times in the text
+    // Look for patterns like "the right" appearing multiple times
+    for (let phraseLength = 2; phraseLength <= Math.min(5, this.lastAddedWords.length); phraseLength++) {
+      const trackedPhrase = this.lastAddedWords.slice(-phraseLength).join(' ');
+      const textPhrase = textWords.slice(0, phraseLength).join(' ');
+      
+      if (trackedPhrase === textPhrase) {
+        // Found a match - check if it appears multiple times
+        let count = 0;
+        for (let i = 0; i <= textWords.length - phraseLength; i++) {
+          const currentPhrase = textWords.slice(i, i + phraseLength).join(' ');
+          if (currentPhrase === trackedPhrase) {
+            count++;
+          }
+        }
+        
+        if (count >= 2) {
+          console.log(`REPETITION_TRACKED: Phrase "${trackedPhrase}" appears ${count} times`);
+          return true;
+        }
+      }
+    }
+    
+    // Check for progressive repetition pattern (e.g., "the ri the right t the right ti the right time")
+    // This happens when speech recognition adds words progressively and repeats them
+    if (textWords.length >= 3) {
+      // Check if text contains progressive repetition of tracked words
+      // Pattern: "word1", "word1 word2", "word1 word2 word3", etc.
+      let progressiveRepetitions = 0;
+      
+      // Check for progressive patterns starting from different positions
+      for (let startPos = 0; startPos < Math.min(3, textWords.length - 2); startPos++) {
+        let matches = 0;
+        
+        // Check if we have progressive matches with tracked words
+        for (let len = 2; len <= Math.min(5, this.lastAddedWords.length, textWords.length - startPos); len++) {
+          const textPhrase = textWords.slice(startPos, startPos + len).join(' ');
+          const trackedPhrase = this.lastAddedWords.slice(-len).join(' ');
+          
+          // Check for exact match or if one contains the other (allowing for partial words)
+          if (textPhrase === trackedPhrase || 
+              textPhrase.includes(trackedPhrase) || 
+              trackedPhrase.includes(textPhrase)) {
+            matches++;
+          }
+        }
+        
+        if (matches >= 2) {
+          progressiveRepetitions++;
+        }
+      }
+      
+      if (progressiveRepetitions >= 1) {
+        console.log(`REPETITION_TRACKED: Found progressive repetition pattern (${progressiveRepetitions} sequences)`);
+        return true;
+      }
+      
+      // Check for pattern where same phrase appears multiple times with small additions
+      // e.g., "the right", "the right t", "the right ti", "the right time"
+      for (let phraseLen = 2; phraseLen <= Math.min(4, this.lastAddedWords.length); phraseLen++) {
+        const basePhrase = this.lastAddedWords.slice(-phraseLen).join(' ');
+        let occurrences = 0;
+        
+        // Count how many times this phrase (or variations) appears in text
+        for (let i = 0; i <= textWords.length - phraseLen; i++) {
+          const textPhrase = textWords.slice(i, i + phraseLen).join(' ');
+          
+          // Check if phrases match or if one is a prefix of the other
+          if (textPhrase === basePhrase || 
+              textPhrase.startsWith(basePhrase) || 
+              basePhrase.startsWith(textPhrase)) {
+            occurrences++;
+          }
+        }
+        
+        if (occurrences >= 3) {
+          console.log(`REPETITION_TRACKED: Phrase "${basePhrase}" appears ${occurrences} times with variations`);
+          return true;
+        }
+      }
+    }
+    
+    return false;
   }
   
   /**
@@ -1126,6 +1294,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.languageMismatchCount = 0;
     this.lastLanguageCheck = '';
     this.lastLanguageCheckTime = 0;
+    this.lastAddedWords = []; // Reset tracked words
   }
 
   copyToClipboard(): void {
