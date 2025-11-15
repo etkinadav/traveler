@@ -93,11 +93,14 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Load saved language preferences
     const savedLanguageA = localStorage.getItem('translator-language-a');
     const savedLanguageB = localStorage.getItem('translator-language-b');
+    console.log('✓ Loaded from localStorage - savedLanguageA:', savedLanguageA, 'savedLanguageB:', savedLanguageB);
     if (savedLanguageA) {
       this.selectedLanguageA = savedLanguageA;
+      console.log('✓ Set selectedLanguageA to:', this.selectedLanguageA);
     }
     if (savedLanguageB) {
       this.selectedLanguageB = savedLanguageB;
+      console.log('✓ Set selectedLanguageB to:', this.selectedLanguageB);
     }
     
     // Load saved translation language preferences
@@ -210,6 +213,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.lastResultTime = 0; // Reset last result time
 
     // Start listening with both languages
+    console.log('✓ Starting listening with selectedLanguageA:', this.selectedLanguageA, 'selectedLanguageB:', this.selectedLanguageB);
     this.speechRecognitionService.startListening(this.selectedLanguageA, this.selectedLanguageB);
   }
 
@@ -349,7 +353,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       
       this.updateHistoryFromFullText();
       this.cdr.detectChanges();
-      setTimeout(() => this.scrollToBottom(), 100);
+      setTimeout(() => this.scrollToTop(), 100);
       return;
     }
     
@@ -364,6 +368,22 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     if (cleanNewText.startsWith(cleanFullText)) {
       // Extract only the NEW part
       const addedPart = cleanNewText.slice(cleanFullText.length).trim();
+      
+      // If no new part was added, skip (text is identical)
+      if (!addedPart || addedPart.length === 0) {
+        console.log(`NO_NEW_TEXT: New text is identical to full text, skipping`);
+        return;
+      }
+      
+      // Check if the added part already exists in the full text (duplicate detection)
+      if (cleanFullText.includes(addedPart)) {
+        // Check if it's a significant duplicate (more than 3 words)
+        const addedWords = addedPart.split(/\s+/).filter(w => w.length > 0);
+        if (addedWords.length > 3) {
+          console.log(`DUPLICATE_TEXT: Added part already exists in full text, skipping: "${addedPart}"`);
+          return;
+        }
+      }
       
       // Check if the added part is just a repetition of existing text
       if (this.isRepetitiveAddition(cleanFullText, addedPart)) {
@@ -390,7 +410,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       
       this.updateHistoryFromFullText();
       this.cdr.detectChanges();
-      setTimeout(() => this.scrollToBottom(), 100);
+      setTimeout(() => this.scrollToTop(), 100);
       return;
     }
     
@@ -407,7 +427,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
           console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
           this.updateHistoryFromFullText();
           this.cdr.detectChanges();
-          setTimeout(() => this.scrollToBottom(), 100);
+          setTimeout(() => this.scrollToTop(), 100);
         }
       }
       // Otherwise, it's already contained - no update needed
@@ -453,7 +473,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
             console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
             this.updateHistoryFromFullText();
             this.cdr.detectChanges();
-            setTimeout(() => this.scrollToBottom(), 100);
+            setTimeout(() => this.scrollToTop(), 100);
           } else {
             console.log(`REPETITION_TRACKED_WORDS: Added text contains tracked words, skipping`);
           }
@@ -476,7 +496,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
           console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
           this.updateHistoryFromFullText();
           this.cdr.detectChanges();
-          setTimeout(() => this.scrollToBottom(), 100);
+          setTimeout(() => this.scrollToTop(), 100);
         } else {
           console.log(`REPETITION_TRACKED_WORDS: New text contains tracked words, skipping`);
         }
@@ -888,6 +908,18 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       
       console.log(`LOW_CONFIDENCE: confidence=${confidence.toFixed(3)}, text="${text}", currentLang=${currentLanguage}, count=${this.lowConfidenceCount}`);
       
+      // If confidence is VERY low (like 0.010), try switching to the other language immediately
+      // This handles cases where the wrong language is configured from the start
+      if (confidence < 0.1 && this.lowConfidenceCount >= 1) {
+        // Check if the other language might be correct
+        const otherLanguage = currentLanguage === this.selectedLanguageA ? this.selectedLanguageB : this.selectedLanguageA;
+        console.log(`LOW_CONFIDENCE: Very low confidence (${confidence.toFixed(3)}) - trying to switch to other language: ${otherLanguage}`);
+        this.checkAndSwitchLanguage(otherLanguage);
+        this.lowConfidenceCount = 0;
+        this.languageMismatchCount = 0;
+        return;
+      }
+      
       // If we have multiple low confidence results, use the sophisticated analysis
       if (this.lowConfidenceCount >= 2) {
         if (last3WordsAnalysis.detectedLanguage && last3WordsAnalysis.detectedLanguage !== currentLanguage) {
@@ -1026,6 +1058,36 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return { detectedLanguage: null, confidence: 0, changePoint: 0 };
     }
     
+    // Helper function to get the matching language code from selected languages
+    const getMatchingLanguageCode = (languageType: 'he' | 'en' | 'ar'): string => {
+      if (languageType === 'he') {
+        if (this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-')) {
+          return this.selectedLanguageA;
+        }
+        if (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) {
+          return this.selectedLanguageB;
+        }
+        return 'he-IL';
+      } else if (languageType === 'en') {
+        if (this.selectedLanguageA.startsWith('en-')) {
+          return this.selectedLanguageA;
+        }
+        if (this.selectedLanguageB.startsWith('en-')) {
+          return this.selectedLanguageB;
+        }
+        return 'en-US';
+      } else if (languageType === 'ar') {
+        if (this.selectedLanguageA.startsWith('ar-')) {
+          return this.selectedLanguageA;
+        }
+        if (this.selectedLanguageB.startsWith('ar-')) {
+          return this.selectedLanguageB;
+        }
+        return 'ar-SA';
+      }
+      return '';
+    };
+
     // Define language patterns for multiple languages
     const languagePatterns = [
       {
@@ -1033,27 +1095,21 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         codes: ['he-IL', 'iw-IL'],
         pattern: /[\u0590-\u05FF]/,
         countPattern: /[\u0590-\u05FF]/g,
-        selectedCode: this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-') 
-          ? this.selectedLanguageA 
-          : (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-') ? this.selectedLanguageB : 'he-IL')
+        selectedCode: getMatchingLanguageCode('he')
       },
       {
         name: 'english',
         codes: ['en-US', 'en-GB'],
         pattern: /[a-zA-Z]/,
         countPattern: /[a-zA-Z]/g,
-        selectedCode: this.selectedLanguageA.startsWith('en-') 
-          ? this.selectedLanguageA 
-          : (this.selectedLanguageB.startsWith('en-') ? this.selectedLanguageB : 'en-US')
+        selectedCode: getMatchingLanguageCode('en')
       },
       {
         name: 'arabic',
         codes: ['ar-SA', 'ar-EG', 'ar-IL'],
         pattern: /[\u0600-\u06FF]/,
         countPattern: /[\u0600-\u06FF]/g,
-        selectedCode: this.selectedLanguageA.startsWith('ar-') 
-          ? this.selectedLanguageA 
-          : (this.selectedLanguageB.startsWith('ar-') ? this.selectedLanguageB : 'ar-SA')
+        selectedCode: getMatchingLanguageCode('ar')
       },
       {
         name: 'french',
@@ -1269,7 +1325,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Split text by language changes
+    // Split text by language changes (already removes duplicates)
     const segments = this.splitTextByLanguage(this.fullTranscriptText);
     
     // Keep saved history entries and replace/update only the live segments
@@ -1286,6 +1342,57 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     
     // Combine saved history with live segments
     this.transcriptHistory = [...savedHistory, ...liveSegments];
+  }
+  
+  /**
+   * Removes duplicate segments from the array
+   * A segment is considered duplicate if it has the same text and language as a previous segment
+   * Also checks for consecutive duplicates (same text appearing twice in a row)
+   */
+  private removeDuplicateSegments(segments: Array<{ text: string, language: string }>): Array<{ text: string, language: string }> {
+    const uniqueSegments: Array<{ text: string, language: string }> = [];
+    
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+      const normalizedText = segment.text.trim().toLowerCase();
+      
+      // Skip empty segments
+      if (!normalizedText || normalizedText.length === 0) {
+        continue;
+      }
+      
+      // Check if this segment is a duplicate of the previous one (consecutive duplicate)
+      if (uniqueSegments.length > 0) {
+        const lastSegment = uniqueSegments[uniqueSegments.length - 1];
+        const lastNormalizedText = lastSegment.text.trim().toLowerCase();
+        
+        // If same text and language as previous segment, skip it
+        if (normalizedText === lastNormalizedText && segment.language === lastSegment.language) {
+          console.log(`DUPLICATE_SEGMENT: Skipping consecutive duplicate: "${segment.text}" (${segment.language})`);
+          continue;
+        }
+      }
+      
+      // Check if this segment text already exists in the array (non-consecutive duplicate)
+      // Only check for significant duplicates (more than 3 words)
+      const segmentWords = normalizedText.split(/\s+/).filter(w => w.length > 0);
+      if (segmentWords.length > 3) {
+        const isDuplicate = uniqueSegments.some(existing => {
+          const existingNormalized = existing.text.trim().toLowerCase();
+          return existingNormalized === normalizedText && existing.language === segment.language;
+        });
+        
+        if (isDuplicate) {
+          console.log(`DUPLICATE_SEGMENT: Skipping non-consecutive duplicate: "${segment.text}" (${segment.language})`);
+          continue;
+        }
+      }
+      
+      // Add the segment
+      uniqueSegments.push(segment);
+    }
+    
+    return uniqueSegments;
   }
   
   private splitTextByLanguage(text: string): Array<{ text: string, language: string }> {
@@ -1316,26 +1423,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         wordLanguage = analysis.detectedLanguage || '';
       }
       
-      // If still no language, check if word has clear language markers
+      // If still no language, try detectLanguageFromText again (it should handle this)
       if (!wordLanguage) {
-        // Check for Hebrew characters
-        if (/[\u0590-\u05FF]/.test(word)) {
-          wordLanguage = this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-') 
-            ? this.selectedLanguageA 
-            : (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-') ? this.selectedLanguageB : 'he-IL');
-        }
-        // Check for Arabic characters
-        else if (/[\u0600-\u06FF]/.test(word)) {
-          wordLanguage = this.selectedLanguageA.startsWith('ar-') 
-            ? this.selectedLanguageA 
-            : (this.selectedLanguageB.startsWith('ar-') ? this.selectedLanguageB : 'ar-SA');
-        }
-        // Check for Latin/English characters
-        else if (/[a-zA-Z]/.test(word)) {
-          wordLanguage = this.selectedLanguageA.startsWith('en-') 
-            ? this.selectedLanguageA 
-            : (this.selectedLanguageB.startsWith('en-') ? this.selectedLanguageB : 'en-US');
-        }
+        wordLanguage = this.detectLanguageFromText(word);
       }
       
       // Determine if this word should start a new segment
@@ -1367,13 +1457,18 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     
     // Add last segment
     if (currentSegment) {
-      segments.push({
-        text: currentSegment.trim(),
-        language: currentLanguage || this.detectLanguageFromText(currentSegment) || ''
-      });
+      const trimmedSegment = currentSegment.trim();
+      // Only add if it's not empty and not a duplicate of the last segment
+      if (trimmedSegment && (segments.length === 0 || segments[segments.length - 1].text !== trimmedSegment)) {
+        segments.push({
+          text: trimmedSegment,
+          language: currentLanguage || this.detectLanguageFromText(currentSegment) || ''
+        });
+      }
     }
     
-    return segments;
+    // Final check: remove any duplicate consecutive segments
+    return this.removeDuplicateSegments(segments);
   }
   
   /**
@@ -1448,13 +1543,46 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return 'A'; // Default
     }
     
-    if (language === this.selectedLanguageA || 
-        (language.startsWith('he-') && this.selectedLanguageA.startsWith('he-')) ||
-        (language.startsWith('ar-') && this.selectedLanguageA.startsWith('ar-'))) {
+    // Normalize language codes for comparison (handle he-IL vs iw-IL, etc.)
+    const normalizeLang = (lang: string): string => {
+      if (lang.startsWith('iw-')) {
+        return 'he-' + lang.substring(3);
+      }
+      return lang;
+    };
+    
+    const normalizedLanguage = normalizeLang(language);
+    const normalizedA = normalizeLang(this.selectedLanguageA);
+    const normalizedB = normalizeLang(this.selectedLanguageB);
+    
+    // Check exact match first
+    if (normalizedLanguage === normalizedA || language === this.selectedLanguageA) {
       return 'A';
-    } else if (language === this.selectedLanguageB ||
-               (language.startsWith('en-') && this.selectedLanguageB.startsWith('en-')) ||
-               (language.startsWith('ar-') && this.selectedLanguageB.startsWith('ar-'))) {
+    }
+    
+    if (normalizedLanguage === normalizedB || language === this.selectedLanguageB) {
+      return 'B';
+    }
+    
+    // Check if language family matches (he-IL matches he-IL, en-US matches en-GB, etc.)
+    const getLanguageFamily = (lang: string): string => {
+      if (lang.startsWith('he-') || lang.startsWith('iw-')) {
+        return 'he';
+      } else if (lang.startsWith('en-')) {
+        return 'en';
+      } else if (lang.startsWith('ar-')) {
+        return 'ar';
+      }
+      return lang.split('-')[0]; // Get first part of language code
+    };
+    
+    const languageFamily = getLanguageFamily(language);
+    const familyA = getLanguageFamily(this.selectedLanguageA);
+    const familyB = getLanguageFamily(this.selectedLanguageB);
+    
+    if (languageFamily === familyA) {
+      return 'A';
+    } else if (languageFamily === familyB) {
       return 'B';
     }
     
@@ -1556,58 +1684,76 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     
     console.log(`DETECT_LANG: Text="${cleanText}", LastPart="${lastPart}", Hebrew=${lastHebrewCount}, Latin=${lastLatinCount}, Arabic=${lastArabicCount}`);
     
+    // Helper function to get the matching language code from selected languages
+    const getMatchingLanguage = (languageType: 'he' | 'en' | 'ar'): string => {
+      if (languageType === 'he') {
+        // Check if selectedLanguageA is Hebrew
+        if (this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-')) {
+          return this.selectedLanguageA;
+        }
+        // Check if selectedLanguageB is Hebrew
+        if (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) {
+          return this.selectedLanguageB;
+        }
+        return 'he-IL'; // Default fallback
+      } else if (languageType === 'en') {
+        // Check if selectedLanguageA is English
+        if (this.selectedLanguageA.startsWith('en-')) {
+          return this.selectedLanguageA;
+        }
+        // Check if selectedLanguageB is English
+        if (this.selectedLanguageB.startsWith('en-')) {
+          return this.selectedLanguageB;
+        }
+        return 'en-US'; // Default fallback
+      } else if (languageType === 'ar') {
+        // Check if selectedLanguageA is Arabic
+        if (this.selectedLanguageA.startsWith('ar-')) {
+          return this.selectedLanguageA;
+        }
+        // Check if selectedLanguageB is Arabic
+        if (this.selectedLanguageB.startsWith('ar-')) {
+          return this.selectedLanguageB;
+        }
+        return 'ar-SA'; // Default fallback
+      }
+      return '';
+    };
+
     // Priority: Check last part first (what was just added)
     // IMPORTANT: If last part has Latin and more Latin than Hebrew/Arabic, it's English
     // This should be checked FIRST to catch English words even if there's Hebrew before
     if (lastHasLatin && lastLatinCount > lastHebrewCount && lastLatinCount > lastArabicCount) {
-      const lang = this.selectedLanguageA.startsWith('en-') ? this.selectedLanguageA : 
-                   (this.selectedLanguageB.startsWith('en-') ? this.selectedLanguageB : 'en-US');
+      const lang = getMatchingLanguage('en');
       console.log(`DETECT_LANG: ✓ Detected English from last part (Latin: ${lastLatinCount} > Hebrew: ${lastHebrewCount}), returning ${lang}`);
       return lang;
     }
     
     // If last part has Hebrew and more Hebrew than Latin, it's Hebrew
     if (lastHasHebrew && lastHebrewCount > lastLatinCount) {
-      const lang = (this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-')) ? this.selectedLanguageA : 
-                   ((this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) ? this.selectedLanguageB : 'he-IL');
+      const lang = getMatchingLanguage('he');
       console.log(`DETECT_LANG: ✓ Detected Hebrew from last part (Hebrew: ${lastHebrewCount} > Latin: ${lastLatinCount}), returning ${lang}`);
       return lang;
     }
     
     // If last part has Arabic and more Arabic than Latin, it's Arabic
     if (lastHasArabic && lastArabicCount > lastLatinCount) {
-      const lang = this.selectedLanguageA.startsWith('ar-') ? this.selectedLanguageA : 
-                   (this.selectedLanguageB.startsWith('ar-') ? this.selectedLanguageB : 'ar-SA');
+      const lang = getMatchingLanguage('ar');
       console.log(`DETECT_LANG: ✓ Detected Arabic from last part, returning ${lang}`);
       return lang;
     }
 
     // Fallback: use dominant language in entire text
     if (hasHebrew && hebrewCount >= latinCount && hebrewCount >= arabicCount) {
-      if (this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-')) {
-        return this.selectedLanguageA;
-      } else if (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) {
-        return this.selectedLanguageB;
-      }
-      return 'he-IL';
+      return getMatchingLanguage('he');
     }
     
     if (hasLatin && latinCount > hebrewCount && latinCount > arabicCount) {
-      if (this.selectedLanguageA.startsWith('en-')) {
-        return this.selectedLanguageA;
-      } else if (this.selectedLanguageB.startsWith('en-')) {
-        return this.selectedLanguageB;
-      }
-      return 'en-US';
+      return getMatchingLanguage('en');
     }
     
     if (hasArabic && arabicCount > hebrewCount && arabicCount > latinCount) {
-      if (this.selectedLanguageA.startsWith('ar-')) {
-        return this.selectedLanguageA;
-      } else if (this.selectedLanguageB.startsWith('ar-')) {
-        return this.selectedLanguageB;
-      }
-      return 'ar-SA';
+      return getMatchingLanguage('ar');
     }
 
     return '';
@@ -1689,11 +1835,18 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  private scrollToBottom(): void {
+  private scrollToTop(): void {
     const historyList = document.querySelector('.history-list');
     if (historyList) {
-      historyList.scrollTop = historyList.scrollHeight;
+      historyList.scrollTop = 0;
     }
+  }
+
+  /**
+   * Returns the transcript history in reverse order (newest first)
+   */
+  get reversedTranscriptHistory(): Array<{ speaker: 'A' | 'B', text: string, language: string, id: number }> {
+    return [...this.transcriptHistory].reverse();
   }
 
   getStatusIcon(): string {

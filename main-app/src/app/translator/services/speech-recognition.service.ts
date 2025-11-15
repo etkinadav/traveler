@@ -57,6 +57,7 @@ export class SpeechRecognitionService {
     this.recognitionA.interimResults = true;
     this.recognitionA.lang = languageA;
     this.recognitionA.maxAlternatives = 1;
+    console.log('✓ Set recognitionA.lang to:', this.recognitionA.lang, '(from languageA:', languageA, ')');
 
     // Initialize recognition for speaker B
     this.recognitionB = new SpeechRecognition();
@@ -579,12 +580,15 @@ export class SpeechRecognitionService {
     // Update languages if provided
     if (languageA) {
       this.languageA = languageA;
+      console.log('✓ Updated languageA to:', this.languageA);
     }
     if (languageB) {
       this.languageB = languageB;
+      console.log('✓ Updated languageB to:', this.languageB);
     }
 
     // Initialize recognitions with current languages
+    console.log('✓ Initializing recognition with languageA:', this.languageA, 'languageB:', this.languageB);
     this.initializeRecognition(this.languageA, this.languageB);
 
     // Clear previous state
@@ -601,6 +605,11 @@ export class SpeechRecognitionService {
       try {
         // Start with recognition A
         // We'll dynamically switch languages based on what we detect
+        // Ensure the language is set correctly before starting
+        if (this.recognitionA) {
+          this.recognitionA.lang = this.languageA;
+          console.log('✓ Before start: recognitionA.lang is set to:', this.recognitionA.lang);
+        }
         this.recognitionA.start();
         console.log('✓ Started recognition A for language:', this.languageA);
         console.log('ℹ Note: Using single recognition instance with dynamic language switching.');

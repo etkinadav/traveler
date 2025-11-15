@@ -1,5 +1,29 @@
 /* Translator component styles */
 
+/* Floating Microphone Container */
+.floating-microphone-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  transition: bottom 0.5s ease-in-out, transform 0.5s ease-in-out;
+  pointer-events: none;
+}
+
+.floating-microphone-container.listening {
+  bottom: 50%;
+  transform: translate(-50%, 50%);
+}
+
+.floating-microphone-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  pointer-events: auto;
+}
+
 .microphone-button {
   width: 80px;
   height: 80px;
@@ -25,6 +49,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  justify-content: center;
 }
 
 .listening-dot {
@@ -363,6 +388,11 @@ mat-card-content {
   border-left-color: #FFB74D;
 }
 
+/* Add padding to section to prevent content from being hidden behind floating microphone */
+:host section {
+  padding-bottom: 140px; /* Space for floating microphone container */
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .microphone-button {
@@ -373,6 +403,10 @@ mat-card-content {
   .transcript-card {
     min-height: 150px;
     max-height: 300px;
+  }
+  
+  :host section {
+    padding-bottom: 130px; /* Slightly less padding on mobile */
   }
 }
 
