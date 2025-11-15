@@ -1309,6 +1309,12 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     
     // Update saved history count
     this.savedHistoryCount = this.transcriptHistory.length;
+    
+    // Remove duplicate messages from the same speaker
+    this.removeConsecutiveDuplicateMessages();
+    
+    // Fix language detection errors retroactively
+    this.fixLanguageDetectionErrors();
   }
   
   // Track the number of saved history entries (from speech gaps)
@@ -1342,6 +1348,249 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     
     // Combine saved history with live segments
     this.transcriptHistory = [...savedHistory, ...liveSegments];
+    
+    // Remove duplicate messages from the same speaker
+    this.removeConsecutiveDuplicateMessages();
+    
+    // Fix language detection errors retroactively
+    this.fixLanguageDetectionErrors();
+  }
+  
+  /**
+   * Fixes language detection errors retroactively
+   * Checks if text was assigned to the wrong speaker based on actual text content
+   * For example: "shalom" should be Hebrew (speaker B) not English (speaker A)
+   */
+  private fixLanguageDetectionErrors(): void {
+    if (this.transcriptHistory.length === 0) {
+      return;
+    }
+    
+    let fixed = false;
+    
+    // Common Hebrew words that might be transcribed as English
+    const hebrewWordsInEnglish: { [key: string]: string } = {
+      'shalom': 'שלום',
+      'ma': 'מה',
+      'nishma': 'נשמע',
+      'shlomcha': 'שלומך',
+      'shlomech': 'שלומך',
+      'shlom': 'שלום',
+      'tov': 'טוב',
+      'ken': 'כן',
+      'lo': 'לא',
+      'ani': 'אני',
+      'ata': 'אתה',
+      'at': 'את',
+      'hu': 'הוא',
+      'hi': 'היא',
+      'anachnu': 'אנחנו',
+      'atem': 'אתם',
+      'hen': 'הן',
+      'ze': 'זה',
+      'zot': 'זאת',
+      'eich': 'איך',
+      'lama': 'למה',
+      'eifo': 'איפה',
+      'matai': 'מתי',
+      'kama': 'כמה',
+      'maher': 'מהר',
+      'lent': 'לאט',
+      'yoter': 'יותר',
+      'pachot': 'פחות',
+      'gam': 'גם',
+      'aval': 'אבל',
+      'od': 'עוד',
+      'rak': 'רק',
+      'kol': 'כל',
+      'echad': 'אחד',
+      'shtaim': 'שתיים',
+      'shalosh': 'שלוש',
+      'arba': 'ארבע',
+      'chamesh': 'חמש',
+      'shesh': 'שש',
+      'sheva': 'שבע',
+      'shmone': 'שמונה',
+      'tesha': 'תשע',
+      'eser': 'עשר',
+      'boker': 'בוקר',
+      'erev': 'ערב',
+      'layla': 'לילה',
+      'yom': 'יום',
+      'shavua': 'שבוע',
+      'chodesh': 'חודש',
+      'shana': 'שנה',
+      'achshav': 'עכשיו',
+      'az': 'אז',
+      'acharei': 'אחרי',
+      'lifnei': 'לפני',
+      'asher': 'אשר',
+      'shel': 'של',
+      'oto': 'אותו',
+      'ota': 'אותה',
+      'otam': 'אותם',
+      'otan': 'אותן',
+      'yafe': 'יפה',
+      'ra': 'רע',
+      'gadol': 'גדול',
+      'katan': 'קטן',
+      'chadash': 'חדש',
+      'yashan': 'ישן',
+      'cham': 'חם',
+      'kar': 'קר',
+      'chashuv': 'חשוב',
+      'mutzlach': 'מוצלח',
+      'mazal': 'מזל',
+      'toda': 'תודה',
+      'bevakasha': 'בבקשה',
+      'slicha': 'סליחה'
+    };
+    
+    for (let i = 0; i < this.transcriptHistory.length; i++) {
+      const entry = this.transcriptHistory[i];
+      const text = entry.text.trim().toLowerCase();
+      
+      if (!text || text.length === 0) {
+        continue;
+      }
+      
+      // Check if text contains Hebrew words transcribed as English
+      // If speaker B is Hebrew and text contains Hebrew words in English, it's likely Hebrew
+      if (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) {
+        const words = text.split(/\s+/);
+        let hebrewWordCount = 0;
+        
+        // Check for common Hebrew phrases
+        const hebrewPhrases = [
+          'ma nishma', 'מה נשמע',
+          'ma shlomcha', 'מה שלומך',
+          'ma shlomech', 'מה שלומך',
+          'ma kore', 'מה קורה',
+          'eich kore', 'איך קורה',
+          'eich ze', 'איך זה',
+          'ma ze', 'מה זה',
+          'ma kara', 'מה קרה',
+          'eich at', 'איך את',
+          'eich ata', 'איך אתה',
+          'ma at', 'מה את',
+          'ma ata', 'מה אתה'
+        ];
+        
+        // Check for Hebrew phrases (case-insensitive)
+        const textLower = text.toLowerCase();
+        let hasHebrewPhrase = false;
+        for (let j = 0; j < hebrewPhrases.length; j += 2) {
+          if (textLower.includes(hebrewPhrases[j])) {
+            hasHebrewPhrase = true;
+            break;
+          }
+        }
+        
+        for (const word of words) {
+          const cleanWord = word.replace(/[.,!?'"-]/g, '').toLowerCase();
+          if (hebrewWordsInEnglish[cleanWord]) {
+            hebrewWordCount++;
+          }
+        }
+        
+        // If text contains Hebrew words/phrases and is assigned to speaker A (English), fix it
+        // Require at least 2 Hebrew words or 1 Hebrew phrase to avoid false positives
+        if ((hebrewWordCount >= 2 || hasHebrewPhrase) && entry.speaker === 'A' && entry.language.startsWith('en-')) {
+          console.log(`FIX_LANG: Detected Hebrew words/phrases in English text "${entry.text.substring(0, 30)}..." (${hebrewWordCount} words, phrase: ${hasHebrewPhrase}) - fixing to speaker B (Hebrew)`);
+          entry.speaker = 'B';
+          entry.language = this.selectedLanguageB;
+          fixed = true;
+          continue;
+        }
+      }
+      
+      // Detect the actual language from the text content
+      const actualLanguage = this.detectLanguageFromText(entry.text);
+      
+      if (!actualLanguage) {
+        continue; // Can't detect language, skip
+      }
+      
+      // Check if the detected language matches the assigned speaker
+      const expectedSpeaker = this.getSpeakerForLanguage(actualLanguage);
+      const currentSpeaker = entry.speaker;
+      
+      // If the actual language doesn't match the current speaker, fix it
+      if (expectedSpeaker !== currentSpeaker) {
+        // Check if this is a valid fix (language family matches)
+        const isLanguageA = actualLanguage === this.selectedLanguageA || 
+                           (actualLanguage.startsWith('he-') && this.selectedLanguageA.startsWith('he-')) ||
+                           (actualLanguage.startsWith('iw-') && this.selectedLanguageA.startsWith('iw-')) ||
+                           (actualLanguage.startsWith('en-') && this.selectedLanguageA.startsWith('en-')) ||
+                           (actualLanguage.startsWith('ar-') && this.selectedLanguageA.startsWith('ar-'));
+        const isLanguageB = actualLanguage === this.selectedLanguageB || 
+                           (actualLanguage.startsWith('he-') && this.selectedLanguageB.startsWith('he-')) ||
+                           (actualLanguage.startsWith('iw-') && this.selectedLanguageB.startsWith('iw-')) ||
+                           (actualLanguage.startsWith('en-') && this.selectedLanguageB.startsWith('en-')) ||
+                           (actualLanguage.startsWith('ar-') && this.selectedLanguageB.startsWith('ar-'));
+        
+        // Only fix if the detected language matches one of the selected languages
+        if ((isLanguageA && expectedSpeaker === 'A') || (isLanguageB && expectedSpeaker === 'B')) {
+          console.log(`FIX_LANG: Fixing language detection for "${entry.text.substring(0, 30)}..." - was ${currentSpeaker} (${entry.language}), should be ${expectedSpeaker} (${actualLanguage})`);
+          
+          // Update the entry
+          entry.speaker = expectedSpeaker;
+          entry.language = actualLanguage;
+          fixed = true;
+        }
+      }
+    }
+    
+    if (fixed) {
+      console.log('FIX_LANG: Fixed language detection errors in history');
+      this.cdr.detectChanges();
+    }
+  }
+  
+  /**
+   * Removes consecutive duplicate messages from the same speaker
+   * If the same speaker says the exact same text twice in a row, one is removed
+   */
+  private removeConsecutiveDuplicateMessages(): void {
+    if (this.transcriptHistory.length < 2) {
+      return;
+    }
+    
+    const filteredHistory: Array<{ speaker: 'A' | 'B', text: string, language: string, id: number }> = [];
+    
+    for (let i = 0; i < this.transcriptHistory.length; i++) {
+      const current = this.transcriptHistory[i];
+      const normalizedCurrentText = current.text.trim().toLowerCase();
+      
+      // Skip empty messages
+      if (!normalizedCurrentText || normalizedCurrentText.length === 0) {
+        continue;
+      }
+      
+      // Check if this is a duplicate of the previous message from the same speaker
+      if (filteredHistory.length > 0) {
+        const previous = filteredHistory[filteredHistory.length - 1];
+        const normalizedPreviousText = previous.text.trim().toLowerCase();
+        
+        // If same speaker and same text (case-insensitive), skip this duplicate
+        if (previous.speaker === current.speaker && normalizedPreviousText === normalizedCurrentText) {
+          console.log(`DUPLICATE_MESSAGE: Removing duplicate message from ${current.speaker}: "${current.text}"`);
+          continue;
+        }
+      }
+      
+      // Add the message if it's not a duplicate
+      filteredHistory.push(current);
+    }
+    
+    // Update the history with filtered results
+    if (filteredHistory.length !== this.transcriptHistory.length) {
+      this.transcriptHistory = filteredHistory;
+      // Update saved history count if needed
+      if (this.savedHistoryCount > this.transcriptHistory.length) {
+        this.savedHistoryCount = this.transcriptHistory.length;
+      }
+    }
   }
   
   /**
