@@ -45,6 +45,34 @@
   }
 }
 
+.language-analysis {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.analysis-spinner {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.analysis-spinner ::ng-deep circle {
+  stroke: var(--zx-green) !important;
+}
+
+.probability-display {
+  display: flex;
+  align-items: center;
+}
+
+.probability-text {
+  color: var(--zx-green);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .status-indicator {
   display: flex;
   align-items: center;

@@ -56,6 +56,13 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   private lastResultTime: number = 0;
   private readonly SPEECH_GAP_THRESHOLD = 1000; // 1 second in milliseconds
   
+  // Loading spinner and language probability
+  isAnalyzing: boolean = false;
+  languageProbabilityA: number = 0; // Probability for language A (percentage)
+  languageProbabilityB: number = 0; // Probability for language B (percentage)
+  private analysisTimeout?: any;
+  private readonly ANALYSIS_DELAY = 500; // Wait 500ms after last result before analyzing
+  
   private transcriptSubscription?: Subscription;
   private statusSubscription?: Subscription;
   private errorSubscription?: Subscription;
@@ -124,12 +131,22 @@ export class TranslatorComponent implements OnInit, OnDestroy {
           // Save current text to history as a new line and start fresh
           if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
             console.log(`SPEECH_GAP: Detected gap of ${currentTime - this.lastResultTime}ms, saving current text as new line`);
+            // Perform final analysis before saving
+            this.performLanguageAnalysis();
             // Add current text as a new line in history (don't replace existing history)
             this.addCurrentTextToHistoryAsNewLine();
             // Reset accumulated text to start a new line
             this.fullTranscriptText = '';
             this.lastAddedWords = [];
             this.lastFullTextLength = 0;
+            // Clear analysis state
+            this.isAnalyzing = false;
+            this.languageProbabilityA = 0;
+            this.languageProbabilityB = 0;
+            if (this.analysisTimeout) {
+              clearTimeout(this.analysisTimeout);
+              this.analysisTimeout = undefined;
+            }
             this.cdr.detectChanges();
           }
         }
@@ -141,9 +158,10 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         if (result.confidence !== undefined) {
           this.checkLanguageByConfidence(result.confidence, trimmedText, result.language);
           
-          // If confidence is very low (0.010) and text looks like English but we're expecting Hebrew,
+          // If confidence is very low and text looks like English but we're expecting Hebrew,
           // it might be a misrecognition - skip it to avoid adding wrong text
-          if (result.confidence <= 0.015 && result.language && result.language.startsWith('en-')) {
+          // Check for both extremely low confidence (0.015) and moderately low confidence (0.6) for single words
+          if (result.language && result.language.startsWith('en-')) {
             // Check if the other language is Hebrew
             if (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) {
               // Check if text looks like English (only Latin characters, no Hebrew)
@@ -153,6 +171,11 @@ export class TranslatorComponent implements OnInit, OnDestroy {
               if (hasOnlyLatin && !hasHebrew) {
                 const words = trimmedText.split(/\s+/).filter(w => w.length > 0);
                 const isVeryShort = words.length <= 3;
+                const isSingleWord = words.length === 1;
+                
+                // Check confidence levels
+                const isExtremelyLowConfidence = result.confidence <= 0.015;
+                const isModeratelyLowConfidence = result.confidence <= 0.6;
                 
                 // Check if words extend each other (like "EXT extre extreme")
                 let hasExtendingWords = false;
@@ -170,10 +193,29 @@ export class TranslatorComponent implements OnInit, OnDestroy {
                 // Check if words are very short (likely gibberish)
                 const hasVeryShortWords = words.some(w => w.length <= 2);
                 
-                // If it's very short English text with very low confidence, it might be Hebrew misrecognized
-                // Skip it if we don't have any text yet, or if it looks like gibberish
-                if (!this.fullTranscriptText && (isVeryShort || hasExtendingWords || hasVeryShortWords)) {
-                  console.log(`SKIP_LOW_CONFIDENCE: Skipping very low confidence English text "${trimmedText}" (confidence: ${result.confidence}) - might be Hebrew misrecognized (short: ${isVeryShort}, extending: ${hasExtendingWords}, veryShortWords: ${hasVeryShortWords})`);
+                // Check if text contains Hebrew words transcribed as English (like "shalom", "shut it on" for "שלום מדבר נדב")
+                const hebrewWordsInEnglish: { [key: string]: string } = {
+                  'shalom': 'שלום',
+                  'shut': 'שלום',
+                  'it': 'מדבר',
+                  'on': 'נדב'
+                };
+                
+                let containsHebrewWords = false;
+                for (const word of words) {
+                  const cleanWord = word.replace(/[.,!?'"-]/g, '').toLowerCase();
+                  if (hebrewWordsInEnglish[cleanWord]) {
+                    containsHebrewWords = true;
+                    break;
+                  }
+                }
+                
+                // If confidence is extremely low (0.010) and we don't have any text yet, it's likely a misrecognition
+                // This happens when the system starts with the wrong language and tries to recognize Hebrew as English
+                // Skip it if we don't have any text yet, or if it looks like gibberish or contains Hebrew words
+                // Also skip if it's a single word with very low confidence (like "government" for "שלום, קוראים לי נדב")
+                if (!this.fullTranscriptText && (isVeryShort || hasExtendingWords || hasVeryShortWords || containsHebrewWords || (isSingleWord && (isExtremelyLowConfidence || isModeratelyLowConfidence)))) {
+                  console.log(`SKIP_LOW_CONFIDENCE: Skipping very low confidence English text "${trimmedText}" (confidence: ${result.confidence}) - might be Hebrew misrecognized (short: ${isVeryShort}, extending: ${hasExtendingWords}, veryShortWords: ${hasVeryShortWords}, hebrewWords: ${containsHebrewWords}, singleWord: ${isSingleWord}, extremelyLow: ${isExtremelyLowConfidence}, moderatelyLow: ${isModeratelyLowConfidence})`);
                   return; // Skip this result
                 }
               }
@@ -183,6 +225,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         
         // Update full transcript text - add only new parts without duplicates
         this.updateFullTranscript(trimmedText, result.confidence);
+        
+        // Start/restart analysis timer - wait for message to complete before analyzing
+        this.scheduleLanguageAnalysis();
       }
     });
 
@@ -258,6 +303,14 @@ export class TranslatorComponent implements OnInit, OnDestroy {
 
   stopListening(): void {
     this.speechRecognitionService.stopListening();
+    // Clear analysis state
+    if (this.analysisTimeout) {
+      clearTimeout(this.analysisTimeout);
+      this.analysisTimeout = undefined;
+    }
+    this.isAnalyzing = false;
+    this.languageProbabilityA = 0;
+    this.languageProbabilityB = 0;
   }
 
   onLanguageChangeA(languageCode: string): void {
@@ -1574,10 +1627,14 @@ export class TranslatorComponent implements OnInit, OnDestroy {
           }
         }
         
+        // Special case: "shalom" is a very common Hebrew word that might be transcribed as English
+        // If the text is just "shalom" or starts with "shalom", it's likely Hebrew
+        const isShalom = textLower === 'shalom' || textLower.startsWith('shalom ');
+        
         // If text contains Hebrew words/phrases and is assigned to speaker A (English), fix it
-        // Require at least 2 Hebrew words or 1 Hebrew phrase to avoid false positives
-        if ((hebrewWordCount >= 2 || hasHebrewPhrase) && entry.speaker === 'A' && entry.language.startsWith('en-')) {
-          console.log(`FIX_LANG: Detected Hebrew words/phrases in English text "${entry.text.substring(0, 30)}..." (${hebrewWordCount} words, phrase: ${hasHebrewPhrase}) - fixing to speaker B (Hebrew)`);
+        // Require at least 1 Hebrew word (like "shalom") or 2 Hebrew words or 1 Hebrew phrase to avoid false positives
+        if ((hebrewWordCount >= 1 || hasHebrewPhrase || isShalom) && entry.speaker === 'A' && entry.language.startsWith('en-')) {
+          console.log(`FIX_LANG: Detected Hebrew words/phrases in English text "${entry.text.substring(0, 30)}..." (${hebrewWordCount} words, phrase: ${hasHebrewPhrase}, shalom: ${isShalom}) - fixing to speaker B (Hebrew)`);
           entry.speaker = 'B';
           entry.language = this.selectedLanguageB;
           fixed = true;
@@ -1931,6 +1988,14 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.lastLanguageCheckTime = 0;
     this.lastAddedWords = []; // Reset tracked words
     this.lastResultTime = 0; // Reset last result time
+    // Clear analysis state
+    if (this.analysisTimeout) {
+      clearTimeout(this.analysisTimeout);
+      this.analysisTimeout = undefined;
+    }
+    this.isAnalyzing = false;
+    this.languageProbabilityA = 0;
+    this.languageProbabilityB = 0;
   }
 
   copyToClipboard(): void {
@@ -2177,6 +2242,156 @@ export class TranslatorComponent implements OnInit, OnDestroy {
    */
   get reversedTranscriptHistory(): Array<{ speaker: 'A' | 'B', text: string, language: string, id: number }> {
     return [...this.transcriptHistory].reverse();
+  }
+
+  /**
+   * Schedules language analysis - waits for message to complete before analyzing
+   */
+  private scheduleLanguageAnalysis(): void {
+    // Clear existing timeout
+    if (this.analysisTimeout) {
+      clearTimeout(this.analysisTimeout);
+    }
+    
+    // Show spinner immediately
+    this.isAnalyzing = true;
+    this.cdr.detectChanges();
+    
+    // Schedule analysis after delay
+    this.analysisTimeout = setTimeout(() => {
+      this.performLanguageAnalysis();
+    }, this.ANALYSIS_DELAY);
+  }
+  
+  /**
+   * Performs language analysis on the current transcript text
+   */
+  private performLanguageAnalysis(): void {
+    if (!this.fullTranscriptText || this.fullTranscriptText.trim().length === 0) {
+      this.isAnalyzing = false;
+      this.languageProbabilityA = 0;
+      this.languageProbabilityB = 0;
+      this.cdr.detectChanges();
+      return;
+    }
+    
+    // Calculate probabilities for both languages
+    const probabilities = this.calculateLanguageProbability(this.fullTranscriptText);
+    
+    this.languageProbabilityA = probabilities.probabilityA;
+    this.languageProbabilityB = probabilities.probabilityB;
+    
+    // Hide spinner after a short delay to show the results
+    setTimeout(() => {
+      this.isAnalyzing = false;
+      this.cdr.detectChanges();
+    }, 300);
+    
+    this.cdr.detectChanges();
+  }
+  
+  /**
+   * Calculates the probability that the text is in language A or B
+   * Returns probabilities as percentages (0-100)
+   */
+  private calculateLanguageProbability(text: string): { probabilityA: number, probabilityB: number } {
+    if (!text || text.trim().length === 0) {
+      return { probabilityA: 0, probabilityB: 0 };
+    }
+    
+    // Analyze the text for language detection
+    const analysis = this.analyzeLastWordsForLanguage(text, Math.min(10, text.split(/\s+/).length));
+    const detectedLanguage = analysis.detectedLanguage || '';
+    const confidence = analysis.confidence;
+    
+    // Count characters for each language
+    const hebrewPattern = /[\u0590-\u05FF]/g;
+    const arabicPattern = /[\u0600-\u06FF]/g;
+    const latinPattern = /[a-zA-Z]/g;
+    
+    const hebrewCount = (text.match(hebrewPattern) || []).length;
+    const arabicCount = (text.match(arabicPattern) || []).length;
+    const latinCount = (text.match(latinPattern) || []).length;
+    const totalChars = hebrewCount + arabicCount + latinCount;
+    
+    if (totalChars === 0) {
+      return { probabilityA: 50, probabilityB: 50 };
+    }
+    
+    // Determine which language family matches each selected language
+    const isLanguageAHebrew = this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-');
+    const isLanguageAArabic = this.selectedLanguageA.startsWith('ar-');
+    const isLanguageAEnglish = this.selectedLanguageA.startsWith('en-');
+    
+    const isLanguageBHebrew = this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-');
+    const isLanguageBArabic = this.selectedLanguageB.startsWith('ar-');
+    const isLanguageBEnglish = this.selectedLanguageB.startsWith('en-');
+    
+    // Calculate character-based probabilities
+    let charProbabilityA = 0;
+    let charProbabilityB = 0;
+    
+    if (isLanguageAHebrew && hebrewCount > 0) {
+      charProbabilityA += (hebrewCount / totalChars) * 100;
+    }
+    if (isLanguageAArabic && arabicCount > 0) {
+      charProbabilityA += (arabicCount / totalChars) * 100;
+    }
+    if (isLanguageAEnglish && latinCount > 0) {
+      charProbabilityA += (latinCount / totalChars) * 100;
+    }
+    
+    if (isLanguageBHebrew && hebrewCount > 0) {
+      charProbabilityB += (hebrewCount / totalChars) * 100;
+    }
+    if (isLanguageBArabic && arabicCount > 0) {
+      charProbabilityB += (arabicCount / totalChars) * 100;
+    }
+    if (isLanguageBEnglish && latinCount > 0) {
+      charProbabilityB += (latinCount / totalChars) * 100;
+    }
+    
+    // Use detected language and confidence to adjust probabilities
+    let finalProbabilityA = charProbabilityA;
+    let finalProbabilityB = charProbabilityB;
+    
+    // If we detected a language with high confidence, boost that language's probability
+    if (detectedLanguage) {
+      const isDetectedLanguageA = detectedLanguage === this.selectedLanguageA || 
+                                 (detectedLanguage.startsWith('he-') && this.selectedLanguageA.startsWith('he-')) ||
+                                 (detectedLanguage.startsWith('iw-') && this.selectedLanguageA.startsWith('iw-')) ||
+                                 (detectedLanguage.startsWith('ar-') && this.selectedLanguageA.startsWith('ar-')) ||
+                                 (detectedLanguage.startsWith('en-') && this.selectedLanguageA.startsWith('en-'));
+      
+      const isDetectedLanguageB = detectedLanguage === this.selectedLanguageB || 
+                                 (detectedLanguage.startsWith('he-') && this.selectedLanguageB.startsWith('he-')) ||
+                                 (detectedLanguage.startsWith('iw-') && this.selectedLanguageB.startsWith('iw-')) ||
+                                 (detectedLanguage.startsWith('ar-') && this.selectedLanguageB.startsWith('ar-')) ||
+                                 (detectedLanguage.startsWith('en-') && this.selectedLanguageB.startsWith('en-'));
+      
+      if (isDetectedLanguageA) {
+        finalProbabilityA = Math.min(100, charProbabilityA + (confidence * 30));
+        finalProbabilityB = Math.max(0, charProbabilityB - (confidence * 20));
+      } else if (isDetectedLanguageB) {
+        finalProbabilityB = Math.min(100, charProbabilityB + (confidence * 30));
+        finalProbabilityA = Math.max(0, charProbabilityA - (confidence * 20));
+      }
+    }
+    
+    // Normalize to ensure they sum to 100
+    const total = finalProbabilityA + finalProbabilityB;
+    if (total > 0) {
+      finalProbabilityA = Math.round((finalProbabilityA / total) * 100);
+      finalProbabilityB = Math.round((finalProbabilityB / total) * 100);
+    } else {
+      finalProbabilityA = 50;
+      finalProbabilityB = 50;
+    }
+    
+    return {
+      probabilityA: finalProbabilityA,
+      probabilityB: finalProbabilityB
+    };
   }
 
   getStatusIcon(): string {

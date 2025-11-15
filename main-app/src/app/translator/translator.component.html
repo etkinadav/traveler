@@ -292,6 +292,17 @@
           <span *ngIf="status === 'idle'">{{ 'translator.status-ready' | translate }}</span>
         </span>
       </div>
+      
+      <!-- Language Analysis Spinner and Probabilities -->
+      <div class="language-analysis" *ngIf="isListening && (isAnalyzing || languageProbabilityA > 0 || languageProbabilityB > 0)">
+        <mat-spinner *ngIf="isAnalyzing" diameter="20" class="analysis-spinner"></mat-spinner>
+        <div class="probability-display" *ngIf="!isAnalyzing && (languageProbabilityA > 0 || languageProbabilityB > 0)">
+          <span class="probability-text">
+            {{ getSelectedLanguageNameA() }}: {{ languageProbabilityA }}% | 
+            {{ getSelectedLanguageNameB() }}: {{ languageProbabilityB }}%
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
