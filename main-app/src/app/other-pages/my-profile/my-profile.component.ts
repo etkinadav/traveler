@@ -69,7 +69,7 @@ export class MyProfileComponent implements OnInit, OnDestroy {
   numOfPendingOrders: number = 0;
   private authListenerSubs: Subscription;
   private intervalId: any;
-  private defaultProfileUrl = "../../assets/images/profile-default.svg";
+  private defaultProfileUrl = "../../assets/images/profile-default.png";
 
   isCreditEditMode: boolean = false;
   isCompanyID: boolean = false;
@@ -295,7 +295,7 @@ export class MyProfileComponent implements OnInit, OnDestroy {
       } else if (this.user.provider === 'google') {
         return this.user.providerData?.picture ? this.user.providerData.picture : this.defaultProfileUrl;
       } else {
-        return '../../assets/images/profile-default.svg';
+        return '../../assets/images/profile-default.png';
       }
     } else {
       return '../../assets/images/profile-default.svg';
