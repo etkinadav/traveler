@@ -124,14 +124,10 @@ export class SpeechRecognitionService {
     let finalTranscript = '';
     let maxConfidence = 0;
 
-    console.log(`[${speaker}] Processing result for language ${language}:`, event);
-
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const result = event.results[i][0];
       const transcript = result.transcript;
       const confidence = result.confidence || 0;
-      
-      console.log(`[${speaker}] Result ${i}: "${transcript}" (confidence: ${confidence}, final: ${event.results[i].isFinal})`);
       
       if (confidence > maxConfidence) {
         maxConfidence = confidence;
@@ -146,7 +142,6 @@ export class SpeechRecognitionService {
 
     // Only process if we have actual text
     if (!finalTranscript && !interimTranscript) {
-      console.log(`[${speaker}] No text found, skipping`);
       return;
     }
 
@@ -163,13 +158,20 @@ export class SpeechRecognitionService {
       confidence: maxConfidence
     };
 
-    console.log(`[${speaker}] Sending result with detected speaker ${detectedSpeaker}:`, result);
+    // Simple log format: NEW_TEXT [text] [language] [confidence]
+    // Detect language from the transcript text
+    const transcriptText = finalTranscript || interimTranscript;
+    const detectedLanguage = this.detectLanguageFromText(transcriptText);
+    const languageName = detectedLanguage === 'he-IL' || detectedLanguage.startsWith('he-') || detectedLanguage.startsWith('iw-') ? 'hebrew' : 
+                        detectedLanguage === 'en-US' || detectedLanguage.startsWith('en-') ? 'english' : 
+                        detectedLanguage === 'ar-SA' || detectedLanguage.startsWith('ar-') ? 'arabic' : 
+                        language || 'unknown';
+    console.log(`NEW_TEXT ${result.transcript} ${languageName} (detected: ${detectedLanguage || 'none'}, configured: ${language}, confidence: ${maxConfidence.toFixed(3)})`);
 
     const now = Date.now();
     this.lastResultTime[detectedSpeaker] = now;
 
     // Send ALL results immediately (both interim and final) for LIVE display
-    console.log(`[${detectedSpeaker}] Sending result LIVE (isFinal: ${result.isFinal}):`, result);
     this.transcriptSubject.next(result);
     
     // For final results, restart recognition to continue listening
@@ -199,41 +201,46 @@ export class SpeechRecognitionService {
 
   private currentDetectedSpeaker: 'A' | 'B' | null = null;
   private lastLanguageDetection: string = '';
+  private isSwitchingLanguage: boolean = false;
 
   private detectSpeaker(configuredLanguage: string, transcript: string, confidence: number): 'A' | 'B' {
-    // Detect the actual language being spoken based on the transcript
+    // For now, we'll let the component handle language detection
+    // This function will just return based on configured language
+    // The component will do the actual language detection and speaker assignment
+    
+    // Determine speaker based on configured language (fallback)
+    let speaker: 'A' | 'B' = configuredLanguage === this.languageA ? 'A' : 'B';
+    
+    // Try to detect language from transcript
     const detectedLanguage = this.detectLanguageFromText(transcript);
     
-    console.log(`Language detection: transcript="${transcript}", detected=${detectedLanguage}, configured=${configuredLanguage}`);
-    
-    // Determine speaker based on detected language
-    let speaker: 'A' | 'B';
-    
-    if (detectedLanguage === this.languageA || detectedLanguage.startsWith('he-') && this.languageA.startsWith('he-')) {
-      speaker = 'A';
-    } else if (detectedLanguage === this.languageB || detectedLanguage.startsWith('en-') && this.languageB.startsWith('en-')) {
-      speaker = 'B';
-    } else {
-      // If we can't detect clearly, use configured language as fallback
-      speaker = configuredLanguage === this.languageA ? 'A' : 'B';
+    // If we detected a language, use it to determine speaker
+    if (detectedLanguage) {
+      if (detectedLanguage === this.languageA || 
+          (detectedLanguage.startsWith('he-') && this.languageA.startsWith('he-')) ||
+          (detectedLanguage.startsWith('ar-') && this.languageA.startsWith('ar-'))) {
+        speaker = 'A';
+      } else if (detectedLanguage === this.languageB || 
+                 (detectedLanguage.startsWith('en-') && this.languageB.startsWith('en-')) ||
+                 (detectedLanguage.startsWith('ar-') && this.languageB.startsWith('ar-'))) {
+        speaker = 'B';
+      }
     }
     
-    // If we detected a language change, update the current speaker and switch recognition language
+    // Update tracking
     if (detectedLanguage && detectedLanguage !== this.lastLanguageDetection && this.lastLanguageDetection !== '') {
-      console.log(`Language changed from ${this.lastLanguageDetection} to ${detectedLanguage}, switching speaker to ${speaker}`);
       this.lastLanguageDetection = detectedLanguage;
       this.currentDetectedSpeaker = speaker;
       
       // Switch recognition language if needed
-      this.switchRecognitionLanguage(detectedLanguage);
+      this.switchRecognitionLanguageInternal(detectedLanguage);
     } else if (!this.currentDetectedSpeaker || this.lastLanguageDetection === '') {
-      // First detection or no previous detection
+      // First detection
       this.currentDetectedSpeaker = speaker;
       this.lastLanguageDetection = detectedLanguage || configuredLanguage;
       
-      // Set initial recognition language
       if (detectedLanguage) {
-        this.switchRecognitionLanguage(detectedLanguage);
+        this.switchRecognitionLanguageInternal(detectedLanguage);
       }
     } else {
       // Same language, keep current speaker
@@ -243,44 +250,100 @@ export class SpeechRecognitionService {
     return speaker;
   }
 
-  private switchRecognitionLanguage(targetLanguage: string): void {
+  switchRecognitionLanguage(targetLanguage: string): void {
+    this.switchRecognitionLanguageInternal(targetLanguage);
+  }
+  
+  private switchRecognitionLanguageInternal(targetLanguage: string): void {
     if (!this.isListening || !this.recognitionA) {
+      console.log('SWITCH_LANG: Cannot switch - not listening or no recognition instance');
+      return;
+    }
+
+    // Prevent multiple simultaneous language switches
+    if (this.isSwitchingLanguage) {
+      console.log('SWITCH_LANG: Already switching language, skipping');
       return;
     }
 
     // Determine which language to use
     const shouldUseLanguageA = targetLanguage === this.languageA || 
                                (targetLanguage.startsWith('he-') && this.languageA.startsWith('he-')) ||
-                               (targetLanguage.startsWith('ar-') && this.languageA.startsWith('ar-'));
+                               (targetLanguage.startsWith('ar-') && this.languageA.startsWith('ar-')) ||
+                               (targetLanguage.startsWith('iw-') && this.languageA.startsWith('iw-'));
     
     const shouldUseLanguageB = targetLanguage === this.languageB || 
-                               (targetLanguage.startsWith('en-') && this.languageB.startsWith('en-'));
+                               (targetLanguage.startsWith('en-') && this.languageB.startsWith('en-')) ||
+                               (targetLanguage.startsWith('ar-') && this.languageB.startsWith('ar-'));
     
     const newLanguage = shouldUseLanguageA ? this.languageA : (shouldUseLanguageB ? this.languageB : null);
     
-    if (newLanguage && this.recognitionA.lang !== newLanguage) {
-      console.log(`Switching recognition language from ${this.recognitionA.lang} to ${newLanguage}`);
-      
-      // Stop current recognition
-      try {
-        this.recognitionA.stop();
-      } catch (e) {
-        // Ignore stop errors
+    if (!newLanguage) {
+      console.log(`SWITCH_LANG: No matching language found for ${targetLanguage}`);
+      return;
+    }
+    
+    // Check current language
+    const currentLang = this.recognitionA.lang;
+    if (currentLang === newLanguage) {
+      console.log(`SWITCH_LANG: Already using ${newLanguage}, no switch needed`);
+      return;
+    }
+    
+    console.log(`SWITCH_LANG: Attempting to switch from ${currentLang} to ${newLanguage}`);
+    this.isSwitchingLanguage = true;
+    
+    // Stop current recognition
+    try {
+      console.log('SWITCH_LANG: Stopping recognition...');
+      this.recognitionA.stop();
+    } catch (e) {
+      console.warn('SWITCH_LANG: Error stopping recognition:', e);
+      this.isSwitchingLanguage = false;
+      return;
+    }
+    
+    // Change language and restart
+    setTimeout(() => {
+      if (!this.isListening || !this.recognitionA) {
+        console.log('SWITCH_LANG: Not listening anymore, aborting switch');
+        this.isSwitchingLanguage = false;
+        return;
       }
       
-      // Change language and restart
-      setTimeout(() => {
-        if (this.isListening && this.recognitionA) {
-          this.recognitionA.lang = newLanguage;
-          try {
-            this.recognitionA.start();
-            console.log(`✓ Restarted recognition with language: ${newLanguage}`);
-          } catch (e) {
-            console.warn('Failed to restart recognition with new language:', e);
+      console.log(`SWITCH_LANG: Setting language to ${newLanguage} and restarting...`);
+      this.recognitionA.lang = newLanguage;
+      
+      try {
+        this.recognitionA.start();
+        console.log(`SWITCH_LANG: ✓ Successfully switched to ${newLanguage}`);
+        this.isSwitchingLanguage = false;
+      } catch (e: any) {
+        console.warn('SWITCH_LANG: Failed to restart recognition:', e.message);
+        this.isSwitchingLanguage = false;
+        
+        // Try again after a longer delay
+        setTimeout(() => {
+          if (this.isListening && this.recognitionA && !this.isSwitchingLanguage) {
+            try {
+              console.log('SWITCH_LANG: Retrying restart...');
+              this.recognitionA.start();
+              console.log(`SWITCH_LANG: ✓ Retry successful, switched to ${newLanguage}`);
+            } catch (e2: any) {
+              console.error('SWITCH_LANG: Retry failed:', e2.message);
+            }
           }
-        }
-      }, 200);
-    }
+        }, 500);
+      }
+    }, 300);
+  }
+  
+  getLanguageA(): string {
+    return this.languageA;
+  }
+  
+  getLanguageB(): string {
+    return this.languageB;
   }
 
   private detectLanguageFromText(text: string): string {
@@ -288,44 +351,94 @@ export class SpeechRecognitionService {
       return '';
     }
 
+    // Remove RTL marks and trim
+    const cleanText = text.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
+    
+    if (cleanText.length === 0) {
+      return '';
+    }
+
     // Simple heuristic-based language detection
     // Check for Hebrew characters (Unicode range: \u0590-\u05FF)
     const hebrewPattern = /[\u0590-\u05FF]/;
-    const hasHebrew = hebrewPattern.test(text);
+    const hasHebrew = hebrewPattern.test(cleanText);
 
     // Check for Arabic characters (Unicode range: \u0600-\u06FF)
     const arabicPattern = /[\u0600-\u06FF]/;
-    const hasArabic = arabicPattern.test(text);
+    const hasArabic = arabicPattern.test(cleanText);
 
-    // Check for English/Latin characters
-    const englishPattern = /^[a-zA-Z0-9\s.,!?'"-]+$/;
-    const isEnglish = englishPattern.test(text) && !hasHebrew && !hasArabic;
+    // Check for English/Latin characters - more lenient pattern
+    const latinPattern = /[a-zA-Z]/;
+    const hasLatin = latinPattern.test(cleanText);
+    
+    // Count characters to determine dominant language
+    const hebrewCount = (cleanText.match(/[\u0590-\u05FF]/g) || []).length;
+    const latinCount = (cleanText.match(/[a-zA-Z]/g) || []).length;
+    const arabicCount = (cleanText.match(/[\u0600-\u06FF]/g) || []).length;
+    const totalChars = cleanText.replace(/[\s.,!?'"-]/g, '').length;
 
-    // Determine language based on patterns
-    if (hasHebrew) {
-      // Check if it matches language A or B
-      if (this.languageA.startsWith('he-') || this.languageA.startsWith('iw-')) {
-        return this.languageA;
-      } else if (this.languageB.startsWith('he-') || this.languageB.startsWith('iw-')) {
-        return this.languageB;
+    // Determine language based on dominant characters
+    if (hasHebrew && hebrewCount > 0) {
+      // If Hebrew is dominant or mixed with Latin but Hebrew is more
+      if (hebrewCount >= latinCount || (hebrewCount > 0 && latinCount === 0)) {
+        if (this.languageA.startsWith('he-') || this.languageA.startsWith('iw-')) {
+          return this.languageA;
+        } else if (this.languageB.startsWith('he-') || this.languageB.startsWith('iw-')) {
+          return this.languageB;
+        }
+        return 'he-IL'; // Default Hebrew
       }
-      return 'he-IL'; // Default Hebrew
-    } else if (hasArabic) {
-      // Check if it matches language A or B
-      if (this.languageA.startsWith('ar-')) {
-        return this.languageA;
-      } else if (this.languageB.startsWith('ar-')) {
-        return this.languageB;
+    }
+    
+    if (hasArabic && arabicCount > 0) {
+      if (arabicCount >= latinCount || (arabicCount > 0 && latinCount === 0)) {
+        if (this.languageA.startsWith('ar-')) {
+          return this.languageA;
+        } else if (this.languageB.startsWith('ar-')) {
+          return this.languageB;
+        }
+        return 'ar-SA'; // Default Arabic
       }
-      return 'ar-SA'; // Default Arabic
-    } else if (isEnglish) {
-      // Check if it matches language A or B
+    }
+    
+    // If has Latin characters and no Hebrew/Arabic, or Latin is dominant
+    if (hasLatin && (latinCount > hebrewCount && latinCount > arabicCount)) {
       if (this.languageA.startsWith('en-')) {
         return this.languageA;
       } else if (this.languageB.startsWith('en-')) {
         return this.languageB;
       }
       return 'en-US'; // Default English
+    }
+
+    // If we have mixed content, check what was added last
+    // Check the last few characters to see what language they are
+    const lastChars = cleanText.slice(-10); // Last 10 characters
+    const lastHasHebrew = hebrewPattern.test(lastChars);
+    const lastHasLatin = latinPattern.test(lastChars);
+    const lastHasArabic = arabicPattern.test(lastChars);
+    
+    if (lastHasHebrew && !lastHasLatin) {
+      if (this.languageA.startsWith('he-') || this.languageA.startsWith('iw-')) {
+        return this.languageA;
+      } else if (this.languageB.startsWith('he-') || this.languageB.startsWith('iw-')) {
+        return this.languageB;
+      }
+      return 'he-IL';
+    } else if (lastHasLatin && !lastHasHebrew && !lastHasArabic) {
+      if (this.languageA.startsWith('en-')) {
+        return this.languageA;
+      } else if (this.languageB.startsWith('en-')) {
+        return this.languageB;
+      }
+      return 'en-US';
+    } else if (lastHasArabic && !lastHasLatin) {
+      if (this.languageA.startsWith('ar-')) {
+        return this.languageA;
+      } else if (this.languageB.startsWith('ar-')) {
+        return this.languageB;
+      }
+      return 'ar-SA';
     }
 
     // If we can't detect, return empty string
@@ -525,14 +638,6 @@ export class SpeechRecognitionService {
         this.startListening(languageA, languageB);
       }, 200);
     }
-  }
-
-  getLanguageA(): string {
-    return this.languageA;
-  }
-
-  getLanguageB(): string {
-    return this.languageB;
   }
 
   getIsListening(): boolean {

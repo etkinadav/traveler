@@ -131,6 +131,35 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: calc(100vh - 400px);
+  min-height: 200px;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding: 8px;
+  scroll-behavior: smooth;
+  position: relative;
+}
+
+/* Ensure mat-card-content allows scrolling */
+mat-card-content {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make sure the card itself doesn't overflow */
+:host mat-card {
+  display: flex;
+  flex-direction: column;
+  max-height: none;
+  height: auto;
+}
+
+/* Ensure the main container allows scrolling - override global styles if needed */
+:host .fill-height {
+  height: 100%;
+  overflow-y: auto !important;
+  overflow-x: hidden;
 }
 
 .history-item {
