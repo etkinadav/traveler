@@ -218,6 +218,16 @@
 
     <!-- Live History -->
       <div class="w-100" *ngIf="isListening || transcriptHistory.length > 0">
+        <!-- Compact History -->
+        <mat-card class="compact-history mb-3" *ngIf="transcriptHistory.length > 0">
+          <mat-card-content>
+            <div class="compact-history-text" [dir]="isRTL ? 'rtl' : 'ltr'">
+              {{ getCompactHistory() }}
+            </div>
+          </mat-card-content>
+        </mat-card>
+        
+        <!-- Full History -->
         <mat-card>
           <mat-card-header class="d-flex justify-content-between align-items-center">
             <mat-card-title>{{ 'translator.history' | translate }}</mat-card-title>

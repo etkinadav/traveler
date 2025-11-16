@@ -63,6 +63,12 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   private analysisTimeout?: any;
   private readonly ANALYSIS_DELAY = 500; // Wait 500ms after last result before analyzing
   
+  // Fast-probe for startup language switching
+  private consecutiveVeryLowCount: number = 0;
+  private resultsSinceStart: number = 0;
+  private readonly STARTUP_PROBE_WINDOW = 8; // first ~8 results
+  private readonly VERY_LOW_CONF_THRESHOLD = 0.05;
+  
   private transcriptSubscription?: Subscription;
   private statusSubscription?: Subscription;
   private errorSubscription?: Subscription;
@@ -154,6 +160,22 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         // Update last result time
         this.lastResultTime = currentTime;
         
+        // Startup probe counters
+        this.resultsSinceStart++;
+        if (result.confidence !== undefined && result.confidence <= this.VERY_LOW_CONF_THRESHOLD) {
+          this.consecutiveVeryLowCount++;
+        } else {
+          this.consecutiveVeryLowCount = 0;
+        }
+        
+        // If at start we get several very-low-confidence English-like snippets, force a quick try to the other language
+        if (this.resultsSinceStart <= this.STARTUP_PROBE_WINDOW && this.consecutiveVeryLowCount >= 3) {
+          const otherLanguage = this.speechRecognitionService.getLanguageA() === this.selectedLanguageA ? this.selectedLanguageB : this.selectedLanguageA;
+          console.log(`STARTUP_PROBE: ${this.consecutiveVeryLowCount} very-low-confidence results at start -> probing switch to ${otherLanguage}`);
+          this.checkAndSwitchLanguage(otherLanguage);
+          this.consecutiveVeryLowCount = 0;
+        }
+        
         // Check confidence score - if it's low, the current language might be wrong
         if (result.confidence !== undefined) {
           this.checkLanguageByConfidence(result.confidence, trimmedText, result.language);
@@ -210,12 +232,15 @@ export class TranslatorComponent implements OnInit, OnDestroy {
                   }
                 }
                 
-                // If confidence is extremely low (0.010) and we don't have any text yet, it's likely a misrecognition
-                // This happens when the system starts with the wrong language and tries to recognize Hebrew as English
-                // Skip it if we don't have any text yet, or if it looks like gibberish or contains Hebrew words
-                // Also skip if it's a single word with very low confidence (like "government" for "שלום, קוראים לי נדב")
-                if (!this.fullTranscriptText && (isVeryShort || hasExtendingWords || hasVeryShortWords || containsHebrewWords || (isSingleWord && (isExtremelyLowConfidence || isModeratelyLowConfidence)))) {
-                  console.log(`SKIP_LOW_CONFIDENCE: Skipping very low confidence English text "${trimmedText}" (confidence: ${result.confidence}) - might be Hebrew misrecognized (short: ${isVeryShort}, extending: ${hasExtendingWords}, veryShortWords: ${hasVeryShortWords}, hebrewWords: ${containsHebrewWords}, singleWord: ${isSingleWord}, extremelyLow: ${isExtremelyLowConfidence}, moderatelyLow: ${isModeratelyLowConfidence})`);
+                // Only skip if it's clearly gibberish or misrecognition
+                // Don't skip if it looks like real English words, even with low confidence
+                const isLikelyGibberish = hasExtendingWords || (hasVeryShortWords && isVeryShort) || containsHebrewWords;
+                const isSingleWordGibberish = isSingleWord && isExtremelyLowConfidence && hasVeryShortWords;
+                
+                // Only skip if we have no text yet AND it's clearly gibberish
+                // This prevents skipping legitimate English text that just has low confidence
+                if (!this.fullTranscriptText && (isLikelyGibberish || isSingleWordGibberish)) {
+                  console.log(`SKIP_LOW_CONFIDENCE: Skipping very low confidence English text "${trimmedText}" (confidence: ${result.confidence}) - likely gibberish (extending: ${hasExtendingWords}, veryShortWords: ${hasVeryShortWords}, hebrewWords: ${containsHebrewWords}, singleWordGibberish: ${isSingleWordGibberish})`);
                   return; // Skip this result
                 }
               }
@@ -1000,9 +1025,10 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         this.languageMismatchCount++;
         console.log(`LANG_MISMATCH: Detected (${finalDetectedLanguage}) != Current (${currentLanguage}), text="${text}", count=${this.languageMismatchCount}, confidence=${confidence.toFixed(3)}, analysisConfidence=${last3WordsAnalysis.confidence.toFixed(3)}`);
         
-        // If confidence is low OR analysis confidence is high, switch immediately
-        if (confidence < 0.6 || last3WordsAnalysis.confidence > 0.7) {
-          console.log(`LANG_MISMATCH: Low recognition confidence (${confidence.toFixed(3)}) OR high analysis confidence (${last3WordsAnalysis.confidence.toFixed(3)}) + language mismatch - switching immediately`);
+        // Only switch if we have strong evidence (high analysis confidence OR very low recognition confidence)
+        // This prevents switching too frequently on ambiguous cases
+        if ((confidence < 0.3 && last3WordsAnalysis.confidence > 0.6) || last3WordsAnalysis.confidence > 0.85) {
+          console.log(`LANG_MISMATCH: Strong evidence (recognition: ${confidence.toFixed(3)}, analysis: ${last3WordsAnalysis.confidence.toFixed(3)}) + language mismatch - switching to ${finalDetectedLanguage}`);
           this.checkAndSwitchLanguage(finalDetectedLanguage);
           this.languageMismatchCount = 0;
           this.lowConfidenceCount = 0;
@@ -1019,8 +1045,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         }
         
         // Even with higher confidence, if we consistently detect different language, switch
-        if (this.languageMismatchCount >= 2) {
-          console.log(`LANG_MISMATCH: Consistent mismatch (${this.languageMismatchCount} times) - switching to ${finalDetectedLanguage}`);
+        // But require more consistent mismatches to avoid switching too frequently
+        if (this.languageMismatchCount >= 3 && last3WordsAnalysis.confidence > 0.6) {
+          console.log(`LANG_MISMATCH: Consistent mismatch (${this.languageMismatchCount} times) + analysis confidence (${last3WordsAnalysis.confidence.toFixed(3)}) - switching to ${finalDetectedLanguage}`);
           this.checkAndSwitchLanguage(finalDetectedLanguage);
           this.languageMismatchCount = 0;
           this.lowConfidenceCount = 0;
@@ -1042,30 +1069,64 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       
       console.log(`LOW_CONFIDENCE: confidence=${confidence.toFixed(3)}, text="${text}", currentLang=${currentLanguage}, count=${this.lowConfidenceCount}`);
       
-      // If confidence is VERY low (like 0.010), try switching to the other language immediately
-      // This handles cases where the wrong language is configured from the start
-      if (confidence < 0.1 && this.lowConfidenceCount >= 1) {
-        // Check if the other language might be correct
-        const otherLanguage = currentLanguage === this.selectedLanguageA ? this.selectedLanguageB : this.selectedLanguageA;
-        console.log(`LOW_CONFIDENCE: Very low confidence (${confidence.toFixed(3)}) - trying to switch to other language: ${otherLanguage}`);
-        this.checkAndSwitchLanguage(otherLanguage);
-        this.lowConfidenceCount = 0;
-        this.languageMismatchCount = 0;
-        return;
-      }
-      
-      // If we have multiple low confidence results, use the sophisticated analysis
-      if (this.lowConfidenceCount >= 2) {
-        if (last3WordsAnalysis.detectedLanguage && last3WordsAnalysis.detectedLanguage !== currentLanguage) {
-          console.log(`LOW_CONFIDENCE: Multiple low confidence (${this.lowConfidenceCount}) + language mismatch from analysis - switching to ${last3WordsAnalysis.detectedLanguage}`);
+      // If confidence is VERY low (like 0.010), check if the detected language is different
+      // Only switch if we're confident the detected language is correct
+      if (confidence < 0.1 && this.lowConfidenceCount >= 2) {
+        // Use sophisticated analysis to determine the correct language
+        const last3WordsAnalysis = this.analyzeLastWordsForLanguage(text, Math.min(5, text.split(/\s+/).length));
+        const detectedLanguage = this.detectLanguageFromText(text);
+        
+        // Only switch if analysis strongly suggests a different language
+        if (last3WordsAnalysis.detectedLanguage && last3WordsAnalysis.detectedLanguage !== currentLanguage && last3WordsAnalysis.confidence > 0.8) {
+          console.log(`LOW_CONFIDENCE: Very low confidence (${confidence.toFixed(3)}) + high analysis confidence (${last3WordsAnalysis.confidence.toFixed(3)}) - switching to ${last3WordsAnalysis.detectedLanguage}`);
           this.checkAndSwitchLanguage(last3WordsAnalysis.detectedLanguage);
           this.lowConfidenceCount = 0;
           this.languageMismatchCount = 0;
+          return;
         } else if (detectedLanguage && detectedLanguage !== currentLanguage) {
-          console.log(`LOW_CONFIDENCE: Multiple low confidence (${this.lowConfidenceCount}) + language mismatch - switching to ${detectedLanguage}`);
-          this.checkAndSwitchLanguage(detectedLanguage);
+          // Fallback to simple detection
+          const detectedLangType = detectedLanguage.startsWith('he-') || detectedLanguage.startsWith('iw-') ? 'hebrew' : 
+                                  detectedLanguage.startsWith('en-') ? 'english' : 
+                                  detectedLanguage.startsWith('ar-') ? 'arabic' : 'unknown';
+          const currentLangType = currentLanguage.startsWith('he-') || currentLanguage.startsWith('iw-') ? 'hebrew' : 
+                                 currentLanguage.startsWith('en-') ? 'english' : 
+                                 currentLanguage.startsWith('ar-') ? 'arabic' : 'unknown';
+          
+          // Only switch if language types are different (e.g., Hebrew vs English)
+          if (detectedLangType !== currentLangType && detectedLangType !== 'unknown') {
+            console.log(`LOW_CONFIDENCE: Very low confidence (${confidence.toFixed(3)}) + language type mismatch (${currentLangType} -> ${detectedLangType}) - switching to ${detectedLanguage}`);
+            this.checkAndSwitchLanguage(detectedLanguage);
+            this.lowConfidenceCount = 0;
+            this.languageMismatchCount = 0;
+            return;
+          }
+        }
+      }
+      
+      // If we have multiple low confidence results, use the sophisticated analysis
+      // But require higher confidence from analysis to avoid false switches
+      if (this.lowConfidenceCount >= 3) {
+        const last3WordsAnalysisForLowConf = this.analyzeLastWordsForLanguage(text, Math.min(5, text.split(/\s+/).length));
+        if (last3WordsAnalysisForLowConf.detectedLanguage && last3WordsAnalysisForLowConf.detectedLanguage !== currentLanguage && last3WordsAnalysisForLowConf.confidence > 0.7) {
+          console.log(`LOW_CONFIDENCE: Multiple low confidence (${this.lowConfidenceCount}) + high analysis confidence (${last3WordsAnalysisForLowConf.confidence.toFixed(3)}) - switching to ${last3WordsAnalysisForLowConf.detectedLanguage}`);
+          this.checkAndSwitchLanguage(last3WordsAnalysisForLowConf.detectedLanguage);
           this.lowConfidenceCount = 0;
           this.languageMismatchCount = 0;
+        } else if (detectedLanguage && detectedLanguage !== currentLanguage) {
+          // Check if language types are different
+          const detectedLangType = detectedLanguage.startsWith('he-') || detectedLanguage.startsWith('iw-') ? 'hebrew' : 
+                                  detectedLanguage.startsWith('en-') ? 'english' : 
+                                  detectedLanguage.startsWith('ar-') ? 'arabic' : 'unknown';
+          const currentLangType = currentLanguage.startsWith('he-') || currentLanguage.startsWith('iw-') ? 'hebrew' : 
+                                 currentLanguage.startsWith('en-') ? 'english' : 
+                                 currentLanguage.startsWith('ar-') ? 'arabic' : 'unknown';
+          
+          if (detectedLangType !== currentLangType && detectedLangType !== 'unknown') {
+            console.log(`LOW_CONFIDENCE: Multiple low confidence (${this.lowConfidenceCount}) + language type mismatch (${currentLangType} -> ${detectedLangType}) - switching to ${detectedLanguage}`);
+            this.checkAndSwitchLanguage(detectedLanguage);
+            this.lowConfidenceCount = 0;
+            this.languageMismatchCount = 0;
+          }
         }
       }
     } else if (confidence >= 0.7) {
@@ -2030,6 +2091,8 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return '';
     }
     
+    // Build compact history: (A)text(B)text(A)text...
+    // No spaces between labels and text, exactly as user requested
     return this.transcriptHistory.map(item => {
       const speakerLabel = `(${item.speaker})`;
       return `${speakerLabel}${item.text}`;
@@ -2077,7 +2140,19 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     const lastLatinCount = (lastPart.match(/[a-zA-Z]/g) || []).length;
     const lastArabicCount = (lastPart.match(/[\u0600-\u06FF]/g) || []).length;
     
-    console.log(`DETECT_LANG: Text="${cleanText}", LastPart="${lastPart}", Hebrew=${lastHebrewCount}, Latin=${lastLatinCount}, Arabic=${lastArabicCount}`);
+    // Calculate ratios for better detection
+    const totalLastChars = lastHebrewCount + lastLatinCount + lastArabicCount;
+    const lastHebrewRatio = totalLastChars > 0 ? lastHebrewCount / totalLastChars : 0;
+    const lastLatinRatio = totalLastChars > 0 ? lastLatinCount / totalLastChars : 0;
+    const lastArabicRatio = totalLastChars > 0 ? lastArabicCount / totalLastChars : 0;
+    
+    // Also check overall text ratios
+    const totalChars = hebrewCount + latinCount + arabicCount;
+    const overallHebrewRatio = totalChars > 0 ? hebrewCount / totalChars : 0;
+    const overallLatinRatio = totalChars > 0 ? latinCount / totalChars : 0;
+    const overallArabicRatio = totalChars > 0 ? arabicCount / totalChars : 0;
+    
+    console.log(`DETECT_LANG: Text="${cleanText.substring(0, 50)}", LastPart="${lastPart}", Hebrew=${lastHebrewCount}(${lastHebrewRatio.toFixed(2)}), Latin=${lastLatinCount}(${lastLatinRatio.toFixed(2)}), Arabic=${lastArabicCount}(${lastArabicRatio.toFixed(2)})`);
     
     // Helper function to get the matching language code from selected languages
     const getMatchingLanguage = (languageType: 'he' | 'en' | 'ar'): string => {
@@ -2116,39 +2191,64 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     };
 
     // Priority: Check last part first (what was just added)
-    // IMPORTANT: If last part has Latin and more Latin than Hebrew/Arabic, it's English
-    // This should be checked FIRST to catch English words even if there's Hebrew before
-    if (lastHasLatin && lastLatinCount > lastHebrewCount && lastLatinCount > lastArabicCount) {
-      const lang = getMatchingLanguage('en');
-      console.log(`DETECT_LANG: ✓ Detected English from last part (Latin: ${lastLatinCount} > Hebrew: ${lastHebrewCount}), returning ${lang}`);
-      return lang;
+    // Use ratios for better detection - require at least 60% of characters to be of one type
+    // Hebrew detection: last part should be mostly Hebrew (60%+), OR overall text is mostly Hebrew (70%+)
+    if ((lastHasHebrew && lastHebrewRatio > 0.6) || (hasHebrew && overallHebrewRatio > 0.7)) {
+      // If last part is clearly Hebrew, prefer Hebrew
+      if (lastHebrewRatio > lastLatinRatio && lastHebrewRatio > lastArabicRatio) {
+        const lang = getMatchingLanguage('he');
+        console.log(`DETECT_LANG: ✓ Detected Hebrew from last part (Hebrew: ${lastHebrewCount}, ratio: ${lastHebrewRatio.toFixed(2)}), returning ${lang}`);
+        return lang;
+      }
+      // If overall text is mostly Hebrew, prefer Hebrew even if last part is mixed
+      if (overallHebrewRatio > 0.7 && overallHebrewRatio > overallLatinRatio) {
+        const lang = getMatchingLanguage('he');
+        console.log(`DETECT_LANG: ✓ Detected Hebrew (dominant overall: ratio: ${overallHebrewRatio.toFixed(2)}), returning ${lang}`);
+        return lang;
+      }
     }
     
-    // If last part has Hebrew and more Hebrew than Latin, it's Hebrew
-    if (lastHasHebrew && lastHebrewCount > lastLatinCount) {
-      const lang = getMatchingLanguage('he');
-      console.log(`DETECT_LANG: ✓ Detected Hebrew from last part (Hebrew: ${lastHebrewCount} > Latin: ${lastLatinCount}), returning ${lang}`);
-      return lang;
+    // Arabic detection: similar logic
+    if ((lastHasArabic && lastArabicRatio > 0.6) || (hasArabic && overallArabicRatio > 0.7)) {
+      if (lastArabicRatio > lastLatinRatio && lastArabicRatio > lastHebrewRatio) {
+        const lang = getMatchingLanguage('ar');
+        console.log(`DETECT_LANG: ✓ Detected Arabic from last part (Arabic: ${lastArabicCount}, ratio: ${lastArabicRatio.toFixed(2)}), returning ${lang}`);
+        return lang;
+      }
+      if (overallArabicRatio > 0.7 && overallArabicRatio > overallLatinRatio) {
+        const lang = getMatchingLanguage('ar');
+        console.log(`DETECT_LANG: ✓ Detected Arabic (dominant overall: ratio: ${overallArabicRatio.toFixed(2)}), returning ${lang}`);
+        return lang;
+      }
     }
     
-    // If last part has Arabic and more Arabic than Latin, it's Arabic
-    if (lastHasArabic && lastArabicCount > lastLatinCount) {
-      const lang = getMatchingLanguage('ar');
-      console.log(`DETECT_LANG: ✓ Detected Arabic from last part, returning ${lang}`);
-      return lang;
+    // English detection: last part should be mostly Latin (60%+), AND overall text should not be mostly Hebrew/Arabic
+    if (lastHasLatin && lastLatinRatio > 0.6 && overallLatinRatio > 0.6) {
+      // Only detect as English if overall text is not dominated by Hebrew/Arabic
+      if (overallHebrewRatio < 0.5 && overallArabicRatio < 0.5) {
+        const lang = getMatchingLanguage('en');
+        console.log(`DETECT_LANG: ✓ Detected English from last part (Latin: ${lastLatinCount}, ratio: ${lastLatinRatio.toFixed(2)}), returning ${lang}`);
+        return lang;
+      }
     }
 
-    // Fallback: use dominant language in entire text
-    if (hasHebrew && hebrewCount >= latinCount && hebrewCount >= arabicCount) {
-      return getMatchingLanguage('he');
+    // Fallback: use dominant language in entire text (if ratios are clear)
+    if (hasHebrew && overallHebrewRatio > 0.5 && overallHebrewRatio > overallLatinRatio && overallHebrewRatio > overallArabicRatio) {
+      const lang = getMatchingLanguage('he');
+      console.log(`DETECT_LANG: ✓ Fallback: Detected Hebrew (overall ratio: ${overallHebrewRatio.toFixed(2)}), returning ${lang}`);
+      return lang;
     }
     
-    if (hasLatin && latinCount > hebrewCount && latinCount > arabicCount) {
-      return getMatchingLanguage('en');
+    if (hasLatin && overallLatinRatio > 0.5 && overallLatinRatio > overallHebrewRatio && overallLatinRatio > overallArabicRatio) {
+      const lang = getMatchingLanguage('en');
+      console.log(`DETECT_LANG: ✓ Fallback: Detected English (overall ratio: ${overallLatinRatio.toFixed(2)}), returning ${lang}`);
+      return lang;
     }
     
-    if (hasArabic && arabicCount > hebrewCount && arabicCount > latinCount) {
-      return getMatchingLanguage('ar');
+    if (hasArabic && overallArabicRatio > 0.5 && overallArabicRatio > overallHebrewRatio && overallArabicRatio > overallLatinRatio) {
+      const lang = getMatchingLanguage('ar');
+      console.log(`DETECT_LANG: ✓ Fallback: Detected Arabic (overall ratio: ${overallArabicRatio.toFixed(2)}), returning ${lang}`);
+      return lang;
     }
 
     return '';
