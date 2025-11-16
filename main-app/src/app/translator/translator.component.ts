@@ -62,6 +62,16 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   languageProbabilityB: number = 0; // Probability for language B (percentage)
   private analysisTimeout?: any;
   private readonly ANALYSIS_DELAY = 500; // Wait 500ms after last result before analyzing
+
+  // Per-utterance buffering to avoid early misclassification
+  private bufferingActive: boolean = false;
+  private utteranceStartTime: number = 0;
+  private readonly MIN_BUFFER_WORDS = 3;
+  private readonly MIN_BUFFER_MS = 2000; // 2 seconds
+
+  // Manual speaker selection (toggle)
+  currentSpeaker: 'A' | 'B' = 'A';
+  private manualSpeakerMode: boolean = true;
   
   // Fast-probe for startup language switching
   private consecutiveVeryLowCount: number = 0;
@@ -156,6 +166,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
               clearTimeout(this.analysisTimeout);
               this.analysisTimeout = undefined;
             }
+            // Begin buffering for the new utterance window
+            this.bufferingActive = true;
+            this.utteranceStartTime = currentTime;
             this.cdr.detectChanges();
           }
         }
@@ -323,6 +336,11 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.lastLanguageCheckTime = 0;
     this.lastAddedWords = []; // Reset tracked words
     this.lastResultTime = 0; // Reset last result time
+    // Initialize buffering for the first utterance
+    this.bufferingActive = true;
+    this.utteranceStartTime = Date.now();
+    // Default speaker at start can remain previous or reset to A
+    // this.currentSpeaker = 'A';
 
     // Start listening with both languages
     console.log('✓ Starting listening with selectedLanguageA:', this.selectedLanguageA, 'selectedLanguageB:', this.selectedLanguageB);
@@ -1484,25 +1502,20 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     if (!this.fullTranscriptText || this.fullTranscriptText.trim().length === 0) {
       return;
     }
-    
-    // Split text by language changes
-    const segments = this.splitTextByLanguage(this.fullTranscriptText);
-    
+
     // Remove any live segments first (they will be replaced with saved segments)
     if (this.transcriptHistory.length > this.savedHistoryCount) {
       this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
     }
-    
-    // Add each segment as a new saved entry to the existing history
-    segments.forEach((segment) => {
-      const speaker = this.getSpeakerForLanguage(segment.language);
-      this.historyIdCounter++;
-      this.transcriptHistory.push({
-        speaker: speaker,
-        text: segment.text,
-        language: segment.language,
-        id: this.historyIdCounter
-      });
+
+    // Save the entire accumulated text as a single entry under the current manual speaker
+    const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+    this.historyIdCounter++;
+    this.transcriptHistory.push({
+      speaker: this.currentSpeaker,
+      text: this.fullTranscriptText.trim(),
+      language: language,
+      id: this.historyIdCounter
     });
     
     // Update saved history count
@@ -1519,6 +1532,17 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   private savedHistoryCount: number = 0;
   
   private updateHistoryFromFullText(): void {
+    // Suppress live updates during early buffering of a new utterance
+    if (this.bufferingActive) {
+      const now = Date.now();
+      const wordsCount = (this.fullTranscriptText || '').trim().split(/\s+/).filter(w => w.length > 0).length;
+      const elapsed = now - this.utteranceStartTime;
+      if (wordsCount < this.MIN_BUFFER_WORDS && elapsed < this.MIN_BUFFER_MS) {
+        return;
+      }
+      // Threshold met; allow updates henceforth for this utterance
+      this.bufferingActive = false;
+    }
     // Parse the full text and create history entries by speaker/language
     // This updates only the "live" segments (current speech) while keeping saved segments
     if (!this.fullTranscriptText) {
@@ -1529,20 +1553,15 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Split text by language changes (already removes duplicates)
-    const segments = this.splitTextByLanguage(this.fullTranscriptText);
-    
-    // Keep saved history entries and replace/update only the live segments
+    // Manual mode: treat the whole accumulated text as one live segment under the selected speaker
     const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
-    const liveSegments = segments.map((segment, index) => {
-      const speaker = this.getSpeakerForLanguage(segment.language);
-      return {
-        speaker: speaker,
-        text: segment.text,
-        language: segment.language,
-        id: this.savedHistoryCount + index + 1
-      };
-    });
+    const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+    const liveSegments = [{
+      speaker: this.currentSpeaker,
+      text: this.fullTranscriptText.trim(),
+      language: language,
+      id: this.savedHistoryCount + 1
+    }];
     
     // Combine saved history with live segments
     this.transcriptHistory = [...savedHistory, ...liveSegments];
@@ -1553,6 +1572,26 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Fix language detection errors retroactively
     this.fixLanguageDetectionErrors();
   }
+
+  onSpeakerToggle(newSpeaker: 'A' | 'B'): void {
+    if (newSpeaker !== this.currentSpeaker) {
+      // Finalize current accumulated text under the previous speaker before switching
+      if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
+        this.addCurrentTextToHistoryAsNewLine();
+        this.fullTranscriptText = '';
+        this.lastAddedWords = [];
+        this.lastFullTextLength = 0;
+        // Start a brief buffering window after manual switch
+        this.bufferingActive = true;
+        this.utteranceStartTime = Date.now();
+      }
+      this.currentSpeaker = newSpeaker;
+      // Force recognizer to the chosen speaker language
+      const targetLanguage = newSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+      this.speechRecognitionService.switchRecognitionLanguage(targetLanguage);
+      this.cdr.detectChanges();
+    }
+  }
   
   /**
    * Fixes language detection errors retroactively
@@ -1560,6 +1599,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
    * For example: "shalom" should be Hebrew (speaker B) not English (speaker A)
    */
   private fixLanguageDetectionErrors(): void {
+    if (this.manualSpeakerMode) {
+      return;
+    }
     if (this.transcriptHistory.length === 0) {
       return;
     }

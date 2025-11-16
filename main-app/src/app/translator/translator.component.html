@@ -218,6 +218,23 @@
 
     <!-- Live History -->
       <div class="w-100" *ngIf="isListening || transcriptHistory.length > 0">
+        <!-- Speaker Toggle (visible while listening) -->
+        <div class="speaker-toggle-container mb-3" *ngIf="isListening">
+          <mat-button-toggle-group
+            [value]="currentSpeaker"
+            (change)="onSpeakerToggle($event.value)"
+            name="speakerToggle"
+            class="speaker-toggle-group"
+            [multiple]="false">
+            <mat-button-toggle value="A" class="speaker-toggle-btn speaker-a-btn">
+              {{ getSpeakerName('A') }}
+            </mat-button-toggle>
+            <mat-button-toggle value="B" class="speaker-toggle-btn speaker-b-btn">
+              {{ getSpeakerName('B') }}
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+
         <!-- Compact History -->
         <mat-card class="compact-history mb-3" *ngIf="transcriptHistory.length > 0">
           <mat-card-content>

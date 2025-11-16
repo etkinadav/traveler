@@ -391,6 +391,38 @@ mat-card-content {
   }
 }
 
+/* Speaker toggle - large and prominent */
+.speaker-toggle-container {
+  display: flex;
+  justify-content: center;
+}
+
+.speaker-toggle-group {
+  transform: scale(1.1);
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.speaker-toggle-btn {
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 12px 20px;
+  min-width: 160px;
+}
+
+.speaker-a-btn {
+  color: #1976D2;
+}
+
+.speaker-b-btn {
+  color: #F57C00;
+}
+
+::host-context(.darkTheme) .speaker-toggle-group {
+  background: #424242;
+  border-color: #616161;
+}
 /* Dark mode support for new elements */
 :host-context(.darkTheme) .speaker-a-badge {
   background-color: #1565C0;
