@@ -131,6 +131,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       if (result.speaker && result.transcript && result.transcript.trim()) {
         const trimmedText = result.transcript.trim();
         const currentTime = Date.now();
+
+        // Debug: log latest snippet probabilities for A/B
+        this.logNewVoiceData(trimmedText);
         
         // Check if there's a speech gap (more than 1 second since last result)
         if (this.lastResultTime > 0 && (currentTime - this.lastResultTime) > this.SPEECH_GAP_THRESHOLD) {
@@ -1648,6 +1651,21 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       if (!text || text.length === 0) {
         continue;
       }
+
+      // If entry is labeled Hebrew but contains no Hebrew chars and has Latin chars — correct to English speaker
+      const hasHebrewCharsQuick = /[\u0590-\u05FF]/.test(entry.text);
+      const hasLatinCharsQuick = /[a-zA-Z]/.test(entry.text);
+      if (!hasHebrewCharsQuick && hasLatinCharsQuick && (entry.language.startsWith('he-') || entry.language.startsWith('iw-'))) {
+        const englishLangQuick = this.selectedLanguageA.startsWith('en-')
+          ? this.selectedLanguageA
+          : (this.selectedLanguageB.startsWith('en-') ? this.selectedLanguageB : 'en-US');
+        const englishSpeakerQuick = this.getSpeakerForLanguage(englishLangQuick);
+        console.log(`FIX_LANG: Latin-only text wrongly assigned to Hebrew -> switching to ${englishSpeakerQuick} (${englishLangQuick}) for "${entry.text.substring(0, 30)}..."`);
+        entry.language = englishLangQuick;
+        entry.speaker = englishSpeakerQuick;
+        fixed = true;
+        continue;
+      }
       
       // Check if text contains Hebrew words transcribed as English
       // If speaker B is Hebrew and text contains Hebrew words in English, it's likely Hebrew
@@ -1862,6 +1880,17 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       // First, try to detect from the word itself
       let wordLanguage = this.detectLanguageFromText(word);
       
+      // HARD RULE for latin-only tokens: map to configured English immediately
+      if (!/[\u0590-\u05FF\u0600-\u06FF]/.test(word) && /[a-zA-Z]/.test(word)) {
+        if (this.selectedLanguageA.startsWith('en-')) {
+          wordLanguage = this.selectedLanguageA;
+        } else if (this.selectedLanguageB.startsWith('en-')) {
+          wordLanguage = this.selectedLanguageB;
+        } else {
+          wordLanguage = 'en-US';
+        }
+      }
+
       // If we couldn't detect from single word, use context (last 2-3 words)
       if (!wordLanguage && i > 0) {
         const contextStart = Math.max(0, i - 2);
@@ -2122,6 +2151,31 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Check for English/Latin characters
     const latinPattern = /[a-zA-Z]/;
     const hasLatin = latinPattern.test(cleanText);
+
+    // QUICK RULE: For very short or latin-only snippets, force English mapping to configured language
+    const isVeryShort = cleanText.split(/\s+/).filter(w => w).length <= 2 || cleanText.length <= 6;
+    if (hasLatin && !hasHebrew && !hasArabic) {
+      // If the latin text looks like Hebrew transliteration, map to Hebrew instead
+      const translitScore = this.detectHebrewTransliteration(cleanText);
+      if (translitScore > 0) {
+        if (this.selectedLanguageA.startsWith('he-') || this.selectedLanguageA.startsWith('iw-')) {
+          return this.selectedLanguageA;
+        }
+        if (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) {
+          return this.selectedLanguageB;
+        }
+        return 'he-IL';
+      }
+      if (this.selectedLanguageA.startsWith('en-')) {
+        return this.selectedLanguageA;
+      }
+      if (this.selectedLanguageB.startsWith('en-')) {
+        return this.selectedLanguageB;
+      }
+      if (isVeryShort) {
+        return 'en-US';
+      }
+    }
     
     // Count characters
     const hebrewCount = (cleanText.match(/[\u0590-\u05FF]/g) || []).length;
@@ -2190,6 +2244,16 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return '';
     };
 
+    // Transliteration heuristic: latin text that matches common Hebrew phrases/words
+    if (hasLatin && !hasHebrew && !hasArabic) {
+      const translitScore = this.detectHebrewTransliteration(cleanText);
+      if (translitScore > 0) {
+        const lang = getMatchingLanguage('he');
+        console.log(`DETECT_LANG: ✓ Detected Hebrew via transliteration (score: ${translitScore.toFixed(2)}), returning ${lang}`);
+        return lang;
+      }
+    }
+
     // Priority: Check last part first (what was just added)
     // Use ratios for better detection - require at least 60% of characters to be of one type
     // Hebrew detection: last part should be mostly Hebrew (60%+), OR overall text is mostly Hebrew (70%+)
@@ -2252,6 +2316,31 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     }
 
     return '';
+  }
+
+  /**
+   * Returns a score (>0 when match) if latin text likely represents Hebrew transliteration.
+   * Simple heuristic based on common words/phrases.
+   */
+  private detectHebrewTransliteration(text: string): number {
+    const t = text.toLowerCase().replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!t) return 0;
+    const phrases = [
+      'ma nishma', 'ma shlomcha', 'ma shlomech', 'ma kore', 'ma ze', 'eich ata', 'eich at',
+      'boker tov', 'erev tov'
+    ];
+    const words = [
+      'shalom', 'nishma', 'toda', 'slicha', 'ken', 'lo', 'yalla', 'achshav', 'eifo', 'lama', 'yom', 'layla', 'erev', 'boker'
+    ];
+    let score = 0;
+    for (const p of phrases) {
+      if (t.includes(p)) score += 0.8;
+    }
+    const tokens = t.split(' ');
+    for (const w of tokens) {
+      if (words.includes(w)) score += 0.2;
+    }
+    return score;
   }
 
   private checkForLanguageChangeInText(oldText: string, newText: string): { changed: boolean, oldTextCleaned: string, newTextOnly: string } {
@@ -2455,6 +2544,24 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     let finalProbabilityA = charProbabilityA;
     let finalProbabilityB = charProbabilityB;
     
+    // Transliteration boost for Hebrew if snippet is latin but matches Hebrew phrases/words
+    const hasHebChars = hebrewCount > 0;
+    const hasArChars = arabicCount > 0;
+    const hasLatChars = latinCount > 0;
+    if (!hasHebChars && !hasArChars && hasLatChars) {
+      const translitScore = this.detectHebrewTransliteration(text);
+      if (translitScore > 0) {
+        const boost = Math.min(30, translitScore * 40); // up to +30%
+        if (isLanguageAHebrew) {
+          finalProbabilityA += boost;
+          finalProbabilityB = Math.max(0, finalProbabilityB - boost / 2);
+        } else if (isLanguageBHebrew) {
+          finalProbabilityB += boost;
+          finalProbabilityA = Math.max(0, finalProbabilityA - boost / 2);
+        }
+      }
+    }
+    
     // If we detected a language with high confidence, boost that language's probability
     if (detectedLanguage) {
       const isDetectedLanguageA = detectedLanguage === this.selectedLanguageA || 
@@ -2492,6 +2599,32 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       probabilityA: finalProbabilityA,
       probabilityB: finalProbabilityB
     };
+  }
+
+  /**
+   * Logs per-snippet probability for Speaker A/B with a fixed tag for diagnostics.
+   */
+  private logNewVoiceData(snippet: string): void {
+    if (!snippet || snippet.trim().length === 0) {
+      return;
+    }
+    const { probabilityA, probabilityB } = this.calculateLanguageProbability(snippet);
+    const labelA = this.getSelectedLanguageNameA();
+    const labelB = this.getSelectedLanguageNameB();
+    // Log as JSON string so it renders across lines in the console
+    const payload = {
+      tag: 'NEW_VOICE_DATA',
+      snippet,
+      speakerA: {
+        languageName: labelA,
+        probabilityPercent: probabilityA
+      },
+      speakerB: {
+        languageName: labelB,
+        probabilityPercent: probabilityB
+      }
+    };
+    console.log(JSON.stringify(payload));
   }
 
   getStatusIcon(): string {
