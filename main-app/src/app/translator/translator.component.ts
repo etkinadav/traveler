@@ -22,6 +22,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   // Speech Recognition
   isListening = false;
   isPaused = false; // Pause state - when true, listening is paused but UI stays the same
+  hasStartedListening = false; // Track if listening has started at least once - keeps mic in center
   status = 'idle'; // idle, listening, stopped, error
   errorMessage = '';
   selectedLanguageA = 'he-IL';
@@ -378,6 +379,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Mark that listening has started - mic will stay in center from now on
+    this.hasStartedListening = true;
+
     // Clear previous error
     this.errorMessage = '';
     this.status = 'idle';
@@ -419,6 +423,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
 
   stopListening(): void {
     this.isPaused = false; // Reset pause state when stopping
+    this.hasStartedListening = false; // Reset - mic will go back down
     this.speechRecognitionService.stopListening();
     // Clear analysis state
     if (this.analysisTimeout) {
@@ -428,6 +433,25 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.isAnalyzing = false;
     this.languageProbabilityA = 0;
     this.languageProbabilityB = 0;
+  }
+
+  resetToInitialState(): void {
+    // Full reset - stop listening, reset everything, show language inputs, move mic down
+    this.isPaused = false;
+    this.hasStartedListening = false;
+    this.isListening = false;
+    this.speechRecognitionService.stopListening();
+    // Clear analysis state
+    if (this.analysisTimeout) {
+      clearTimeout(this.analysisTimeout);
+      this.analysisTimeout = undefined;
+    }
+    this.isAnalyzing = false;
+    this.languageProbabilityA = 0;
+    this.languageProbabilityB = 0;
+    this.status = 'idle';
+    this.errorMessage = '';
+    console.log('✓ Reset to initial state');
   }
 
   onLanguageChangeA(languageCode: string): void {

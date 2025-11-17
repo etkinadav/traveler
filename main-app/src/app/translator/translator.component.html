@@ -235,7 +235,17 @@
           </mat-button-toggle-group>
         </div>
 
-        <!-- Compact History Toggle Button (fixed top-right) -->
+        <!-- Reset Button (fixed top-right) - visible when listening has started -->
+        <button
+          *ngIf="hasStartedListening"
+          mat-mini-fab
+          class="reset-btn"
+          (click)="resetToInitialState()"
+          [matTooltip]="'translator.reset' | translate">
+          <mat-icon>close</mat-icon>
+        </button>
+
+        <!-- Compact History Toggle Button (fixed top-right, below reset button) -->
         <button
           mat-mini-fab
           class="compact-toggle-btn"
@@ -302,7 +312,7 @@
   </section>
   
   <!-- Floating Microphone Container -->
-  <div class="floating-microphone-container" [class.listening]="isListening && !isPaused" [dir]="isRTL ? 'rtl' : 'ltr'">
+  <div class="floating-microphone-container" [class.listening]="hasStartedListening" [dir]="isRTL ? 'rtl' : 'ltr'">
     <div class="floating-microphone-content">
       <!-- Microphone Button -->
       <button 
