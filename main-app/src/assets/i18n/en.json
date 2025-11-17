@@ -36,6 +36,7 @@
   "translator.search-language": "Search Language",
   "translator.search-language-placeholder": "Type to search...",
   "translator.status-listening": "Listening...",
+  "translator.status-paused": "Paused",
   "translator.status-stopped": "Stopped",
   "translator.status-ready": "Ready to listen",
   "translator.transcript": "Transcript",

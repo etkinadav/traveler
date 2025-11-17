@@ -21,6 +21,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
 
   // Speech Recognition
   isListening = false;
+  isPaused = false; // Pause state - when true, listening is paused but UI stays the same
   status = 'idle'; // idle, listening, stopped, error
   errorMessage = '';
   selectedLanguageA = 'he-IL';
@@ -285,7 +286,10 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Subscribe to status updates
     this.statusSubscription = this.speechRecognitionService.status$.subscribe(status => {
       this.status = status;
-      this.isListening = status === 'listening';
+      // Only update isListening if not paused - when paused, keep isListening as true
+      if (!this.isPaused) {
+        this.isListening = status === 'listening';
+      }
     });
 
     // Subscribe to errors
@@ -317,9 +321,53 @@ export class TranslatorComponent implements OnInit, OnDestroy {
 
   async toggleListening(): Promise<void> {
     if (this.isListening) {
-      this.stopListening();
+      // If listening and not paused, pause it
+      if (!this.isPaused) {
+        this.pauseListening();
+      } else {
+        // If paused, resume it
+        this.resumeListening();
+      }
     } else {
+      // If not listening, start listening
       await this.startListening();
+    }
+  }
+
+  pauseListening(): void {
+    if (this.isListening && !this.isPaused) {
+      this.isPaused = true;
+      // Keep isListening as true even when paused, so UI doesn't change
+      // Stop the recognition but don't let status subscription change isListening
+      this.speechRecognitionService.stopListening();
+      // Manually keep isListening as true
+      this.isListening = true;
+      // Clear analysis state
+      if (this.analysisTimeout) {
+        clearTimeout(this.analysisTimeout);
+        this.analysisTimeout = undefined;
+      }
+      this.isAnalyzing = false;
+      this.languageProbabilityA = 0;
+      this.languageProbabilityB = 0;
+      console.log('✓ Paused listening');
+    }
+  }
+
+  async resumeListening(): Promise<void> {
+    if (this.isListening && this.isPaused) {
+      this.isPaused = false;
+      // Resume listening with the current speaker's language
+      const currentLanguage = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+      this.speechRecognitionService.startListening(this.selectedLanguageA, this.selectedLanguageB);
+      
+      // In manual mode, immediately switch to the current speaker's language
+      if (this.manualSpeakerMode) {
+        setTimeout(() => {
+          this.speechRecognitionService.switchRecognitionLanguage(currentLanguage);
+        }, 100);
+      }
+      console.log('✓ Resumed listening');
     }
   }
 
@@ -333,6 +381,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Clear previous error
     this.errorMessage = '';
     this.status = 'idle';
+    this.isPaused = false; // Reset pause state when starting
     
     // Reset counters and state
     this.fullTranscriptText = '';
@@ -369,6 +418,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   }
 
   stopListening(): void {
+    this.isPaused = false; // Reset pause state when stopping
     this.speechRecognitionService.stopListening();
     // Clear analysis state
     if (this.analysisTimeout) {
@@ -2709,6 +2759,15 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   }
 
   getStatusIcon(): string {
+    // If listening and not paused, show pause icon
+    if (this.isListening && !this.isPaused) {
+      return 'pause';
+    }
+    // If listening but paused, show mic icon (to resume)
+    if (this.isListening && this.isPaused) {
+      return 'mic';
+    }
+    // Otherwise, show default icons based on status
     switch (this.status) {
       case 'listening':
         return 'mic';
