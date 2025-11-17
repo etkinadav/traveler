@@ -470,31 +470,15 @@ mat-card-content {
   }
 }
 
-/* Reset button (top-right) */
-.reset-btn {
+/* Menu button (top-left) */
+.menu-btn {
   position: fixed;
   top: 12px;
-  right: 12px;
+  left: 12px;
   z-index: 1101;
   width: 40px;
   height: 40px;
   line-height: 40px;
   padding: 0;
-}
-
-/* Compact history toggle button (top-right, below reset button) */
-.compact-toggle-btn {
-  position: fixed;
-  top: 60px;
-  right: 12px;
-  z-index: 1100;
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
-  padding: 0;
-}
-
-.compact-toggle-btn.open {
-  box-shadow: 0 0 0 2px #4CAF50 inset;
 }
 

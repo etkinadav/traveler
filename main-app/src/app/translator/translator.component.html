@@ -235,56 +235,32 @@
           </mat-button-toggle-group>
         </div>
 
-        <!-- Reset Button (fixed top-right) - visible when listening has started -->
+        <!-- Menu Button (fixed top-left) - visible when listening has started -->
         <button
           *ngIf="hasStartedListening"
           mat-mini-fab
-          class="reset-btn"
-          (click)="resetToInitialState()"
-          [matTooltip]="'translator.reset' | translate">
-          <mat-icon>close</mat-icon>
+          class="menu-btn"
+          [matMenuTriggerFor]="historyMenu"
+          [matTooltip]="'translator.menu' | translate">
+          <mat-icon>more_vert</mat-icon>
         </button>
-
-        <!-- Compact History Toggle Button (fixed top-right, below reset button) -->
-        <button
-          mat-mini-fab
-          class="compact-toggle-btn"
-          [ngClass]="{ open: showCompactHistory }"
-          (click)="toggleCompactHistory()"
-          [matTooltip]="showCompactHistory ? ('translator.hide-compact' | translate) : ('translator.show-compact' | translate)">
-          <mat-icon>subject</mat-icon>
-        </button>
-
-        <!-- Compact History (hidden by default) -->
-        <mat-card class="compact-history mb-3" *ngIf="showCompactHistory && transcriptHistory.length > 0">
-          <mat-card-content>
-            <div class="compact-history-text" [dir]="isRTL ? 'rtl' : 'ltr'">
-              {{ getCompactHistory() }}
-            </div>
-          </mat-card-content>
-        </mat-card>
+        <mat-menu #historyMenu="matMenu">
+          <button mat-menu-item (click)="resetToInitialState()">
+            <mat-icon>close</mat-icon>
+            <span>{{ 'translator.exit' | translate }}</span>
+          </button>
+          <button mat-menu-item (click)="clearTranscript()" [disabled]="transcriptHistory.length === 0">
+            <mat-icon>delete</mat-icon>
+            <span>{{ 'translator.clear-history' | translate }}</span>
+          </button>
+          <button mat-menu-item (click)="copyHistoryToClipboard()" [disabled]="transcriptHistory.length === 0">
+            <mat-icon>content_copy</mat-icon>
+            <span>{{ 'translator.copy-history' | translate }}</span>
+          </button>
+        </mat-menu>
         
         <!-- Full History -->
         <mat-card>
-          <mat-card-header class="d-flex justify-content-between align-items-center">
-            <mat-card-title>{{ 'translator.history' | translate }}</mat-card-title>
-            <div class="transcript-actions">
-              <button 
-                mat-icon-button 
-                (click)="copyToClipboard()"
-                [disabled]="transcriptHistory.length === 0"
-                matTooltip="{{ 'translator.copy' | translate }}">
-                <mat-icon>content_copy</mat-icon>
-              </button>
-              <button 
-                mat-icon-button 
-                (click)="clearTranscript()"
-                [disabled]="transcriptHistory.length === 0"
-                matTooltip="{{ 'translator.clear' | translate }}">
-                <mat-icon>clear</mat-icon>
-              </button>
-            </div>
-          </mat-card-header>
           <mat-card-content>
             <div class="history-list play-style" [class.empty]="transcriptHistory.length === 0">
               <div 

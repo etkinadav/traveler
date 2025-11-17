@@ -56,7 +56,8 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   
   // Track last result time to detect speech gaps
   private lastResultTime: number = 0;
-  private readonly SPEECH_GAP_THRESHOLD = 1000; // 1 second in milliseconds
+  private readonly SPEECH_GAP_THRESHOLD = 1500; // 1.5 seconds in milliseconds
+  private lastSavedText: string = ''; // Track the last saved text to prevent duplicates after gap
   
   // Loading spinner and language probability
   isAnalyzing: boolean = false;
@@ -154,16 +155,20 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         // Debug: log latest snippet probabilities for A/B
         this.logNewVoiceData(trimmedText);
         
-        // Check if there's a speech gap (more than 1 second since last result)
+        // Check if there's a speech gap (more than 1.5 seconds since last result)
         if (this.lastResultTime > 0 && (currentTime - this.lastResultTime) > this.SPEECH_GAP_THRESHOLD) {
           // Save current text to history as a new line and start fresh
           if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
-            console.log(`SPEECH_GAP: Detected gap of ${currentTime - this.lastResultTime}ms, saving current text as new line`);
+            console.log(`SPEECH_GAP: Detected gap of ${currentTime - this.lastResultTime}ms, saving current text as new line and resetting`);
             // Perform final analysis before saving
             this.performLanguageAnalysis();
+            // Save the current text before resetting
+            const textToSave = this.fullTranscriptText.trim();
             // Add current text as a new line in history (don't replace existing history)
             this.addCurrentTextToHistoryAsNewLine();
-            // Reset accumulated text to start a new line
+            // Store the saved text to prevent duplicates
+            this.lastSavedText = textToSave;
+            // Reset accumulated text to start a new line - IMPORTANT: Do this BEFORE processing new text
             this.fullTranscriptText = '';
             this.lastAddedWords = [];
             this.lastFullTextLength = 0;
@@ -179,11 +184,23 @@ export class TranslatorComponent implements OnInit, OnDestroy {
             this.bufferingActive = true;
             this.utteranceStartTime = currentTime;
             this.cdr.detectChanges();
+            // IMPORTANT: Update last result time AFTER resetting, so the new text starts fresh
+            this.lastResultTime = currentTime;
+            // Now process the new text that came after the gap - it should be treated as completely new
+            // Continue to updateFullTranscript below, but with a clean slate
+          } else {
+            // No text to save, but still reset state for new utterance
+            this.fullTranscriptText = '';
+            this.lastAddedWords = [];
+            this.lastFullTextLength = 0;
+            this.bufferingActive = true;
+            this.utteranceStartTime = currentTime;
+            this.lastResultTime = currentTime;
           }
+        } else {
+          // Update last result time only if no gap was detected
+          this.lastResultTime = currentTime;
         }
-        
-        // Update last result time
-        this.lastResultTime = currentTime;
         
         // Startup probe counters
         this.resultsSinceStart++;
@@ -399,6 +416,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.lastLanguageCheckTime = 0;
     this.lastAddedWords = []; // Reset tracked words
     this.lastResultTime = 0; // Reset last result time
+    this.lastSavedText = ''; // Reset saved text tracking
     // Initialize buffering for the first utterance
     this.bufferingActive = true;
     this.utteranceStartTime = Date.now();
@@ -566,6 +584,36 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     
     if (!cleanNewText) {
       return;
+    }
+    
+    // If we just saved text after a gap, check if the new text contains the saved text
+    // If so, extract only the new part (text after the saved text)
+    if (this.lastSavedText && cleanNewText.includes(this.lastSavedText)) {
+      const savedTextIndex = cleanNewText.indexOf(this.lastSavedText);
+      const newPart = cleanNewText.substring(savedTextIndex + this.lastSavedText.length).trim();
+      if (newPart) {
+        // Only use the new part, not the saved text
+        console.log(`GAP_RESET: New text contains saved text, using only new part: "${newPart}"`);
+        // Clear the saved text flag after using it
+        this.lastSavedText = '';
+        // Continue with just the new part
+        const originalNewText = cleanNewText;
+        // Replace cleanNewText with just the new part
+        const tempNewText = newPart;
+        // Recursively call with just the new part, but prevent infinite recursion
+        if (tempNewText !== originalNewText) {
+          this.updateFullTranscript(tempNewText, confidence);
+          return;
+        }
+      } else {
+        // New text is exactly the saved text - skip it
+        console.log(`GAP_RESET: New text is identical to saved text, skipping`);
+        this.lastSavedText = '';
+        return;
+      }
+    } else if (this.lastSavedText) {
+      // New text doesn't contain saved text - clear the flag
+      this.lastSavedText = '';
     }
     
     // If confidence is very low and text looks like English but we're expecting Hebrew,
@@ -2233,6 +2281,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.lastLanguageCheckTime = 0;
     this.lastAddedWords = []; // Reset tracked words
     this.lastResultTime = 0; // Reset last result time
+    this.lastSavedText = ''; // Reset saved text tracking
     // Clear analysis state
     if (this.analysisTimeout) {
       clearTimeout(this.analysisTimeout);
@@ -2252,6 +2301,30 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       
       navigator.clipboard.writeText(playText).then(() => {
         console.log('History copied to clipboard');
+      });
+    }
+  }
+
+  copyHistoryToClipboard(): void {
+    // Copy all history in a stringified format suitable for copy/paste
+    if (this.transcriptHistory.length > 0) {
+      // Create a formatted string with all history information
+      const historyData = {
+        timestamp: new Date().toISOString(),
+        languageA: this.selectedLanguageA,
+        languageB: this.selectedLanguageB,
+        conversation: this.transcriptHistory.map(item => ({
+          speaker: item.speaker,
+          text: item.text,
+          language: item.language
+        }))
+      };
+      
+      // Format as a readable string
+      const formattedText = JSON.stringify(historyData, null, 2);
+      
+      navigator.clipboard.writeText(formattedText).then(() => {
+        console.log('History copied to clipboard in JSON format');
       });
     }
   }
