@@ -70,7 +70,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   // Per-utterance buffering to avoid early misclassification
   private bufferingActive: boolean = false;
   private utteranceStartTime: number = 0;
-  private readonly MIN_BUFFER_WORDS = 3;
+  private readonly MIN_BUFFER_WORDS = 2; // Wait for at least 2 words before displaying
   private readonly MIN_BUFFER_MS = 2000; // 2 seconds
 
   // Manual speaker selection (toggle)
@@ -157,7 +157,8 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         this.logNewVoiceData(trimmedText);
         
         // Check if there's a speech gap (more than 0.7 seconds since last result)
-        if (this.lastResultTime > 0 && (currentTime - this.lastResultTime) > this.SPEECH_GAP_THRESHOLD) {
+        // Don't process gaps when paused
+        if (!this.isPaused && this.lastResultTime > 0 && (currentTime - this.lastResultTime) > this.SPEECH_GAP_THRESHOLD) {
           // If current line has content, save it and close it
           if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
             console.log(`SPEECH_GAP: Detected gap of ${currentTime - this.lastResultTime}ms, saving current text as new line and resetting`);
@@ -385,6 +386,25 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       this.isAnalyzing = false;
       this.languageProbabilityA = 0;
       this.languageProbabilityB = 0;
+      
+      // Remove spinner (waiting lines) when pausing
+      if (this.transcriptHistory.length > 0) {
+        const hadWaitingLine = this.transcriptHistory.some(item => item.isWaiting);
+        this.transcriptHistory = this.transcriptHistory.filter(item => !item.isWaiting);
+        // Update saved history count after filtering
+        this.savedHistoryCount = this.transcriptHistory.length;
+        // Clear lastEmptyLineId if it was a waiting line
+        if (this.lastEmptyLineId !== null) {
+          const stillExists = this.transcriptHistory.some(item => item.id === this.lastEmptyLineId);
+          if (!stillExists) {
+            this.lastEmptyLineId = null;
+          }
+        }
+        if (hadWaitingLine) {
+          this.cdr.detectChanges();
+        }
+      }
+      
       console.log('✓ Paused listening');
     }
   }
@@ -609,6 +629,11 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   }
 
   private updateFullTranscript(newText: string, confidence?: number): void {
+    // Don't update transcript when paused
+    if (this.isPaused) {
+      return;
+    }
+    
     // Remove RTL marks and normalize
     const cleanNewText = newText.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
     const cleanFullText = this.fullTranscriptText.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
@@ -786,6 +811,37 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       }
       // Otherwise, it's already contained - no update needed
       return;
+    }
+    
+    // Check if full text is contained in new text (new text contains all of full text)
+    // This handles cases like: fullText="היי", newText="זה היי מה נשמע"
+    // In this case, we should extract only the new part
+    if (cleanNewText.includes(cleanFullText)) {
+      // Find where full text appears in new text
+      const fullTextIndex = cleanNewText.indexOf(cleanFullText);
+      
+      // Extract the part before and after the full text
+      const beforePart = cleanNewText.substring(0, fullTextIndex).trim();
+      const afterPart = cleanNewText.substring(fullTextIndex + cleanFullText.length).trim();
+      
+      // Combine the new parts (before + after)
+      const newPart = (beforePart + ' ' + afterPart).trim();
+      
+      if (newPart && newPart.length > 0) {
+        // Only add the new part to the full text
+        const updatedText = (cleanFullText + ' ' + newPart).trim();
+        this.fullTranscriptText = updatedText;
+        console.log(`UPDATE_TEXT_CONTAINED: Full text was contained in new text. Full: "${cleanFullText}", New: "${cleanNewText}", Extracted: "${newPart}", Result: "${updatedText}"`);
+        this.updateTrackedWords(newPart);
+        this.updateHistoryFromFullText();
+        this.cdr.detectChanges();
+        setTimeout(() => this.scrollToTop(), 100);
+        return;
+      } else {
+        // New text is exactly the full text (or just contains it with no extra content)
+        console.log(`NO_NEW_TEXT_CONTAINED: New text contains full text but no new content, skipping`);
+        return;
+      }
     }
     
     // Check if full text is a prefix of new text (shouldn't happen, but just in case)
@@ -1686,7 +1742,11 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   }
   
   /**
-   * Removes overlapping words from the beginning of new text that match the end of previous text
+   * Removes overlapping words from new text that match previous text
+   * Handles three cases:
+   * 1. Previous text appears at the start of new text
+   * 2. Previous text appears at the end of new text
+   * 3. Previous text appears anywhere inside new text (full containment)
    * Returns only the new part without duplicates
    */
   private removeOverlappingWords(previousText: string, newText: string): string {
@@ -1702,7 +1762,67 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return newText;
     }
     
-    // Find the maximum overlap: how many words from the start of newText match the end of previousText
+    // Case 1: Check if previous text appears at the start of new text
+    if (newWords.length >= previousWords.length) {
+      const newStart = newWords.slice(0, previousWords.length);
+      let matchesStart = true;
+      for (let i = 0; i < previousWords.length; i++) {
+        if (previousWords[i].toLowerCase() !== newStart[i].toLowerCase()) {
+          matchesStart = false;
+          break;
+        }
+      }
+      if (matchesStart) {
+        const remainingWords = newWords.slice(previousWords.length);
+        const result = remainingWords.join(' ');
+        console.log(`REMOVE_OVERLAP: Previous text found at start, removed. Previous: "${previousText}", New: "${newText}", Result: "${result}"`);
+        return result;
+      }
+    }
+    
+    // Case 2: Check if previous text appears at the end of new text
+    if (newWords.length >= previousWords.length) {
+      const newEnd = newWords.slice(-previousWords.length);
+      let matchesEnd = true;
+      for (let i = 0; i < previousWords.length; i++) {
+        if (previousWords[i].toLowerCase() !== newEnd[i].toLowerCase()) {
+          matchesEnd = false;
+          break;
+        }
+      }
+      if (matchesEnd) {
+        const remainingWords = newWords.slice(0, newWords.length - previousWords.length);
+        const result = remainingWords.join(' ');
+        console.log(`REMOVE_OVERLAP: Previous text found at end, removed. Previous: "${previousText}", New: "${newText}", Result: "${result}"`);
+        return result;
+      }
+    }
+    
+    // Case 3: Check if previous text appears anywhere inside new text (full containment)
+    // This handles cases like: previous="היי", new="זה היי מה נשמע"
+    if (newWords.length > previousWords.length) {
+      // Try to find the previous text sequence anywhere in the new text
+      for (let startIdx = 0; startIdx <= newWords.length - previousWords.length; startIdx++) {
+        const candidate = newWords.slice(startIdx, startIdx + previousWords.length);
+        let matches = true;
+        for (let i = 0; i < previousWords.length; i++) {
+          if (previousWords[i].toLowerCase() !== candidate[i].toLowerCase()) {
+            matches = false;
+            break;
+          }
+        }
+        if (matches) {
+          // Found the previous text inside new text - remove it
+          const before = newWords.slice(0, startIdx);
+          const after = newWords.slice(startIdx + previousWords.length);
+          const result = [...before, ...after].join(' ').trim();
+          console.log(`REMOVE_OVERLAP: Previous text found inside, removed. Previous: "${previousText}", New: "${newText}", Result: "${result}"`);
+          return result || newText; // If result is empty, return original (shouldn't happen)
+        }
+      }
+    }
+    
+    // Case 4: Check for partial overlap at start (last N words of previous match first N words of new)
     let maxOverlap = 0;
     const maxCheckLength = Math.min(previousWords.length, newWords.length);
     
@@ -1732,7 +1852,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     if (maxOverlap > 0) {
       const remainingWords = newWords.slice(maxOverlap);
       const result = remainingWords.join(' ');
-      console.log(`REMOVE_OVERLAP: Found ${maxOverlap} overlapping words, removed from start. Previous: "${previousText}", New: "${newText}", Result: "${result}"`);
+      console.log(`REMOVE_OVERLAP: Found ${maxOverlap} overlapping words at boundary, removed from start. Previous: "${previousText}", New: "${newText}", Result: "${result}"`);
       return result;
     }
     
@@ -1755,25 +1875,27 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
     }
 
-    // Get the text to save
-    let textToSave = this.fullTranscriptText.trim();
-    
-    // Check if there's a previous entry from the same speaker and remove overlapping words
-    if (this.transcriptHistory.length > 0) {
-      const lastEntry = this.transcriptHistory[this.transcriptHistory.length - 1];
-      // Only remove overlap if it's from the same speaker
-      if (lastEntry.speaker === this.currentSpeaker && lastEntry.text && lastEntry.text.trim().length > 0) {
-        textToSave = this.removeOverlappingWords(lastEntry.text, textToSave);
-      }
-    }
-    
-    // Only add if there's text left after removing overlap
-    if (!textToSave || textToSave.trim().length === 0) {
-      console.log('REMOVE_OVERLAP: All text was overlapping, skipping save');
+    // Get the text to save - save it as is, without removing overlapping words
+    // Overlap removal causes issues where text gets cut incorrectly
+    const textToSave = this.fullTranscriptText.trim();
+
+    // Check if we have at least 2 words before saving
+    const words = textToSave.trim().split(/\s+/).filter(w => w.length > 0);
+    if (words.length < this.MIN_BUFFER_WORDS) {
+      console.log(`MIN_WORDS: Text has only ${words.length} word(s), need at least ${this.MIN_BUFFER_WORDS}, skipping save`);
       return;
     }
 
-    // Save the text (without overlapping words) as a single entry under the current manual speaker
+    // Check if this text is identical to the last saved entry (prevent exact duplicates)
+    if (this.transcriptHistory.length > 0) {
+      const lastEntry = this.transcriptHistory[this.transcriptHistory.length - 1];
+      if (lastEntry.speaker === this.currentSpeaker && lastEntry.text && lastEntry.text.trim().toLowerCase() === textToSave.trim().toLowerCase()) {
+        console.log('EXACT_DUPLICATE: Text is identical to last entry, skipping save');
+        return;
+      }
+    }
+
+    // Save the text as a single entry under the current manual speaker
     const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
     this.historyIdCounter++;
     this.transcriptHistory.push({
@@ -1797,29 +1919,64 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   private savedHistoryCount: number = 0;
   
   private updateHistoryFromFullText(): void {
-    // Suppress live updates during early buffering of a new utterance
+    // Don't update history or create spinners when paused
+    if (this.isPaused) {
+      return;
+    }
+    
+    // Suppress live updates during early buffering - wait for at least 2 words
     if (this.bufferingActive) {
       const now = Date.now();
       const wordsCount = (this.fullTranscriptText || '').trim().split(/\s+/).filter(w => w.length > 0).length;
       const elapsed = now - this.utteranceStartTime;
       if (wordsCount < this.MIN_BUFFER_WORDS && elapsed < this.MIN_BUFFER_MS) {
-        return;
+        return; // Don't display until we have at least 2 words
       }
       // Threshold met; allow updates henceforth for this utterance
       this.bufferingActive = false;
     }
-    // Parse the full text and create history entries by speaker/language
-    // This updates only the "live" segments (current speech) while keeping saved segments
-    if (!this.fullTranscriptText) {
-      // If text is empty, keep existing history but remove any live segments
+    
+    // Get saved history (lines that were already saved after gaps)
+    const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+    const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+    
+    // If text is empty, show spinner if not paused
+    if (!this.fullTranscriptText || this.fullTranscriptText.trim().length === 0) {
+      // Remove any live segments
       if (this.transcriptHistory.length > this.savedHistoryCount) {
         this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
       }
-      // If there's no waiting line, create one (this ensures spinner is always visible when not speaking)
-      const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+      // If there's no waiting line, create one (spinner)
+      if (!this.isPaused) {
+        const lastEntry = savedHistory.length > 0 ? savedHistory[savedHistory.length - 1] : null;
+        if (!lastEntry || !lastEntry.isWaiting) {
+          this.historyIdCounter++;
+          this.lastEmptyLineId = this.historyIdCounter;
+          this.transcriptHistory.push({
+            speaker: this.currentSpeaker,
+            text: '',
+            language: language,
+            id: this.lastEmptyLineId,
+            isWaiting: true
+          });
+          this.savedHistoryCount = this.transcriptHistory.length;
+        }
+      }
+      return;
+    }
+    
+    // We have text - update or create a single live segment
+    // BUT: Only show if we have at least 2 words
+    const words = this.fullTranscriptText.trim().split(/\s+/).filter(w => w.length > 0);
+    if (words.length < this.MIN_BUFFER_WORDS) {
+      // Not enough words yet - keep spinner or don't show anything
+      // Remove any live segments
+      if (this.transcriptHistory.length > this.savedHistoryCount) {
+        this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+      }
+      // If there's no waiting line, create one (spinner)
       const lastEntry = savedHistory.length > 0 ? savedHistory[savedHistory.length - 1] : null;
       if (!lastEntry || !lastEntry.isWaiting) {
-        const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
         this.historyIdCounter++;
         this.lastEmptyLineId = this.historyIdCounter;
         this.transcriptHistory.push({
@@ -1834,69 +1991,40 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Manual mode: treat the whole accumulated text as one live segment under the selected speaker
-    const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
-    const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+    // We have at least 2 words - show the text
+    // Check if there's already a live segment (id > savedHistoryCount)
+    const hasLiveSegment = this.transcriptHistory.length > this.savedHistoryCount;
+    const existingLiveSegment = hasLiveSegment ? this.transcriptHistory[this.transcriptHistory.length - 1] : null;
     
-    // Check if the last saved entry is an empty waiting line for the same speaker
-    if (this.lastEmptyLineId !== null && savedHistory.length > 0) {
-      const lastEntry = savedHistory[savedHistory.length - 1];
-      if (lastEntry.id === this.lastEmptyLineId && lastEntry.isWaiting && lastEntry.speaker === this.currentSpeaker) {
-        // Remove any other waiting lines (only one spinner at a time)
-        const filteredHistory = savedHistory.filter(item => !item.isWaiting || item.id === this.lastEmptyLineId);
-        
-        // Get text to display and remove overlapping words from previous entry (if exists)
-        let textToDisplay = this.fullTranscriptText.trim();
-        if (filteredHistory.length > 1) {
-          // Check the entry before the waiting line
-          const previousEntry = filteredHistory[filteredHistory.length - 2];
-          if (previousEntry && previousEntry.speaker === this.currentSpeaker && previousEntry.text && previousEntry.text.trim().length > 0) {
-            textToDisplay = this.removeOverlappingWords(previousEntry.text, textToDisplay);
-          }
-        }
-        
-        // Update the empty waiting line with the new text (after removing overlap)
-        const updatedEntry = filteredHistory[filteredHistory.length - 1];
-        if (updatedEntry && updatedEntry.id === this.lastEmptyLineId) {
-          updatedEntry.text = textToDisplay;
-          updatedEntry.isWaiting = false;
-        }
-        this.lastEmptyLineId = null; // Clear the reference
-        // Use the updated saved history
-        this.transcriptHistory = [...filteredHistory];
-        this.savedHistoryCount = this.transcriptHistory.length;
-      } else {
-        // No matching empty line, but we have text - update the waiting line if exists, or create new segment
-        const filteredHistory = savedHistory.filter(item => !item.isWaiting);
-        
-        // If there's a waiting line that doesn't match (different speaker or ID), remove it
-        // and create a new live segment with the text
-        const liveSegments = [{
-          speaker: this.currentSpeaker,
-          text: this.fullTranscriptText.trim(),
-          language: language,
-          id: this.savedHistoryCount + 1
-        }];
-        this.transcriptHistory = [...filteredHistory, ...liveSegments];
-      }
+    // Remove any waiting lines from saved history
+    const filteredHistory = savedHistory.filter(item => !item.isWaiting);
+    
+    // For live segments, don't remove overlapping words - just show the full text as is
+    // Overlap removal only happens when saving after a gap (in addCurrentTextToHistoryAsNewLine)
+    const textToDisplay = this.fullTranscriptText.trim();
+    
+    // If there's already a live segment, update it; otherwise create a new one
+    if (existingLiveSegment && existingLiveSegment.speaker === this.currentSpeaker) {
+      // Update existing live segment with full text
+      existingLiveSegment.text = textToDisplay;
+      existingLiveSegment.language = language;
+      // Keep the same ID and structure
+      this.transcriptHistory = [...filteredHistory, existingLiveSegment];
     } else {
-      // No empty line to update - check if we need to create one or just show text
-      // If we have text and no waiting line, show the text directly (no spinner while speaking)
-      const filteredHistory = savedHistory.filter(item => !item.isWaiting);
-      const liveSegments = [{
+      // Create new live segment with full text
+      const liveSegmentId = this.savedHistoryCount + 1;
+      this.transcriptHistory = [...filteredHistory, {
         speaker: this.currentSpeaker,
-        text: this.fullTranscriptText.trim(),
+        text: textToDisplay,
         language: language,
-        id: this.savedHistoryCount + 1
+        id: liveSegmentId
       }];
-      this.transcriptHistory = [...filteredHistory, ...liveSegments];
     }
+    // Clear lastEmptyLineId since we're not using a waiting line anymore
+    this.lastEmptyLineId = null;
     
-    // Remove duplicate messages from the same speaker
-    this.removeConsecutiveDuplicateMessages();
-    
-    // Fix language detection errors retroactively
-    this.fixLanguageDetectionErrors();
+    // Don't call removeConsecutiveDuplicateMessages or fixLanguageDetectionErrors here
+    // These should only be called when saving text after a gap, not during live updates
   }
 
   onSpeakerToggle(newSpeaker: 'A' | 'B'): void {
@@ -1912,6 +2040,38 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         this.utteranceStartTime = Date.now();
       }
       this.currentSpeaker = newSpeaker;
+      
+      // Update or create spinner for the new speaker
+      const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+      const newLanguage = newSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+      
+      // Check if there's an existing waiting line
+      const existingWaitingIndex = savedHistory.findIndex(item => item.isWaiting);
+      
+      if (existingWaitingIndex >= 0) {
+        // Update existing waiting line to new speaker's color
+        const waitingEntry = savedHistory[existingWaitingIndex];
+        waitingEntry.speaker = newSpeaker;
+        waitingEntry.language = newLanguage;
+        this.transcriptHistory = [...savedHistory];
+        this.savedHistoryCount = this.transcriptHistory.length;
+        this.lastEmptyLineId = waitingEntry.id;
+      } else {
+        // No waiting line exists - create a new one for the new speaker
+        // Remove any existing waiting lines first (shouldn't be any, but just in case)
+        const filteredHistory = savedHistory.filter(item => !item.isWaiting);
+        this.historyIdCounter++;
+        this.lastEmptyLineId = this.historyIdCounter;
+        this.transcriptHistory = [...filteredHistory, {
+          speaker: newSpeaker,
+          text: '',
+          language: newLanguage,
+          id: this.lastEmptyLineId,
+          isWaiting: true
+        }];
+        this.savedHistoryCount = this.transcriptHistory.length;
+      }
+      
       // Force recognizer to the chosen speaker language
       const targetLanguage = newSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
       this.speechRecognitionService.switchRecognitionLanguage(targetLanguage);
