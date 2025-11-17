@@ -235,8 +235,18 @@
           </mat-button-toggle-group>
         </div>
 
-        <!-- Compact History -->
-        <mat-card class="compact-history mb-3" *ngIf="transcriptHistory.length > 0">
+        <!-- Compact History Toggle Button (fixed top-right) -->
+        <button
+          mat-mini-fab
+          class="compact-toggle-btn"
+          [ngClass]="{ open: showCompactHistory }"
+          (click)="toggleCompactHistory()"
+          [matTooltip]="showCompactHistory ? ('translator.hide-compact' | translate) : ('translator.show-compact' | translate)">
+          <mat-icon>subject</mat-icon>
+        </button>
+
+        <!-- Compact History (hidden by default) -->
+        <mat-card class="compact-history mb-3" *ngIf="showCompactHistory && transcriptHistory.length > 0">
           <mat-card-content>
             <div class="compact-history-text" [dir]="isRTL ? 'rtl' : 'ltr'">
               {{ getCompactHistory() }}

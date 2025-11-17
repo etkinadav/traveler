@@ -72,6 +72,13 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   // Manual speaker selection (toggle)
   currentSpeaker: 'A' | 'B' = 'A';
   private manualSpeakerMode: boolean = true;
+
+  // UI: Compact history visibility
+  showCompactHistory: boolean = false;
+
+  toggleCompactHistory(): void {
+    this.showCompactHistory = !this.showCompactHistory;
+  }
   
   // Fast-probe for startup language switching
   private consecutiveVeryLowCount: number = 0;
@@ -185,7 +192,10 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         }
         
         // If at start we get several very-low-confidence English-like snippets, force a quick try to the other language
-        if (this.resultsSinceStart <= this.STARTUP_PROBE_WINDOW && this.consecutiveVeryLowCount >= 3) {
+        // BUT: Skip this in manual speaker mode - user has explicitly chosen the language
+        if (this.manualSpeakerMode) {
+          // In manual mode, don't do startup probe - trust the user's selection
+        } else if (this.resultsSinceStart <= this.STARTUP_PROBE_WINDOW && this.consecutiveVeryLowCount >= 3) {
           const otherLanguage = this.speechRecognitionService.getLanguageA() === this.selectedLanguageA ? this.selectedLanguageB : this.selectedLanguageA;
           console.log(`STARTUP_PROBE: ${this.consecutiveVeryLowCount} very-low-confidence results at start -> probing switch to ${otherLanguage}`);
           this.checkAndSwitchLanguage(otherLanguage);
@@ -343,8 +353,19 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // this.currentSpeaker = 'A';
 
     // Start listening with both languages
-    console.log('✓ Starting listening with selectedLanguageA:', this.selectedLanguageA, 'selectedLanguageB:', this.selectedLanguageB);
+    // In manual mode, start with the current speaker's language
+    const initialLanguage = this.manualSpeakerMode 
+      ? (this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB)
+      : this.selectedLanguageA;
+    console.log('✓ Starting listening with selectedLanguageA:', this.selectedLanguageA, 'selectedLanguageB:', this.selectedLanguageB, 'initialLanguage:', initialLanguage);
     this.speechRecognitionService.startListening(this.selectedLanguageA, this.selectedLanguageB);
+    
+    // In manual mode, immediately switch to the current speaker's language
+    if (this.manualSpeakerMode) {
+      setTimeout(() => {
+        this.speechRecognitionService.switchRecognitionLanguage(initialLanguage);
+      }, 100);
+    }
   }
 
   stopListening(): void {
@@ -1030,6 +1051,12 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // In manual speaker mode, don't perform automatic language switching
+    // The user has explicitly chosen which speaker/language to use
+    if (this.manualSpeakerMode) {
+      return;
+    }
+    
     // Use the new sophisticated analysis on the full transcript text
     // This analyzes the last 3 words against multiple languages
     const last3WordsAnalysis = this.analyzeLastWordsForLanguage(this.fullTranscriptText || text, 3);
@@ -1164,6 +1191,12 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // In manual speaker mode, don't perform automatic language switching
+    // The user has explicitly chosen which speaker/language to use
+    if (this.manualSpeakerMode) {
+      return;
+    }
+    
     // Prevent checking too frequently (debounce)
     const now = Date.now();
     if (this.lastLanguageCheck === detectedLanguage && (now - this.lastLanguageCheckTime) < 500) {
@@ -1212,6 +1245,12 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   private checkFullTextLanguage(): void {
     // Check the dominant language in the full text
     if (!this.fullTranscriptText || this.fullTranscriptText.trim().length === 0) {
+      return;
+    }
+    
+    // In manual speaker mode, don't perform automatic language switching
+    // The user has explicitly chosen which speaker/language to use
+    if (this.manualSpeakerMode) {
       return;
     }
     
