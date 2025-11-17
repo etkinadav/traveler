@@ -349,6 +349,18 @@ mat-card-content {
   padding-right: 8px;
   line-height: 1.6;
   word-wrap: break-word;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.waiting-spinner {
+  display: inline-flex;
+  align-items: center;
+}
+
+.inline-spinner {
+  display: inline-block;
 }
 
 .history-list.empty {

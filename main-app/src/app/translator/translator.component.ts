@@ -44,7 +44,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   translationLanguageSearchTermB = '';
   showTranslationLanguageSelectorA = false;
   showTranslationLanguageSelectorB = false;
-  transcriptHistory: Array<{ speaker: 'A' | 'B', text: string, language: string, id: number }> = [];
+  transcriptHistory: Array<{ speaker: 'A' | 'B', text: string, language: string, id: number, isWaiting?: boolean }> = [];
   private historyIdCounter = 0;
   
   // Full transcript text - accumulates all text without duplicates
@@ -56,8 +56,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   
   // Track last result time to detect speech gaps
   private lastResultTime: number = 0;
-  private readonly SPEECH_GAP_THRESHOLD = 1500; // 1.5 seconds in milliseconds
+  private readonly SPEECH_GAP_THRESHOLD = 700; // 0.7 seconds in milliseconds - creates empty line with spinner if current line has content
   private lastSavedText: string = ''; // Track the last saved text to prevent duplicates after gap
+  private lastEmptyLineId: number | null = null; // Track the ID of the last empty line created after gap
   
   // Loading spinner and language probability
   isAnalyzing: boolean = false;
@@ -155,9 +156,10 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         // Debug: log latest snippet probabilities for A/B
         this.logNewVoiceData(trimmedText);
         
-        // Check if there's a speech gap (more than 1.5 seconds since last result)
+        // Check if there's a speech gap (more than 0.7 seconds since last result)
+        // Only create new line if current line already has content
         if (this.lastResultTime > 0 && (currentTime - this.lastResultTime) > this.SPEECH_GAP_THRESHOLD) {
-          // Save current text to history as a new line and start fresh
+          // Only proceed if current line has content
           if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
             console.log(`SPEECH_GAP: Detected gap of ${currentTime - this.lastResultTime}ms, saving current text as new line and resetting`);
             // Perform final analysis before saving
@@ -168,6 +170,25 @@ export class TranslatorComponent implements OnInit, OnDestroy {
             this.addCurrentTextToHistoryAsNewLine();
             // Store the saved text to prevent duplicates
             this.lastSavedText = textToSave;
+            
+            // Remove any existing waiting lines (only one spinner at a time)
+            this.transcriptHistory = this.transcriptHistory.filter(item => !item.isWaiting);
+            // Update saved history count after filtering
+            this.savedHistoryCount = this.transcriptHistory.length;
+            
+            // Create an empty line with spinner for the same speaker
+            const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+            this.historyIdCounter++;
+            this.lastEmptyLineId = this.historyIdCounter;
+            this.transcriptHistory.push({
+              speaker: this.currentSpeaker,
+              text: '',
+              language: language,
+              id: this.lastEmptyLineId,
+              isWaiting: true
+            });
+            this.savedHistoryCount = this.transcriptHistory.length;
+            
             // Reset accumulated text to start a new line - IMPORTANT: Do this BEFORE processing new text
             this.fullTranscriptText = '';
             this.lastAddedWords = [];
@@ -189,12 +210,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
             // Now process the new text that came after the gap - it should be treated as completely new
             // Continue to updateFullTranscript below, but with a clean slate
           } else {
-            // No text to save, but still reset state for new utterance
-            this.fullTranscriptText = '';
-            this.lastAddedWords = [];
-            this.lastFullTextLength = 0;
-            this.bufferingActive = true;
-            this.utteranceStartTime = currentTime;
+            // No content in current line - just update the time, don't create new line
             this.lastResultTime = currentTime;
           }
         } else {
@@ -417,6 +433,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.lastAddedWords = []; // Reset tracked words
     this.lastResultTime = 0; // Reset last result time
     this.lastSavedText = ''; // Reset saved text tracking
+    this.lastEmptyLineId = null; // Reset empty line tracking
     // Initialize buffering for the first utterance
     this.bufferingActive = true;
     this.utteranceStartTime = Date.now();
@@ -1717,15 +1734,45 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Manual mode: treat the whole accumulated text as one live segment under the selected speaker
     const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
     const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
-    const liveSegments = [{
-      speaker: this.currentSpeaker,
-      text: this.fullTranscriptText.trim(),
-      language: language,
-      id: this.savedHistoryCount + 1
-    }];
     
-    // Combine saved history with live segments
-    this.transcriptHistory = [...savedHistory, ...liveSegments];
+    // Check if the last saved entry is an empty waiting line for the same speaker
+    if (this.lastEmptyLineId !== null && savedHistory.length > 0) {
+      const lastEntry = savedHistory[savedHistory.length - 1];
+      if (lastEntry.id === this.lastEmptyLineId && lastEntry.isWaiting && lastEntry.speaker === this.currentSpeaker) {
+        // Remove any other waiting lines (only one spinner at a time)
+        const filteredHistory = savedHistory.filter(item => !item.isWaiting || item.id === this.lastEmptyLineId);
+        // Update the empty waiting line with the new text
+        const updatedEntry = filteredHistory[filteredHistory.length - 1];
+        if (updatedEntry && updatedEntry.id === this.lastEmptyLineId) {
+          updatedEntry.text = this.fullTranscriptText.trim();
+          updatedEntry.isWaiting = false;
+        }
+        this.lastEmptyLineId = null; // Clear the reference
+        // Use the updated saved history
+        this.transcriptHistory = [...filteredHistory];
+        this.savedHistoryCount = this.transcriptHistory.length;
+      } else {
+        // No matching empty line, remove any waiting lines and create new live segment
+        const filteredHistory = savedHistory.filter(item => !item.isWaiting);
+        const liveSegments = [{
+          speaker: this.currentSpeaker,
+          text: this.fullTranscriptText.trim(),
+          language: language,
+          id: this.savedHistoryCount + 1
+        }];
+        this.transcriptHistory = [...filteredHistory, ...liveSegments];
+      }
+    } else {
+      // No empty line to update, remove any waiting lines and create new live segment
+      const filteredHistory = savedHistory.filter(item => !item.isWaiting);
+      const liveSegments = [{
+        speaker: this.currentSpeaker,
+        text: this.fullTranscriptText.trim(),
+        language: language,
+        id: this.savedHistoryCount + 1
+      }];
+      this.transcriptHistory = [...filteredHistory, ...liveSegments];
+    }
     
     // Remove duplicate messages from the same speaker
     this.removeConsecutiveDuplicateMessages();
@@ -1976,7 +2023,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
-    const filteredHistory: Array<{ speaker: 'A' | 'B', text: string, language: string, id: number }> = [];
+    const filteredHistory: Array<{ speaker: 'A' | 'B', text: string, language: string, id: number, isWaiting?: boolean }> = [];
     
     for (let i = 0; i < this.transcriptHistory.length; i++) {
       const current = this.transcriptHistory[i];
@@ -2282,6 +2329,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     this.lastAddedWords = []; // Reset tracked words
     this.lastResultTime = 0; // Reset last result time
     this.lastSavedText = ''; // Reset saved text tracking
+    this.lastEmptyLineId = null; // Reset empty line tracking
     // Clear analysis state
     if (this.analysisTimeout) {
       clearTimeout(this.analysisTimeout);
@@ -2657,7 +2705,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   /**
    * Returns the transcript history in reverse order (newest first)
    */
-  get reversedTranscriptHistory(): Array<{ speaker: 'A' | 'B', text: string, language: string, id: number }> {
+  get reversedTranscriptHistory(): Array<{ speaker: 'A' | 'B', text: string, language: string, id: number, isWaiting?: boolean }> {
     return [...this.transcriptHistory].reverse();
   }
 
