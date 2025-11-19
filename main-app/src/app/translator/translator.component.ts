@@ -1795,6 +1795,41 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       
       // CRITICAL: Save and clear current text IMMEDIATELY before stopping recognition
       // This prevents any pending recognition results from updating the transcript
+      // Also save any live segments with text (even if short) before switching
+      // This ensures that short text like "שלום" doesn't disappear when switching speakers
+      
+      // Get live segments (those after savedHistoryCount)
+      const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+      const liveSegments = this.transcriptHistory.slice(this.savedHistoryCount);
+      const liveSegmentsWithText = liveSegments.filter(item => item.text && item.text.trim().length > 0 && !item.isWaiting);
+      
+      // Save all live segments with text to saved history (even if short)
+      // This ensures they don't disappear when switching speakers
+      if (liveSegmentsWithText.length > 0) {
+        liveSegmentsWithText.forEach(item => {
+          // Check if this entry is not already in saved history
+          const isDuplicate = savedHistory.some(
+            saved => saved.id === item.id || 
+            (saved.speaker === item.speaker && saved.text && saved.text.trim().toLowerCase() === item.text.trim().toLowerCase())
+          );
+          
+          if (!isDuplicate) {
+            // Add to saved history
+            savedHistory.push({
+              ...item,
+              isWaiting: false // Remove waiting flag if present
+            });
+          }
+        });
+        
+        // Update transcript history and saved count
+        // Keep only live segments that don't have text (waiting spinners)
+        const liveSegmentsWithoutText = liveSegments.filter(item => !item.text || item.text.trim().length === 0 || item.isWaiting);
+        this.transcriptHistory = [...savedHistory, ...liveSegmentsWithoutText];
+        this.savedHistoryCount = savedHistory.length;
+      }
+      
+      // Now try to save the current fullTranscriptText (if it's long enough)
       if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
         this.addCurrentTextToHistoryAsNewLine();
       }
