@@ -1748,54 +1748,89 @@ export class TranslatorComponent implements OnInit, OnDestroy {
 
   onSpeakerToggle(newSpeaker: 'A' | 'B'): void {
     if (newSpeaker !== this.currentSpeaker) {
-      // Finalize current accumulated text under the previous speaker before switching
-      if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
-        this.addCurrentTextToHistoryAsNewLine();
-        this.fullTranscriptText = '';
-        this.lastAddedWords = [];
-        this.lastFullTextLength = 0;
-        // Start a brief buffering window after manual switch
-        this.bufferingActive = true;
-        this.utteranceStartTime = Date.now();
+      console.log(`SPEAKER_SWITCH: Switching from ${this.currentSpeaker} to ${newSpeaker}`);
+      
+      // Save whether we were listening before switching
+      const wasListening = this.isListening && !this.isPaused;
+      
+      // CRITICAL: Stop current recognition first to prevent mixed text
+      // This ensures we get a clean restart with the new speaker
+      if (wasListening) {
+        console.log('SPEAKER_SWITCH: Stopping recognition to prevent mixed text...');
+        this.speechRecognitionService.stopListening();
       }
-      this.currentSpeaker = newSpeaker;
       
-      // Update or create spinner for the new speaker
-      const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
-      const liveSegments = this.transcriptHistory.slice(this.savedHistoryCount);
-      const newLanguage = newSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+      // Perform the switch immediately (or after a brief delay if we stopped)
+      const performSwitch = () => {
+        this.performSpeakerSwitch(newSpeaker, wasListening);
+      };
       
-      // Check if there's an existing waiting line in live segments
-      const existingWaitingIndex = liveSegments.findIndex(item => item.isWaiting);
-      
-      if (existingWaitingIndex >= 0) {
-        // Update existing waiting line to new speaker's color
-        const waitingEntry = liveSegments[existingWaitingIndex];
-        waitingEntry.speaker = newSpeaker;
-        waitingEntry.language = newLanguage;
-        this.transcriptHistory = [...savedHistory, ...liveSegments];
-        // DO NOT update savedHistoryCount - this is a live segment
-        this.lastEmptyLineId = waitingEntry.id;
+      if (wasListening) {
+        // Wait a moment for recognition to fully stop before switching
+        setTimeout(performSwitch, 150);
       } else {
-        // No waiting line exists - create a new one for the new speaker as a LIVE segment
-        // Remove any existing live segments first
-        this.historyIdCounter++;
-        this.lastEmptyLineId = this.historyIdCounter;
-        this.transcriptHistory = [...savedHistory, {
-          speaker: newSpeaker,
-          text: '',
-          language: newLanguage,
-          id: this.lastEmptyLineId,
-          isWaiting: true
-        }];
-        // DO NOT update savedHistoryCount - this is a live segment
+        performSwitch();
       }
-      
-      // Force recognizer to the chosen speaker language
-      const targetLanguage = newSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
-      this.speechRecognitionService.switchRecognitionLanguage(targetLanguage);
-      this.cdr.detectChanges();
     }
+  }
+  
+  private performSpeakerSwitch(newSpeaker: 'A' | 'B', wasListening: boolean): void {
+    // Finalize current accumulated text under the previous speaker before switching
+    if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
+      this.addCurrentTextToHistoryAsNewLine();
+    }
+    
+    // CRITICAL: Always reset ALL transcript state variables when switching speakers
+    // This prevents any text from the previous speaker from appearing in the new speaker's line
+    this.fullTranscriptText = '';
+    this.lastAddedWords = [];
+    this.lastFullTextLength = 0;
+    this.lastResultTime = 0;
+    this.lastSavedText = '';
+    this.lastEmptyLineId = null;
+    
+    // Start a fresh buffering window for the new speaker
+    this.bufferingActive = true;
+    this.utteranceStartTime = Date.now();
+    
+    // Update current speaker
+    this.currentSpeaker = newSpeaker;
+    
+    // Update or create spinner for the new speaker
+    // IMPORTANT: Always remove ALL live segments (with text or waiting) when switching speakers
+    // This ensures clean state for the new speaker
+    const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+    const newLanguage = newSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+    
+    // Always create a fresh waiting line for the new speaker
+    // Remove any existing live segments first (both with text and waiting)
+    this.historyIdCounter++;
+    this.lastEmptyLineId = this.historyIdCounter;
+    this.transcriptHistory = [...savedHistory, {
+      speaker: newSpeaker,
+      text: '',
+      language: newLanguage,
+      id: this.lastEmptyLineId,
+      isWaiting: true
+    }];
+    // DO NOT update savedHistoryCount - this is a live segment
+    
+    // Restart recognition with the new speaker's language
+    const targetLanguage = newSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+    console.log(`SPEAKER_SWITCH: Restarting recognition with language ${targetLanguage} for speaker ${newSpeaker}`);
+    
+    // If we were listening, restart with the new language
+    if (wasListening) {
+      // Restart listening with the new language
+      this.speechRecognitionService.startListening(this.selectedLanguageA, this.selectedLanguageB);
+      
+      // Switch to the target language after a brief delay
+      setTimeout(() => {
+        this.speechRecognitionService.switchRecognitionLanguage(targetLanguage);
+      }, 200);
+    }
+    
+    this.cdr.detectChanges();
   }
   
   /**
