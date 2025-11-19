@@ -156,69 +156,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         // Debug: log latest snippet probabilities for A/B
         this.logNewVoiceData(trimmedText);
         
-        // Check if there's a speech gap (more than 0.7 seconds since last result)
-        // Don't process gaps when paused
-        if (!this.isPaused && this.lastResultTime > 0 && (currentTime - this.lastResultTime) > this.SPEECH_GAP_THRESHOLD) {
-          // If current line has content, save it and close it
-          if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
-            console.log(`SPEECH_GAP: Detected gap of ${currentTime - this.lastResultTime}ms, saving current text as new line and resetting`);
-            // Perform final analysis before saving
-            this.performLanguageAnalysis();
-            // Save the current text before resetting
-            const textToSave = this.fullTranscriptText.trim();
-            // Add current text as a new line in history (don't replace existing history)
-            this.addCurrentTextToHistoryAsNewLine();
-            // Store the saved text to prevent duplicates
-            this.lastSavedText = textToSave;
-          }
-          
-          // Always create a new empty line with spinner after gap (if there isn't one already)
-          // Check if the last entry is already a waiting line
-          const lastEntry = this.transcriptHistory.length > 0 ? this.transcriptHistory[this.transcriptHistory.length - 1] : null;
-          if (!lastEntry || !lastEntry.isWaiting) {
-            // Remove any existing waiting lines (only one spinner at a time)
-            this.transcriptHistory = this.transcriptHistory.filter(item => !item.isWaiting);
-            // Update saved history count after filtering
-            this.savedHistoryCount = this.transcriptHistory.length;
-            
-            // Create an empty line with spinner for the same speaker
-            const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
-            this.historyIdCounter++;
-            this.lastEmptyLineId = this.historyIdCounter;
-            this.transcriptHistory.push({
-              speaker: this.currentSpeaker,
-              text: '',
-              language: language,
-              id: this.lastEmptyLineId,
-              isWaiting: true
-            });
-            this.savedHistoryCount = this.transcriptHistory.length;
-          }
-          
-          // Reset accumulated text to start a new line - IMPORTANT: Do this BEFORE processing new text
-          this.fullTranscriptText = '';
-          this.lastAddedWords = [];
-          this.lastFullTextLength = 0;
-          // Clear analysis state
-          this.isAnalyzing = false;
-          this.languageProbabilityA = 0;
-          this.languageProbabilityB = 0;
-          if (this.analysisTimeout) {
-            clearTimeout(this.analysisTimeout);
-            this.analysisTimeout = undefined;
-          }
-          // Begin buffering for the new utterance window
-          this.bufferingActive = true;
-          this.utteranceStartTime = currentTime;
-          this.cdr.detectChanges();
-          // IMPORTANT: Update last result time AFTER resetting, so the new text starts fresh
-          this.lastResultTime = currentTime;
-          // Now process the new text that came after the gap - it should be treated as completely new
-          // Continue to updateFullTranscript below, but with a clean slate
-        } else {
-          // Update last result time only if no gap was detected
-          this.lastResultTime = currentTime;
-        }
+        // SIMPLIFIED: Don't save text after speech gaps - only save when pausing or switching speakers
+        // Just update the last result time to track when we last received text
+        this.lastResultTime = currentTime;
         
         // Startup probe counters
         this.resultsSinceStart++;
@@ -378,6 +318,16 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       this.speechRecognitionService.stopListening();
       // Manually keep isListening as true
       this.isListening = true;
+      
+      // Save current text before pausing (if there's any)
+      if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
+        this.addCurrentTextToHistoryAsNewLine();
+        // Reset the text for next time
+        this.fullTranscriptText = '';
+        this.lastAddedWords = [];
+        this.lastFullTextLength = 0;
+      }
+      
       // Clear analysis state
       if (this.analysisTimeout) {
         clearTimeout(this.analysisTimeout);
@@ -387,20 +337,16 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       this.languageProbabilityA = 0;
       this.languageProbabilityB = 0;
       
-      // Remove spinner (waiting lines) when pausing
+      // Remove spinner (waiting lines) and live segments when pausing
       if (this.transcriptHistory.length > 0) {
         const hadWaitingLine = this.transcriptHistory.some(item => item.isWaiting);
-        this.transcriptHistory = this.transcriptHistory.filter(item => !item.isWaiting);
-        // Update saved history count after filtering
+        // Remove waiting lines and live segments (keep only saved history)
+        this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+        // Update saved history count
         this.savedHistoryCount = this.transcriptHistory.length;
-        // Clear lastEmptyLineId if it was a waiting line
-        if (this.lastEmptyLineId !== null) {
-          const stillExists = this.transcriptHistory.some(item => item.id === this.lastEmptyLineId);
-          if (!stillExists) {
-            this.lastEmptyLineId = null;
-          }
-        }
-        if (hadWaitingLine) {
+        // Clear lastEmptyLineId
+        this.lastEmptyLineId = null;
+        if (hadWaitingLine || this.transcriptHistory.length < this.savedHistoryCount) {
           this.cdr.detectChanges();
         }
       }
@@ -422,6 +368,33 @@ export class TranslatorComponent implements OnInit, OnDestroy {
           this.speechRecognitionService.switchRecognitionLanguage(currentLanguage);
         }, 100);
       }
+      
+      // Create a spinner for the new session as a LIVE segment (not saved)
+      const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+      const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+      // Check if there's already a waiting line in live segments
+      const liveSegments = this.transcriptHistory.slice(this.savedHistoryCount);
+      const existingWaiting = liveSegments.find(item => item.isWaiting);
+      if (!existingWaiting) {
+        this.historyIdCounter++;
+        this.lastEmptyLineId = this.historyIdCounter;
+        // IMPORTANT: This is a LIVE segment (id > savedHistoryCount), it will NOT be saved
+        this.transcriptHistory = [...savedHistory, {
+          speaker: this.currentSpeaker,
+          text: '',
+          language: language,
+          id: this.lastEmptyLineId,
+          isWaiting: true
+        }];
+        // DO NOT update savedHistoryCount - this is a live segment
+      } else {
+        this.lastEmptyLineId = existingWaiting.id;
+      }
+      
+      // Reset buffering
+      this.bufferingActive = true;
+      this.utteranceStartTime = Date.now();
+      
       console.log('✓ Resumed listening');
     }
   }
@@ -461,10 +434,11 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Default speaker at start can remain previous or reset to A
     // this.currentSpeaker = 'A';
 
-    // Create an empty line with spinner immediately when starting to listen
+    // Create an empty line with spinner immediately when starting to listen as a LIVE segment (not saved)
     const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
     this.historyIdCounter++;
     this.lastEmptyLineId = this.historyIdCounter;
+    // IMPORTANT: This is a LIVE segment (id > savedHistoryCount), it will NOT be saved
     this.transcriptHistory.push({
       speaker: this.currentSpeaker,
       text: '',
@@ -472,7 +446,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       id: this.lastEmptyLineId,
       isWaiting: true
     });
-    this.savedHistoryCount = this.transcriptHistory.length;
+    // DO NOT update savedHistoryCount - this is a live segment
 
     // Start listening with both languages
     // In manual mode, start with the current speaker's language
@@ -628,6 +602,10 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     return lang ? lang.nativeName : this.selectedTranslationLanguageB;
   }
 
+  /**
+   * Updates the full transcript text with new recognition results
+   * Simple logic: always update to the new text if it's different and longer or extends the current text
+   */
   private updateFullTranscript(newText: string, confidence?: number): void {
     // Don't update transcript when paused
     if (this.isPaused) {
@@ -642,276 +620,44 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // If we just saved text after a gap, check if the new text contains the saved text
-    // If so, extract only the new part (text after the saved text)
-    if (this.lastSavedText && cleanNewText.includes(this.lastSavedText)) {
-      const savedTextIndex = cleanNewText.indexOf(this.lastSavedText);
-      const newPart = cleanNewText.substring(savedTextIndex + this.lastSavedText.length).trim();
-      if (newPart) {
-        // Only use the new part, not the saved text
-        console.log(`GAP_RESET: New text contains saved text, using only new part: "${newPart}"`);
-        // Clear the saved text flag after using it
-        this.lastSavedText = '';
-        // Continue with just the new part
-        const originalNewText = cleanNewText;
-        // Replace cleanNewText with just the new part
-        const tempNewText = newPart;
-        // Recursively call with just the new part, but prevent infinite recursion
-        if (tempNewText !== originalNewText) {
-          this.updateFullTranscript(tempNewText, confidence);
-          return;
-        }
-      } else {
-        // New text is exactly the saved text - skip it
-        console.log(`GAP_RESET: New text is identical to saved text, skipping`);
-        this.lastSavedText = '';
-        return;
-      }
-    } else if (this.lastSavedText) {
-      // New text doesn't contain saved text - clear the flag
-      this.lastSavedText = '';
-    }
-    
-    // If confidence is very low and text looks like English but we're expecting Hebrew,
-    // and the text doesn't make sense (like "EXT extre extreme"), skip it
-    if (confidence !== undefined && confidence <= 0.015) {
-      // Check if the other language is Hebrew
-      if (this.selectedLanguageB.startsWith('he-') || this.selectedLanguageB.startsWith('iw-')) {
-        // Check if text looks like English (only Latin characters, no Hebrew)
-        const hasOnlyLatin = /^[a-zA-Z\s]+$/.test(cleanNewText);
-        const hasHebrew = /[\u0590-\u05FF]/.test(cleanNewText);
-        
-        // If it's English text with very low confidence and no Hebrew, it might be a misrecognition
-        // Check if it looks like gibberish (repeated words, very short, words that extend each other, etc.)
-        if (hasOnlyLatin && !hasHebrew) {
-          const words = cleanNewText.split(/\s+/).filter(w => w.length > 0);
-          const isVeryShort = words.length <= 3;
-          const hasRepeatedWords = words.length > 1 && words[0].toLowerCase() === words[1].toLowerCase();
-          
-          // Check if words extend each other (like "EXT extre extreme" - each word is a prefix of the next)
-          let hasExtendingWords = false;
-          if (words.length >= 2) {
-            for (let i = 0; i < words.length - 1; i++) {
-              const current = words[i].toLowerCase();
-              const next = words[i + 1].toLowerCase();
-              // Check if current word is a prefix of next word (like "ext" -> "extre" -> "extreme")
-              if (next.startsWith(current) && next.length > current.length) {
-                hasExtendingWords = true;
-                break;
-              }
-            }
-          }
-          
-          // Check if words are very short (likely gibberish)
-          const hasVeryShortWords = words.some(w => w.length <= 2);
-          
-          // If it's very short, has repeated words, has extending words, or has very short words, it's likely a misrecognition
-          if (isVeryShort || hasRepeatedWords || hasExtendingWords || hasVeryShortWords) {
-            console.log(`SKIP_LOW_CONFIDENCE_UPDATE: Skipping very low confidence English text "${cleanNewText}" (confidence: ${confidence}) - likely Hebrew misrecognized (short: ${isVeryShort}, repeated: ${hasRepeatedWords}, extending: ${hasExtendingWords}, veryShortWords: ${hasVeryShortWords})`);
-            return; // Skip this update
-          }
-        }
-      }
-    }
-    
-    // Check for repetition patterns BEFORE processing
-    if (this.detectRepetitionPattern(cleanNewText)) {
-      console.log(`REPETITION_DETECTED: Skipping repetitive text: "${cleanNewText.substring(0, 50)}..."`);
+    // Skip if new text is identical to current text
+    if (cleanNewText === cleanFullText) {
       return;
     }
     
-    // If full text is empty, just set it to the new text
-    if (!cleanFullText) {
+    // Skip if new text is already fully contained in current text (it's an older result)
+    if (cleanFullText && cleanFullText.includes(cleanNewText) && cleanFullText.length >= cleanNewText.length) {
+      return;
+    }
+    
+    // Always update if:
+    // 1. Current text is empty, OR
+    // 2. New text starts with current text (extension), OR
+    // 3. New text is longer than current text
+    if (!cleanFullText || cleanNewText.startsWith(cleanFullText) || cleanNewText.length > cleanFullText.length) {
+      // Extract the new part if it's an extension
+      let addedPart = cleanNewText;
+      if (cleanFullText && cleanNewText.startsWith(cleanFullText)) {
+        addedPart = cleanNewText.slice(cleanFullText.length).trim();
+        if (!addedPart || addedPart.length === 0) {
+          return; // No new content
+        }
+      }
+      
+      // Update to the new text
       this.fullTranscriptText = cleanNewText;
-      // Update tracked words
-      this.updateTrackedWords(cleanNewText);
-      console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
-      
-      // Check and switch language based on the full text
-      this.checkFullTextLanguage();
-      
-      this.updateHistoryFromFullText();
-      this.cdr.detectChanges();
-      setTimeout(() => this.scrollToTop(), 100);
-      return;
-    }
-    
-    // Check if new text is a repetition loop (contains full text multiple times or similar pattern)
-    if (this.isRepetitionLoop(cleanFullText, cleanNewText)) {
-      console.log(`REPETITION_LOOP: Detected loop pattern, skipping update`);
-      return;
-    }
-    
-    // Most common case: new text is an extension of the full text (starts with full text)
-    // This happens when the recognition continues from where it left off
-    if (cleanNewText.startsWith(cleanFullText)) {
-      // Extract only the NEW part
-      const addedPart = cleanNewText.slice(cleanFullText.length).trim();
-      
-      // If no new part was added, skip (text is identical)
-      if (!addedPart || addedPart.length === 0) {
-        console.log(`NO_NEW_TEXT: New text is identical to full text, skipping`);
-        return;
-      }
-      
-      // Check if the added part already exists in the full text (duplicate detection)
-      if (cleanFullText.includes(addedPart)) {
-        // Check if it's a significant duplicate (more than 3 words)
-        const addedWords = addedPart.split(/\s+/).filter(w => w.length > 0);
-        if (addedWords.length > 3) {
-          console.log(`DUPLICATE_TEXT: Added part already exists in full text, skipping: "${addedPart}"`);
-          return;
-        }
-      }
-      
-      // Check if the added part is just a repetition of existing text
-      if (this.isRepetitiveAddition(cleanFullText, addedPart)) {
-        console.log(`REPETITIVE_ADDITION: Added part is repetitive, skipping`);
-        return;
-      }
-      
-      // Check if added part repeats the last tracked words
-      if (this.containsLastTrackedWords(addedPart)) {
-        console.log(`REPETITION_TRACKED_WORDS: Added part contains tracked words, skipping`);
-        return;
-      }
-      
-      // New text is an extension - just update to the new text
-      this.fullTranscriptText = cleanNewText;
-      
-      // Update tracked words with the newly added words
       this.updateTrackedWords(addedPart);
-      
       console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
       
-      // Check and switch language based on the full text
-      this.checkFullTextLanguage();
+      // Check and switch language based on the full text (only in auto mode)
+      if (!this.manualSpeakerMode) {
+        this.checkFullTextLanguage();
+      }
       
+      // Update the history display
       this.updateHistoryFromFullText();
       this.cdr.detectChanges();
       setTimeout(() => this.scrollToTop(), 100);
-      return;
-    }
-    
-    // Check if new text is already fully contained in full text
-    // This can happen when the recognition sends an older/interim result
-    if (cleanFullText.includes(cleanNewText)) {
-      // New text is already in full text
-      // Only update if new text is significantly longer (contains full text + more)
-      if (cleanNewText.length > cleanFullText.length * 1.1) {
-        // Check for repetition before updating
-        if (!this.isRepetitionLoop(cleanFullText, cleanNewText)) {
-          // New text is much longer - it might be a corrected/expanded version
-          this.fullTranscriptText = cleanNewText;
-          console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
-          this.updateHistoryFromFullText();
-          this.cdr.detectChanges();
-          setTimeout(() => this.scrollToTop(), 100);
-        }
-      }
-      // Otherwise, it's already contained - no update needed
-      return;
-    }
-    
-    // Check if full text is contained in new text (new text contains all of full text)
-    // This handles cases like: fullText="היי", newText="זה היי מה נשמע"
-    // In this case, we should extract only the new part
-    if (cleanNewText.includes(cleanFullText)) {
-      // Find where full text appears in new text
-      const fullTextIndex = cleanNewText.indexOf(cleanFullText);
-      
-      // Extract the part before and after the full text
-      const beforePart = cleanNewText.substring(0, fullTextIndex).trim();
-      const afterPart = cleanNewText.substring(fullTextIndex + cleanFullText.length).trim();
-      
-      // Combine the new parts (before + after)
-      const newPart = (beforePart + ' ' + afterPart).trim();
-      
-      if (newPart && newPart.length > 0) {
-        // Only add the new part to the full text
-        const updatedText = (cleanFullText + ' ' + newPart).trim();
-        this.fullTranscriptText = updatedText;
-        console.log(`UPDATE_TEXT_CONTAINED: Full text was contained in new text. Full: "${cleanFullText}", New: "${cleanNewText}", Extracted: "${newPart}", Result: "${updatedText}"`);
-        this.updateTrackedWords(newPart);
-        this.updateHistoryFromFullText();
-        this.cdr.detectChanges();
-        setTimeout(() => this.scrollToTop(), 100);
-        return;
-      } else {
-        // New text is exactly the full text (or just contains it with no extra content)
-        console.log(`NO_NEW_TEXT_CONTAINED: New text contains full text but no new content, skipping`);
-        return;
-      }
-    }
-    
-    // Check if full text is a prefix of new text (shouldn't happen, but just in case)
-    if (cleanFullText.startsWith(cleanNewText)) {
-      // Full text already contains more than new text - no update needed
-      return;
-    }
-    
-    // Find overlap from the end of full text to the beginning of new text
-    // This handles cases where the recognition restarts or there's partial overlap
-    // We look for word-level overlap, not just character-level
-    const fullWords = cleanFullText.split(/\s+/);
-    const newWords = cleanNewText.split(/\s+/);
-    
-    // Find the longest overlap of words from the end of full text to the start of new text
-    let maxOverlapWords = 0;
-    for (let i = 1; i <= Math.min(fullWords.length, newWords.length); i++) {
-      const fullSuffix = fullWords.slice(-i).join(' ');
-      const newPrefix = newWords.slice(0, i).join(' ');
-      
-      if (fullSuffix === newPrefix) {
-        maxOverlapWords = i;
-      }
-    }
-    
-    // If we found word-level overlap, add only the non-overlapping words
-    if (maxOverlapWords > 0) {
-      const addedWords = newWords.slice(maxOverlapWords);
-      if (addedWords.length > 0) {
-        const addedText = addedWords.join(' ');
-        
-        // Check if added text is repetitive
-        if (!this.isRepetitiveAddition(cleanFullText, addedText)) {
-          // Check if added text repeats the last tracked words
-          if (!this.containsLastTrackedWords(addedText)) {
-            this.fullTranscriptText = cleanFullText + ' ' + addedText;
-            // Update tracked words
-            this.updateTrackedWords(addedText);
-            console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
-            this.updateHistoryFromFullText();
-            this.cdr.detectChanges();
-            setTimeout(() => this.scrollToTop(), 100);
-          } else {
-            console.log(`REPETITION_TRACKED_WORDS: Added text contains tracked words, skipping`);
-          }
-        } else {
-          console.log(`REPETITIVE_ADDITION: Added text is repetitive, skipping`);
-        }
-      }
-    } else {
-      // No overlap found - this might be a completely new phrase
-      // Check if the new text is very different (less than 30% similarity)
-      // If so, it's probably a new sentence/phrase - append it
-      const similarity = this.calculateTextSimilarity(cleanFullText, cleanNewText);
-      if (similarity < 0.3) {
-        // Check if new text repeats the last tracked words
-        if (!this.containsLastTrackedWords(cleanNewText)) {
-          // Very different text - append as new phrase
-          this.fullTranscriptText = cleanFullText + ' ' + cleanNewText;
-          // Update tracked words
-          this.updateTrackedWords(cleanNewText);
-          console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
-          this.updateHistoryFromFullText();
-          this.cdr.detectChanges();
-          setTimeout(() => this.scrollToTop(), 100);
-        } else {
-          console.log(`REPETITION_TRACKED_WORDS: New text contains tracked words, skipping`);
-        }
-      }
-      // If similarity is high, it might be a duplicate or correction - skip it
     }
   }
   
@@ -1870,13 +1616,13 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Remove any live segments first (they will be replaced with saved segments)
+    // IMPORTANT: Remove ALL live segments first (they are only for display, not saved)
+    // Keep only saved history (savedHistoryCount)
     if (this.transcriptHistory.length > this.savedHistoryCount) {
       this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
     }
 
-    // Get the text to save - save it as is, without removing overlapping words
-    // Overlap removal causes issues where text gets cut incorrectly
+    // Get the text to save - save it as is
     const textToSave = this.fullTranscriptText.trim();
 
     // Check if we have at least 2 words before saving
@@ -1905,7 +1651,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       id: this.historyIdCounter
     });
     
-    // Update saved history count
+    // Update saved history count - this is now the new saved count
     this.savedHistoryCount = this.transcriptHistory.length;
     
     // Remove duplicate messages from the same speaker
@@ -1924,34 +1670,23 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Suppress live updates during early buffering - wait for at least 2 words
-    if (this.bufferingActive) {
-      const now = Date.now();
-      const wordsCount = (this.fullTranscriptText || '').trim().split(/\s+/).filter(w => w.length > 0).length;
-      const elapsed = now - this.utteranceStartTime;
-      if (wordsCount < this.MIN_BUFFER_WORDS && elapsed < this.MIN_BUFFER_MS) {
-        return; // Don't display until we have at least 2 words
-      }
-      // Threshold met; allow updates henceforth for this utterance
-      this.bufferingActive = false;
-    }
-    
     // Get saved history (lines that were already saved after gaps)
     const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
     const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
     
     // If text is empty, show spinner if not paused
     if (!this.fullTranscriptText || this.fullTranscriptText.trim().length === 0) {
-      // Remove any live segments
+      // Remove any live segments (including waiting lines)
       if (this.transcriptHistory.length > this.savedHistoryCount) {
         this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
       }
-      // If there's no waiting line, create one (spinner)
+      // If there's no waiting line, create one (spinner) as a LIVE segment (not saved)
       if (!this.isPaused) {
-        const lastEntry = savedHistory.length > 0 ? savedHistory[savedHistory.length - 1] : null;
+        const lastEntry = this.transcriptHistory.length > 0 ? this.transcriptHistory[this.transcriptHistory.length - 1] : null;
         if (!lastEntry || !lastEntry.isWaiting) {
           this.historyIdCounter++;
           this.lastEmptyLineId = this.historyIdCounter;
+          // IMPORTANT: This is a LIVE segment (id > savedHistoryCount), it will NOT be saved
           this.transcriptHistory.push({
             speaker: this.currentSpeaker,
             text: '',
@@ -1959,43 +1694,13 @@ export class TranslatorComponent implements OnInit, OnDestroy {
             id: this.lastEmptyLineId,
             isWaiting: true
           });
-          this.savedHistoryCount = this.transcriptHistory.length;
+          // DO NOT update savedHistoryCount - this is a live segment
         }
       }
       return;
     }
     
-    // We have text - update or create a single live segment
-    // BUT: Only show if we have at least 2 words
-    const words = this.fullTranscriptText.trim().split(/\s+/).filter(w => w.length > 0);
-    if (words.length < this.MIN_BUFFER_WORDS) {
-      // Not enough words yet - keep spinner or don't show anything
-      // Remove any live segments
-      if (this.transcriptHistory.length > this.savedHistoryCount) {
-        this.transcriptHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
-      }
-      // If there's no waiting line, create one (spinner)
-      const lastEntry = savedHistory.length > 0 ? savedHistory[savedHistory.length - 1] : null;
-      if (!lastEntry || !lastEntry.isWaiting) {
-        this.historyIdCounter++;
-        this.lastEmptyLineId = this.historyIdCounter;
-        this.transcriptHistory.push({
-          speaker: this.currentSpeaker,
-          text: '',
-          language: language,
-          id: this.lastEmptyLineId,
-          isWaiting: true
-        });
-        this.savedHistoryCount = this.transcriptHistory.length;
-      }
-      return;
-    }
-    
-    // We have at least 2 words - show the text
-    // Check if there's already a live segment (id > savedHistoryCount)
-    const hasLiveSegment = this.transcriptHistory.length > this.savedHistoryCount;
-    const existingLiveSegment = hasLiveSegment ? this.transcriptHistory[this.transcriptHistory.length - 1] : null;
-    
+    // We have text - show it immediately (no minimum word requirement)
     // Remove any waiting lines from saved history
     const filteredHistory = savedHistory.filter(item => !item.isWaiting);
     
@@ -2003,22 +1708,36 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Overlap removal only happens when saving after a gap (in addCurrentTextToHistoryAsNewLine)
     const textToDisplay = this.fullTranscriptText.trim();
     
-    // If there's already a live segment, update it; otherwise create a new one
+    // Always have exactly ONE live segment that gets updated
+    // Remove any existing live segments first (they are only for display, not saved)
+    // Keep only saved history, then add/update the single live segment
+    const liveSegmentId = this.savedHistoryCount + 1;
+    
+    // Check if there's already a live segment for this speaker
+    const hasLiveSegment = this.transcriptHistory.length > this.savedHistoryCount;
+    const existingLiveSegment = hasLiveSegment ? this.transcriptHistory[this.transcriptHistory.length - 1] : null;
+    
     if (existingLiveSegment && existingLiveSegment.speaker === this.currentSpeaker) {
       // Update existing live segment with full text
-      existingLiveSegment.text = textToDisplay;
-      existingLiveSegment.language = language;
-      // Keep the same ID and structure
-      this.transcriptHistory = [...filteredHistory, existingLiveSegment];
+      // IMPORTANT: Remove isWaiting flag since we have text now
+      this.transcriptHistory = [...filteredHistory, {
+        ...existingLiveSegment,
+        text: textToDisplay,
+        language: language,
+        isWaiting: false // Remove waiting flag since we have text
+      }];
+      console.log(`UPDATE_HISTORY: Updated existing live segment: "${textToDisplay}"`);
     } else {
       // Create new live segment with full text
-      const liveSegmentId = this.savedHistoryCount + 1;
+      // IMPORTANT: This is a live segment (id > savedHistoryCount), it will NOT be saved
       this.transcriptHistory = [...filteredHistory, {
         speaker: this.currentSpeaker,
         text: textToDisplay,
         language: language,
-        id: liveSegmentId
+        id: liveSegmentId,
+        isWaiting: false // Not waiting since we have text
       }];
+      console.log(`UPDATE_HISTORY: Created new live segment: "${textToDisplay}"`);
     }
     // Clear lastEmptyLineId since we're not using a waiting line anymore
     this.lastEmptyLineId = null;
@@ -2043,33 +1762,33 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       
       // Update or create spinner for the new speaker
       const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+      const liveSegments = this.transcriptHistory.slice(this.savedHistoryCount);
       const newLanguage = newSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
       
-      // Check if there's an existing waiting line
-      const existingWaitingIndex = savedHistory.findIndex(item => item.isWaiting);
+      // Check if there's an existing waiting line in live segments
+      const existingWaitingIndex = liveSegments.findIndex(item => item.isWaiting);
       
       if (existingWaitingIndex >= 0) {
         // Update existing waiting line to new speaker's color
-        const waitingEntry = savedHistory[existingWaitingIndex];
+        const waitingEntry = liveSegments[existingWaitingIndex];
         waitingEntry.speaker = newSpeaker;
         waitingEntry.language = newLanguage;
-        this.transcriptHistory = [...savedHistory];
-        this.savedHistoryCount = this.transcriptHistory.length;
+        this.transcriptHistory = [...savedHistory, ...liveSegments];
+        // DO NOT update savedHistoryCount - this is a live segment
         this.lastEmptyLineId = waitingEntry.id;
       } else {
-        // No waiting line exists - create a new one for the new speaker
-        // Remove any existing waiting lines first (shouldn't be any, but just in case)
-        const filteredHistory = savedHistory.filter(item => !item.isWaiting);
+        // No waiting line exists - create a new one for the new speaker as a LIVE segment
+        // Remove any existing live segments first
         this.historyIdCounter++;
         this.lastEmptyLineId = this.historyIdCounter;
-        this.transcriptHistory = [...filteredHistory, {
+        this.transcriptHistory = [...savedHistory, {
           speaker: newSpeaker,
           text: '',
           language: newLanguage,
           id: this.lastEmptyLineId,
           isWaiting: true
         }];
-        this.savedHistoryCount = this.transcriptHistory.length;
+        // DO NOT update savedHistoryCount - this is a live segment
       }
       
       // Force recognizer to the chosen speaker language
@@ -2294,17 +2013,22 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   
   /**
    * Removes consecutive duplicate messages from the same speaker
-   * If the same speaker says the exact same text twice in a row, one is removed
+   * If the same speaker says the exact same text twice in a row, or if the new text contains the previous text, remove the previous one
+   * IMPORTANT: Only processes saved history, not live segments
    */
   private removeConsecutiveDuplicateMessages(): void {
-    if (this.transcriptHistory.length < 2) {
+    // Only process saved history (up to savedHistoryCount), not live segments
+    if (this.savedHistoryCount < 2) {
       return;
     }
     
+    const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+    const liveSegments = this.transcriptHistory.slice(this.savedHistoryCount);
+    
     const filteredHistory: Array<{ speaker: 'A' | 'B', text: string, language: string, id: number, isWaiting?: boolean }> = [];
     
-    for (let i = 0; i < this.transcriptHistory.length; i++) {
-      const current = this.transcriptHistory[i];
+    for (let i = 0; i < savedHistory.length; i++) {
+      const current = savedHistory[i];
       const normalizedCurrentText = current.text.trim().toLowerCase();
       
       // Skip empty messages
@@ -2322,19 +2046,25 @@ export class TranslatorComponent implements OnInit, OnDestroy {
           console.log(`DUPLICATE_MESSAGE: Removing duplicate message from ${current.speaker}: "${current.text}"`);
           continue;
         }
+        
+        // If same speaker and current text contains previous text (previous is a prefix), remove the previous one
+        // This handles cases like: "שלום קוראים" followed by "שלום קוראים לי נדב"
+        if (previous.speaker === current.speaker && normalizedCurrentText.includes(normalizedPreviousText) && normalizedCurrentText.length > normalizedPreviousText.length) {
+          console.log(`DUPLICATE_MESSAGE: Removing shorter message that is contained in longer one. Previous: "${previous.text}", Current: "${current.text}"`);
+          // Remove the previous one and keep the current (longer) one
+          filteredHistory.pop();
+        }
       }
       
       // Add the message if it's not a duplicate
       filteredHistory.push(current);
     }
     
-    // Update the history with filtered results
-    if (filteredHistory.length !== this.transcriptHistory.length) {
-      this.transcriptHistory = filteredHistory;
-      // Update saved history count if needed
-      if (this.savedHistoryCount > this.transcriptHistory.length) {
-        this.savedHistoryCount = this.transcriptHistory.length;
-      }
+    // Update the history with filtered results, keeping live segments
+    if (filteredHistory.length !== savedHistory.length) {
+      this.transcriptHistory = [...filteredHistory, ...liveSegments];
+      // Update saved history count to match filtered saved history
+      this.savedHistoryCount = filteredHistory.length;
     }
   }
   
@@ -3118,17 +2848,20 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     
     // If we detected a language with high confidence, boost that language's probability
     if (detectedLanguage) {
-      const isDetectedLanguageA = detectedLanguage === this.selectedLanguageA || 
-                                 (detectedLanguage.startsWith('he-') && this.selectedLanguageA.startsWith('he-')) ||
-                                 (detectedLanguage.startsWith('iw-') && this.selectedLanguageA.startsWith('iw-')) ||
-                                 (detectedLanguage.startsWith('ar-') && this.selectedLanguageA.startsWith('ar-')) ||
-                                 (detectedLanguage.startsWith('en-') && this.selectedLanguageA.startsWith('en-'));
+      // Helper function to check if two language codes match (same language, different variants)
+      // e.g., "he-IL" matches "he-US", "en-US" matches "en-GB", etc.
+      const languagesMatch = (lang1: string, lang2: string): boolean => {
+        if (lang1 === lang2) {
+          return true; // Exact match
+        }
+        // Extract language prefix (part before the dash)
+        const prefix1 = lang1.split('-')[0];
+        const prefix2 = lang2.split('-')[0];
+        return prefix1 === prefix2; // Same language family
+      };
       
-      const isDetectedLanguageB = detectedLanguage === this.selectedLanguageB || 
-                                 (detectedLanguage.startsWith('he-') && this.selectedLanguageB.startsWith('he-')) ||
-                                 (detectedLanguage.startsWith('iw-') && this.selectedLanguageB.startsWith('iw-')) ||
-                                 (detectedLanguage.startsWith('ar-') && this.selectedLanguageB.startsWith('ar-')) ||
-                                 (detectedLanguage.startsWith('en-') && this.selectedLanguageB.startsWith('en-'));
+      const isDetectedLanguageA = languagesMatch(detectedLanguage, this.selectedLanguageA);
+      const isDetectedLanguageB = languagesMatch(detectedLanguage, this.selectedLanguageB);
       
       if (isDetectedLanguageA) {
         finalProbabilityA = Math.min(100, charProbabilityA + (confidence * 30));
