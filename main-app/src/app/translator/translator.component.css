@@ -206,32 +206,46 @@
   color: #E0E0E0;
 }
 
+/* History container - limited to 50% of viewport height */
+.history-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 50vh;
+  overflow: hidden;
+}
+
+/* Scrollable history section - only this part scrolls */
+.history-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0; /* Important for flex children to allow scrolling */
+  scroll-behavior: smooth;
+}
+
 .history-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: calc(100vh - 400px);
   min-height: 200px;
-  overflow-y: auto !important;
-  overflow-x: hidden;
   padding: 8px;
-  scroll-behavior: smooth;
   position: relative;
 }
 
 /* Ensure mat-card-content allows scrolling */
-mat-card-content {
+.history-scrollable mat-card-content {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 /* Make sure the card itself doesn't overflow */
-:host mat-card {
+.history-scrollable mat-card {
   display: flex;
   flex-direction: column;
-  max-height: none;
-  height: auto;
+  max-height: 100%;
+  height: 100%;
 }
 
 /* Ensure the main container allows scrolling - override global styles if needed */
@@ -434,6 +448,7 @@ mat-card-content {
 .speaker-toggle-container {
   display: flex;
   justify-content: center;
+  flex-shrink: 0; /* Don't shrink - stays fixed */
 }
 
 .speaker-toggle-group {

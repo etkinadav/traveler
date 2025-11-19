@@ -217,7 +217,7 @@
     </div>
 
     <!-- Live History -->
-      <div class="w-100" *ngIf="hasStartedListening || transcriptHistory.length > 0">
+      <div class="history-container w-100" *ngIf="hasStartedListening || transcriptHistory.length > 0">
         <!-- Speaker Toggle (visible while listening) -->
         <div class="speaker-toggle-container mb-3" *ngIf="hasStartedListening">
           <mat-button-toggle-group
@@ -259,33 +259,35 @@
           </button>
         </mat-menu>
         
-        <!-- Full History -->
-        <mat-card>
-          <mat-card-content>
-            <div class="history-list play-style" [class.empty]="transcriptHistory.length === 0">
-              <div 
-                *ngFor="let item of reversedTranscriptHistory; let first = first"
-                class="history-item play-item"
-                [class.speaker-a-item]="item.speaker === 'A'"
-                [class.speaker-b-item]="item.speaker === 'B'"
-                [class.live]="first && status === 'listening'"
-                [dir]="isRTL ? 'rtl' : 'ltr'">
-                <div class="speaker-text">
-                  <span *ngIf="item.isWaiting" class="waiting-spinner">
-                    <mat-spinner diameter="16" class="inline-spinner"></mat-spinner>
-                  </span>
-                  <span *ngIf="!item.isWaiting">{{ item.text }}</span>
-                  <span *ngIf="first && status === 'listening' && !item.isWaiting" class="live-cursor">|</span>
+        <!-- Full History - Scrollable -->
+        <div class="history-scrollable">
+          <mat-card>
+            <mat-card-content>
+              <div class="history-list play-style" [class.empty]="transcriptHistory.length === 0">
+                <div 
+                  *ngFor="let item of reversedTranscriptHistory; let first = first"
+                  class="history-item play-item"
+                  [class.speaker-a-item]="item.speaker === 'A'"
+                  [class.speaker-b-item]="item.speaker === 'B'"
+                  [class.live]="first && status === 'listening'"
+                  [dir]="isRTL ? 'rtl' : 'ltr'">
+                  <div class="speaker-text">
+                    <span *ngIf="item.isWaiting" class="waiting-spinner">
+                      <mat-spinner diameter="16" class="inline-spinner"></mat-spinner>
+                    </span>
+                    <span *ngIf="!item.isWaiting">{{ item.text }}</span>
+                    <span *ngIf="first && status === 'listening' && !item.isWaiting" class="live-cursor">|</span>
+                  </div>
+                </div>
+                <div *ngIf="transcriptHistory.length === 0" class="empty-state">
+                  <p class="text-muted text-center">
+                    {{ 'translator.transcript-placeholder' | translate }}
+                  </p>
                 </div>
               </div>
-              <div *ngIf="transcriptHistory.length === 0" class="empty-state">
-                <p class="text-muted text-center">
-                  {{ 'translator.transcript-placeholder' | translate }}
-                </p>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+            </mat-card-content>
+          </mat-card>
+        </div>
       </div>
 
   </section>
