@@ -56,9 +56,10 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   
   // Track last result time to detect speech gaps
   private lastResultTime: number = 0;
-  private readonly SPEECH_GAP_THRESHOLD = 700; // 0.7 seconds in milliseconds - creates empty line with spinner if current line has content
+  private readonly SPEECH_GAP_THRESHOLD = 1500; // 1.5 seconds in milliseconds - save text after gap
   private lastSavedText: string = ''; // Track the last saved text to prevent duplicates after gap
   private lastEmptyLineId: number | null = null; // Track the ID of the last empty line created after gap
+  private gapTimeout?: any; // Timeout to save text after speech gap
   
   // Loading spinner and language probability
   isAnalyzing: boolean = false;
@@ -159,9 +160,33 @@ export class TranslatorComponent implements OnInit, OnDestroy {
         // Debug: log latest snippet probabilities for A/B
         this.logNewVoiceData(trimmedText);
         
-        // SIMPLIFIED: Don't save text after speech gaps - only save when pausing or switching speakers
-        // Just update the last result time to track when we last received text
+        // Clear any existing gap timeout
+        if (this.gapTimeout) {
+          clearTimeout(this.gapTimeout);
+          this.gapTimeout = undefined;
+        }
+        
+        // Update the last result time
         this.lastResultTime = currentTime;
+        
+        // Set a timeout to save text after speech gap
+        // This ensures text is saved even if user doesn't pause or switch speakers
+        this.gapTimeout = setTimeout(() => {
+          if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
+            // Check if text is different from last saved text
+            const currentText = this.fullTranscriptText.trim();
+            if (currentText !== this.lastSavedText) {
+              console.log(`SPEECH_GAP: Saving text after gap: "${currentText}"`);
+              this.addCurrentTextToHistoryAsNewLine();
+              this.lastSavedText = currentText;
+              // Reset the text for next utterance
+              this.fullTranscriptText = '';
+              this.lastAddedWords = [];
+              this.lastFullTextLength = 0;
+            }
+          }
+          this.gapTimeout = undefined;
+        }, this.SPEECH_GAP_THRESHOLD);
         
         // Startup probe counters
         this.resultsSinceStart++;
@@ -321,6 +346,12 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       this.speechRecognitionService.stopListening();
       // Manually keep isListening as true
       this.isListening = true;
+      
+      // Clear gap timeout if exists
+      if (this.gapTimeout) {
+        clearTimeout(this.gapTimeout);
+        this.gapTimeout = undefined;
+      }
       
       // Save current text before pausing (if there's any)
       if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
@@ -630,13 +661,8 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // Skip if new text is identical to current text
+    // Skip if new text is identical to current text (only skip exact duplicates in live update)
     if (cleanNewText === cleanFullText) {
-      return;
-    }
-    
-    // Skip if new text is already fully contained in current text (it's an older result)
-    if (cleanFullText && cleanFullText.includes(cleanNewText) && cleanFullText.length >= cleanNewText.length) {
       return;
     }
     
@@ -1672,17 +1698,19 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Check if this text is identical to the last saved entry (prevent exact duplicates)
+    // Save the text as a single entry under the current manual speaker
+    // Only prevent saving if it's identical to the very last entry in the history
+    const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+    
+    // Check if this text is identical to the very last entry (prevent immediate duplicates)
     if (this.transcriptHistory.length > 0) {
       const lastEntry = this.transcriptHistory[this.transcriptHistory.length - 1];
-      if (lastEntry.speaker === this.currentSpeaker && lastEntry.text && lastEntry.text.trim().toLowerCase() === textToSave.trim().toLowerCase()) {
-        console.log('EXACT_DUPLICATE: Text is identical to last entry, skipping save');
+      if (lastEntry.text && lastEntry.text.trim().toLowerCase() === textToSave.trim().toLowerCase()) {
+        console.log('EXACT_DUPLICATE_LAST: Text is identical to the very last entry, skipping save');
         return;
       }
     }
-
-    // Save the text as a single entry under the current manual speaker
-    const language = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+    
     this.historyIdCounter++;
     this.transcriptHistory.push({
       speaker: this.currentSpeaker,
@@ -1693,9 +1721,6 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     
     // Update saved history count - this is now the new saved count
     this.savedHistoryCount = this.transcriptHistory.length;
-    
-    // Remove duplicate messages from the same speaker
-    this.removeConsecutiveDuplicateMessages();
     
     // Fix language detection errors retroactively
     this.fixLanguageDetectionErrors();
@@ -1807,11 +1832,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       // This ensures they don't disappear when switching speakers
       if (liveSegmentsWithText.length > 0) {
         liveSegmentsWithText.forEach(item => {
-          // Check if this entry is not already in saved history
-          const isDuplicate = savedHistory.some(
-            saved => saved.id === item.id || 
-            (saved.speaker === item.speaker && saved.text && saved.text.trim().toLowerCase() === item.text.trim().toLowerCase())
-          );
+          // Only check if this exact entry (by ID) is already saved
+          // Don't check for text duplicates - allow all text to be saved
+          const isDuplicate = savedHistory.some(saved => saved.id === item.id);
           
           if (!isDuplicate) {
             // Add to saved history
