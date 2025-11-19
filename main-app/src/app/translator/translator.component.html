@@ -217,9 +217,9 @@
     </div>
 
     <!-- Live History -->
-      <div class="w-100" *ngIf="isListening || transcriptHistory.length > 0">
+      <div class="w-100" *ngIf="hasStartedListening || transcriptHistory.length > 0">
         <!-- Speaker Toggle (visible while listening) -->
-        <div class="speaker-toggle-container mb-3" *ngIf="isListening">
+        <div class="speaker-toggle-container mb-3" *ngIf="hasStartedListening">
           <mat-button-toggle-group
             [value]="currentSpeaker"
             (change)="onSpeakerToggle($event.value)"
