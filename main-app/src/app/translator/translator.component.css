@@ -363,6 +363,33 @@ mat-card-content {
   display: inline-block;
 }
 
+/* Spinner color for Speaker A (blue) */
+.speaker-a-item .waiting-spinner ::ng-deep .mat-mdc-progress-spinner circle,
+.speaker-a-item .waiting-spinner ::ng-deep .mat-progress-spinner circle,
+.speaker-a-item .waiting-spinner ::ng-deep svg circle {
+  stroke: #2196F3 !important;
+}
+
+/* Spinner color for Speaker B (orange) */
+.speaker-b-item .waiting-spinner ::ng-deep .mat-mdc-progress-spinner circle,
+.speaker-b-item .waiting-spinner ::ng-deep .mat-progress-spinner circle,
+.speaker-b-item .waiting-spinner ::ng-deep svg circle {
+  stroke: #FF9800 !important;
+}
+
+/* Dark theme spinner colors */
+:host-context(.darkTheme) .speaker-a-item .waiting-spinner ::ng-deep .mat-mdc-progress-spinner circle,
+:host-context(.darkTheme) .speaker-a-item .waiting-spinner ::ng-deep .mat-progress-spinner circle,
+:host-context(.darkTheme) .speaker-a-item .waiting-spinner ::ng-deep svg circle {
+  stroke: #64B5F6 !important;
+}
+
+:host-context(.darkTheme) .speaker-b-item .waiting-spinner ::ng-deep .mat-mdc-progress-spinner circle,
+:host-context(.darkTheme) .speaker-b-item .waiting-spinner ::ng-deep .mat-progress-spinner circle,
+:host-context(.darkTheme) .speaker-b-item .waiting-spinner ::ng-deep svg circle {
+  stroke: #FFB74D !important;
+}
+
 .history-list.empty {
   min-height: 200px;
   display: flex;

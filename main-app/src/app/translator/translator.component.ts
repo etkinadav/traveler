@@ -76,6 +76,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   // Manual speaker selection (toggle)
   currentSpeaker: 'A' | 'B' = 'A';
   private manualSpeakerMode: boolean = true;
+  
+  // Flag to prevent processing recognition results during speaker switch
+  private isSwitchingSpeaker: boolean = false;
 
   // UI: Compact history visibility
   showCompactHistory: boolean = false;
@@ -612,6 +615,13 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // CRITICAL: Don't process recognition results during speaker switch
+    // This prevents old speaker's text from appearing in new speaker's line
+    if (this.isSwitchingSpeaker) {
+      console.log('UPDATE_TEXT: Ignoring recognition result during speaker switch');
+      return;
+    }
+    
     // Remove RTL marks and normalize
     const cleanNewText = newText.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
     const cleanFullText = this.fullTranscriptText.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
@@ -1006,9 +1016,39 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
-    // In manual speaker mode, don't perform automatic language switching
-    // The user has explicitly chosen which speaker/language to use
+    // In manual speaker mode, handle wrong language differently
+    // If speaker says text in wrong language, save it and start a new line
     if (this.manualSpeakerMode) {
+      // Use sophisticated analysis to detect language
+      const last3WordsAnalysis = this.analyzeLastWordsForLanguage(this.fullTranscriptText || text, 3);
+      const detectedLanguage = this.detectLanguageFromText(text);
+      const finalDetectedLanguage = last3WordsAnalysis.detectedLanguage || detectedLanguage;
+      
+      // Get expected language for current speaker
+      const expectedLanguage = this.currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+      
+      // Check if detected language differs from expected language
+      if (finalDetectedLanguage && finalDetectedLanguage !== expectedLanguage) {
+        // Check if we have strong evidence (high analysis confidence OR very low recognition confidence)
+        const hasStrongEvidence = (confidence < 0.3 && last3WordsAnalysis.confidence > 0.6) || 
+                                  last3WordsAnalysis.confidence > 0.85 ||
+                                  (this.languageMismatchCount >= 2 && last3WordsAnalysis.confidence > 0.6);
+        
+        if (hasStrongEvidence) {
+          console.log(`MANUAL_MODE_WRONG_LANG: Speaker ${this.currentSpeaker} said text in wrong language (detected: ${finalDetectedLanguage}, expected: ${expectedLanguage}). Saving and starting new line.`);
+          this.handleWrongLanguageInManualMode();
+          this.languageMismatchCount = 0;
+          return;
+        } else {
+          // Count mismatches but don't act yet
+          this.languageMismatchCount++;
+        }
+      } else if (finalDetectedLanguage === expectedLanguage) {
+        // Language matches - reset mismatch counter
+        if (this.languageMismatchCount > 0) {
+          this.languageMismatchCount = 0;
+        }
+      }
       return;
     }
     
@@ -1753,6 +1793,24 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       // Save whether we were listening before switching
       const wasListening = this.isListening && !this.isPaused;
       
+      // CRITICAL: Save and clear current text IMMEDIATELY before stopping recognition
+      // This prevents any pending recognition results from updating the transcript
+      if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
+        this.addCurrentTextToHistoryAsNewLine();
+      }
+      
+      // CRITICAL: Set flag to prevent processing any pending recognition results
+      this.isSwitchingSpeaker = true;
+      
+      // CRITICAL: Clear ALL transcript state IMMEDIATELY to prevent any pending results
+      // from being processed with the old speaker's text
+      this.fullTranscriptText = '';
+      this.lastAddedWords = [];
+      this.lastFullTextLength = 0;
+      this.lastResultTime = 0;
+      this.lastSavedText = '';
+      this.lastEmptyLineId = null;
+      
       // CRITICAL: Stop current recognition first to prevent mixed text
       // This ensures we get a clean restart with the new speaker
       if (wasListening) {
@@ -1775,13 +1833,11 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   }
   
   private performSpeakerSwitch(newSpeaker: 'A' | 'B', wasListening: boolean): void {
-    // Finalize current accumulated text under the previous speaker before switching
-    if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
-      this.addCurrentTextToHistoryAsNewLine();
-    }
+    // NOTE: Text has already been saved and cleared in onSpeakerToggle
+    // This ensures no pending recognition results can update the transcript
     
-    // CRITICAL: Always reset ALL transcript state variables when switching speakers
-    // This prevents any text from the previous speaker from appearing in the new speaker's line
+    // CRITICAL: Ensure ALL transcript state variables are still cleared
+    // (They should already be cleared, but double-check to be safe)
     this.fullTranscriptText = '';
     this.lastAddedWords = [];
     this.lastFullTextLength = 0;
@@ -1827,7 +1883,100 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       // Switch to the target language after a brief delay
       setTimeout(() => {
         this.speechRecognitionService.switchRecognitionLanguage(targetLanguage);
+        // Clear the switching flag after recognition has restarted
+        // This allows new recognition results to be processed
+        setTimeout(() => {
+          this.isSwitchingSpeaker = false;
+          console.log('SPEAKER_SWITCH: Switch complete, accepting new recognition results');
+        }, 300);
       }, 200);
+    } else {
+      // If not listening, clear the flag immediately
+      this.isSwitchingSpeaker = false;
+    }
+    
+    this.cdr.detectChanges();
+  }
+  
+  /**
+   * Handles wrong language detection in manual mode
+   * When a speaker says text in wrong language, saves the text and starts a new line with spinner
+   */
+  private handleWrongLanguageInManualMode(): void {
+    // Save current accumulated text before clearing
+    if (this.fullTranscriptText && this.fullTranscriptText.trim().length > 0) {
+      this.addCurrentTextToHistoryAsNewLine();
+    }
+    
+    // Save whether we were listening before clearing
+    const wasListening = this.isListening && !this.isPaused;
+    
+    // CRITICAL: Set flag to prevent processing any pending recognition results
+    this.isSwitchingSpeaker = true;
+    
+    // CRITICAL: Stop current recognition first to prevent mixed text
+    if (wasListening) {
+      console.log('WRONG_LANG_MANUAL: Stopping recognition to prevent mixed text...');
+      this.speechRecognitionService.stopListening();
+    }
+    
+    // CRITICAL: Always reset ALL transcript state variables
+    // This ensures clean state for the new line
+    this.fullTranscriptText = '';
+    this.lastAddedWords = [];
+    this.lastFullTextLength = 0;
+    this.lastResultTime = 0;
+    this.lastSavedText = '';
+    this.lastEmptyLineId = null;
+    
+    // Start a fresh buffering window
+    this.bufferingActive = true;
+    this.utteranceStartTime = Date.now();
+    
+    // Keep the same speaker - we're just starting a new line
+    const currentSpeaker = this.currentSpeaker;
+    const currentLanguage = currentSpeaker === 'A' ? this.selectedLanguageA : this.selectedLanguageB;
+    
+    // Update or create spinner for the same speaker
+    // IMPORTANT: Always remove ALL live segments (with text or waiting) when starting new line
+    const savedHistory = this.transcriptHistory.slice(0, this.savedHistoryCount);
+    
+    // Always create a fresh waiting line for the same speaker
+    // Remove any existing live segments first (both with text and waiting)
+    this.historyIdCounter++;
+    this.lastEmptyLineId = this.historyIdCounter;
+    this.transcriptHistory = [...savedHistory, {
+      speaker: currentSpeaker,
+      text: '',
+      language: currentLanguage,
+      id: this.lastEmptyLineId,
+      isWaiting: true
+    }];
+    // DO NOT update savedHistoryCount - this is a live segment
+    
+    // Restart recognition with the same speaker's language
+    console.log(`WRONG_LANG_MANUAL: Restarting recognition with language ${currentLanguage} for speaker ${currentSpeaker}`);
+    
+    // If we were listening, restart with the same language
+    if (wasListening) {
+      // Wait a moment for recognition to fully stop before restarting
+      setTimeout(() => {
+        // Restart listening with the same language
+        this.speechRecognitionService.startListening(this.selectedLanguageA, this.selectedLanguageB);
+        
+        // Switch to the current speaker's language after a brief delay
+        setTimeout(() => {
+          this.speechRecognitionService.switchRecognitionLanguage(currentLanguage);
+          // Clear the switching flag after recognition has restarted
+          setTimeout(() => {
+            this.isSwitchingSpeaker = false;
+            console.log('WRONG_LANG_MANUAL: Restart complete, accepting new recognition results');
+          }, 300);
+        }, 200);
+      }, 150);
+    } else {
+      // If not listening, clear the flag immediately
+      this.isSwitchingSpeaker = false;
     }
     
     this.cdr.detectChanges();
