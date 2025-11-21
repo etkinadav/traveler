@@ -183,6 +183,9 @@ export class TranslatorComponent implements OnInit, OnDestroy {
               this.fullTranscriptText = '';
               this.lastAddedWords = [];
               this.lastFullTextLength = 0;
+              // Create a new line with spinner for the next utterance
+              this.updateHistoryFromFullText();
+              this.cdr.detectChanges();
             }
           }
           this.gapTimeout = undefined;
@@ -656,6 +659,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
     // Remove RTL marks and normalize
     const cleanNewText = newText.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
     const cleanFullText = this.fullTranscriptText.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
+    const cleanLastSavedText = this.lastSavedText.replace(/[\u200E-\u200F\u202A-\u202E]/g, '').trim();
     
     if (!cleanNewText) {
       return;
@@ -666,22 +670,49 @@ export class TranslatorComponent implements OnInit, OnDestroy {
       return;
     }
     
+    // CRITICAL: If fullTranscriptText is empty (after a gap save) and new text contains the last saved text,
+    // extract only the new part to avoid duplicates
+    let textToUse = cleanNewText;
+    let addedPart = cleanNewText;
+    
+    if (!cleanFullText && cleanLastSavedText) {
+      // Text was just saved after a gap, and new text is coming in
+      // Check if new text starts with the saved text (duplicate case)
+      if (cleanNewText.startsWith(cleanLastSavedText)) {
+        // Extract only the new part (after the saved text)
+        const newPart = cleanNewText.slice(cleanLastSavedText.length).trim();
+        if (newPart && newPart.length > 0) {
+          textToUse = newPart;
+          addedPart = newPart;
+          console.log(`GAP_CONTINUATION: Extracted new part after gap: "${newPart}" from full text: "${cleanNewText}"`);
+        } else {
+          // New text is identical to saved text, skip it
+          console.log(`GAP_CONTINUATION: New text is identical to saved text, skipping: "${cleanNewText}"`);
+          return;
+        }
+      } else if (cleanNewText === cleanLastSavedText) {
+        // Exact duplicate of saved text, skip it
+        console.log(`GAP_CONTINUATION: New text is exact duplicate of saved text, skipping: "${cleanNewText}"`);
+        return;
+      }
+      // If new text doesn't start with saved text, it's completely new - use it as is
+    }
+    
     // Always update if:
     // 1. Current text is empty, OR
     // 2. New text starts with current text (extension), OR
     // 3. New text is longer than current text
-    if (!cleanFullText || cleanNewText.startsWith(cleanFullText) || cleanNewText.length > cleanFullText.length) {
+    if (!cleanFullText || textToUse.startsWith(cleanFullText) || textToUse.length > cleanFullText.length) {
       // Extract the new part if it's an extension
-      let addedPart = cleanNewText;
-      if (cleanFullText && cleanNewText.startsWith(cleanFullText)) {
-        addedPart = cleanNewText.slice(cleanFullText.length).trim();
+      if (cleanFullText && textToUse.startsWith(cleanFullText)) {
+        addedPart = textToUse.slice(cleanFullText.length).trim();
         if (!addedPart || addedPart.length === 0) {
           return; // No new content
         }
       }
       
       // Update to the new text
-      this.fullTranscriptText = cleanNewText;
+      this.fullTranscriptText = textToUse;
       this.updateTrackedWords(addedPart);
       console.log(`UPDATE_TEXT ${this.fullTranscriptText}`);
       
