@@ -56,7 +56,7 @@ export class TranslatorComponent implements OnInit, OnDestroy {
   
   // Track last result time to detect speech gaps
   private lastResultTime: number = 0;
-  private readonly SPEECH_GAP_THRESHOLD = 1500; // 1.5 seconds in milliseconds - save text after gap
+  private readonly SPEECH_GAP_THRESHOLD = 1000; // 1 second in milliseconds - save text and create new line after gap
   private lastSavedText: string = ''; // Track the last saved text to prevent duplicates after gap
   private lastEmptyLineId: number | null = null; // Track the ID of the last empty line created after gap
   private gapTimeout?: any; // Timeout to save text after speech gap
